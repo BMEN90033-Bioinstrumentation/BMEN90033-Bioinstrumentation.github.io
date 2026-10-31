@@ -61,10 +61,15 @@
             noteBg.attr('x', b.x - 8).attr('y', b.y - 4).attr('width', msg ? b.width + 16 : 0).attr('height', msg ? b.height + 8 : 0);
         }
 
-        var last = h[h.length - 1], out = {};
+        var out = {};
         out.lead = VC.electrodes.length >= 2 ? VC.electrodes[0].label + ' − ' + VC.electrodes[1].label : '–';
-        out.atten = last && Math.abs(last[1]) > 1e-6 ? (last[2] / last[1]).toFixed(3) : '–';
-        out.disp = last && Math.abs(last[1]) > 1e-6 ? (last[2] * k / last[1]).toFixed(3) : '–';
+        // RMS ratio over the visible window; an instantaneous ratio is
+        // undefined at every zero crossing of the true signal.
+        var st = 0, sr = 0;
+        h.forEach(function (q) { st += q[1] * q[1]; sr += q[2] * q[2]; });
+        var ok = h.length > 1 && st > 1e-12;
+        out.atten = ok ? Math.sqrt(sr / st).toFixed(3) : '–';
+        out.disp = ok ? (Math.sqrt(sr / st) * k).toFixed(3) : '–';
         Object.keys(out).forEach(function (key) {
             document.querySelectorAll('[data-out="' + key + '"]').forEach(function (el) { el.textContent = out[key]; });
         });

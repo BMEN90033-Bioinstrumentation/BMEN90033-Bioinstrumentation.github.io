@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const VC = window.VC, p = VC.p;
 const css = window.CMP.cssVar;
@@ -47,6 +48,7 @@ camera.position.set(25, 18, 30);
 const orbit = new OrbitControls(camera, renderer.domElement);
 orbit.enableDamping = true;
 orbit.dampingFactor = 0.08;
+const wheel = guardWheel(orbit, renderer.domElement, document.getElementById('scene-hint'));
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -257,10 +259,15 @@ renderer.domElement.addEventListener('click', function (ev) {
 function setPlacing(on) {
     placing = on;
     renderer.domElement.style.cursor = on ? 'crosshair' : '';
+    // While placing, the hint gives the placement instruction; otherwise the
+    // wheel guard restores its own text for the present zoom state.
     const hint = document.getElementById('scene-hint');
-    if (hint) hint.textContent = on ? 'click a shell to place the electrode · esc to cancel'
-        : 'drag to rotate · click an electrode to move it';
+    if (on) { if (hint) hint.textContent = 'click a shell to place the electrode · esc to cancel'; }
+    else wheel(orbit.enableZoom);
 }
+renderer.domElement.addEventListener('pointerleave', function () {   // runs after the wheel guard
+    if (placing) setPlacing(true);
+});
 window.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') { setPlacing(false); select(null); }
 });

@@ -1,21 +1,22 @@
 // Section 02 · Scrolling electrode-current trace over the last 6 s, and the
 // live electrode-potential readout. The frame (axes, titles) is rebuilt on
 // theme or size change; each animation frame only rewrites the trace path.
-// Sign convention: positive for net reduction (cathodic current).
+// IUPAC sign convention: anodic (oxidation) current positive, cathodic
+// (reduction) current negative.
 (function () {
     var sel = '#plot-current';
     var WIN = 6;                    // visible window, s
-    var hist = [], tNow = 0, simT = 0;
+    var hist = [], tNow = 0, simT = 0, lastJ = 0;
     var f = null, x = null, y = null, path = null, raf = 0, last = 0;
 
     function build() {
         var B = window.ELI, css = window.CMP.cssVar;
         f = B.frame(sel, { margin: { top: 36, right: 24 } });
         x = d3.scaleLinear().domain([-WIN, 0]).range([0, f.iw]);
-        y = d3.scaleLinear().domain([-1.1, 1.1]).range([f.ih, 0]);
+        y = d3.scaleLinear().domain([-110, 110]).range([f.ih, 0]);
         B.axes(f, f.g, x, y, f.ih, 0, {
             xTitle: 't - t_\\text{now}\\;[\\mathrm{s}]',
-            yTitle: 'i\\;[\\text{normalised}]'
+            yTitle: 'j\\;[\\mu\\mathrm{A/cm^2}]'
         });
         path = f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-i')).attr('stroke-width', 2);
         draw();
@@ -28,9 +29,17 @@
             .y(function (d) { return y(d[1]); })(hist));
     }
 
-    function readout(i) {
-        var B = window.ELI, el = document.querySelector('[data-out="e"]');
-        if (el) el.textContent = (B.potential(i, B.p.mode) >= 0 ? '+' : '') + B.potential(i, B.p.mode).toFixed(3) + ' V';
+    function readout(j) {
+        var B = window.ELI, p = B.p, E = B.potential(j, p.mode), eta = E - B.nernst(Math.pow(10, p.lacl));
+        var out = {
+            e: (E >= 0 ? '+' : '') + E.toFixed(4) + ' V',
+            eta: (eta >= 0 ? '+' : '') + (eta * 1e3).toFixed(2) + ' mV',
+            j: (j >= 0 ? '+' : '') + j.toFixed(1) + ' µA/cm²',
+            rct: B.rct(Math.pow(10, p.lj0)).toFixed(1) + ' Ω·cm²'
+        };
+        Object.keys(out).forEach(function (k) {
+            document.querySelectorAll('[data-out="' + k + '"]').forEach(function (el) { el.textContent = out[k]; });
+        });
     }
 
     function tick(now) {
@@ -43,6 +52,7 @@
         tNow += dt;
         simT += dt * p.speed;
         var i = B.current(simT, p.mode);
+        lastJ = i;
         hist.push([tNow, i]);
         while (hist.length && hist[0][0] < tNow - WIN) hist.shift();
         readout(i);
@@ -73,7 +83,8 @@
         window.addEventListener('resize', build);
         window.addEventListener('elichange', function (e) {
             var k = e.detail && e.detail.key;
-            if (k === 'reset') { hist = []; tNow = 0; simT = 0; draw(); readout(0); }
+            if (k === 'reset') { hist = []; tNow = 0; simT = 0; lastJ = 0; draw(); }
+            readout(window.ELI.p.mode === 'equil' ? 0 : lastJ);
             if (k === 'mode' || k === 'reset') modeOut();
         });
         new IntersectionObserver(function (es) {

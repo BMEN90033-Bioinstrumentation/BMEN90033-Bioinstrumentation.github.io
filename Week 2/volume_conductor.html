@@ -318,7 +318,8 @@
             <div class="callout">
                 Selecting ECG or EEG also loads the matching tissue preset. The display scale multiplies only the
                 plotted recorded trace, so that a strongly attenuated signal can be compared in shape with the true
-                signal; the attenuation readout is unaffected by it.
+                signal; the attenuation readout, an RMS ratio over the visible window, is unaffected by it. The
+                lead is sampled at $1\,\text{kHz}$, well above the highest source component.
             </div>
         </div>
 
@@ -356,8 +357,8 @@
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">lead</span><span class="v" data-out="lead"></span></div>
-                    <div class="item"><span class="k">recorded / true</span><span class="v" data-out="atten"></span></div>
-                    <div class="item"><span class="k">as displayed</span><span class="v" data-out="disp"></span></div>
+                    <div class="item"><span class="k">recorded / true (rms)</span><span class="v" data-out="atten"></span></div>
+                    <div class="item"><span class="k">as displayed (rms)</span><span class="v" data-out="disp"></span></div>
                 </div>
             </div>
         </div>
@@ -374,6 +375,7 @@
     <script defer src="volume_conductor_JS/plot_harmonics.js"></script>
     <script defer src="volume_conductor_JS/plot_signal.js"></script>
     <script type="module" src="volume_conductor_JS/scene_volume.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

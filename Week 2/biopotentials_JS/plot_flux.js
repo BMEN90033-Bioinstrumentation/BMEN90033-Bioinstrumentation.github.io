@@ -1,4 +1,4 @@
-// Section 04 · Particle flux implied by the HH currents over the last 70 ms:
+// Section 04 · Passive (channel + leak) particle flux over the last 70 ms:
 // Na+ influx and K+ efflux, both positive in their physiological direction.
 // The symmetric y range grows to fit the window (minimum +/-30 particles/ms)
 // and the plot is redrawn when it changes. Series in the HTML legend.

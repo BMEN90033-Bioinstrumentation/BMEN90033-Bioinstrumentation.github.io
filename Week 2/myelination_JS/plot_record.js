@@ -1,6 +1,9 @@
 // Section 03 · Schematic membrane potential at the recording point
 // (x = RECORD_X) for both fibres over one cycle, V = -70 + 110 a(d) mV with
 // a = apShape and d the distance from the recording point to the front.
+// Each trace is sampled at every simulation step and, in addition, at the
+// exact instants the front passes the breakpoints of apShape (including the
+// peak at d = 0), so a fast front cannot skip the peak between samples.
 // The readout gives the arrival time of each front at the recording point.
 (function () {
     var sel = '#plot-record';
@@ -14,10 +17,25 @@
         var y = d3.scaleLinear().domain([-90, 50]).range([f.ih, 0]);
         M.axes(f, f.g, x, y, f.ih, 0, { xTitle: 't\\;[\\mathrm{s}]', yTitle: 'V_m\\;[\\mathrm{mV}]' });
 
+        // [t, front position] pairs with the breakpoint crossings inserted.
+        function samples(key) {
+            var out = [[run[0].t, run[0][key]]];
+            for (var i = 1; i < run.length; i++) {
+                var a = run[i - 1], b = run[i];
+                M.AP_BREAKS.forEach(function (dk) {
+                    var xb = R - dk;
+                    if (a[key] < xb && b[key] >= xb) {
+                        out.push([a.t + (b.t - a.t) * (xb - a[key]) / (b[key] - a[key]), xb]);
+                    }
+                });
+                out.push([b.t, b[key]]);
+            }
+            return out;
+        }
         function trace(key, c) {
             f.g.append('path').attr('class', 'trace').attr('stroke', css(c))
-                .attr('d', d3.line().x(function (d) { return x(d.t); })
-                    .y(function (d) { return y(M.vm(M.apShape(R - d[key]))); })(run));
+                .attr('d', d3.line().x(function (d) { return x(d[0]); })
+                    .y(function (d) { return y(M.vm(M.apShape(R - d[1]))); })(samples(key)));
         }
         trace('u', '--c-depol');
         trace('m', '--c-myelin');
@@ -28,8 +46,7 @@
         refs = { x: x, y: y, cur: cur, du: du, dm: dm };
 
         // Arrival: first sample at which the front has reached the recording point.
-        function arrive(key) { var d = run.find(function (q) { return q[key] >= R; }); return d ? d.t : NaN; }
-        var tu = arrive('u'), tmy = arrive('m');
+        var tu = M.crossTime(run, 'u', R), tmy = M.crossTime(run, 'm', R);
         var out = { tm: tmy.toFixed(2) + ' s', tu: tu.toFixed(2) + ' s', tr: (tu / tmy).toFixed(1) + '×' };
         document.querySelectorAll('[data-out]').forEach(function (el) { el.textContent = out[el.dataset.out]; });
         tick();

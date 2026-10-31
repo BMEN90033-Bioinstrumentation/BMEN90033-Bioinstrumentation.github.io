@@ -143,7 +143,7 @@
                 <div class="plot-box scene3d">
                     <div class="label">3D axons · <b>myelinated above, unmyelinated below</b></div>
                     <div class="three-host" id="mye-three"></div>
-                    <div class="hint">drag to rotate · scroll to zoom</div>
+                    <div class="hint">drag to rotate · click, then scroll to zoom</div>
                 </div>
                 <div class="legend">
                     <span><span class="sw band" style="background:var(--c-myelin)"></span>myelin sheath</span>
@@ -180,14 +180,17 @@
                 axial current from an active node brings the next node to threshold quickly. Voltage-gated sodium
                 channels are concentrated at the nodes, and the action potential is regenerated only there.</p>
 
-            <p>In the model the front dwells at each node for $t_d = 0.08\,\text{s}$ and then crosses an internode of
-                length $L$ in $t_j = 0.12\,\text{s}$ (at the default speed setting). The average speed of the
-                myelinated front, and its ratio to the constant speed $v_u = 4$ units/s of the unmyelinated front,
-                are</p>
+            <p>In the model the front dwells at each node for $t_d = 0.08\,\text{s}/k$ and then crosses an
+                internode of length $L$ in $t_j = 0.12\,\text{s}/k$, where $k$ is the speed setting. The
+                unmyelinated front moves at the constant speed $v_u = 4k$ units/s. The average speed of the
+                myelinated front, and its ratio to $v_u$, are</p>
 
             <div class="eq-block">$$\bar v_m = \frac{L}{t_d + t_j}, \qquad \frac{\bar v_m}{v_u} = \frac{L}{(t_d + t_j)\, v_u}$$</div>
 
-            <p>so longer internodes give faster conduction in the model. In real fibres the internode length and the
+            <p>The speed setting cancels from the ratio, which is about 8.75 for $L = 7$. The readout in section 01
+                gives the ratio of the simulated times each front takes to cross the axon; it is slightly lower
+                because the last internode is shorter than $L$. Longer internodes give faster conduction in the
+                model. In real fibres the internode length and the
                 myelin thickness both scale with axon diameter. Conduction velocity rises approximately in proportion
                 to diameter in myelinated fibres and approximately with the square root of diameter in unmyelinated
                 fibres.</p>
@@ -243,16 +246,21 @@
                 $d$ is the distance from the recording point to the front, positive while the front has not yet
                 arrived:</p>
 
-            <div class="eq-block">$$a(d) = \begin{cases} (1 - d/2)^2, & 0 < d \le 2 \\ e^{d/1.5}, & -3 < d \le 0 \\
-                -0.15\, e^{(d + 3)/3}, & -8 < d \le -3 \\ 0, & \text{otherwise} \end{cases}$$</div>
+            <div class="eq-block">$$a(d) = \begin{cases} (1 - d/2)^2, & 0 < d \le 2 \\[4pt]
+                -a_h + (1 + a_h)\,\dfrac{e^{d/1.5} - e^{-2}}{1 - e^{-2}}, & -3 < d \le 0 \\[8pt]
+                -a_h\,\dfrac{e^{(d + 3)/3} - e^{-5/3}}{1 - e^{-5/3}}, & -8 < d \le -3 \\[6pt]
+                0, & \text{otherwise} \end{cases}$$</div>
 
-            <div class="eq-block">$$V_m = -70 + 110\, a(d)\ \text{mV}$$</div>
+            <div class="eq-block">$$V_m = -70 + 110\, a(d)\ \text{mV}, \qquad a_h = 0.15$$</div>
+
+            <p>The repolarisation and recovery pieces are scaled so that $a(d)$ is continuous: it reaches the
+                after-hyperpolarisation minimum $-a_h$ at $d = -3$ and returns to zero at $d = -8$.</p>
 
             <p>The same spatial profile passes the recording point on both fibres, so the duration of the recorded
                 potential scales inversely with the speed of the front. The myelinated fibre gives an early,
-                brief event; the unmyelinated fibre a late, broad one. Because the myelinated front advances in
-                jumps, its recorded waveform is sampled at only a few distances, appears stepped, and need not reach
-                the full peak.</p>
+                brief event; the unmyelinated fibre a late, broad one. The myelinated front passes the recording point
+                during a single jump between nodes, so the upstroke and most of the repolarisation are compressed
+                into that jump, and the after-hyperpolarisation holds while the front dwells at the next node.</p>
 
             <p>The readout gives the time at which each front reaches the recording point, and their ratio.</p>
 
@@ -312,6 +320,7 @@
     <script defer src="myelination_JS/plot_position.js"></script>
     <script defer src="myelination_JS/plot_record.js"></script>
     <script type="module" src="myelination_JS/scene_axons.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

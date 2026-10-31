@@ -159,26 +159,40 @@
                 reaction. Three cases arise:</p>
 
             <ul class="bullets">
-                <li><strong>reduction</strong> ($\rightarrow$): electrons from the wire reduce AgCl to Ag and release
+                <li><strong>reduction</strong> ($\rightarrow$, cathodic): electrons from the wire reduce AgCl to Ag and release
                     $\text{Cl}^-$ into the electrolyte. Conventional current flows from the electrolyte into the
                     electrode and out along the wire towards the amplifier.</li>
-                <li><strong>oxidation</strong> ($\leftarrow$): $\text{Cl}^-$ combines with Ag to form AgCl and
+                <li><strong>oxidation</strong> ($\leftarrow$, anodic): $\text{Cl}^-$ combines with Ag to form AgCl and
                     releases an electron into the metal. Conventional current flows in along the wire and out of the
                     electrode into the electrolyte, and $\text{Cl}^-$ drifts towards the surface.</li>
                 <li><strong>equilibrium</strong>: the forward and reverse rates are equal, the net current is zero
                     and the interface rests at its equilibrium potential.</li>
             </ul>
 
-            <p>When net current flows the electrode potential departs from equilibrium by an overpotential $\eta$
-                whose sign follows the current, negative for cathodic (reduction) current and positive for anodic
-                current:</p>
+            <p>The plot follows the IUPAC sign convention: anodic current, which oxidises the electrode, is
+                positive, and cathodic current is negative. It shows the current density $j = i/A$.</p>
 
-            <div class="eq-block">$$E = E_\text{eq} + \eta$$</div>
+            <p>When net current flows the electrode potential departs from equilibrium by the charge-transfer
+                overpotential $\eta$. For a one-electron reaction with symmetric transfer coefficients the
+                Butler-Volmer equation relates the two:</p>
+
+            <div class="eq-block">$$j = j_0\left[e^{F\eta/2RT} - e^{-F\eta/2RT}\right] = 2j_0 \sinh\frac{F\eta}{2RT}$$</div>
+
+            <p>where $j_0$ is the exchange current density, the equal and opposite rate of the forward and reverse
+                reactions at equilibrium. For $|\eta| \ll RT/F$ the relation is linear,</p>
+
+            <div class="eq-block">$$\eta \approx R_\text{ct}\, j, \qquad R_\text{ct} = \frac{RT}{F j_0},
+                \qquad E = E_\text{eq} + \eta$$</div>
+
+            <p>with $E_\text{eq}$ given by the Nernst equation of section 03 at the selected chloride
+                activity.</p>
 
             <div class="callout">
-                The trace is a normalised illustration, plotted positive for net reduction. The readout applies a
-                small overpotential proportional to the current, so $E$ moves a few millivolts away from
-                $E^\circ = +0.222\,\text{V}$ only while current flows.
+                A large $j_0$ gives a small charge-transfer resistance, so the potential barely moves when current
+                flows; this is what makes Ag/AgCl nearly non-polarisable. The slider value of $j_0$ is
+                representative, not a measured constant: at the default $j_0 = 1\,\text{mA/cm}^2$,
+                $R_\text{ct} \approx 26\,\Omega\,\text{cm}^2$ and a drive of $50\,\mu\text{A/cm}^2$ produces an
+                overpotential of about $1.3\,\text{mV}$.
             </div>
         </div>
 
@@ -196,6 +210,11 @@
                         <input type="range" data-param="speed" min="0.2" max="3" step="0.1">
                         <span class="val" data-param="speed"></span>
                     </span>
+                    <span class="slider-group">
+                        <span class="lab">$j_0$ (log scale)</span>
+                        <input type="range" data-param="lj0" min="1" max="4" step="0.05">
+                        <span class="val" data-param="lj0"></span>
+                    </span>
                     <span class="seg">
                         <button class="seg-btn" data-action="pause">pause</button>
                         <button class="seg-btn" data-action="reset">reset</button>
@@ -206,14 +225,17 @@
                     <svg class="bode" id="plot-current"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-i)"></span>electrode current $i$</span>
-                    <span>$i &gt; 0$: net reduction</span>
-                    <span>$i &lt; 0$: net oxidation</span>
+                    <span><span class="sw" style="background:var(--c-i)"></span>current density $j$ (IUPAC)</span>
+                    <span>$j &gt; 0$: anodic, net oxidation</span>
+                    <span>$j &lt; 0$: cathodic, net reduction</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">mode</span><span class="v" data-out="mode"></span></div>
                     <div class="item"><span class="k">net reaction</span><span class="v" data-out="reaction"></span></div>
+                    <div class="item"><span class="k">$j$</span><span class="v" data-out="j"></span></div>
+                    <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
                     <div class="item"><span class="k">$E$ vs SHE</span><span class="v" data-out="e"></span></div>
+                    <div class="item"><span class="k">$R_\text{ct}$</span><span class="v" data-out="rct"></span></div>
                 </div>
             </div>
         </div>
@@ -287,6 +309,7 @@
     <script defer src="electrode_interface_JS/plot_current.js"></script>
     <script defer src="electrode_interface_JS/plot_nernst.js"></script>
     <script type="module" src="electrode_interface_JS/scene_interface.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

@@ -1,11 +1,13 @@
 // Section 01 · Three.js membrane patch: lipid bilayer cross-section, a
 // voltage-gated Na+ channel (subunits follow m, inactivation ball follows h),
 // a K+ channel (subunits follow n), an illustrative Na+/K+ pump, and Na+ and
-// K+ particles. Particles cross only through the channels, at the rate set by
-// the HH currents (BIO.pendingFlux). Ported from the original simulator;
-// colours come from the page CSS.
+// K+ particles. Particles cross at the rate set by the model (BIO.pending):
+// passive flux (channel and leak) at the channel of each ion, and pump flux
+// (3 Na+ out, 2 K+ in per cycle) through the pump. Ported from the original
+// simulator; colours come from the page CSS.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const B = window.BIO, HH = B.HH;
 const host = document.getElementById('bio-three');
@@ -15,8 +17,7 @@ const col = (n) => new THREE.Color(css(n));
 const VIS = {
     scene: null, camera: null, renderer: null, controls: null,
     time: 0,
-    lastMoved: { na: 0, k: 0 },      // signed particles started this rendered frame
-    baselineCounts: null,
+    lastMoved: { naIn: 0, naOut: 0, kIn: 0, kOut: 0 },   // transports started this rendered frame
     ions: { na: null, k: null },     // InstancedMeshes
     ionData: { na: [], k: [] },
     channels: { na: null, k: null, pump: null },
@@ -61,6 +62,7 @@ const VIS = {
         this.controls.target.set(0, 0, 0);
         this.controls.minDistance = 15;
         this.controls.maxDistance = 90;
+        guardWheel(this.controls, this.renderer.domElement, host.parentElement.querySelector('.hint'));
 
         this.scene.add(new THREE.AmbientLight(0xffffff, 0.1));
         const topLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -202,7 +204,7 @@ const VIS = {
         );
         const seed = (type, count, pOut) => {
             for (let i = 0; i < count; i++) {
-                const isOut = Math.random() < pOut;
+                const isOut = i < Math.round(count * pOut);   // exact compartment split
                 const pos = getPos(isOut);
                 dummy.position.copy(pos);
                 dummy.updateMatrix();
@@ -214,14 +216,9 @@ const VIS = {
                 });
             }
         };
-        seed('na', naCount, 0.90);    // Na: 90 % outside
-        seed('k', kCount, 0.035);     // K: 3.5 % outside
-
-        const counts = this.countIonsByRegion();
-        this.baselineCounts = {
-            na: { out: counts.na.out, in: counts.na.in },
-            k: { out: counts.k.out, in: counts.k.in }
-        };
+        // Split in proportion to the concentrations (equal compartment volumes).
+        seed('na', naCount, B.frac.na);
+        seed('k', kCount, B.frac.k);
     },
 
     recolour: function () {
@@ -268,8 +265,16 @@ const VIS = {
         // HH convention: INa < 0 is an inward Na current.
         const naFrom = HH.INa < 0 ? 'out' : 'in';
         const kFrom = HH.IK > 0 ? 'in' : 'out';
-        this.lastMoved.na = this.fulfillPendingFlux('na', this.channelX.na, naOpen);
-        this.lastMoved.k = this.fulfillPendingFlux('k', this.channelX.k, kOpen);
+        const L = this.lastMoved;
+        L.naIn = L.naOut = L.kIn = L.kOut = 0;
+        const tally = (type, n) => {
+            if (type === 'na') { if (n > 0) L.naIn += n; else L.naOut -= n; }
+            else { if (n > 0) L.kIn += n; else L.kOut -= n; }
+        };
+        tally('na', this.fulfillPending('na', this.channelX.na, 'passive'));
+        tally('k', this.fulfillPending('k', this.channelX.k, 'passive'));
+        tally('na', this.fulfillPending('na', this.channelX.pump, 'pump'));
+        tally('k', this.fulfillPending('k', this.channelX.pump, 'pump'));
 
         const run = (type, xCh, from, open) => {
             const list = this.ionData[type];
@@ -377,21 +382,14 @@ const VIS = {
         }
     },
 
-    countIonsByRegion: function () {
-        const c = { na: { out: 0, in: 0 }, k: { out: 0, in: 0 } };
-        for (const p of this.ionData.na) c.na[p.region]++;
-        for (const p of this.ionData.k) c.k[p.region]++;
-        return c;
-    },
-
-    // Start pore transports to satisfy BIO.pendingFlux, at most maxPerFrame
-    // per rendered frame. Returns the signed number actually started.
-    fulfillPendingFlux: function (type, xLoc, openFactor) {
-        const cfg = this.fluxCfg, pend = B.pendingFlux[type];
+    // Start pore transports to satisfy BIO.pending[route][type], at most
+    // maxPerFrame per rendered frame. Returns the signed number started.
+    fulfillPending: function (type, xLoc, route) {
+        const cfg = this.fluxCfg, pend = B.pending[route][type];
         let n = 0;
         if (pend >= 1) n = Math.min(Math.floor(pend), cfg.maxPerFrame);
         else if (pend <= -1) n = -Math.min(Math.floor(-pend), cfg.maxPerFrame);
-        if (n === 0 || openFactor < 0.02) return 0;   // no transport through a visually closed pore
+        if (n === 0) return 0;
         const fromReg = n > 0 ? 'out' : 'in', toReg = n > 0 ? 'in' : 'out', need = Math.abs(n);
         const list = this.ionData[type], capR2 = cfg.captureRadius * cfg.captureRadius;
         let moved = 0, attempts = 0;
@@ -407,7 +405,7 @@ const VIS = {
             moved++;
         }
         const signedMoved = n > 0 ? moved : -moved;
-        B.pendingFlux[type] -= signedMoved;
+        B.pending[route][type] -= signedMoved;
         return signedMoved;
     }
 };
@@ -416,19 +414,12 @@ VIS.init();
 VIS.recolour();
 window.addEventListener('themechange', () => VIS.recolour());
 
-// Particle-derived readouts: compartment concentrations and started transports.
-const outEl = (k) => document.querySelector('[data-out3d="' + k + '"]');
-const elNa = outEl('na'), elK = outEl('k'), elFlux = outEl('flux');
+// Started transports per ms of model time (concentrations come from the model).
+const elFlux = document.querySelector('[data-out3d="flux"]');
 function readout() {
-    const c = VIS.countIonsByRegion(), b = VIS.baselineCounts, base = B.baselineConc_mM;
-    const naOut = c.na.out / b.na.out * base.na.out, naIn = c.na.in / b.na.in * base.na.in;
-    const kIn = c.k.in / b.k.in * base.k.in, kOut = c.k.out / b.k.out * base.k.out;
-    elNa.textContent = naOut.toFixed(1) + ' | ' + naIn.toFixed(1) + ' mM';
-    elK.textContent = kIn.toFixed(1) + ' | ' + kOut.toFixed(1) + ' mM';
-    const dtFrame = B.STEPS_PER_FRAME * HH.dt;
-    const r = (v) => (Math.max(0, v) / dtFrame).toFixed(1);
-    const L = VIS.lastMoved;
-    elFlux.textContent = 'Na ' + r(L.na) + '/' + r(-L.na) + ' · K ' + r(-L.k) + '/' + r(L.k);
+    const dtFrame = B.STEPS_PER_FRAME * HH.dt, L = VIS.lastMoved;
+    const r = (v) => (v / dtFrame).toFixed(1);
+    elFlux.textContent = 'Na ' + r(L.naIn) + '/' + r(L.naOut) + ' · K ' + r(L.kOut) + '/' + r(L.kIn);
 }
 
 B.onTick(() => { VIS.update(); readout(); }, host);

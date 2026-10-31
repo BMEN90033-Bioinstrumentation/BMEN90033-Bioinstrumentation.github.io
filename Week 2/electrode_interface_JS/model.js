@@ -1,6 +1,7 @@
-// Ag/AgCl electrode interface model. Geometry, particle kinematics, the
-// synthetic electrode-current signal and the half-cell potential are ported
-// from the original simulator without change to the equations or constants.
+// Ag/AgCl electrode interface model. Geometry and particle kinematics are
+// ported from the original simulator. The electrode current follows the
+// IUPAC sign convention (anodic positive), the potential is the Nernst
+// equilibrium value plus a Butler-Volmer charge-transfer overpotential.
 // Particles are plain {x, y, z} objects so the Three.js scene only renders.
 (function () {
     // ── Geometry (scene units) ──
@@ -28,7 +29,8 @@
         speed: 1,
         ions: 15,
         paused: false,
-        lacl: Math.log10(0.08)   // log10 of chloride activity (Nernst section)
+        lacl: Math.log10(0.08),  // log10 of chloride activity (Nernst section)
+        lj0: 3                   // log10 of the exchange current density j0, uA/cm^2
     };
 
     function rnd() { return Math.random() - 0.5; }
@@ -161,19 +163,35 @@
         else stepIon(o, dt, mode, speed);
     }
 
-    // Normalised electrode current at simulation time t. Positive for net
-    // reduction, negative for net oxidation, noise only at equilibrium.
+    // Current density imposed by the external circuit at simulation time t,
+    // in uA/cm^2, with the IUPAC sign convention: anodic (oxidation) current
+    // positive, cathodic (reduction) current negative. The waveform is an
+    // illustrative drive of about 50 uA/cm^2 with a slow ripple and noise;
+    // at equilibrium only noise remains.
+    var J_SCALE = 100;   // uA/cm^2 per unit of the normalised drive
     function current(t, mode) {
-        if (mode === 'reduce') return 0.5 + Math.sin(t * 2) * 0.15 + rnd() * 0.05;
-        if (mode === 'oxidize') return -0.5 - Math.sin(t * 2) * 0.15 + rnd() * 0.05;
-        return rnd() * 0.02;
+        var u;
+        if (mode === 'oxidize') u = 0.5 + Math.sin(t * 2) * 0.15 + rnd() * 0.05;
+        else if (mode === 'reduce') u = -0.5 - Math.sin(t * 2) * 0.15 + rnd() * 0.05;
+        else u = rnd() * 0.02;
+        return J_SCALE * u;
     }
 
-    // Electrode potential with the illustrative overpotential: cathodic
-    // (reduction) current shifts E negative, anodic current shifts it positive.
-    function potential(i, mode) {
-        var dE = mode === 'equil' ? 0 : -0.02 * i;
-        return E0 + dE;
+    // Charge-transfer overpotential from the Butler-Volmer equation for a
+    // one-electron reaction with symmetric transfer coefficients
+    // (alpha_a = alpha_c = 0.5):
+    //     j = j0 [exp(F eta / 2RT) - exp(-F eta / 2RT)] = 2 j0 sinh(F eta / 2RT)
+    // so  eta = (2RT/F) asinh(j / 2 j0).  For |eta| << RT/F this reduces to
+    // eta = R_ct j with R_ct = RT / (F j0). j and j0 in uA/cm^2, eta in V.
+    // j0 is a representative value set on the page, not a measured constant.
+    function overpotential(j, j0) { return 2 * RT_F * Math.asinh(j / (2 * j0)); }
+    function rct(j0) { return RT_F / (j0 * 1e-6); }   // ohm cm^2
+
+    // Electrode potential: equilibrium (Nernst) value at the selected
+    // chloride activity plus the charge-transfer overpotential.
+    function potential(j, mode) {
+        var eq = nernst(Math.pow(10, p.lacl));
+        return mode === 'equil' ? eq : eq + overpotential(j, Math.pow(10, p.lj0));
     }
 
     // Nernst equation for AgCl + e- <-> Ag + Cl- with unit solid activities.
@@ -187,6 +205,7 @@
         ELECTROLYTE_CX: ELECTROLYTE_CX,
         E0: E0, RT_F: RT_F,
         p: p, spawn: spawn, step: step, current: current, potential: potential, nernst: nernst,
+        overpotential: overpotential, rct: rct,
         // Run fn now (after DOM ready) and on every parameter, theme or size change.
         onRender: function (fn) {
             function go() {

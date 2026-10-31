@@ -4,6 +4,7 @@
 // physics follow the original simulator; colours come from the page CSS.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const A = window.APD;
 const host = document.getElementById('apd-three');
@@ -48,6 +49,7 @@ controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
 controls.minDistance = 15;
 controls.maxDistance = 120;
+guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
 function resize() {
     const r = host.getBoundingClientRect();
@@ -177,11 +179,20 @@ const labelB = sprite('B', '--c-eb', 1.5);
 labelB.position.copy(posB).add(new THREE.Vector3(0, 2, 0));
 
 // ── Extracellular field arrows ──
-let fieldArrows = [];
+// Drawn as one LineSegments (shafts, per-vertex colour) and one InstancedMesh
+// (heads), with the same geometry as THREE.ArrowHelper, so the densest grid
+// (about 27 000 arrows) costs two draw calls.
+const HEAD_GEO = new THREE.CylinderGeometry(0, 0.5, 1, 5, 1);
+HEAD_GEO.translate(0, -0.5, 0);   // apex at the origin side as in ArrowHelper
+const field = { q: null, n: 0, shafts: null, heads: null };
 let builtDensity = 0;
 function buildFieldArrows(density) {
-    fieldArrows.forEach((a) => { scene.remove(a); a.dispose(); });
-    fieldArrows = [];
+    if (field.shafts) {
+        scene.remove(field.shafts, field.heads);
+        field.shafts.geometry.dispose(); field.shafts.material.dispose();
+        field.heads.dispose(); field.heads.material.dispose();
+    }
+    const q = [];
     const step = 6 / density, range = 22, yLevels = [-3, 0, 3, 6, 9];
     for (let x = -range; x <= range; x += step) {
         for (let z = -range; z <= range; z += step) {
@@ -191,13 +202,22 @@ function buildFieldArrows(density) {
                 const inTissueBox = Math.abs(x) < TISSUE_LEN / 2 + 1 &&
                     Math.abs(z) < TISSUE_W / 2 + 1 && Math.abs(y) < TISSUE_H / 2 + 0.5;
                 if (inTissueBox && Math.abs(y) < 1) continue;
-                const arrow = new THREE.ArrowHelper(XPOS, new THREE.Vector3(x, y, z), 1, 0x444444, 0.3, 0.2);
-                arrow.userData = { q: [x, y, z] };
-                scene.add(arrow);
-                fieldArrows.push(arrow);
+                q.push([x, y, z]);
             }
         }
     }
+    const n = q.length;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 6), 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 6), 3).setUsage(THREE.DynamicDrawUsage));
+    field.shafts = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false }));
+    field.heads = new THREE.InstancedMesh(HEAD_GEO, new THREE.MeshBasicMaterial({ toneMapped: false }), n);
+    field.heads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    field.heads.setColorAt(0, new THREE.Color());
+    field.heads.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    field.shafts.frustumCulled = field.heads.frustumCulled = false;
+    scene.add(field.shafts, field.heads);
+    field.q = q; field.n = n;
     builtDensity = density;
 }
 
@@ -240,6 +260,8 @@ buildFieldArrows(A.p.density);
 
 // ── Per-frame update ──
 const MAX_FIELD = 0.003;
+const Y_AXIS = new THREE.Vector3(0, 1, 0), _dir = new THREE.Vector3(), _p = new THREE.Vector3();
+const _quat = new THREE.Quaternion(), _s = new THREE.Vector3(), _m = new THREE.Matrix4();
 function frame() {
     controls.update();
     const st = A.state(A.s.wf);
@@ -289,20 +311,40 @@ function frame() {
     // Extracellular field: superposition of the active dipoles.
     const any = st.depolIn || st.repolIn;
     const dc = [st.depolX, 0, 0], rc = [st.repolX, 0, 0];
-    const dir = new THREE.Vector3();
-    for (const arrow of fieldArrows) {
-        const q = arrow.userData.q;
+    const pos = field.shafts.geometry.attributes.position.array;
+    const colr = field.shafts.geometry.attributes.color.array;
+    for (let i = 0; i < field.n; i++) {
+        const q = field.q[i], o = i * 6;
         let fx = 0, fy = 0, fz = 0;
         if (st.depolIn) { const f = A.field(dc, 1, q); fx += f[0]; fy += f[1]; fz += f[2]; }
         if (st.repolIn) { const f = A.field(rc, -1, q); fx += f[0]; fy += f[1]; fz += f[2]; }
         const mag = Math.sqrt(fx * fx + fy * fy + fz * fz);
-        if (mag < 1e-7 || !any) { arrow.visible = false; continue; }
-        arrow.visible = true;
-        arrow.setDirection(dir.set(fx / mag, fy / mag, fz / mag));
+        if (mag < 1e-7 || !any) {
+            // Hidden: zero-length shaft and zero-scale head.
+            pos[o] = pos[o + 3] = q[0]; pos[o + 1] = pos[o + 4] = q[1]; pos[o + 2] = pos[o + 5] = q[2];
+            _m.makeScale(0, 0, 0);
+            field.heads.setMatrixAt(i, _m);
+            continue;
+        }
+        _dir.set(fx / mag, fy / mag, fz / mag);
+        // ArrowHelper.setLength(max(len, 0.5), 0.25 len, 0.15 len)
         const len = Math.min(mag / MAX_FIELD * 3, 4);
-        arrow.setLength(Math.max(len, 0.5), len * 0.25, len * 0.15);
-        arrow.setColor(viridis(Math.min(mag / MAX_FIELD, 1)));
+        const total = Math.max(len, 0.5), headL = len * 0.25, headW = len * 0.15;
+        const shaft = Math.max(0.0001, total - headL);
+        pos[o] = q[0]; pos[o + 1] = q[1]; pos[o + 2] = q[2];
+        pos[o + 3] = q[0] + _dir.x * shaft; pos[o + 4] = q[1] + _dir.y * shaft; pos[o + 5] = q[2] + _dir.z * shaft;
+        _p.set(q[0] + _dir.x * total, q[1] + _dir.y * total, q[2] + _dir.z * total);
+        _quat.setFromUnitVectors(Y_AXIS, _dir);
+        _s.set(headW, headL, headW);
+        field.heads.setMatrixAt(i, _m.compose(_p, _quat, _s));
+        const c = viridis(Math.min(mag / MAX_FIELD, 1));
+        colr[o] = colr[o + 3] = c.r; colr[o + 1] = colr[o + 4] = c.g; colr[o + 2] = colr[o + 5] = c.b;
+        field.heads.setColorAt(i, c);
     }
+    field.shafts.geometry.attributes.position.needsUpdate = true;
+    field.shafts.geometry.attributes.color.needsUpdate = true;
+    field.heads.instanceMatrix.needsUpdate = true;
+    field.heads.instanceColor.needsUpdate = true;
 
     const sig = Math.abs(st.diff);
     elecA.ringMat.opacity = elecB.ringMat.opacity = 0.1 + Math.min(sig * 1.5, 0.4);

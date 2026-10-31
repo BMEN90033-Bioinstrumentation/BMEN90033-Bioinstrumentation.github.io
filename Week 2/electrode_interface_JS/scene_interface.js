@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const B = window.ELI, p = B.p;
 const css = window.CMP.cssVar;
@@ -38,6 +39,7 @@ controls.dampingFactor = 0.08;
 controls.target.set(2, 3.5, 2);
 controls.minDistance = 15;
 controls.maxDistance = 90;
+guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);

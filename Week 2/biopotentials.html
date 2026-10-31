@@ -61,14 +61,16 @@
                 the membrane and from the selective permeability of the membrane to each ion. A brief depolarising
                 stimulus opens voltage-gated sodium channels; the regenerative sodium influx that follows, ended by
                 sodium inactivation and a delayed potassium efflux, produces the action potential. This page runs
-                the Hodgkin-Huxley model of a membrane patch and shows the channel gating and ion flux that
-                underlie the membrane potential.</p>
+                the Hodgkin-Huxley model of a patch of squid giant axon membrane at $6.3\,{}^\circ\text{C}$, with an
+                electrogenic sodium-potassium pump, and shows the channel gating and ion flux that underlie the
+                membrane potential.</p>
             <div class="tags">
                 <span class="field-tag">ion gradients</span>
                 <span class="field-tag">Hodgkin-Huxley</span>
                 <span class="field-tag">gating</span>
                 <span class="field-tag">threshold</span>
                 <span class="field-tag">ion flux</span>
+                <span class="field-tag">Na/K pump</span>
             </div>
         </div>
         <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
@@ -81,29 +83,34 @@
             <h2>Ion gradients, channels and the pump</h2>
 
             <p class="lead">The scene shows a cross-section of a lipid bilayer separating the extracellular fluid
-                (above) from the cytoplasm (below). Sodium is concentrated outside the cell and potassium inside.
-                The concentrations used for the readouts are typical mammalian values:</p>
+                (above) from the cytoplasm (below). The page models a squid giant axon, the preparation on which
+                Hodgkin and Huxley based their model. Sodium is concentrated outside the axon and potassium inside.
+                The concentrations are representative squid-axon values, with the external $\text{K}^+$
+                concentration chosen so that the Nernst potentials equal the reversal potentials of the model
+                (section 02):</p>
 
             <ul class="bullets">
-                <li>$\text{Na}^+$: $145\,\text{mM}$ outside, $15\,\text{mM}$ inside;</li>
-                <li>$\text{K}^+$: $5\,\text{mM}$ outside, $140\,\text{mM}$ inside.</li>
+                <li>$\text{Na}^+$: $440\,\text{mM}$ outside, $55\,\text{mM}$ inside;</li>
+                <li>$\text{K}^+$: $16.3\,\text{mM}$ outside, $400\,\text{mM}$ inside.</li>
             </ul>
 
             <p>Three membrane proteins span the bilayer. The voltage-gated $\text{Na}^+$ channel has four subunits
                 that open with the activation variable $m$ and a cytoplasmic inactivation gate that moves into the
                 pore as $h$ falls. The voltage-gated $\text{K}^+$ channel has four subunits that open with $n$. The
-                $\text{Na}^+/\text{K}^+$-ATPase in a cell exports three $\text{Na}^+$ and imports two
-                $\text{K}^+$ per ATP hydrolysed, restoring the gradients.</p>
+                $\text{Na}^+/\text{K}^+$-ATPase exports three $\text{Na}^+$ and imports two $\text{K}^+$ per
+                ATP hydrolysed.</p>
 
-            <p>The pump motion in the scene is illustrative only: the model contains no pump current, so ions cross
-                the membrane only through the two channels, at the rate set by the Hodgkin-Huxley currents
-                (section 04).</p>
+            <p>Ions cross at the rates set by the model (section 04). Passive flux, through the channel and the leak
+                pathway of each ion, is drawn at that ion's channel; pump flux is drawn through the pump. At rest the
+                pump exactly balances the passive leak of both ions, so the concentrations are stationary.</p>
 
             <div class="callout">
-                Each rendered particle represents 1000 ions crossing a $1\,\mu\text{m}^2$ patch. The concentration
-                readouts are computed from the particle count in each compartment. A single action potential
-                changes them negligibly, so $E_\text{Na}$ and $E_\text{K}$ are held fixed. Because the resting leak
-                is not balanced by a pump current, the readouts drift slowly over time.
+                Each rendered particle represents 1000 ions crossing a $1\,\mu\text{m}^2$ patch, and the
+                concentration readouts follow the amount of each ion in each compartment. The compartments in the
+                scene are small, so one action potential visibly raises $[\text{Na}^+]_\text{in}$ and
+                $[\text{K}^+]_\text{out}$; the pump returns them to their resting values over tens of seconds of
+                animation. In a real axon the change per impulse is far smaller, and $E_\text{Na}$ and $E_\text{K}$
+                are held at their resting values.
             </div>
         </div>
 
@@ -122,7 +129,7 @@
                 <div class="plot-box scene3d">
                     <div class="label">3D membrane patch · <b>extracellular above, cytoplasm below</b></div>
                     <div class="three-host" id="bio-three"></div>
-                    <div class="hint">drag to rotate · scroll to zoom</div>
+                    <div class="hint">drag to rotate · click, then scroll to zoom</div>
                 </div>
                 <div class="legend">
                     <span><span class="sw ring" style="background:var(--c-na)"></span>$\text{Na}^+$ ion</span>
@@ -136,8 +143,8 @@
                     <div class="item"><span class="k">$V_m$</span><span class="v" data-out="vm"></span></div>
                     <div class="item"><span class="k">$g_\text{Na}$</span><span class="v" data-out="gna"></span></div>
                     <div class="item"><span class="k">$g_\text{K}$</span><span class="v" data-out="gk"></span></div>
-                    <div class="item"><span class="k">$[\text{Na}^+]$ out | in</span><span class="v" data-out3d="na"></span></div>
-                    <div class="item"><span class="k">$[\text{K}^+]$ in | out</span><span class="v" data-out3d="k"></span></div>
+                    <div class="item"><span class="k">$[\text{Na}^+]$ out | in</span><span class="v" data-out="na"></span></div>
+                    <div class="item"><span class="k">$[\text{K}^+]$ in | out</span><span class="v" data-out="k"></span></div>
                     <div class="item"><span class="k">flux, Na in/out · K out/in [particles/ms]</span><span class="v" data-out3d="flux"></span></div>
                 </div>
             </div>
@@ -162,18 +169,25 @@
                 I_\text{L} &= g_\text{L}\,(V - E_\text{L})
                 \end{aligned}$$</div>
 
-            <p>The parameters are the standard squid-axon values with the resting potential near
-                $-65\,\text{mV}$:</p>
+            <p>The sodium and potassium reversal potentials are computed from the concentrations in section 01
+                with the Nernst equation, at the temperature of the Hodgkin-Huxley experiments,
+                $T = 279.45\,\text{K}$ ($6.3\,{}^\circ\text{C}$):</p>
+
+            <div class="eq-block">$$E_X = \frac{RT}{zF}\ln\frac{[X]_o}{[X]_i}, \qquad \frac{RT}{F} = 24.08\,\text{mV}$$</div>
+
+            <p>with $z = +1$ for both ions. The remaining parameters are the standard squid-axon values, with the
+                resting potential near $-65\,\text{mV}$:</p>
 
             <ul class="bullets">
+                <li>$E_\text{Na} = 24.08\ln(440/55) = +50.1\,\text{mV}$,
+                    $E_\text{K} = 24.08\ln(16.3/400) = -77.1\,\text{mV}$;</li>
                 <li>$C_m = 1\,\mu\text{F/cm}^2$;</li>
                 <li>$\bar g_\text{Na} = 120$, $\bar g_\text{K} = 36$, $g_\text{L} = 0.3\,\text{mS/cm}^2$;</li>
-                <li>$E_\text{Na} = 50$, $E_\text{K} = -77$, $E_\text{L} = -54.387\,\text{mV}$.</li>
+                <li>$E_\text{L} = -54.387\,\text{mV}$, the reversal potential of the lumped leak.</li>
             </ul>
 
-            <p>The reversal potentials are fixed model parameters. They are not recomputed from the mammalian
-                concentrations in section 01 with the Nernst equation,
-                $E_X = \frac{RT}{zF}\ln\frac{[X]_o}{[X]_i}$.</p>
+            <p>Section 04 shows how the leak is divided between $\text{Na}^+$ and $\text{K}^+$ and combined with
+                the pump current without changing this equation at rest.</p>
 
             <p>The equations are integrated by the forward Euler method with $\Delta t = 0.05\,\text{ms}$, four
                 steps per animation frame. The stimulus is a rectangular current pulse of $1\,\text{ms}$. With
@@ -299,8 +313,27 @@
                 Outward current is positive in the Hodgkin-Huxley convention, so the minus sign makes $\Delta N$
                 positive for influx. This flux drives the particle transport in section 01.</p>
 
-            <p>The plot shows the $\text{Na}^+$ influx and the $\text{K}^+$ efflux, each positive in its
-                physiological direction. The sodium influx begins first, with the upstroke, and the potassium efflux
+            <p>Each ion has three pathways: its voltage-gated channel, a leak, and the pump. The model divides the
+                Hodgkin-Huxley leak into a $\text{Na}^+$ and a $\text{K}^+$ component and adds the pump current
+                $I_p$, one net positive charge outward per cycle. The division and the resting pump current
+                $I_{p0}$ satisfy</p>
+
+            <div class="eq-block">$$\begin{gathered}
+                g_\text{L,Na}(V - E_\text{Na}) + g_\text{L,K}(V - E_\text{K}) + I_{p0} = g_\text{L}(V - E_\text{L}) \\
+                g_\text{L,Na} + g_\text{L,K} = g_\text{L}
+                \end{gathered}$$</div>
+
+            <p>so with $I_p = I_{p0}$ the membrane equation is unchanged. A pump moving three $\text{Na}^+$ out and
+                two $\text{K}^+$ in per cycle balances the passive currents at rest when
+                $I_\text{Na,pass} = -3 I_{p0}$ and $I_\text{K,pass} = 2 I_{p0}$. At the resting state this gives
+                $g_\text{L,Na} = 0.081$, $g_\text{L,K} = 0.219\,\text{mS/cm}^2$ and
+                $I_{p0} = 3.52\,\mu\text{A/cm}^2$. The pump rate is taken proportional to the intracellular
+                $\text{Na}^+$ content, a linearisation of its dependence on $[\text{Na}^+]_i$:</p>
+
+            <div class="eq-block">$$I_p = I_{p0}\,\frac{[\text{Na}^+]_i}{[\text{Na}^+]_{i,0}}$$</div>
+
+            <p>The plot shows the passive (channel and leak) $\text{Na}^+$ influx and $\text{K}^+$ efflux, each
+                positive in its physiological direction. The sodium influx begins first, with the upstroke, and the potassium efflux
                 follows as $n$ rises. For much of the spike the two flow at the same time and at similar rates, so a
                 large part of the sodium charge entering the cell is offset by potassium charge leaving it.</p>
 
@@ -308,9 +341,10 @@
                 50 particles, or $5 \times 10^4$ ions, per millisecond through the patch.</p>
 
             <div class="callout">
-                The ions exchanged in one action potential are few compared with the ion content of the cell, so
-                the reversal potentials are effectively unchanged. Over many action potentials the
-                $\text{Na}^+/\text{K}^+$ pump restores the gradients.
+                After an action potential the raised $[\text{Na}^+]_i$ speeds up the pump. Its extra outward
+                current hyperpolarises the membrane by up to about a millivolt, which slightly reduces the passive
+                $\text{K}^+$ efflux, so the pump restores both gradients even though it moves $\text{Na}^+$ and
+                $\text{K}^+$ in a 3:2 ratio. The $I_p$ readout shows the pump current returning to $I_{p0}$.
             </div>
         </div>
 
@@ -331,12 +365,14 @@
                     <svg class="bode" id="plot-flux"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-na)"></span>$\text{Na}^+$ influx</span>
-                    <span><span class="sw" style="background:var(--c-k)"></span>$\text{K}^+$ efflux</span>
+                    <span><span class="sw" style="background:var(--c-na)"></span>passive $\text{Na}^+$ influx</span>
+                    <span><span class="sw" style="background:var(--c-k)"></span>passive $\text{K}^+$ efflux</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I_\text{Na}$</span><span class="v" data-out="ina"></span></div>
                     <div class="item"><span class="k">$I_\text{K}$</span><span class="v" data-out="ik"></span></div>
+                    <div class="item"><span class="k">$I_p$</span><span class="v" data-out="ip"></span></div>
+                    <div class="item"><span class="k">$[\text{Na}^+]$ out | in</span><span class="v" data-out="na"></span></div>
                 </div>
             </div>
         </div>
@@ -355,6 +391,7 @@
     <script defer src="biopotentials_JS/plot_gates.js"></script>
     <script defer src="biopotentials_JS/plot_flux.js"></script>
     <script type="module" src="biopotentials_JS/scene_membrane.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

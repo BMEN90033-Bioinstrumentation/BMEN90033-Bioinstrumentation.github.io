@@ -6,6 +6,7 @@
     var fmt = {
         speed: function (v) { return v.toFixed(1) + '×'; },
         ions:  function (v) { return String(v); },
+        lj0:   function (v) { var j = Math.pow(10, v); return j >= 1000 ? (j / 1000).toFixed(1) + ' mA/cm²' : j.toFixed(0) + ' µA/cm²'; },
         lacl:  function (v) { var a = Math.pow(10, v); return a < 0.01 ? a.toFixed(4) : a.toFixed(3); }
     };
 

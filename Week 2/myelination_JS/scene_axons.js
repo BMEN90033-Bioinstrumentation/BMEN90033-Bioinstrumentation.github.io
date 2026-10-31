@@ -6,6 +6,7 @@
 // from the page CSS.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const M = window.MYE;
 const host = document.getElementById('mye-three');
@@ -28,6 +29,7 @@ controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
 controls.minDistance = 15;
 controls.maxDistance = 120;
+guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
 function resize() {
     const r = host.getBoundingClientRect();

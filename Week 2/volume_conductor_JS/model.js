@@ -308,19 +308,29 @@
         return { dir: [Math.cos(a), 0, Math.sin(a)], strength: p.strength };
     }
 
+    // The lead is sampled at a fixed 1 kHz, independent of the display frame
+    // rate, so the 35 Hz EEG component and the 50 ms QRS complex are resolved
+    // rather than aliased by a 60 Hz frame clock.
+    var FS = 1000, sampleAcc = 0;
+    function sampleLead() {
+        if (electrodes.length < 2) return;
+        var S = dipoleState(), O = [0, 0, 0], eA = electrodes[0].pos, eB = electrodes[1].pos;
+        var vt = truePotential(O, S.dir, eA, S.strength) * SIGNAL_GAIN -
+                 truePotential(O, S.dir, eB, S.strength) * SIGNAL_GAIN;
+        var vr = recPotential(O, S.dir, eA, S.strength) * SIGNAL_GAIN -
+                 recPotential(O, S.dir, eB, S.strength) * SIGNAL_GAIN;
+        hist.push([tNow, vt, vr]);
+    }
     function step(dt) {
-        animTime += dt;
-        tNow += dt;
-        state = dipoleState();
-        if (electrodes.length >= 2) {
-            var O = [0, 0, 0], eA = electrodes[0].pos, eB = electrodes[1].pos;
-            var vt = truePotential(O, state.dir, eA, state.strength) * SIGNAL_GAIN -
-                     truePotential(O, state.dir, eB, state.strength) * SIGNAL_GAIN;
-            var vr = recPotential(O, state.dir, eA, state.strength) * SIGNAL_GAIN -
-                     recPotential(O, state.dir, eB, state.strength) * SIGNAL_GAIN;
-            hist.push([tNow, vt, vr]);
-            while (hist.length && hist[0][0] < tNow - WIN) hist.shift();
+        sampleAcc += dt;
+        while (sampleAcc >= 1 / FS) {
+            sampleAcc -= 1 / FS;
+            animTime += 1 / FS;
+            tNow += 1 / FS;
+            sampleLead();
         }
+        while (hist.length && hist[0][0] < tNow - WIN) hist.shift();
+        state = dipoleState();
     }
 
     // One RAF drives every animated view; each view runs only while its
