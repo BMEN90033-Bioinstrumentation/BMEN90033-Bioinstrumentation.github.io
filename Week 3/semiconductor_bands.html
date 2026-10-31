@@ -2,922 +2,300 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>BMEN90033 2026: 3D Semiconductor Band Theory</title>
-  <style>
-    :root { --text: #ffffff; --accent: var(--site-accent); }
-    [data-theme="light"] { --text: #1a1a1e; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMEN90033 · Semiconductor Band Theory</title>
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
-    body {
-      background: #111;
-      color: #ccc;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      overflow: hidden;
-    }
+    <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
+    <link rel="stylesheet" href="semiconductor_bands_JS/bands.css">
 
-    #container { width: 100vw; height: 100vh; position: relative; }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$',  right: '$',  display: false }
+            ],
+            throwOnError: false
+        });"></script>
 
-    .panel {
-      position: absolute; z-index: 10;
-      background: rgba(20, 20, 20, 0.85);
-      backdrop-filter: blur(10px);
-      padding: 14px 18px; border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 12px; line-height: 1.6;
-    }
-    .panel h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
-    .panel h3 { font-size: 12px; font-weight: 500; color: #999; margin-bottom: 6px; }
-    .panel p  { font-size: 11px; color: #666; margin-top: 6px; }
-
-    #info { top: 16px; left: 16px; max-width: 280px; }
-
-    .legend { display: flex; align-items: center; gap: 8px; margin: 3px 0; color: #aaa; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-    #band-panel {
-      top: 16px; right: 16px; width: 320px; height: 320px;
-      resize: both; overflow: hidden; min-width: 250px; min-height: 200px;
-    }
-    canvas#bandCanvas {
-      background: rgba(0, 0, 0, 0.5); border-radius: 6px;
-      display: block; width: 100%; height: calc(100% - 28px);
-    }
-
-    #controls {
-      position: absolute; bottom: 16px; left: 16px; z-index: 10;
-      background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px);
-      padding: 14px 18px; border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08); font-size: 12px;
-    }
-    #controls label {
-      display: flex; align-items: center; justify-content: space-between;
-      margin: 5px 0; color: #999; gap: 10px;
-    }
-    #controls input[type=range] {
-      width: 120px; -webkit-appearance: none;
-      background: rgba(255,255,255,0.18); height: 4px; border-radius: 2px; outline: none;
-    }
-    #controls input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 12px; height: 12px;
-      border-radius: 50%; background: #fff; cursor: pointer;
-    }
-    .btn-row { display: flex; gap: 6px; margin-top: 8px; }
-    button.ctrl-btn {
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-      color: #bbb; padding: 5px 14px; border-radius: 6px; cursor: pointer;
-      font-size: 11px; font-weight: 500; transition: all 0.15s;
-    }
-    button.ctrl-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
-    button.ctrl-btn.active {
-      background: color-mix(in srgb, var(--site-accent) 15%, transparent); border-color: color-mix(in srgb, var(--site-accent) 40%, transparent); color: var(--accent);
-    }
-    .mode-btn { padding: 6px 16px; font-size: 12px; font-weight: 600; }
-
-    #status-panel {
-      position: absolute; bottom: 16px; right: 16px; z-index: 10;
-      background: rgba(20,20,20,0.85); backdrop-filter: blur(10px);
-      padding: 14px 18px; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.08); font-size: 12px; min-width: 200px;
-    }
-    #status-panel .val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px;
-    }
-    #status-panel .stat-row {
-      display: flex; justify-content: space-between; color: #888; margin: 3px 0; font-size: 11px;
-    }
-    #status-panel .stat-val {
-      font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #ccc;
-    }
-  </style>
-  <style>
-    [data-theme="light"] body { background: #f5f5f7; color: #333; }
-    [data-theme="light"] .panel { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.1); }
-    [data-theme="light"] .panel h2 { color: #1a1a1e; }
-    [data-theme="light"] .panel h3 { color: #555; }
-    [data-theme="light"] .panel p { color: #777; }
-    [data-theme="light"] .legend { color: #555; }
-    [data-theme="light"] #controls { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.1); }
-    [data-theme="light"] #controls label { color: #555; }
-    [data-theme="light"] #controls input[type=range] { background: rgba(0,0,0,0.15); }
-    [data-theme="light"] #controls input[type=range]::-webkit-slider-thumb { background: #333; }
-    [data-theme="light"] button.ctrl-btn { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.12); color: #444; }
-    [data-theme="light"] button.ctrl-btn:hover { background: rgba(0,0,0,0.1); color: #222; }
-    [data-theme="light"] canvas#bandCanvas { background: rgba(0,0,0,0.06) !important; }
-    [data-theme="light"] #status-panel { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.1); }
-    [data-theme="light"] #status-panel .val { color: #1a1a1e; }
-    [data-theme="light"] #status-panel .stat-val { color: #333; }
-    [data-theme="light"] #status-panel .stat-row { color: #666; }
-    [data-theme="light"] #controls .panel h3[style*="color:#fff"],
-    [data-theme="light"] .panel h3[style*="color:#fff"] { color: #1a1a1e !important; }</style>
-  <link rel="stylesheet" href="../theme.css">
     <script src="../theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 
 <body>
-  <a class="back-btn" href="../index.html">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5" />
-          <path d="M12 19l-7-7 7-7" />
-      </svg>
-      Back
-  </a>
-  <div id="container">
-    <div id="info" class="panel" style="top:52px">
-      <h2>Semiconductor Band Theory</h2>
-      <div class="legend"><div class="dot" style="background:#ff4466"></div> Nucleus (+)</div>
-      <div class="legend"><div class="dot" style="background:#6666cc"></div> Inner-shell electrons</div>
-      <div class="legend"><div class="dot" style="background:#4488ff"></div> Valence band shell / electrons</div>
-      <div class="legend"><div class="dot" style="background:#ff8844"></div> Conduction band shell</div>
-      <div class="legend"><div class="dot" style="background:#ffcc44"></div> Free electrons (delocalised)</div>
-      <p id="descText">Each atom has a valence shell (blue sphere) and a conduction
-        shell (orange sphere). The separation between them represents the band gap.
-        In a semiconductor the gap narrows only slightly as temperature rises; conductivity
-        rises because more electrons are thermally excited across it.</p>
-    </div>
 
-    <div id="band-panel" class="panel">
-      <h3 id="bandTitle">Energy Band Diagram</h3>
-      <canvas id="bandCanvas" width="600" height="300"></canvas>
-    </div>
-
-    <div id="controls" class="panel">
-      <h3 style="margin-bottom:8px; color:#fff;">Material Type</h3>
-      <div class="btn-row">
-        <button class="ctrl-btn mode-btn" id="btnInsulator" style="color:#e05050">Insulator</button>
-        <button class="ctrl-btn mode-btn active" id="btnSemiconductor" style="color:#50e080">Semiconductor</button>
-        <button class="ctrl-btn mode-btn" id="btnConductor" style="color:#5090e0">Conductor</button>
-      </div>
-      <label style="margin-top:10px">Temperature <input type="range" id="tempSlider" min="0" max="100" step="1" value="30">
-        <span id="tempValue">300 K</span>
-      </label>
-      <div class="btn-row">
-        <button class="ctrl-btn" id="resetBtn">Reset</button>
-        <button class="ctrl-btn" id="pauseBtn">Pause</button>
-      </div>
-    </div>
-
-    <div id="status-panel">
-      <div class="val" id="materialName">Semiconductor (Si)</div>
-      <div class="stat-row"><span>Band gap</span><span class="stat-val" id="bandGapVal">1.1 eV</span></div>
-      <div class="stat-row"><span>Gap distance</span><span class="stat-val" id="gapDist">—</span></div>
-      <div class="stat-row"><span>Free electrons</span><span class="stat-val" id="freeElecVal">0</span></div>
-      <div class="stat-row"><span>Conductivity</span><span class="stat-val" id="condVal">Low</span></div>
-      <div class="stat-row"><span>Temperature</span><span class="stat-val" id="tempReadout">300 K</span></div>
-    </div>
-  </div>
-
-  <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    // ─── Scene ───
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(T.sceneBg);
-    scene.fog = new THREE.FogExp2(T.sceneBg, 0.004);
-
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 500);
-    camera.position.set(0, 10, 38);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    document.getElementById('container').appendChild(renderer.domElement);
-
-    const orbitControls = new OrbitControls(camera, renderer.domElement);
-    orbitControls.enableDamping = true;
-    orbitControls.dampingFactor = 0.08;
-    orbitControls.target.set(0, 0, 0);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-    dirLight.position.set(15, 20, 20);
-    scene.add(dirLight);
-    scene.add(new THREE.DirectionalLight(0xffffff, 0.15).translateX(-10).translateY(8));
-
-    const grid = new THREE.GridHelper(80, 40, 0x222222, 0x181818);
-    grid.position.y = -7;
-    scene.add(grid);
-
-    // ─── Material configs ───
-    const MATERIAL_CONFIGS = {
-      insulator: {
-        label: 'Insulator (SiO\u2082)',
-        bandGapEV: '~9 eV',
-        color: 0xe05050, colorCSS: '#e05050',
-        nucleusColor: 0xff4466,
-        innerShellElectrons: 4,
-        valenceElectrons: 4,
-        valenceRadius: 2.8,
-        // Conduction band radius: starts far out, shrinks slightly with temp
-        conductionRadiusBase: 5.5,   // at T=0
-        conductionRadiusMin: 5.3,    // at T=max: gap narrows by under 10%
-        freeElectronCurve: t => (t > 0.9 ? Math.floor((t - 0.9) * 20) : 0),
-        conductivityLabel: t => t > 0.9 ? 'Negligible' : 'None',
-        desc: 'The conduction shell is far from the valence shell (~9 eV gap). Even at high temperature it barely contracts, so electrons cannot reach it. No current flows.',
-      },
-      semiconductor: {
-        label: 'Semiconductor (Si)',
-        bandGapEV: '~1.1 eV',
-        color: 0x50e080, colorCSS: '#50e080',
-        nucleusColor: 0x44cc66,
-        innerShellElectrons: 4,
-        valenceElectrons: 4,
-        valenceRadius: 2.8,
-        conductionRadiusBase: 4.5,
-        conductionRadiusMin: 4.08,   // Varshni: Si Eg 1.17 eV (0 K) to 0.88 eV (1000 K); gap never closes
-        freeElectronCurve: t => Math.floor(t * t * 12),
-        conductivityLabel: t => {
-          if (t < 0.15) return 'Very Low';
-          if (t < 0.4) return 'Low';
-          if (t < 0.7) return 'Moderate';
-          return 'High';
-        },
-        desc: 'The conduction shell lies slightly beyond the valence shell (Si: 1.17 eV at 0 K, 1.12 eV at 300 K). The gap narrows only slightly with temperature and never closes. Conductivity rises because the number of electrons thermally excited across the gap grows as n\u1D62 \u221D T^(3/2) exp(\u2212Eg/2kT); each leaves a hole in the valence band.',
-      },
-      conductor: {
-        label: 'Conductor (Cu)',
-        bandGapEV: 'none (partly filled 4s band)',
-        color: 0x5090e0, colorCSS: '#5090e0',
-        nucleusColor: 0xffaa44,
-        innerShellElectrons: 6,
-        valenceElectrons: 1,
-        valenceRadius: 2.8,
-        conductionRadiusBase: 2.8,   // drawn touching: partly filled band, no gap
-        conductionRadiusMin: 2.8,
-        freeElectronCurve: () => 6,
-        conductivityLabel: () => 'Very High',
-        desc: 'The shells are drawn touching to represent a partly filled band. Copper\'s 4s band is half occupied, so empty states lie immediately above the occupied ones and no gap must be crossed. The outermost electron drifts between atoms, forming the electron sea of a metal.',
-      },
-    };
-
-    // ─── State ───
-    let currentMode = 'semiconductor';
-    let temperature = 30;
-    let paused = false;
-    const clock = new THREE.Clock();
-
-    // ─── Constants ───
-    const NUM_ATOMS = 6;
-    const ATOM_SPACING = 7;
-    const INNER_RADIUS = 1.8;
-
-    // ─── Scene objects ───
-    const sceneGroup = new THREE.Group();
-    scene.add(sceneGroup);
-
-    let atomPositions = [];
-    let innerElectrons = [];
-    let valenceElectrons = [];
-    let conductionShells = [];  // the orange spheres that shrink
-    let valenceShells = [];     // the blue spheres (fixed)
-
-    function clearScene() {
-      while (sceneGroup.children.length > 0) {
-        const child = sceneGroup.children[0];
-        sceneGroup.remove(child);
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) {
-          if (child.material.map) child.material.map.dispose();
-          child.material.dispose();
-        }
-      }
-      atomPositions = [];
-      innerElectrons = [];
-      valenceElectrons = [];
-      conductionShells = [];
-      valenceShells = [];
-    }
-
-    function makeTextSprite(text, color, fontSize = 40) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = color;
-      ctx.font = `bold ${fontSize}px 'Inter', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 256, 64);
-      const tex = new THREE.CanvasTexture(canvas);
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-      const s = new THREE.Sprite(mat);
-      s.scale.set(8, 2, 1);
-      return s;
-    }
-
-    function createOrbitalRing(radius, color, opacity = 0.15) {
-      const segments = 64;
-      const points = [];
-      for (let i = 0; i <= segments; i++) {
-        const a = (i / segments) * Math.PI * 2;
-        points.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0));
-      }
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
-      return new THREE.Line(geo, mat);
-    }
-
-    // ─── Build scene ───
-    function buildScene(mode) {
-      clearScene();
-      const cfg = MATERIAL_CONFIGS[mode];
-      const totalWidth = (NUM_ATOMS - 1) * ATOM_SPACING;
-      const startX = -totalWidth / 2;
-
-      const nucleusGeo = new THREE.SphereGeometry(0.9, 24, 24);
-      const nucleusMat = new THREE.MeshPhongMaterial({
-        color: cfg.nucleusColor, emissive: cfg.nucleusColor,
-        emissiveIntensity: 0.3, transparent: true, opacity: 0.85,
-      });
-
-      const innerElecGeo = new THREE.SphereGeometry(0.2, 10, 10);
-      const innerElecMat = new THREE.MeshPhongMaterial({
-        color: 0x6666cc, emissive: 0x222244, emissiveIntensity: 0.4,
-        transparent: true, opacity: 0.8,
-      });
-
-      const valElecGeo = new THREE.SphereGeometry(0.28, 12, 12);
-      const valElecMat = new THREE.MeshPhongMaterial({
-        color: 0x4488ff, emissive: 0x112244, emissiveIntensity: 0.5,
-        transparent: true, opacity: 0.9,
-      });
-
-      // Shared geometry for shells (will be scaled per-atom)
-      const shellGeo = new THREE.SphereGeometry(1, 32, 32);
-
-      for (let i = 0; i < NUM_ATOMS; i++) {
-        const ax = startX + i * ATOM_SPACING;
-        atomPositions.push({ x: ax, y: 0, z: 0 });
-
-        // ── Nucleus ──
-        const nucleus = new THREE.Mesh(nucleusGeo, nucleusMat.clone());
-        nucleus.position.set(ax, 0, 0);
-        sceneGroup.add(nucleus);
-
-        // Glow
-        const glow = new THREE.Mesh(
-          new THREE.SphereGeometry(1.4, 16, 16),
-          new THREE.MeshBasicMaterial({ color: cfg.nucleusColor, transparent: true, opacity: 0.05, depthWrite: false })
-        );
-        glow.position.set(ax, 0, 0);
-        sceneGroup.add(glow);
-
-        // + label
-        const plus = makeTextSprite('+', T.text, 36);
-        plus.position.set(ax, 0, 0);
-        plus.scale.set(1.2, 0.6, 1);
-        sceneGroup.add(plus);
-
-        // ── Inner shell orbital rings ──
-        const ir1 = createOrbitalRing(INNER_RADIUS, 0x6666cc, 0.12);
-        ir1.position.set(ax, 0, 0);
-        sceneGroup.add(ir1);
-        const ir2 = createOrbitalRing(INNER_RADIUS, 0x6666cc, 0.12);
-        ir2.position.set(ax, 0, 0);
-        ir2.rotation.y = Math.PI / 2;
-        sceneGroup.add(ir2);
-
-        // ── Inner electrons ──
-        for (let e = 0; e < cfg.innerShellElectrons; e++) {
-          const mesh = new THREE.Mesh(innerElecGeo, innerElecMat.clone());
-          sceneGroup.add(mesh);
-          innerElectrons.push({
-            mesh, atomX: ax, radius: INNER_RADIUS,
-            speed: 2.0 + Math.random() * 0.8,
-            phase: (e / cfg.innerShellElectrons) * Math.PI * 2,
-            planeAngle: e < cfg.innerShellElectrons / 2 ? 0 : Math.PI / 2,
-            tilt: (Math.random() - 0.5) * 0.4,
-          });
-        }
-
-        // ── Valence band shell (blue transparent sphere) ──
-        const vShell = new THREE.Mesh(shellGeo.clone(),
-          new THREE.MeshPhongMaterial({
-            color: 0x4488ff, transparent: true, opacity: 0.06,
-            depthWrite: false, side: THREE.DoubleSide,
-          })
-        );
-        vShell.position.set(ax, 0, 0);
-        vShell.scale.setScalar(cfg.valenceRadius);
-        sceneGroup.add(vShell);
-        valenceShells.push(vShell);
-
-        // Valence wireframe ring (equator)
-        const vRing1 = createOrbitalRing(cfg.valenceRadius, 0x4488ff, 0.18);
-        vRing1.position.set(ax, 0, 0);
-        sceneGroup.add(vRing1);
-        const vRing2 = createOrbitalRing(cfg.valenceRadius, 0x4488ff, 0.12);
-        vRing2.position.set(ax, 0, 0);
-        vRing2.rotation.y = Math.PI / 2;
-        sceneGroup.add(vRing2);
-        const vRing3 = createOrbitalRing(cfg.valenceRadius, 0x4488ff, 0.12);
-        vRing3.position.set(ax, 0, 0);
-        vRing3.rotation.x = Math.PI / 2;
-        sceneGroup.add(vRing3);
-
-        // ── Conduction band shell (orange transparent sphere — will shrink) ──
-        const cShell = new THREE.Mesh(shellGeo.clone(),
-          new THREE.MeshPhongMaterial({
-            color: 0xff8844, transparent: true, opacity: 0.04,
-            depthWrite: false, side: THREE.DoubleSide,
-          })
-        );
-        cShell.position.set(ax, 0, 0);
-        cShell.scale.setScalar(cfg.conductionRadiusBase);
-        sceneGroup.add(cShell);
-
-        // Conduction wireframe rings
-        const cRing1 = createOrbitalRing(1, 0xff8844, 0.12); // radius=1, will be re-scaled
-        cRing1.position.set(ax, 0, 0);
-        sceneGroup.add(cRing1);
-        const cRing2 = createOrbitalRing(1, 0xff8844, 0.08);
-        cRing2.position.set(ax, 0, 0);
-        cRing2.rotation.y = Math.PI / 2;
-        sceneGroup.add(cRing2);
-        const cRing3 = createOrbitalRing(1, 0xff8844, 0.08);
-        cRing3.position.set(ax, 0, 0);
-        cRing3.rotation.x = Math.PI / 2;
-        sceneGroup.add(cRing3);
-
-        conductionShells.push({
-          shell: cShell,
-          rings: [cRing1, cRing2, cRing3],
-          atomX: ax,
-        });
-
-        // ── Valence electrons (orbit ON the valence shell surface) ──
-        for (let e = 0; e < cfg.valenceElectrons; e++) {
-          const mesh = new THREE.Mesh(valElecGeo, valElecMat.clone());
-          sceneGroup.add(mesh);
-
-          // Trail
-          const TRAIL_LEN = 22;
-          const trailPos = new Float32Array(TRAIL_LEN * 3);
-          for (let ti = 0; ti < TRAIL_LEN * 3; ti += 3) {
-            trailPos[ti] = ax; trailPos[ti + 1] = 0; trailPos[ti + 2] = 0;
-          }
-          const trailGeo = new THREE.BufferGeometry();
-          trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
-          const trailLine = new THREE.Line(trailGeo,
-            new THREE.LineBasicMaterial({ color: T.yellow3js3, transparent: true, opacity: 0 })
-          );
-          sceneGroup.add(trailLine);
-
-          valenceElectrons.push({
-            mesh,
-            homeAtomIdx: i, homeX: ax,
-            // Orbital params (orbit on the valence sphere surface)
-            theta: (e / cfg.valenceElectrons) * Math.PI * 2 + Math.random() * 0.5,
-            phi: Math.PI / 2 + (Math.random() - 0.5) * 1.5,
-            speedTheta: 0.8 + Math.random() * 0.6,
-            speedPhi: 0.3 + Math.random() * 0.4,
-            phaseTheta: Math.random() * Math.PI * 2,
-            phasePhi: Math.random() * Math.PI * 2,
-            // Free state
-            isFree: false,
-            freeProgress: 0,
-            // Hopping
-            fromAtomIdx: i,
-            toAtomIdx: Math.min(i + 1, NUM_ATOMS - 1),
-            hopProgress: Math.random(),
-            hopSpeed: 0.3 + Math.random() * 0.4,
-            zWander: (Math.random() - 0.5) * 2,
-            // Trail
-            trail: trailLine, trailPos, trailTimer: 0,
-          });
-        }
-
-        // ── Bond ──
-        if (i < NUM_ATOMS - 1) {
-          const bGeo = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(ax + 1.2, 0, 0),
-            new THREE.Vector3(ax + ATOM_SPACING - 1.2, 0, 0),
-          ]);
-          const bond = new THREE.Line(bGeo,
-            new THREE.LineDashedMaterial({ color: 0x444444, transparent: true, opacity: 0.2, dashSize: 0.4, gapSize: 0.2 })
-          );
-          bond.computeLineDistances();
-          sceneGroup.add(bond);
-        }
-      }
-
-      // Labels
-      for (let i = 0; i < NUM_ATOMS; i++) {
-        const ax = startX + i * ATOM_SPACING;
-        const label = makeTextSprite('Atom ' + (i + 1), '#444', 20);
-        label.position.set(ax, -5.5, 0);
-        label.scale.set(5, 1.3, 1);
-        sceneGroup.add(label);
-      }
-
-      // Valence / conduction labels (one each, positioned at first atom)
-      const vLabel = makeTextSprite('Valence band', '#4488ff', 22);
-      vLabel.position.set(startX - 1, cfg.valenceRadius + 1, 0);
-      vLabel.scale.set(6, 1.5, 1);
-      sceneGroup.add(vLabel);
-
-      const cLabel = makeTextSprite('Conduction band', '#ff8844', 22);
-      cLabel.position.set(startX - 1, cfg.conductionRadiusBase + 1.2, 0);
-      cLabel.scale.set(6, 1.5, 1);
-      sceneGroup.add(cLabel);
-      // Store ref to update position as shell shrinks
-      conductionShells.labelSprite = cLabel;
-    }
-
-    buildScene(currentMode);
-
-    // ─── Band diagram canvas ───
-    const bandCanvas = document.getElementById('bandCanvas');
-    const bandCtx = bandCanvas.getContext('2d');
-
-    function resizeBandCanvas() {
-      const rect = bandCanvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const w = Math.round(rect.width * dpr);
-      const h = Math.round(rect.height * dpr);
-      if (bandCanvas.width !== w || bandCanvas.height !== h) {
-        bandCanvas.width = w; bandCanvas.height = h;
-      }
-    }
-    new ResizeObserver(resizeBandCanvas).observe(bandCanvas);
-    resizeBandCanvas();
-
-    function drawBandDiagram() {
-      resizeBandCanvas();
-      const dpr = window.devicePixelRatio || 1;
-      const rect = bandCanvas.getBoundingClientRect();
-      const W = Math.round(rect.width);
-      const H = Math.round(rect.height);
-      bandCtx.save();
-      bandCtx.scale(dpr, dpr);
-
-      bandCtx.fillStyle = T.plotBg2;
-      bandCtx.fillRect(0, 0, W, H);
-
-      const cfg = MATERIAL_CONFIGS[currentMode];
-      const tempNorm = temperature / 100;
-      const pad = 30;
-      const topY = 35, botY = H - 20;
-      const midH = botY - topY;
-
-      // Energy axis
-      bandCtx.strokeStyle = T.overlay20;
-      bandCtx.lineWidth = 1;
-      bandCtx.beginPath();
-      bandCtx.moveTo(pad - 5, topY - 5);
-      bandCtx.lineTo(pad - 5, botY);
-      bandCtx.stroke();
-      bandCtx.beginPath();
-      bandCtx.moveTo(pad - 5, topY - 5);
-      bandCtx.lineTo(pad - 8, topY + 3);
-      bandCtx.moveTo(pad - 5, topY - 5);
-      bandCtx.lineTo(pad - 2, topY + 3);
-      bandCtx.stroke();
-      bandCtx.fillStyle = T.textQuiet;
-      bandCtx.font = '10px sans-serif';
-      bandCtx.save();
-      bandCtx.translate(10, (topY + botY) / 2);
-      bandCtx.rotate(-Math.PI / 2);
-      bandCtx.textAlign = 'center';
-      bandCtx.fillText('Energy (E)', 0, 0);
-      bandCtx.restore();
-
-      // Compute band positions that match the 3D shells
-      const vR = cfg.valenceRadius;
-      const cRBase = cfg.conductionRadiusBase;
-      const cRMin = cfg.conductionRadiusMin;
-      const cR = cRBase + (cRMin - cRBase) * tempNorm;
-      const maxR = 6;
-
-      // Map radii to vertical positions (larger radius = higher energy)
-      const vbTopPx = topY + midH * (1 - vR / maxR);
-      const cbBotPx = topY + midH * (1 - cR / maxR);
-
-      const left = pad + 10, right = W - 20;
-      const bandW = right - left;
-      const cx = (left + right) / 2;
-
-      // Valence band
-      bandCtx.fillStyle = 'rgba(68,136,255,0.25)';
-      bandCtx.fillRect(left, vbTopPx, bandW, botY - vbTopPx);
-      bandCtx.strokeStyle = 'rgba(68,136,255,0.6)';
-      bandCtx.lineWidth = 1.5;
-      bandCtx.strokeRect(left, vbTopPx, bandW, botY - vbTopPx);
-
-      // Conduction band
-      bandCtx.fillStyle = 'rgba(255,136,68,0.15)';
-      bandCtx.fillRect(left, topY, bandW, cbBotPx - topY);
-      bandCtx.strokeStyle = 'rgba(255,136,68,0.5)';
-      bandCtx.lineWidth = 1.5;
-      bandCtx.strokeRect(left, topY, bandW, cbBotPx - topY);
-
-      // Gap bracket
-      if (cbBotPx < vbTopPx - 4) {
-        bandCtx.setLineDash([3, 3]);
-        bandCtx.strokeStyle = T.gridStrong;
-        bandCtx.lineWidth = 0.5;
-        bandCtx.beginPath(); bandCtx.moveTo(left, cbBotPx); bandCtx.lineTo(right, cbBotPx); bandCtx.stroke();
-        bandCtx.beginPath(); bandCtx.moveTo(left, vbTopPx); bandCtx.lineTo(right, vbTopPx); bandCtx.stroke();
-        bandCtx.setLineDash([]);
-
-        const bx = right + 4;
-        bandCtx.strokeStyle = T.overlay30;
-        bandCtx.lineWidth = 1;
-        bandCtx.beginPath();
-        bandCtx.moveTo(bx, cbBotPx); bandCtx.lineTo(bx + 4, cbBotPx);
-        bandCtx.lineTo(bx + 4, vbTopPx); bandCtx.lineTo(bx, vbTopPx);
-        bandCtx.stroke();
-        bandCtx.fillStyle = T.textMuted;
-        bandCtx.font = '10px sans-serif';
-        bandCtx.textAlign = 'left';
-        bandCtx.fillText('E_g', bx + 7, (cbBotPx + vbTopPx) / 2 + 3);
-      }
-
-      // Electrons in valence band; each excited electron leaves a hole (open circle)
-      const numFree = cfg.freeElectronCurve(tempNorm);
-      const numHoles = cbBotPx < vbTopPx - 4 ? Math.min(numFree, 10) : 0;
-      bandCtx.fillStyle = 'rgba(68,136,255,0.8)';
-      bandCtx.strokeStyle = 'rgba(68,136,255,0.8)';
-      bandCtx.lineWidth = 1;
-      for (let d = 0; d < 15; d++) {
-        const ex = left + 15 + (d % 5) * (bandW - 30) / 4;
-        const ey = vbTopPx + 10 + Math.floor(d / 5) * 12;
-        bandCtx.beginPath(); bandCtx.arc(ex, ey, 3, 0, Math.PI * 2);
-        if (d < numHoles) bandCtx.stroke(); else bandCtx.fill();
-      }
-
-      // Free electrons in conduction band
-      bandCtx.fillStyle = T.yellowA(0.9);
-      for (let d = 0; d < Math.min(numFree, 10); d++) {
-        const ex = left + 15 + (d % 5) * (bandW - 30) / 4;
-        const ey = topY + 12 + Math.floor(d / 5) * 12;
-        bandCtx.beginPath(); bandCtx.arc(ex, Math.min(ey, cbBotPx - 5), 3.5, 0, Math.PI * 2); bandCtx.fill();
-      }
-
-      // Excitation arrows
-      if (numFree > 0 && cbBotPx < vbTopPx - 4) {
-        const alpha = Math.min(numFree / 5, 0.8);
-        bandCtx.strokeStyle = T.yellowA(alpha);
-        bandCtx.lineWidth = 1.5;
-        bandCtx.setLineDash([3, 3]);
-        const arrCount = Math.min(numFree, 4);
-        for (let a = 0; a < arrCount; a++) {
-          const ax2 = cx - (arrCount - 1) * 6 + a * 12;
-          bandCtx.beginPath();
-          bandCtx.moveTo(ax2, vbTopPx - 2);
-          bandCtx.lineTo(ax2, cbBotPx + 2);
-          bandCtx.stroke();
-          bandCtx.beginPath();
-          bandCtx.moveTo(ax2, cbBotPx + 2);
-          bandCtx.lineTo(ax2 - 3, cbBotPx + 7);
-          bandCtx.moveTo(ax2, cbBotPx + 2);
-          bandCtx.lineTo(ax2 + 3, cbBotPx + 7);
-          bandCtx.stroke();
-        }
-        bandCtx.setLineDash([]);
-      }
-
-      // Labels
-      bandCtx.fillStyle = cfg.colorCSS;
-      bandCtx.font = 'bold 12px sans-serif';
-      bandCtx.textAlign = 'center';
-      bandCtx.fillText(cfg.label, cx, topY - 14);
-      bandCtx.fillStyle = '#4488ff'; bandCtx.font = '10px sans-serif';
-      bandCtx.fillText('Valence Band', cx, botY - 6);
-      bandCtx.fillStyle = '#ff8844';
-      bandCtx.fillText('Conduction Band', cx, topY + 10);
-
-      const tempK = Math.round(temperature * 10);
-      bandCtx.fillStyle = T.yellow2;
-      bandCtx.font = 'bold 10px sans-serif';
-      bandCtx.textAlign = 'left';
-      bandCtx.fillText(`T = ${tempK} K`, pad, botY - 6);
-
-      bandCtx.restore();
-    }
-
-    // ─── Animation ───
-    function animate() {
-      requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
-      orbitControls.update();
-
-      const cfg = MATERIAL_CONFIGS[currentMode];
-      const tempNorm = temperature / 100;
-      const numFree = cfg.freeElectronCurve(tempNorm);
-      const totalWidth = (NUM_ATOMS - 1) * ATOM_SPACING;
-      const startX = -totalWidth / 2;
-
-      // ── Compute current conduction shell radius ──
-      const cRadius = cfg.conductionRadiusBase + (cfg.conductionRadiusMin - cfg.conductionRadiusBase) * tempNorm;
-      const gap = cRadius - cfg.valenceRadius;
-
-      // ── Update conduction shell sizes ──
-      for (const cs of conductionShells) {
-        if (!cs.shell) continue;
-        cs.shell.scale.setScalar(cRadius);
-        // Update ring scales — rings were created at radius=1
-        for (const ring of cs.rings) {
-          ring.scale.setScalar(cRadius);
-        }
-        // Shell opacity — brighter when gap is small
-        const gapFrac = Math.max(0, gap) / (cfg.conductionRadiusBase - cfg.valenceRadius + 0.01);
-        cs.shell.material.opacity = 0.03 + (1 - gapFrac) * 0.06;
-      }
-
-      // Update conduction label position
-      if (conductionShells.labelSprite) {
-        conductionShells.labelSprite.position.y = cRadius + 1.2;
-      }
-
-      if (!paused) {
-        const t = clock.getElapsedTime();
-
-        // ── Inner electrons ──
-        for (const e of innerElectrons) {
-          const angle = t * e.speed + e.phase;
-          const ca = Math.cos(e.planeAngle);
-          const sa = Math.sin(e.planeAngle);
-          const ox = Math.cos(angle) * e.radius;
-          const oy = Math.sin(angle) * e.radius;
-          e.mesh.position.set(e.atomX + ox * ca, oy + Math.sin(angle * 0.5) * e.tilt, ox * sa);
-        }
-
-        // ── Decide which valence electrons are free ──
-        let freedSoFar = 0;
-        for (const ve of valenceElectrons) {
-          const shouldBeFree = freedSoFar < numFree;
-          if (shouldBeFree && !ve.isFree) {
-            ve.isFree = true;
-            ve.fromAtomIdx = ve.homeAtomIdx;
-            ve.toAtomIdx = Math.min(ve.homeAtomIdx + 1, NUM_ATOMS - 1);
-            if (ve.toAtomIdx === ve.fromAtomIdx) ve.toAtomIdx = Math.max(0, ve.fromAtomIdx - 1);
-            ve.hopProgress = 0;
-          } else if (!shouldBeFree && ve.isFree) {
-            ve.isFree = false;
-          }
-          if (shouldBeFree) freedSoFar++;
-        }
-
-        // ── Animate valence electrons ──
-        for (const ve of valenceElectrons) {
-          if (ve.isFree) {
-            ve.freeProgress = Math.min(ve.freeProgress + dt * 2.0, 1);
-          } else {
-            ve.freeProgress = Math.max(ve.freeProgress - dt * 2.0, 0);
-          }
-          const fp = ve.freeProgress;
-          const easeF = fp * fp * (3 - 2 * fp);
-
-          // ── Bound position: orbit ON the valence sphere surface ──
-          const thetaB = t * ve.speedTheta + ve.phaseTheta;
-          const phiB = ve.phi + Math.sin(t * ve.speedPhi + ve.phasePhi) * 0.8;
-          const bx = ve.homeX + Math.sin(phiB) * Math.cos(thetaB) * cfg.valenceRadius;
-          const by = Math.cos(phiB) * cfg.valenceRadius;
-          const bz = Math.sin(phiB) * Math.sin(thetaB) * cfg.valenceRadius;
-
-          if (easeF < 0.01) {
-            // Fully bound
-            ve.mesh.position.set(bx, by, bz);
-            ve.mesh.material.color.setHex(0x4488ff);
-            ve.mesh.material.emissive.setHex(0x112244);
-            ve.mesh.material.opacity = 0.9;
-            ve.trail.material.opacity = 0;
-          } else {
-            // ── Free: hop between atoms on the conduction shell surface ──
-            ve.hopProgress += dt * ve.hopSpeed;
-
-            if (ve.hopProgress >= 1) {
-              ve.hopProgress -= 1;
-              const prevFrom = ve.fromAtomIdx;
-              ve.fromAtomIdx = ve.toAtomIdx;
-              let next;
-              if (ve.fromAtomIdx <= 0) { next = 1; }
-              else if (ve.fromAtomIdx >= NUM_ATOMS - 1) { next = NUM_ATOMS - 2; }
-              else {
-                const wasRight = ve.fromAtomIdx > prevFrom;
-                next = ve.fromAtomIdx + ((Math.random() < 0.7 ? wasRight : !wasRight) ? 1 : -1);
-              }
-              ve.toAtomIdx = Math.max(0, Math.min(NUM_ATOMS - 1, next));
-              ve.hopSpeed = 0.25 + Math.random() * 0.4;
-              ve.zWander = (Math.random() - 0.5) * 2.5;
-            }
-
-            // Free position: travel between atoms at the conduction shell radius
-            const fromX = startX + ve.fromAtomIdx * ATOM_SPACING;
-            const toX = startX + ve.toAtomIdx * ATOM_SPACING;
-            const p = ve.hopProgress;
-            const easeP = p * p * (3 - 2 * p);
-            // Arc path between atoms — rises to conduction shell height
-            const fx = fromX + (toX - fromX) * easeP;
-            const fy = Math.sin(p * Math.PI) * cRadius;
-            const fz = ve.zWander * Math.sin(p * Math.PI);
-
-            if (easeF > 0.99) {
-              // Fully free
-              ve.mesh.position.set(fx, fy, fz);
-            } else {
-              // Transitioning — lerp between bound orbit and free hop
-              ve.mesh.position.set(
-                bx + (fx - bx) * easeF,
-                by + (fy - by) * easeF,
-                bz + (fz - bz) * easeF
-              );
-            }
-
-            // Color: lerp blue→gold
-            const boundCol = new THREE.Color(0x4488ff);
-            const freeCol = new THREE.Color(T.yellow3js3);
-            ve.mesh.material.color.copy(boundCol).lerp(freeCol, easeF);
-            ve.mesh.material.emissive.copy(new THREE.Color(0x112244)).lerp(new THREE.Color(0x664400), easeF);
-            ve.mesh.material.opacity = 0.8 + Math.sin(t * 4 + ve.phaseTheta) * 0.2;
-
-            // Trail
-            ve.trailTimer += dt;
-            if (ve.trailTimer > 0.04) {
-              ve.trailTimer = 0;
-              const tp = ve.trailPos;
-              for (let ti = tp.length - 3; ti >= 3; ti -= 3) {
-                tp[ti] = tp[ti - 3]; tp[ti + 1] = tp[ti - 2]; tp[ti + 2] = tp[ti - 1];
-              }
-              tp[0] = ve.mesh.position.x;
-              tp[1] = ve.mesh.position.y;
-              tp[2] = ve.mesh.position.z;
-              ve.trail.geometry.attributes.position.needsUpdate = true;
-            }
-            ve.trail.material.opacity = easeF * 0.3;
-          }
-        }
-      }
-
-      // ── UI ──
-      const tempK2 = Math.round(temperature * 10);
-      document.getElementById('materialName').textContent = cfg.label;
-      document.getElementById('materialName').style.color = cfg.colorCSS;
-      document.getElementById('bandGapVal').textContent = cfg.bandGapEV;
-      document.getElementById('gapDist').textContent = gap > 0.05 ? gap.toFixed(1) + ' (shells apart)' : 'Overlapping';
-      document.getElementById('freeElecVal').textContent = numFree + ' / ' + valenceElectrons.length;
-      document.getElementById('condVal').textContent = cfg.conductivityLabel(tempNorm);
-      document.getElementById('tempReadout').textContent = tempK2 + ' K';
-
-      drawBandDiagram();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // ─── Mode switching ───
-    function setMode(mode) {
-      currentMode = mode;
-      buildScene(mode);
-      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-      document.getElementById('descText').textContent = MATERIAL_CONFIGS[mode].desc;
-      document.getElementById('bandTitle').textContent = 'Energy Band Diagram: ' + MATERIAL_CONFIGS[mode].label;
-    }
-
-    document.getElementById('btnInsulator').addEventListener('click', () => setMode('insulator'));
-    document.getElementById('btnSemiconductor').addEventListener('click', () => setMode('semiconductor'));
-    document.getElementById('btnConductor').addEventListener('click', () => setMode('conductor'));
-
-    document.getElementById('tempSlider').addEventListener('input', e => {
-      temperature = parseFloat(e.target.value);
-      document.getElementById('tempValue').textContent = Math.round(temperature * 10) + ' K';
-    });
-
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      temperature = 30;
-      document.getElementById('tempSlider').value = 30;
-      document.getElementById('tempValue').textContent = '300 K';
-      paused = false;
-      document.getElementById('pauseBtn').textContent = 'Pause';
-    });
-
-    document.getElementById('pauseBtn').addEventListener('click', () => {
-      paused = !paused;
-      document.getElementById('pauseBtn').textContent = paused ? 'Play' : 'Pause';
-    });
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    window.addEventListener('themechange', () => {
-      scene.background = new THREE.Color(T.sceneBg);
-      scene.fog.color.set(T.sceneBg);
-    });
-  </script>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 3</span></div>
+    <a class="back-btn" href="../index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+    </a>
+
+    <!-- ================= LANDING ================= -->
+    <section class="landing">
+        <div>
+            <div class="meta">BMEN90033 · WEEK 3 · SEMICONDUCTORS</div>
+            <h1 class="hero">Energy <em>bands</em> in solids</h1>
+            <p class="sub">When atoms bond into a crystal, their discrete electron energy levels broaden into bands.
+                The width of the forbidden gap between the highest filled band and the next empty band determines
+                whether a solid is an insulator, a semiconductor or a conductor, and how its conductivity changes
+                with temperature.</p>
+            <div class="tags">
+                <span class="field-tag">valence band</span>
+                <span class="field-tag">conduction band</span>
+                <span class="field-tag">band gap</span>
+                <span class="field-tag">intrinsic carriers</span>
+                <span class="field-tag">temperature</span>
+            </div>
+        </div>
+        <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
+    </section>
+
+    <!-- ================= 01 · ATOMS TO BANDS ================= -->
+    <section class="scene" id="sec-atoms">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>from atoms to bands</span></div>
+            <h2>Discrete atomic levels broaden into bands</h2>
+
+            <p class="lead">An isolated atom has discrete electron energy levels. When $N$ atoms are brought close
+                enough to bond, the Pauli exclusion principle forbids two electrons in the crystal from occupying
+                the same state, so each atomic level splits into $N$ closely spaced levels. For a crystal of order
+                $10^{22}$ atoms per cubic centimetre these levels form an effectively continuous band.</p>
+
+            <p>Two bands determine the electrical behaviour of the solid:</p>
+
+            <ul class="bullets">
+                <li><strong>valence band</strong>: the highest band that is fully occupied at $0\,\text{K}$. Its
+                    electrons form the covalent bonds and cannot carry net current while the band is full;</li>
+                <li><strong>conduction band</strong>: the next band above it, empty at $0\,\text{K}$. An electron
+                    promoted into it has empty states nearby and moves freely through the crystal;</li>
+                <li><strong>inner shells</strong>: lower bands that remain tightly bound to each nucleus and take
+                    no part in conduction.</li>
+            </ul>
+
+            <p>The scene represents energy by radius. Each atom carries a valence shell at a fixed radius and a
+                conduction shell outside it; the radial separation stands for the band gap. As the temperature
+                rises, electrons are promoted from the valence shell and hop between atoms at the radius of the
+                conduction shell.</p>
+
+            <div class="callout">
+                The shells are a schematic. Electrons in a crystal occupy states that extend over the whole lattice
+                rather than orbits about one atom; only the radial ordering of the shells, which encodes energy, is
+                meaningful.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="mode" data-value="insulator">insulator</button>
+                        <button class="seg-btn" data-param="mode" data-value="semiconductor">semiconductor</button>
+                        <button class="seg-btn" data-param="mode" data-value="conductor">conductor</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$T$</span>
+                        <input type="range" data-param="temp" min="0" max="1000" step="10">
+                        <span class="val" data-param="temp"></span>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="run" data-value="play">play</button>
+                        <button class="seg-btn" data-param="run" data-value="pause">pause</button>
+                        <button class="seg-btn" data-action="reset">reset</button>
+                    </span>
+                </div>
+                <div class="plot-box scene3d" id="scene-atoms">
+                    <div class="label">3D model · <b>six atoms in a row</b></div>
+                    <div class="three-host"></div>
+                    <div class="hint">drag to rotate · scroll to zoom</div>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dot" id="sw-nucleus"></span>nucleus (+)</span>
+                    <span><span class="sw dot" style="background:var(--c-inner)"></span>inner-shell electron</span>
+                    <span><span class="sw dot" style="background:var(--c-valence)"></span>valence shell and electron</span>
+                    <span><span class="sw ring" style="border-color:var(--c-conduction)"></span>conduction shell</span>
+                    <span><span class="sw dot" style="background:var(--c-free)"></span>promoted electron</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">material</span><span class="v" data-out="material"></span></div>
+                    <div class="item"><span class="k">promoted electrons</span><span class="v" data-out="free"></span></div>
+                    <div class="item"><span class="k">conductivity</span><span class="v" data-out="cond"></span></div>
+                    <div class="item"><span class="k">temperature</span><span class="v" data-out="temp"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 02 · BAND GAP ================= -->
+    <section class="scene" id="sec-gap">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>the band gap</span></div>
+            <h2>Insulators, semiconductors and conductors</h2>
+
+            <p class="lead">The band gap is the energy interval between the top of the valence band $E_V$ and the
+                bottom of the conduction band $E_C$, in which the crystal has no allowed electron states:</p>
+
+            <div class="eq-block">$$E_g = E_C - E_V$$</div>
+
+            <p>An electron can conduct only once it has gained at least $E_g$. At room temperature the thermal
+                energy is $kT \approx 25.9\,\text{meV}$, so the size of the gap relative to $kT$ separates three
+                classes of solid:</p>
+
+            <ul class="bullets">
+                <li><strong>insulator</strong> (SiO$_2$, $E_g \approx 9\,\text{eV}$): the gap is several hundred
+                    times $kT$, practically no electrons are promoted, and no current flows;</li>
+                <li><strong>semiconductor</strong> (Si, $E_g = 1.17\,\text{eV}$ at $0\,\text{K}$ and
+                    $1.12\,\text{eV}$ at $300\,\text{K}$): a small fraction of electrons is promoted, and the number
+                    rises steeply with temperature;</li>
+                <li><strong>conductor</strong> (Cu): the outer 4s band is only half occupied, so empty states lie
+                    directly above the occupied ones and no gap has to be crossed.</li>
+            </ul>
+
+            <p>Every electron promoted across the gap leaves an empty state, a hole, in the valence band.
+                Neighbouring valence electrons can move into the hole, so the hole also carries current and behaves
+                as a positive charge.</p>
+
+            <div class="callout">
+                In the diagram the band edges follow the shell radii of the 3D model. The insulator gap is therefore
+                drawn to the same schematic scale as the silicon gap and not in proportion to $9\,\text{eV}$.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="mode" data-value="insulator">insulator</button>
+                        <button class="seg-btn" data-param="mode" data-value="semiconductor">semiconductor</button>
+                        <button class="seg-btn" data-param="mode" data-value="conductor">conductor</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$T$</span>
+                        <input type="range" data-param="temp" min="0" max="1000" step="10">
+                        <span class="val" data-param="temp"></span>
+                    </span>
+                </div>
+                <div class="plot-box band">
+                    <div class="label" id="band-label">energy band diagram</div>
+                    <svg class="bode" id="plot-band"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dot" style="background:var(--c-valence)"></span>valence electron</span>
+                    <span><span class="sw dot" style="background:var(--c-free)"></span>conduction electron</span>
+                    <span><span class="sw ring" style="border-color:var(--c-hole)"></span>hole</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-free)"></span>thermal excitation</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$E_g$</span><span class="v" data-out="eg"></span></div>
+                    <div class="item"><span class="k">shell separation</span><span class="v" data-out="gap"></span></div>
+                    <div class="item"><span class="k">promoted electrons</span><span class="v" data-out="free"></span></div>
+                    <div class="item"><span class="k">conductivity</span><span class="v" data-out="cond"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 03 · TEMPERATURE ================= -->
+    <section class="scene" id="sec-thermal">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>thermal generation</span></div>
+            <h2>Temperature dependence of the gap and the carrier density</h2>
+
+            <p class="lead">The silicon band gap narrows slightly with temperature as the lattice expands and
+                vibrates. The empirical Varshni form describes it:</p>
+
+            <div class="eq-block">$$E_g(T) = E_g(0) - \frac{\alpha T^2}{T + \beta}$$</div>
+
+            <p>with $E_g(0) = 1.17\,\text{eV}$, $\alpha = 4.73\times10^{-4}\,\text{eV/K}$ and
+                $\beta = 636\,\text{K}$ for silicon.</p>
+
+            <p>Between $0$ and $1000\,\text{K}$ the gap falls from $1.17$ to about $0.88\,\text{eV}$; it never
+                closes. In a pure (intrinsic) crystal every promoted electron leaves one hole, so $n = p = n_i$,
+                with</p>
+
+            <div class="eq-block">$$n_i = \sqrt{N_C N_V}\; \exp\!\left(-\frac{E_g}{2kT}\right),\qquad
+                N_C, N_V \propto T^{3/2}$$</div>
+
+            <p>where $N_C$ and $N_V$ are the effective densities of states in the conduction and valence bands.
+                The plot normalises $n_i$ to $1.0\times10^{10}\,\text{cm}^{-3}$ at $300\,\text{K}$. Silicon has
+                about $5\times10^{22}$ atoms and $2\times10^{23}$ valence electrons per cubic centimetre, so at
+                room temperature fewer than one valence electron in $10^{13}$ is promoted.</p>
+
+            <p>The conductivity of the crystal is</p>
+
+            <div class="eq-block">$$\sigma = q\,(n\,\mu_n + p\,\mu_p) = q\,n_i\,(\mu_n + \mu_p)$$</div>
+
+            <p>and rises with temperature because $n_i$ rises. In a metal the carrier density is fixed and lattice
+                scattering lowers the mobility, so its conductivity falls with temperature.</p>
+
+            <div class="callout">
+                The exponential term dominates. From $300$ to $400\,\text{K}$ it multiplies $n_i$ by about 230,
+                while the $T^{3/2}$ factor and the narrowing of the gap each contribute a factor of about 1.5.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$T$</span>
+                        <input type="range" data-param="temp" min="0" max="1000" step="10">
+                        <span class="val" data-param="temp"></span>
+                    </span>
+                </div>
+                <div class="plot-box pair">
+                    <div class="label">silicon · <b>$E_g$ and $n_i$ against temperature</b></div>
+                    <svg class="bode" id="plot-thermal"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-eg)"></span>$E_g(T)$</span>
+                    <span><span class="sw" style="background:var(--c-ni)"></span>$n_i(T)$, log scale</span>
+                    <span>dot: present temperature</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$T$</span><span class="v" data-out="temp"></span></div>
+                    <div class="item"><span class="k">$E_g(T)$</span><span class="v" data-out="egsi"></span></div>
+                    <div class="item"><span class="k">$kT$</span><span class="v" data-out="kt"></span></div>
+                    <div class="item"><span class="k">$n_i$</span><span class="v" data-out="ni"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>BMEN90033 · The University of Melbourne</footer>
+
+    <script defer src="../components/katex_label.js"></script>
+    <script defer src="../components/plot_helpers.js"></script>
+    <script defer src="semiconductor_bands_JS/model.js"></script>
+    <script defer src="semiconductor_bands_JS/frame.js"></script>
+    <script defer src="semiconductor_bands_JS/controls.js"></script>
+    <script defer src="semiconductor_bands_JS/readout.js"></script>
+    <script defer src="semiconductor_bands_JS/plot_band.js"></script>
+    <script defer src="semiconductor_bands_JS/plot_thermal.js"></script>
+    <script type="module" src="semiconductor_bands_JS/scene_atoms.js"></script>
 </body>
 
 </html>

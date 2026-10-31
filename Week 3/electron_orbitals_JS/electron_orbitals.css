@@ -1,0 +1,72 @@
+/* electron_orbitals.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. Orbital colours are plain hex so the
+   Three.js scene can read them; in the light theme the scene darkens them
+   and switches from additive to normal blending. */
+
+:root {
+    --c-o-1s: #00ccff; --c-o-2s: #00ff88; --c-o-2px: #ff6666;
+    --c-o-2py: #6688ff; --c-o-2pz: #cc66ff; --c-o-3s: #ffcc00;
+    --c-o-3px: #ff9944; --c-o-3py: #44bbff; --c-o-3pz: #bb66ff;
+    --c-o-3dz2: #ff66aa; --c-o-3dxz: #66ffaa; --c-o-3dyz: #aa66ff;
+    --c-o-3dxy: #ffaa66; --c-o-3dx2y2: #66aaff; --c-o-4s: #33ffcc;
+    --c-o-4px: #ff5599; --c-o-4py: #55aaff; --c-o-4pz: #dd77ff;
+    --c-o-4dz2: #ff77bb; --c-o-4dxz: #77ffbb; --c-o-4dyz: #bb77ff;
+    --c-o-4dxy: #ffbb77; --c-o-4dx2y2: #77bbff; --c-o-4f0: #ff99cc;
+    --c-o-4f1: #99ccff; --c-o-4f2: #ffcc99; --c-o-4f3: #ff9999;
+    --c-o-5s: #44ffdd; --c-o-5px: #ff4488; --c-o-5py: #4499ff;
+    --c-o-5pz: #cc55ff; --c-o-5dz2: #ff88cc; --c-o-5dxz: #88ffcc;
+    --c-o-5dyz: #cc88ff; --c-o-5dxy: #ffcc88; --c-o-5dx2y2: #88ccff;
+    --c-o-6s: #55ffee; --c-o-6pz: #ee66ff;
+    --c-o-4fm1: #cc99ff; --c-o-4fm2: #99ffcc; --c-o-4fm3: #9999ff;
+    --c-pos:     #ff4444;   /* psi > 0 */
+    --c-neg:     #4488ff;   /* psi < 0 */
+    --c-nucleus: #ffffff;
+    --c-radial:  #ff6644;   /* R(r) */
+    --c-prob:    #44aaff;   /* r^2 R^2 */
+    --c-level:   rgba(255, 255, 255, 0.75);
+    --c-ref:     rgba(255, 255, 255, 0.55);
+    --hero-a: #00ccff;
+    --hero-b: #cc66ff;
+}
+
+[data-theme="light"] {
+    --c-pos:     #c81e1e;
+    --c-neg:     #1d4ed8;
+    --c-nucleus: #1a1a1e;
+    --c-radial:  #c2410c;
+    --c-prob:    #0369a1;
+    --c-level:   rgba(0, 0, 0, 0.7);
+    --c-ref:     rgba(0, 0, 0, 0.5);
+    --hero-a: #0284c7;
+    --hero-b: #7c3aed;
+}
+
+.plot-box.scene3d { aspect-ratio: 1.15 / 1; }
+.plot-box.radial  { aspect-ratio: 1.25 / 1; }
+.plot-box.slice   { aspect-ratio: 1.1 / 1; }
+.plot-box.levels  { aspect-ratio: 1.3 / 1; }
+
+/* Orbital chips: a swatch and the KaTeX label. Long configurations scroll. */
+.orb-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 96px; overflow-y: auto; }
+.orb-btn { text-transform: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; }
+.orb-btn .sw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.orb-btn .katex { font-size: 13px !important; }
+.orb-chips.vis .orb-btn:not(.active) { opacity: 0.5; }
+
+.loading {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); background: var(--bg-panel); z-index: 3;
+}
+.loading.on { display: flex; }
+
+.readout .item .v .katex { font-size: 15px !important; }
+.legend .sw.dash { border-top-color: var(--c-ref); }
+
+/* Label and hint over the 3D scene sit on a panel so dense geometry behind
+   them does not reduce their legibility. */
+.plot-box.scene3d .label,
+.plot-box.scene3d .hint {
+    width: fit-content; padding: 3px 8px; border-radius: 4px;
+    background: var(--bg-panel);
+}

@@ -1,0 +1,38 @@
+/* photodiode.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-hole:  #ff6b6b;   /* holes, acceptor ions, valence band */
+    --c-elec:  #4ecdc4;   /* electrons, donor ions, conduction band */
+    --c-field: #ffc832;   /* field arrow */
+    --c-ph-si:     #ffd93d;   /* photons drawn for silicon */
+    --c-ph-ingaas: #ff7a52;   /* photons drawn for InGaAs */
+    --c-ph-gap:    #44dd66;   /* photons drawn for GaP */
+    --hero-a: var(--c-ph-si);
+    --hero-b: var(--c-elec);
+}
+
+[data-theme="light"] {
+    --c-hole:  #d63a3a;
+    --c-elec:  #0f8f87;
+    --c-field: #b7791f;
+    --c-ph-si:     #b88200;
+    --c-ph-ingaas: #c2410c;
+    --c-ph-gap:    #15803d;
+}
+
+.plot-box.sim      { aspect-ratio: 1.6 / 1; }
+.plot-box.bands    { aspect-ratio: 2.4 / 1; }
+.plot-box.response { aspect-ratio: 1.5 / 1; }
+
+.legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+.legend .dot.ring { background: transparent; border: 1.5px solid; }
+
+/* h nu label placed over the canvas by sim_junction.js; the pill masks the
+   junction and depletion-edge lines behind it. */
+.plot-box .hv-label {
+    position: absolute; z-index: 2; pointer-events: none;
+    top: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-2); padding: 1px 6px; border-radius: 4px;
+}
+.plot-box .hv-label .katex { font-size: 16px !important; }
