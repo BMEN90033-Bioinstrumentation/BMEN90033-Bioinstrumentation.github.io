@@ -198,6 +198,10 @@ strong { color: var(--fg); font-weight: 600; }
     border-radius: 10px; text-align: center; color: var(--fg);
     overflow-x: auto;
 }
+/* --eq-scale is set by components/eq_fit.js when an equation is wider than
+   its column. */
+.eq-block .katex { font-size: calc(var(--math-size) * var(--eq-scale, 1)) !important; }
+.eq-block .katex-display > .katex { font-size: calc(var(--math-size) * 1.06 * var(--eq-scale, 1)) !important; }
 
 .callout {
     margin-top: 18px; padding: 14px 18px;
@@ -332,10 +336,12 @@ strong { color: var(--fg); font-weight: 600; }
 .legend .sw.band { height: 10px; }
 
 /* ─── SVG plot styling ─── */
-svg.bode text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; fill: var(--muted);
-}
+/* Defaults only: in SVG a CSS rule outranks a presentation attribute, so the
+   size and colour apply only where the plot code has not set its own. */
+svg.bode text { font-family: 'JetBrains Mono', monospace; }
+svg.bode text:not([font-size]) { font-size: 12px; }
+svg.bode text:not([fill]) { fill: var(--muted); }
+svg.bode .tick text { fill: var(--muted); }   /* axis ticks stay muted as in Weeks 8 to 10 */
 svg.bode .grid line { stroke: var(--grid-line); stroke-width: 1; }
 svg.bode .grid line.major { stroke: var(--grid-zero); stroke-width: 1.2; }
 svg.bode .axis-line { stroke: var(--grid-zero); stroke-width: 1.4; }
@@ -349,6 +355,14 @@ footer {
     border-top: 1px solid var(--border);
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* Below 1200 px a side-by-side layout leaves the copy column too narrow for
+   the equations and shrinks schematics below a readable size, so the copy
+   and figures stack. */
+@media (max-width: 1200px) {
+    section.scene { grid-template-columns: 1fr; }
+    section.scene .copy { max-width: 760px; }
 }
 
 @media (max-width: 900px) {
