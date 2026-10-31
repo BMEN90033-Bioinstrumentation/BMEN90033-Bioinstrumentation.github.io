@@ -1,7 +1,8 @@
 // BJT semiconductor model. Qualitative: the base-current slider (0..100,
 // I_B = 2 uA per step) selects the operating region by fixed thresholds and
 // scales injection, depletion widths and concentration profiles. Ported from
-// the original simulator without change to the equations.
+// the original simulator; the base minority profile now uses the junction
+// edge conditions (see profiles()).
 (function () {
     // Shared, page-wide parameters. controls.js writes these and dispatches
     // 'bjschange'; every figure reads them.
@@ -47,28 +48,51 @@
         };
     }
 
+    // Junction voltages implied by the slider (forward bias positive; for
+    // the PNP these are V_EB and V_CB). V_BE raises the injected density by
+    // the same number of decades as the original model, capped a decade
+    // below N_B (low injection). V_BC is 0 V at I_B = 0 (unbiased device),
+    // -2 V (reverse) in the active region, and blends towards forward bias
+    // as saturation approaches. VT = kT/q = 25.85 mV at 300 K.
+    var VT = 0.02585, V_REV = -2;
+    function junctions() {
+        var ib = p.ib, inj = ib / 100, sb = satBlend(ib), dec = VT * Math.LN10;
+        var bMinEq = Math.log10(NI * NI / NB);
+        var vbe = Math.min(inj * 12, 17 - 1 - bMinEq) * dec;
+        var vbc = ib === 0 ? 0 : (1 - sb) * V_REV + sb * inj * 10 * dec;
+        return { vbe: vbe, vbc: vbc };
+    }
+
     // Concentration profiles along the device, position frac in 0..1.
     // Region fractions: emitter 0.42, base 0.15, collector 0.43.
+    // Base minority profile (short base, negligible recombination): linear
+    // in concentration between the junction-edge values
+    //   n_B(0)   = n_B0 exp(V_BE / V_T)
+    //   n_B(W_B) = n_B0 exp(V_BC / V_T)
+    // Values are returned as log10(cm^-3), floored at 0 (1 cm^-3, the
+    // bottom of the log axis), since n_B(W_B) is effectively 0 under reverse bias.
     var EF = 0.42, BF = 0.15, CF = 0.43, BEJ = EF, BCJ = EF + BF;
     function profiles() {
-        var ib = p.ib, npn = p.type === 'NPN';
+        var npn = p.type === 'NPN', j = junctions();
         var eMaj = 19, bMaj = 17, cMaj = 15;
         var LOG_NI2 = Math.log10(NI * NI);
         var eMin = LOG_NI2 - eMaj, bMinEq = LOG_NI2 - bMaj, cMin = LOG_NI2 - cMaj;
-        var inj = ib / 100, sb = satBlend(ib);
-        // Injected minority density n_p0 exp(V_BE/V_T) stays below N_B (low injection).
-        var injected = Math.min(bMinEq + inj * 12, bMaj - 1);
-        var atBC = bMinEq + sb * inj * 10;
-        var n = { e: npn ? eMaj : eMin, b0: npn ? injected : bMaj, b1: npn ? atBC : bMaj, c: npn ? cMaj : cMin };
-        var q = { e: npn ? eMin : eMaj, b0: npn ? bMaj : injected, b1: npn ? bMaj : atBC, c: npn ? cMin : cMaj };
+        var nB0 = Math.pow(10, bMinEq);
+        var edge0 = nB0 * Math.exp(j.vbe / VT), edgeW = nB0 * Math.exp(j.vbc / VT);
+        var lg = function (v) { return Math.max(0, Math.log10(Math.max(v, 1e-300))); };
+        // Minority carriers in the base, linear between the two edges.
+        function minority(frac) {
+            var t = Math.min(1, Math.max(0, (frac - BEJ - 0.005) / (BF - 0.01)));
+            return lg(edge0 + (edgeW - edge0) * t);
+        }
+        var n = { e: npn ? eMaj : eMin, b: npn ? minority : null, maj: bMaj, c: npn ? cMaj : cMin };
+        var q = { e: npn ? eMin : eMaj, b: npn ? null : minority, maj: bMaj, c: npn ? cMin : cMaj };
         function logAt(s, frac) {
+            var inBase = function (f) { return s.b ? s.b(f) : s.maj; };
             if (frac < BEJ - 0.005) return s.e;
-            if (frac < BEJ + 0.005) return s.e + (s.b0 - s.e) * (frac - (BEJ - 0.005)) / 0.01;
-            if (frac < BCJ - 0.005) {
-                var t = (frac - BEJ - 0.005) / (BF - 0.01);
-                return s.b0 + (s.b1 - s.b0) * Math.min(1, Math.max(0, t));
-            }
-            if (frac < BCJ + 0.005) return s.b1 + (s.c - s.b1) * (frac - (BCJ - 0.005)) / 0.01;
+            if (frac < BEJ + 0.005) return s.e + (inBase(BEJ + 0.005) - s.e) * (frac - (BEJ - 0.005)) / 0.01;
+            if (frac < BCJ - 0.005) return inBase(frac);
+            if (frac < BCJ + 0.005) { var b1 = inBase(BCJ - 0.005); return b1 + (s.c - b1) * (frac - (BCJ - 0.005)) / 0.01; }
             return s.c;
         }
         return {
@@ -89,7 +113,7 @@
     window.BJS = {
         NE: NE, NB: NB, NC: NC, NI: NI, EF: EF, BF: BF, CF: CF, BEJ: BEJ, BCJ: BCJ,
         p: p, region: region, ibMicro: ibMicro, satBlend: satBlend,
-        regions: regions, profiles: profiles, plotDepletion: plotDepletion,
+        regions: regions, profiles: profiles, junctions: junctions, plotDepletion: plotDepletion,
         // Run fn now (after DOM ready) and on every parameter, theme or size change.
         onRender: function (fn) {
             function go() {

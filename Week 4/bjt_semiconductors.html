@@ -167,15 +167,23 @@
             <div class="eq-block">$$n_B(0) = n_{B0}\, e^{V_{BE}/V_T}, \qquad V_T = \frac{kT}{q} \approx 25.9\,\text{mV at 300 K}$$</div>
 
             <p>The model keeps this injected density at least a decade below the base doping, which is the
-                low-injection condition. The
-                density falls across the base towards the collector junction, and the gradient drives the diffusion
-                current that becomes the collector current. As saturation approaches, the collector junction also
-                injects and the concentration at the collector side of the base rises.</p>
+                low-injection condition. The collector junction sets the density at the other edge of the base, and
+                in a base much thinner than the diffusion length the profile is a straight line between the two
+                edge values:</p>
+
+            <div class="eq-block">$$n_B(W_B) = n_{B0}\, e^{V_{BC}/V_T}, \qquad
+                I_C \approx \frac{q A D_n}{W_B}\,\bigl[n_B(0) - n_B(W_B)\bigr]$$</div>
+
+            <p>In the active region the collector junction is reverse biased (the model uses $V_{BC} = -2\,\text{V}$),
+                so $n_B(W_B)$ is effectively zero and the density falls linearly to zero across the base. Its gradient
+                drives the diffusion current that becomes the collector current. On the logarithmic axis this linear
+                fall appears as a sharp drop at the collector edge. In saturation both junctions are forward biased,
+                both edge densities are raised, and the base holds the excess stored charge. With no bias at all, both
+                edges sit at $n_{B0}$ and the profile is flat.</p>
 
             <div class="callout">
                 On the linear axis the minority concentrations, up to 18 orders of magnitude below the emitter
-                doping, cannot be distinguished from zero; only the logarithmic axis shows them. The plot ends the
-                base profile at $n_{B0}$; with the collector junction reverse biased the true edge value is lower.
+                doping, cannot be distinguished from zero; only the logarithmic axis shows them.
             </div>
         </div>
 
@@ -206,6 +214,11 @@
                     <span><span class="sw" style="background:var(--c-hole)"></span>holes $p(x)$</span>
                     <span><span class="blk dep"></span>depletion region</span>
                     <span><span class="sw dash"></span>metallurgical junction</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">region</span><span class="v" data-out="region"></span></div>
+                    <div class="item"><span class="k" data-jk="1"></span><span class="v" data-out="vj1"></span></div>
+                    <div class="item"><span class="k" data-jk="2"></span><span class="v" data-out="vj2"></span></div>
                 </div>
             </div>
         </div>

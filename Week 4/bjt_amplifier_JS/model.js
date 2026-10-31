@@ -1,9 +1,10 @@
 // NPN common-emitter amplifier, fixed bias through R_B from V_BB with the AC
-// source v_in(t) in series: V_BB + v_in(t) = i_B R_B + v_BE. Shockley V_BE
-// solver, DC bias, small-signal analysis and waveform generator are ported
-// from the original simulator without change to the equations.
+// source v_in(t) in series: V_BB + v_in(t) = i_B R_B + v_BE. The Shockley
+// V_BE solver, small-signal analysis and waveform generator are ported from
+// the original simulator; the DC bias now uses the same solver (no hard
+// cutoff threshold on V_BB).
 (function () {
-    var VBE_ON = 0.7;    // V_BE turn-on (silicon), V
+    var VBE_ON = 0.7;    // V_BE starting estimate for the solver (silicon), V
     var VCE_SAT = 0.2;   // V_CE saturation, V
     var VT = 0.026;      // thermal voltage kT/q at 300 K, V
     var IS = 1e-14;      // saturation current, A (I_C = 4.9 mA at V_BE = 0.7 V)
@@ -53,18 +54,17 @@
         return { vbe: vbe, ib: ib, ic: ic, vce: sat ? VCE_SAT : p.vcc - ic * p.rc };
     }
 
-    // DC bias (v_in = 0). Cutoff when V_BB < V_BE(on).
+    // DC bias (v_in = 0) from the same Shockley operating point as every
+    // readout and trace. The region is read from the solved values:
+    //   cutoff      I_CQ < IC_CUT (1 uA; V_BE below about 0.48 V)
+    //   saturation  beta I_BQ > I_C(sat), so V_CEQ = V_CE(sat)
+    //   active      otherwise
+    var IC_CUT = 1e-6;   // A
     function computeDCBias() {
-        var ibq, icq, vceq, region;
-        if (p.vbb < VBE_ON) {
-            ibq = 0; icq = 0; vceq = p.vcc; region = 'cutoff';
-        } else {
-            ibq = operatingPoint(p.vbb).ib;
-            var icActive = p.hfe * ibq, icSat = (p.vcc - VCE_SAT) / p.rc;
-            if (icActive <= icSat) { icq = icActive; vceq = p.vcc - icq * p.rc; region = 'active'; }
-            else { icq = icSat; vceq = VCE_SAT; region = 'saturation'; }
-        }
-        return { ibq: ibq, icq: icq, vceq: vceq, region: region };
+        var op = operatingPoint(p.vbb);
+        var sat = p.hfe * op.ib > (p.vcc - VCE_SAT) / p.rc;
+        var region = op.ic < IC_CUT ? 'cutoff' : sat ? 'saturation' : 'active';
+        return { ibq: op.ib, icq: op.ic, vceq: op.vce, vbeq: op.vbe, region: region };
     }
 
     // Small-signal parameters at the DC bias.
@@ -79,17 +79,10 @@
         return { av: av_intrinsic * vbe_fraction, av_intrinsic: av_intrinsic, re_small: re_small, gm: gm, zin: r_pi, vbe_fraction: vbe_fraction };
     }
 
-    // Shockley Q-point used by the transfer characteristic: Newton from
-    // min(V_BB, V_BE(on)), I_CQ clamped at the saturation limit.
+    // Q-point on the exponential characteristic for the transfer plot: the
+    // same solved V_BE, with I_CQ = I_S exp(V_BE/V_T) clamped at I_C(sat).
     function shockleyQ() {
-        var vq = Math.min(p.vbb, VBE_ON);
-        for (var iter = 0; iter < 15; iter++) {
-            var ib = IS * Math.exp(vq / VT) / p.hfe;
-            var f = p.vbb - ib * p.rb - vq, fp = -(ib / VT) * p.rb - 1, dv = f / fp;
-            vq -= dv;
-            if (Math.abs(dv) < 1e-9) break;
-        }
-        vq = Math.max(0, vq);
+        var vq = solveVBE(p.vbb);
         var icSat = (p.vcc - VCE_SAT) / p.rc;
         var icq = Math.min(IS * Math.exp(vq / VT), icSat);
         return { vbe: vq, ic: icq, gm: icq / VT, icSat: icSat };
@@ -137,7 +130,7 @@
     function fmtmA(a) { return (a * 1e3).toFixed(3) + ' mA'; }
 
     window.AMP = {
-        VBE_ON: VBE_ON, VCE_SAT: VCE_SAT, VT: VT, IS: IS, BUFFER_LEN: BUFFER_LEN,
+        VBE_ON: VBE_ON, IC_CUT: IC_CUT, VCE_SAT: VCE_SAT, VT: VT, IS: IS, BUFFER_LEN: BUFFER_LEN,
         p: p, buf: buf, waveValue: waveValue, solveVBE: solveVBE, operatingPoint: operatingPoint,
         computeDCBias: computeDCBias, computeSmallSignal: computeSmallSignal, shockleyQ: shockleyQ,
         watch: watch, vinNow: vinNow, fmtR: fmtR, fmtV: fmtV, fmtmA: fmtmA,

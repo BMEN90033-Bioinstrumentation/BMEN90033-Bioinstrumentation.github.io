@@ -25,7 +25,7 @@
                 'Saturation begins as $V_{BC}$ becomes positive. The rising $I_C$ increases the drop across the collector resistor until $V_{CE} < V_{BE}$.'];
             default: return ['Saturation: both junctions forward biased',
                 '<p>Both junctions are forward biased, and carriers are injected into the base from the emitter and from the collector.</p>' +
-                '<p>$I_C$ no longer rises in proportion to $I_B$; $V_{CE}$ has fallen to $V_{CE(\\text{sat})} \\approx 0.2\\,\\text{V}$. Excess minority ' + maj + ' are stored throughout the base, visible in section 02 as an elevated concentration across it.</p>',
+                '<p>$I_C$ no longer rises in proportion to $I_B$; $V_{CE} = V_{BE} - V_{BC}$ has fallen to about 0.1 to 0.2 V, the readout values in section 02. Excess minority ' + maj + ' are stored throughout the base, visible in section 02 as an elevated concentration across it.</p>',
                 'The stored base charge must be removed by recombination or reverse extraction before the transistor returns to cutoff. This delay is the storage time $t_s$.'];
         }
     }
@@ -35,6 +35,14 @@
         document.querySelectorAll('[data-out="region"]').forEach(function (el) { el.textContent = B.region(); });
         document.querySelectorAll('[data-out="ib"]').forEach(function (el) { el.textContent = B.ibMicro() + ' µA'; });
         document.querySelectorAll('[data-out="type"]').forEach(function (el) { el.textContent = B.p.type; });
+        // Junction voltages: V_BE, V_BC for the NPN; V_EB, V_CB for the PNP.
+        var j = B.junctions(), npn = B.p.type === 'NPN';
+        document.querySelectorAll('[data-out="vj1"]').forEach(function (el) { el.textContent = j.vbe.toFixed(3) + ' V'; });
+        document.querySelectorAll('[data-out="vj2"]').forEach(function (el) { el.textContent = j.vbc.toFixed(3) + ' V'; });
+        document.querySelectorAll('[data-jk]').forEach(function (el) {
+            var t = el.dataset.jk === '1' ? (npn ? 'V_{BE}' : 'V_{EB}') : (npn ? 'V_{BC}' : 'V_{CB}');
+            if (window.katex) window.katex.render(t, el);
+        });
         var card = document.getElementById('region-card');
         if (!card) return;
         card.innerHTML = '<h3>' + t[0] + '</h3>' + t[1] + '<p class="mech"><strong>Mechanism.</strong> ' + t[2] + '</p>';

@@ -82,7 +82,7 @@
             <p>The model uses silicon values for an NPN transistor:</p>
 
             <ul class="bullets">
-                <li>$V_{BE(\text{on})} = 0.7\,\text{V}$, the junction voltage below which the bias is taken as cutoff;</li>
+                <li>$V_{BE(\text{on})} \approx 0.7\,\text{V}$, the typical conducting junction voltage; the model solves for $v_{BE}$ rather than fixing it;</li>
                 <li>$V_{CE(\text{sat})} = 0.2\,\text{V}$, the residual collector-emitter voltage in saturation;</li>
                 <li>$I_S = 10^{-14}\,\text{A}$ and $V_T = kT/q = 26\,\text{mV}$, the parameters of the exponential
                     junction law used throughout;</li>
@@ -162,7 +162,7 @@
                 with the characteristic for $I_{BQ}$. Three cases arise:</p>
 
             <ul class="bullets">
-                <li><strong>cutoff</strong>: $V_{BB} < V_{BE(\text{on})}$, so $I_{CQ} = 0$ and $V_{CEQ} = V_{CC}$;</li>
+                <li><strong>cutoff</strong>: the model reports cutoff when $I_{CQ} < 1\,\mu\text{A}$, which needs $V_{BE}$ below about 0.48 V; then $V_{CEQ} \approx V_{CC}$. The current falls exponentially with $V_{BE}$ rather than stopping at a sharp threshold;</li>
                 <li><strong>forward active</strong>: $\beta I_{BQ} \le I_{C(\text{sat})} = (V_{CC} - V_{CE(\text{sat})})/R_C$;</li>
                 <li><strong>saturation</strong>: $\beta I_{BQ}$ exceeds $I_{C(\text{sat})}$, the collector current
                     is held at $I_{C(\text{sat})}$, and the ratio $I_{CQ}/I_{BQ}$, the forced beta, falls below

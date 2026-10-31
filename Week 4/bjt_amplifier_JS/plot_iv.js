@@ -37,7 +37,7 @@
             });
         }
         var cIb = css('--c-ib'), step = (p.vcc / p.rc) / (p.hfe * 6), fam = [];
-        if (bias.ibq > 0) fam.push({ ib: bias.ibq, q: true });
+        if (bias.region !== 'cutoff') fam.push({ ib: bias.ibq, q: true });
         for (var n = 1; n <= 7; n++) fam.push({ ib: step * n, q: false });
         fam.forEach(function (c) {
             c.pts = curve(c.ib);
@@ -119,7 +119,11 @@
                 [12, 36].forEach(function (dx) { qc.push([qx + dx, qy + dy]); });
                 qc.push([qx - 12 - lq, qy + dy, 'right']);
             });
-            label(qt, qc, lq, cQ);
+            // Fallback: the bare letter Q when the coordinate label fits nowhere
+            // (the coordinates are also in the readout).
+            if (!label(qt, qc, lq, cQ)) {
+                label('Q', [[qx + 10, qy - 14], [qx - 30, qy - 14, 'right'], [qx + 10, qy + 14], [qx - 30, qy + 14, 'right']], 20, cQ);
+            }
             if (bracketTex) label(bracketTex, [[bx + 10, byN + 14], [bx + 10, byN - 14], [bx + 10, (qy + byN) / 2]], 60, css('--c-vce'));
         }
 
