@@ -1,12 +1,11 @@
 // Section 04 · Efficiency against input amplitude for the three classes,
-// from the same power model. The class A curve uses the present bias when
-// class A is selected and the centred bias otherwise. The dashed lines mark
+// from the same power model, at the present class A bias and class AB diode
+// drop. The dashed lines mark
 // the theoretical maxima of 25 % and 78.5 %. Series are identified by the
 // HTML legend.
 (function () {
     var sel = '#plot-eff';
     var COL = { A: '--c-bias', B: '--c-pnp', AB: '--c-npn' };
-    var BIAS = { A: 50, B: 0, AB: 5 };
 
     function render() {
         var A = window.AMP, p = A.p, css = window.CMP.cssVar, T = window.T;
@@ -23,7 +22,7 @@
                 .attr('stroke', css('--c-load')).attr('stroke-width', 1.3).attr('stroke-dasharray', '6 4');
         });
         ['A', 'B', 'AB'].forEach(function (c) {
-            var q = { cls: c, bias: c === 'A' && p.cls === 'A' ? p.bias : BIAS[c] };
+            var q = { cls: c, bias: p.bias, vd: p.vd };
             var pts = d3.range(0, 101).map(function (a) {
                 q.amp = a; return [a / 100, A.derived(q).efficiency];
             });

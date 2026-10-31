@@ -9,18 +9,25 @@
         });
     }
 
+    function mw(w) { return w >= 1 ? w.toFixed(2) + ' W' : (w * 1000).toFixed(w < 0.01 ? 2 : 1) + ' mW'; }
+
     function render() {
-        var C = window.CLD, p = C.p, m = p.amp / 100, pw = C.power();
+        var C = window.CLD, p = C.p, m = p.amp / 100, pw = C.power(), fsw = p.ratio * C.F_SIG;
+        var h = C.Hmag(fsw);
         set('m', m.toFixed(2));
         set('dmax', (C.duty(m) * 100).toFixed(0) + ' %');
         set('dmin', (C.duty(-m) * 100).toFixed(0) + ' %');
-        set('ratio', p.ratio + '×');
-        set('ripple', (8 / (p.ratio * p.ratio) * C.VCC / 2).toFixed(3) + ' V');
-        set('pdc', pw.dc.toFixed(2) + ' mW');
-        set('pl', pw.signal.toFixed(2) + ' mW');
-        set('pd', pw.heat.toFixed(2) + ' mW');
-        set('eta', pw.eff.toFixed(0) + ' % (assumed)');
+        set('ratio', p.ratio + '× (' + (fsw / 1000).toFixed(0) + ' kHz)');
+        set('hsw', (20 * Math.log10(h)).toFixed(1) + ' dB');
+        // Peak of the switching-frequency component at the filter output for
+        // D = 0.5: square-wave fundamental 2 V_CC / pi times |H(f_sw)|.
+        set('ripple', (2 * C.VCC / Math.PI * h).toFixed(3) + ' V');
+        set('pdc', mw(pw.dc));
+        set('pl', mw(pw.signal));
+        set('ploss', mw(pw.dc - pw.signal));
+        set('eta', pw.eff.toFixed(1) + ' %');
         set('vpk', pw.voutPeak.toFixed(2) + ' V');
+        set('irms', (pw.iRms * 1000).toFixed(0) + ' mA');
         tick();
     }
 

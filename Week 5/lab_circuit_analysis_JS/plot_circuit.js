@@ -20,7 +20,7 @@
         var svg = d3.select(sel);
         svg.selectAll('*').remove();
         svg.attr('viewBox', '0 0 ' + W + ' ' + H).attr('preserveAspectRatio', 'xMidYMid meet');
-        var S = L.schem(svg), dim = { size: 13, color: T.textDim };
+        var S = L.schem(svg), dim = { size: 14.5, color: T.textDim };
         var bx = 480, by = 230, r = 28, gnd = 380;
 
         // Supply rail and bias divider.

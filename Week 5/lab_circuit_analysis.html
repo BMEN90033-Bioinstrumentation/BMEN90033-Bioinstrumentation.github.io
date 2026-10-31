@@ -146,8 +146,10 @@
 
             <div class="callout">
                 $I_C$ is set by the base divider and $R_E$, not by $R_C$. Raising $R_C$ steepens the load line until
-                the operating point reaches $V_{CE(\text{sat})}$; beyond that the model holds the gain at its
-                edge-of-saturation value and reports the stage as saturated.
+                the operating point reaches $V_{CE(\text{sat})}$ at
+                $R_{C,\max} = (V_{CC} - V_{CE(\text{sat})})/I_C - R_E$. Beyond that the stage is saturated and has no
+                linear gain; the model reports it as saturated and evaluates every small-signal quantity ($A_\text{mid}$,
+                $\omega_{L2}$, $\omega_{H2}$ and $C_\text{in,Miller}$) with $R_C$ clipped to $R_{C,\max}$.
             </div>
         </div>
 
@@ -213,9 +215,10 @@
                 open. With $R_C' = R_C \parallel R_L = 1\,\text{k}\Omega$:</p>
 
             <div class="eq-block">$$\begin{aligned}
-                R_\text{in} &= R_{BB} \parallel r_\pi = \frac{66.67\,\text{k} \cdot 4.48\,\text{k}}{66.67\,\text{k} + 4.48\,\text{k}} \approx 4.20\,\text{k}\Omega \\[4pt]
-                A_\text{mid} &= -g_m R_C' \,\frac{R_\text{in}}{R_S + R_\text{in}}
-                = -44.62\,\text{mA/V} \cdot 1\,\text{k}\Omega \cdot \frac{4200}{4300} = -43.6\,\text{V/V}
+                R_\text{in} &= R_{BB} \parallel r_\pi = \frac{66.67\,\text{k} \cdot 4.48\,\text{k}}{66.67\,\text{k} + 4.48\,\text{k}} \\[2pt]
+                &\approx 4.20\,\text{k}\Omega \\[6pt]
+                A_\text{mid} &= -g_m R_C' \,\frac{R_\text{in}}{R_S + R_\text{in}} \\[2pt]
+                &= -44.62\,\text{mA/V} \cdot 1\,\text{k}\Omega \cdot \frac{4200}{4300} = -43.6\,\text{V/V}
                 \end{aligned}$$</div>
 
             <p>This is $32.8\,\text{dB}$; the minus sign is the $180^\circ$ inversion of the common-emitter
@@ -267,13 +270,19 @@
 
             <h3>Low-frequency poles</h3>
             <p>Each coupling capacitor sees the resistance on both of its sides. $C_E$ sees $R_E$ in parallel with the
-                resistance looking into the emitter, with $R_{th} = R_S \parallel R_{BB} \approx 100\,\Omega$:</p>
+                resistance looking into the emitter, with $R_{th} = R_S \parallel R_{BB} \approx 100\,\Omega$. In
+                $\omega_{L2}$, as in $A_\text{mid}$ and $\omega_{H2}$, $R_C$ is the collector resistance clipped at
+                $R_{C,\max}$ (section 02); for the default values no clipping occurs:</p>
 
             <div class="eq-block">$$\begin{aligned}
-                \omega_{L1} &= \frac{1}{C_{C1}(R_S + R_{BB} \parallel r_\pi)} = \frac{1}{0.1\,\mu \cdot 4300} = 2326\,\text{rad/s} &&(f_{L1} \approx 370\,\text{Hz}) \\[4pt]
-                \omega_{L2} &= \frac{1}{C_{C2}(R_C + R_L)} = \frac{1}{0.1\,\mu \cdot 4\,\text{k}} = 2500\,\text{rad/s} &&(f_{L2} \approx 398\,\text{Hz}) \\[4pt]
-                \omega_{L3} &= \frac{1}{C_E\left(R_E \parallel \dfrac{r_\pi + R_{th}}{\beta + 1}\right)} = \frac{1}{220\,\mu \cdot 21.8} = 208.5\,\text{rad/s} &&(f_{L3} \approx 33\,\text{Hz}) \\[4pt]
-                \omega_{Z} &= \frac{1}{C_E R_E} = \frac{1}{220\,\mu \cdot 500} = 9.09\,\text{rad/s} &&(f_{Z} \approx 1.4\,\text{Hz})
+                \omega_{L1} &= \frac{1}{C_{C1}(R_S + R_{BB} \parallel r_\pi)} = \frac{1}{0.1\,\mu \cdot 4300} \\[2pt]
+                &= 2326\,\text{rad/s} \quad (f_{L1} \approx 370\,\text{Hz}) \\[8pt]
+                \omega_{L2} &= \frac{1}{C_{C2}(R_C + R_L)} = \frac{1}{0.1\,\mu \cdot 4\,\text{k}} \\[2pt]
+                &= 2500\,\text{rad/s} \quad (f_{L2} \approx 398\,\text{Hz}) \\[8pt]
+                \omega_{L3} &= \frac{1}{C_E\left(R_E \parallel \dfrac{r_\pi + R_{th}}{\beta + 1}\right)} = \frac{1}{220\,\mu \cdot 21.8} \\[2pt]
+                &= 208.5\,\text{rad/s} \quad (f_{L3} \approx 33\,\text{Hz}) \\[8pt]
+                \omega_{Z} &= \frac{1}{C_E R_E} = \frac{1}{220\,\mu \cdot 500} \\[2pt]
+                &= 9.09\,\text{rad/s} \quad (f_{Z} \approx 1.4\,\text{Hz})
                 \end{aligned}$$</div>
 
             <h3>High-frequency poles and the Miller effect</h3>
@@ -288,8 +297,10 @@
             <p>With $R_{th,b} = R_S \parallel R_{BB} \parallel r_\pi \approx 97.7\,\Omega$ at the base and $R_C'$ at
                 the collector:</p>
 
-            <div class="eq-block">$$\omega_{H1} = \frac{1}{R_{th,b}\,C_\text{in,Miller}} \;(f_{H1} \approx 8.06\,\text{MHz}),
-                \qquad \omega_{H2} = \frac{1}{R_C' C_\mu} \;(f_{H2} \approx 39.8\,\text{MHz})$$</div>
+            <div class="eq-block">$$\begin{aligned}
+                \omega_{H1} &= \frac{1}{R_{th,b}\,C_\text{in,Miller}} &&(f_{H1} \approx 8.06\,\text{MHz}) \\[4pt]
+                \omega_{H2} &= \frac{1}{R_C' C_\mu} &&(f_{H2} \approx 39.8\,\text{MHz})
+                \end{aligned}$$</div>
 
             <h3>Complete transfer function</h3>
             <div class="eq-block">$$A_V(s) = A_\text{mid}\cdot\frac{s}{s + \omega_{L1}}\cdot\frac{s}{s + \omega_{L2}}\cdot
@@ -466,6 +477,7 @@
     <script defer src="lab_circuit_analysis_JS/plot_ac.js"></script>
     <script defer src="lab_circuit_analysis_JS/plot_bode.js"></script>
     <script defer src="lab_circuit_analysis_JS/plot_nyquist.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

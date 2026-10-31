@@ -1,127 +1,147 @@
-// Amplifier classes model. Class A common-emitter stage and class B / AB
-// complementary push-pull followers with a gain-of-GAIN driver. Ported from
-// the original simulator without change to the equations.
+// Amplifier classes model. Class A common-emitter stage with divider bias and
+// a bypassed emitter resistor; class B and AB complementary push-pull
+// emitter followers driven by a stage of gain GAIN. Currents in mA, powers
+// in mW unless stated.
 (function () {
     var VCC = 12;        // supply magnitude, V (push-pull uses +/-VCC)
     var VCE_SAT = 0.2;   // collector-emitter saturation voltage, V
-    var MAX_IC = 10;     // collector current at the top of the load line, mA
-    var RC = 1200;       // collector / load resistance, ohm
-    var GAIN = 20;       // small-signal voltage gain (class A) or driver gain (B, AB)
-    var DEAD = { B: 0.6, AB: 0.05 };   // base dead zone, V
-    var VBE = 0.6;       // diode / base-emitter drop used for the AB annotations, V
-    var BETA = 100;      // current gain used for the AB annotations
+    var RC = 1200;       // class A collector resistor (the load), push-pull load R_L, ohm
+    var RE = 200;        // class A emitter resistor, bypassed by C_E at signal frequency, ohm
+    var GAIN = 20;       // class A small-signal voltage gain; driver gain for B and AB
+    var VBE_ON = 0.6;    // base-emitter voltage at which an output device starts to conduct, V
+    var BETA = 100;      // current gain h_FE
+    var DIV = 10;        // class A divider: current in R_2 is DIV times the base current
+    var I_BIAS = 0.5;    // class AB bias-network current through R_b1, D_1, D_2, R_b2, mA
+    // DC load-line saturation current of the class A stage, mA (I_E ~ I_C).
+    var MAX_IC = VCC / (RC + RE) * 1000;
 
     // Shared, page-wide parameters. controls.js writes these and dispatches
-    // 'ampchange'. amp and bias are percentages of full scale, speed is the
-    // signal frequency in Hz x 100.
-    var p = { cls: 'A', amp: 30, bias: 50, speed: 100, paused: 'no' };
+    // 'ampchange'. amp: input peak in % of 1 V. bias: class A I_CQ in % of
+    // MAX_IC. vd: forward drop of each class AB bias diode, V. speed: signal
+    // frequency in Hz x 100.
+    var p = { cls: 'A', amp: 25, bias: 53, vd: 0.55, speed: 100, paused: 'no' };
 
-    // Output voltage for an instantaneous input voltage. Class A is the
-    // inverting CE stage clipped at cutoff and saturation about V_CEQ; B and
-    // AB are the push-pull followers with a dead zone referred to the input.
-    function outputSample(vinInstant, q, vceq) {
-        var gainedSignal = vinInstant * GAIN;
-        if (q.cls === 'A') {
-            var vout = -gainedSignal;
-            var upperClip = VCC - vceq;
-            var lowerClip = -(vceq - VCE_SAT);
-            return Math.max(lowerClip, Math.min(upperClip, vout));
-        }
-        var scaledDead = DEAD[q.cls] / GAIN;
-        if (Math.abs(vinInstant) < scaledDead) return 0;
-        var sign = vinInstant > 0 ? 1 : -1;
-        var v = sign * (Math.abs(vinInstant) - scaledDead) * GAIN;
-        var clipMax = VCC - VCE_SAT;
-        return Math.max(-clipMax, Math.min(clipMax, v));
+    // Half-width of the push-pull dead zone at the bases, V. Class B: the
+    // bases are joined, so a device conducts once |v_drv| > V_BE(on).
+    // Class AB: each diode lifts its base by V_D, so the remaining window is
+    // V_BE(on) - V_D (zero once V_D >= V_BE(on)).
+    function deadZone(q) {
+        q = q || p;
+        if (q.cls === 'B') return VBE_ON;
+        if (q.cls === 'AB') return Math.max(0, VBE_ON - q.vd);
+        return 0;
     }
 
-    // Bias, swing and power budget for parameter set q (defaults to p).
-    // Powers in mW, currents in mA.
+    // Class A quiescent point. I_CQ set by the slider; V_CEQ from the DC loop
+    // V_CC = I_C R_C + V_CE + I_E R_E with I_E ~ I_C.
+    function qPoint(q) {
+        q = q || p;
+        var icq = q.cls === 'A' ? (q.bias / 100) * MAX_IC : 0;
+        var vceq = Math.max(VCE_SAT, VCC - icq / 1000 * (RC + RE));
+        return { icq: icq, vceq: vceq };
+    }
+
+    // Clipping limits of v_out, V. Class A (R_E bypassed, AC load R_C): the
+    // collector rises by at most I_CQ R_C before cutoff and falls by at most
+    // V_CEQ - V_CE(sat) before saturation. Push-pull: +/-(V_CC - V_CE(sat)).
+    function limits(q) {
+        q = q || p;
+        if (q.cls === 'A') {
+            var Q = qPoint(q);
+            return { hi: Q.icq / 1000 * RC, lo: -(Q.vceq - VCE_SAT) };
+        }
+        return { hi: VCC - VCE_SAT, lo: -(VCC - VCE_SAT) };
+    }
+
+    // Output before clipping for an instantaneous input. Class A inverts;
+    // the followers pass v_drv = GAIN v_in less the dead zone.
+    function ideal(vin, q) {
+        q = q || p;
+        if (q.cls === 'A') return -vin * GAIN;
+        var vdrv = vin * GAIN, dz = deadZone(q);
+        if (Math.abs(vdrv) <= dz) return 0;
+        return Math.sign(vdrv) * (Math.abs(vdrv) - dz);
+    }
+
+    function outputSample(vin, q) {
+        q = q || p;
+        var L = limits(q);
+        return Math.max(L.lo, Math.min(L.hi, ideal(vin, q)));
+    }
+
+    // Bias, swing and power budget for parameter set q.
     function derived(q) {
         q = q || p;
-        var vinPeak = q.amp / 100;
-        var icq = (q.bias / 100) * MAX_IC;
-        var vceq = VCC - (icq / 1000) * RC;
-        if (vceq < VCE_SAT) vceq = VCE_SAT;
-        var dcPower = VCC * icq;
-
-        var voutPeak = q.cls === 'A'
-            ? Math.min(vinPeak * GAIN, vceq - VCE_SAT, VCC - vceq)
-            : Math.abs(outputSample(vinPeak, q, vceq));
-        var vp = Math.max(0, voutPeak);
-        var signalPower = (vp * vp) / (2 * RC) * 1000;
+        var vinPeak = q.amp / 100, Q = qPoint(q), L = limits(q);
+        var dcPower, vp;
+        if (q.cls === 'A') {
+            vp = Math.min(vinPeak * GAIN, L.hi, -L.lo);
+            // Supply current: collector current plus the current in R_1,
+            // which carries the divider current DIV I_B and the base current.
+            var idiv = (DIV + 1) * Q.icq / BETA;
+            dcPower = VCC * (Q.icq + idiv);
+        } else {
+            vp = Math.min(Math.max(0, vinPeak * GAIN - deadZone(q)), L.hi);
+        }
         var iPeak = vp / RC * 1000;
+        var signalPower = vp * vp / (2 * RC) * 1000;
         if (q.cls === 'B') dcPower = 2 * VCC * iPeak / Math.PI;
-        else if (q.cls === 'AB') dcPower = 2 * VCC * (iPeak / Math.PI + icq);
-
+        if (q.cls === 'AB') dcPower = 2 * VCC * (iPeak / Math.PI + I_BIAS);
         var heatPower = Math.max(0, dcPower - signalPower);
         return {
-            vinPeak: vinPeak, icq: icq, vceq: vceq, voutPeak: vp, iPeak: iPeak,
+            vinPeak: vinPeak, icq: Q.icq, vceq: Q.vceq, voutPeak: vp, iPeak: iPeak,
+            idiv: q.cls === 'A' ? (DIV + 1) * Q.icq / BETA : 0,
             dcPower: dcPower, signalPower: signalPower, heatPower: heatPower,
-            efficiency: dcPower > 0 ? (signalPower / dcPower) * 100 : 0
+            efficiency: dcPower > 0 ? signalPower / dcPower * 100 : 0
         };
     }
 
-    // One cycle of the output, sampled. Gain and clipping follow the original
-    // readouts: measured gain = peak |v_out| / v_in peak; clipping when the
-    // peak falls below 85 % of GAIN x v_in peak.
+    // Class A divider that sets the present Q-point: V_B = I_CQ R_E + V_BE(on),
+    // I_R2 = DIV I_B, I_R1 = (DIV + 1) I_B. Resistances in ohm.
+    function divider(q) {
+        var Q = qPoint(q), ib = Q.icq / 1000 / BETA;
+        if (ib <= 0) return null;
+        var vb = Q.icq / 1000 * RE + VBE_ON;
+        return { vb: vb, r1: (VCC - vb) / ((DIV + 1) * ib), r2: vb / (DIV * ib) };
+    }
+
+    // Peak gain and distortion flags. Clipping: the unclipped output peak
+    // exceeds a limit. Crossover: a push-pull dead zone is present while a
+    // signal is applied.
     function cycleStats(q) {
         q = q || p;
-        var d = derived(q), maxOut = 0;
-        for (var i = 0; i < 400; i++) {
-            var v = d.vinPeak * Math.sin(2 * Math.PI * i / 400);
-            maxOut = Math.max(maxOut, Math.abs(outputSample(v, q, d.vceq)));
-        }
-        var expectedMax = d.vinPeak * GAIN;
+        var d = derived(q), L = limits(q);
+        var pk = q.cls === 'A' ? d.vinPeak * GAIN : Math.max(0, d.vinPeak * GAIN - deadZone(q));
+        var clipping = d.vinPeak > 0 && (q.cls === 'A' ? (pk > L.hi + 1e-9 || pk > -L.lo + 1e-9) : pk > L.hi + 1e-9);
         return {
-            gain: d.vinPeak > 0 ? maxOut / d.vinPeak : 0,
-            clipping: expectedMax > 0 && (maxOut / expectedMax) < 0.85
+            gain: d.vinPeak > 0 ? d.voutPeak / d.vinPeak : 0,
+            clipping: clipping,
+            crossover: q.cls !== 'A' && d.vinPeak > 0 && deadZone(q) > 0
         };
     }
 
-    // Load-line swing as fractions of the line (0 = cutoff, 1 = saturation),
-    // as drawn by the original load-line inset. The dead zone is subtracted
-    // for B and AB, whose swing runs from the Q-point towards saturation.
-    function swing(q) {
+    // Instantaneous conduction state. For B and AB a device conducts only
+    // when the drive exceeds the dead zone.
+    function state(vin, q) {
         q = q || p;
-        var qFrac = q.bias / 100;
-        var vinPeakLocal = q.amp / 100;
-        var effectiveSwing = q.cls === 'A' ? vinPeakLocal * GAIN
-            : Math.max(0, vinPeakLocal - DEAD[q.cls] / GAIN) * GAIN;
-        var swingFrac = effectiveSwing / (VCC - VCE_SAT);
-        var pushPull = q.cls !== 'A';
-        var s1 = pushPull ? qFrac : Math.max(0, qFrac - swingFrac);
-        var s2 = Math.min(1, qFrac + swingFrac);
-        return { q: qFrac, s1: s1, s2: s2, clipSat: s2 >= 1, clipCut: !pushPull && s1 <= 0 };
-    }
-
-    // Conduction state at the present instant, with the original thresholds.
-    function state(vinNow, q) {
-        q = q || p;
-        var d = derived(q);
-        var n = d.vinPeak > 0 ? vinNow / d.vinPeak : 0;
+        var d = derived(q), n = d.vinPeak > 0 ? vin / d.vinPeak : 0;
         if (q.cls === 'A') {
             if (Math.abs(n) < 0.05) return { n: n, key: 'quiet', text: 'quiescent' };
             return n > 0 ? { n: n, key: 'npn', text: 'I_C increasing' } : { n: n, key: 'pnp', text: 'I_C decreasing' };
         }
-        if (q.cls === 'B') {
-            if (d.vinPeak <= 0) return { n: 0, key: 'quiet', text: 'no signal, both off', dz: 0 };
-            var dz = 0.6 / (d.vinPeak * GAIN + 0.001);
-            if (Math.abs(n) <= dz && d.vinPeak > 0) return { n: n, key: 'dead', text: 'crossover, neither conducts', dz: dz };
-            return n > 0 ? { n: n, key: 'npn', text: 'NPN conducts', dz: dz } : { n: n, key: 'pnp', text: 'PNP conducts', dz: dz };
-        }
-        if (Math.abs(n) < 0.05) return { n: n, key: 'quiet', text: 'both conduct' };
-        return n > 0 ? { n: n, key: 'npn', text: 'NPN dominates, PNP assists' }
-            : { n: n, key: 'pnp', text: 'PNP dominates, NPN assists' };
+        var vo = outputSample(vin, q);
+        if (d.vinPeak <= 0) return { n: 0, key: 'quiet', text: 'no signal, both off', vo: 0 };
+        if (vo === 0) return { n: n, key: 'dead', text: 'neither conducts', vo: 0 };
+        return vo > 0 ? { n: n, key: 'npn', text: 'NPN conducts', vo: vo } : { n: n, key: 'pnp', text: 'PNP conducts', vo: vo };
     }
 
     window.AMP = {
-        VCC: VCC, VCE_SAT: VCE_SAT, MAX_IC: MAX_IC, RC: RC, GAIN: GAIN, DEAD: DEAD,
-        VBE: VBE, BETA: BETA,
-        p: p, derived: derived, outputSample: outputSample, cycleStats: cycleStats,
-        swing: swing, state: state,
-        // Animation clock, advanced by anim.js: phase in cycles of the input (0..2)
-        // sine, clock in seconds of wall time (for current-flow dots).
+        VCC: VCC, VCE_SAT: VCE_SAT, MAX_IC: MAX_IC, RC: RC, RE: RE, GAIN: GAIN,
+        VBE_ON: VBE_ON, BETA: BETA, DIV: DIV, I_BIAS: I_BIAS,
+        p: p, derived: derived, outputSample: outputSample, ideal: ideal, limits: limits,
+        qPoint: qPoint, deadZone: deadZone, divider: divider, cycleStats: cycleStats, state: state,
+        // Animation clock, advanced by anim.js: phase in cycles of the input
+        // sine (0..2), t in seconds of wall time (for current-flow dots).
         clock: { phase: 0, t: 0 },
         vinNow: function () { return derived().vinPeak * Math.sin(2 * Math.PI * window.AMP.clock.phase); },
         // Run fn now (after DOM ready) and on every parameter, theme or size change.

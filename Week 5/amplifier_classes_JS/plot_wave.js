@@ -26,14 +26,13 @@
 
         var pts = d3.range(0, 1441).map(function (i) {
             var th = i / 2, v = d.vinPeak * Math.sin(th * Math.PI / 180);
-            return [th, v, A.outputSample(v, p, d.vceq)];
+            return [th, v, A.outputSample(v, p)];
         });
         gT.append('path').attr('class', 'trace').attr('stroke', css('--c-vin')).attr('stroke-width', 2)
             .attr('d', d3.line().x(function (q) { return x(q[0]); }).y(function (q) { return yI(q[1]); })(pts));
 
         // Clipping limits.
-        var lim = p.cls === 'A' ? [A.VCC - d.vceq, -(d.vceq - A.VCE_SAT)]
-            : [A.VCC - A.VCE_SAT, -(A.VCC - A.VCE_SAT)];
+        var L = A.limits(), lim = [L.hi, L.lo];
         lim.forEach(function (v) {
             gB.append('line').attr('x1', 0).attr('x2', f.iw).attr('y1', yO(v)).attr('y2', yO(v))
                 .attr('stroke', css('--c-load')).attr('stroke-width', 1.3).attr('stroke-dasharray', '6 4');
@@ -42,7 +41,7 @@
         // Output split into runs of constant conduction state.
         function key(v) {
             if (p.cls === 'A') return '--c-npn';
-            return Math.abs(v) < 0.01 ? '--c-dead' : v > 0 ? '--c-npn' : '--c-pnp';
+            return v === 0 && A.deadZone() > 0 ? '--c-dead' : v >= 0 ? '--c-npn' : '--c-pnp';
         }
         var runs = [], run = null;
         pts.forEach(function (q, i) {
@@ -72,11 +71,11 @@
     function tick() {
         if (!cur) return;
         var A = window.AMP, th = A.clock.phase * 360, v = A.vinNow();
-        var vo = A.outputSample(v, A.p, cur.d.vceq), px = cur.x(th);
+        var vo = A.outputSample(v, A.p), px = cur.x(th);
         cur.lT.attr('x1', px).attr('x2', px);
         cur.lB.attr('x1', px).attr('x2', px);
         cur.dT.attr('cx', px).attr('cy', cur.yI(v));
-        var k = A.p.cls === 'A' ? '--c-npn' : Math.abs(vo) < 0.01 ? '--c-dead' : vo > 0 ? '--c-npn' : '--c-pnp';
+        var k = A.p.cls === 'A' ? '--c-npn' : vo === 0 && A.deadZone() > 0 ? '--c-dead' : vo >= 0 ? '--c-npn' : '--c-pnp';
         cur.dB.attr('cx', px).attr('cy', cur.yO(vo)).attr('fill', window.CMP.cssVar(k));
     }
 

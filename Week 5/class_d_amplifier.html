@@ -135,7 +135,10 @@
                 waveform over one carrier period is therefore a linear function of the input.</p>
 
             <p>The carrier must be much faster than the signal, $f_\text{sw} \gg f_\text{sig}$, so that the input
-                is nearly constant within each carrier period. The ratio slider sets $f_\text{sw}/f_\text{sig}$.</p>
+                is nearly constant within each carrier period. The model uses $f_\text{sig} = 1\,\text{kHz}$ and
+                the ratio slider sets $f_\text{sw}/f_\text{sig}$ between 5 and 60, so $f_\text{sw}$ runs from
+                5 to 60 kHz. These frequencies are lower than in practice so that individual pulses remain
+                visible.</p>
 
             <div class="callout">
                 The cursor marks the instant shown by the schematic, whose output dot changes colour with the
@@ -206,18 +209,30 @@
                 $v_\text{sw}$ is therefore a copy of the PWM waveform with amplitude $V_{CC} = 12\,\text{V}$.</p>
 
             <p>The power dissipated in a switch is the product of the voltage across it and the current through
-                it:</p>
+                it. When off, $I_D$ is negligible; when on, $V_{DS} = I_D R_{DS(\text{on})}$ is small. The losses
+                that remain are modelled as</p>
 
-            <div class="eq-block">$$P_\text{switch} = V_{DS}\, I_D \approx 0 \quad \text{in both states}, \qquad
-                P_\text{cond} = I_D^2\, R_{DS(\text{on})}$$</div>
+            <div class="eq-block">$$\begin{aligned}
+                P_\text{cond} &= I_{L,\text{rms}}^2\, R_{DS(\text{on})} \\[4pt]
+                P_\text{sw} &= f_\text{sw}\, V_{CC}\, \overline{|i_L|}\, \frac{t_r + t_f}{2} \\[4pt]
+                P_\text{drv} &= 2\, Q_g V_{GS} f_\text{sw} + V_{CC} I_Q
+                \end{aligned}$$</div>
 
-            <p>When off, $I_D$ is negligible. When on, $V_{DS} = I_D R_{DS(\text{on})}$, and $R_{DS(\text{on})}$
-                can be in the milliohm range, so the conduction loss is small.</p>
+            <p>The inductor current $i_L$ always flows through one of the two devices, so the conduction loss uses
+                its RMS value. The switching loss arises because each device passes through its linear region
+                during every edge, while both voltage and current are significant; $\overline{|i_L|}$ is the mean
+                current at the edges. The drive term charges both gates once per period and supplies the quiescent
+                current of the comparator and driver.</p>
+
+            <ul class="bullets">
+                <li>$R_{DS(\text{on})} = 0.1\,\Omega$ per device, $t_r = t_f = 20\,\text{ns}$;</li>
+                <li>$Q_g = 10\,\text{nC}$ per device at $V_{GS} = 12\,\text{V}$, $I_Q = 1\,\text{mA}$.</li>
+            </ul>
 
             <div class="callout">
-                Losses are not zero. During each transition the device passes through its linear region while
-                both voltage and current are significant, so a finite switching loss occurs on every edge. This
-                loss grows with $f_\text{sw}$.
+                These are representative values for a small power MOSFET pair and driver, not a specific part.
+                The switching and gate-drive losses grow in proportion to $f_\text{sw}$, which limits how high the
+                switching frequency can be raised.
             </div>
         </div>
 
@@ -267,19 +282,28 @@
                 passes its local average, which follows the input.</p>
 
             <p>While PWM is HIGH, current flows from the supply through the inductor into the capacitor and load.
-                While PWM is LOW, the energy stored in the inductor maintains the current. The output settles at
-                $D\,V_{CC}$, which varies with the input, with a residual ripple at $f_\text{sw}$.</p>
+                While PWM is LOW, the energy stored in the inductor maintains the current. The filter node settles
+                at $D\,V_{CC}$, which varies with the input, with a residual ripple at $f_\text{sw}$. With the load
+                $R_L = 8\,\Omega$ across $C$, the filter response is</p>
 
-            <div class="eq-block">$$f_c = \frac{1}{2\pi\sqrt{LC}}, \qquad f_\text{sig} \ll f_c \ll f_\text{sw}$$</div>
+            <div class="eq-block">$$H(f) = \frac{1}{1 - (f/f_c)^2 + j\,f/(f_c Q)}$$
+                $$f_c = \frac{1}{2\pi\sqrt{LC}}, \qquad Q = R_L\sqrt{C/L}$$</div>
 
-            <p>Above $f_c$ the filter attenuates at $-40$ dB per decade, so the ripple falls as
-                $(f_c/f_\text{sw})^2$. In this model $f_c$ is taken proportional to $f_\text{sig}$, and the ripple
-                amplitude is set proportional to $1/(f_\text{sw}/f_\text{sig})^2$.</p>
+            <p>With $L = 600\,\mu\text{H}$ and $C = 4.7\,\mu\text{F}$, $f_c = 3.0\,\text{kHz}$ and
+                $Q = 0.71$, a Butterworth response that satisfies $f_\text{sig} < f_c < f_\text{sw}$. Above $f_c$ the
+                filter attenuates at $-40$ dB per decade. The fundamental of the switching waveform has peak
+                $2V_{CC}/\pi$ at 50 % duty, so the ripple at the output is approximately</p>
+
+            <div class="eq-block">$$\hat{v}_\text{ripple} \approx \frac{2 V_{CC}}{\pi}\,\left|H(f_\text{sw})\right|$$</div>
+
+            <p>The plotted output is not computed from this estimate: the circuit equations of the filter, the
+                blocking capacitor and the load are integrated in time with the PWM waveform as input.</p>
 
             <div class="callout">
-                Ratios of 5 to 10 leave visible switching ripple on the output; larger ratios reduce it rapidly.
-                A practical design therefore places $f_\text{sw}$ well above the signal band, typically several
-                hundred kilohertz for audio.
+                The half-bridge node idles at $V_{CC}/2$, so the DC-blocking capacitor $C_B = 470\,\mu\text{F}$ in
+                series with the load removes that DC component; with $R_L$ it forms a high-pass filter at
+                $1/(2\pi R_L C_B) = 42\,\text{Hz}$. Ratios of 5 to 10 leave visible ripple; practical audio
+                designs place $f_\text{sw}$ at several hundred kilohertz.
             </div>
         </div>
 
@@ -306,17 +330,18 @@
                     <svg class="bode" id="plot-lc"></svg>
                 </div>
                 <div class="plot-box filter" data-anim>
-                    <div class="label">waveforms · <b>switching node and filtered output</b></div>
+                    <div class="label">waveforms · <b>switching node and filter output</b></div>
                     <svg class="bode" id="plot-filter"></svg>
                 </div>
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-hi);opacity:0.35"></span>$v_\text{sw}$, switching node</span>
-                    <span><span class="sw" style="background:var(--c-hi)"></span>$v_\text{out}$, filtered</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>$v_C$, filter output node</span>
                     <span><span class="sw" style="background:var(--c-car)"></span>capacitor charging current</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$f_\text{sw}/f_\text{sig}$</span><span class="v" data-out="ratio"></span></div>
-                    <div class="item"><span class="k">ripple, peak to peak</span><span class="v" data-out="ripple"></span></div>
+                    <div class="item"><span class="k">$|H(f_\text{sw})|$</span><span class="v" data-out="hsw"></span></div>
+                    <div class="item"><span class="k">$\hat{v}_\text{ripple}$</span><span class="v" data-out="ripple"></span></div>
                     <div class="item"><span class="k">filter state</span><span class="v" data-out="lcstate"></span></div>
                 </div>
             </div>
@@ -334,18 +359,22 @@
                 the gate drive required for the switching node to follow PWM.</p>
 
             <p>The three traces show the signal at each stage: the analogue input, the two-level switching node
-                and the recovered output. The output swings about $V_{CC}/2$ with a peak of
-                $m\,V_{CC}/2$, and the power delivered to the load $R_L = 1\,\text{k}\Omega$ is</p>
+                and the load voltage. After $C_B$ the load voltage is centred on zero, with a signal peak close to
+                $m\,V_{CC}/2\,|H(f_\text{sig})|$. The power budget follows from the simulated currents:</p>
 
-            <div class="eq-block">$$P_L = \frac{\left(m\,V_{CC}/2\right)^2}{2R_L}, \qquad
-                P_\text{DC} = \frac{P_L}{\eta}, \qquad P_D = P_\text{DC} - P_L$$</div>
+            <div class="eq-block">$$P_\text{DC} = P_L + P_\text{rip} + P_\text{cond} + P_\text{sw} + P_\text{drv},
+                \qquad \eta = \frac{P_L}{P_\text{DC}}$$</div>
 
-            <p>The efficiency $\eta = 92\,\%$ is assumed rather than computed from simulated losses. The remaining
-                8 % is lost in the switch resistances, the switching transitions and the filter.</p>
+            <p>Here $P_L$ is the load power at the signal frequency and $P_\text{rip}$ the switching ripple
+                dissipated in the load, which does no useful work. Near full modulation the efficiency exceeds
+                95 %. At low modulation the fixed drive and quiescent power and the ripple current dominate, and the
+                efficiency falls.</p>
 
             <div class="callout">
                 For comparison, the linear output stages reach about 25 % (class A), 55 % (class AB) and 78 %
-                (class B). Class D reaches 90 to 95 % because its output devices do not dwell in the linear region.
+                (class B). Practical class D amplifiers reach 90 to 95 % because the output devices do not dwell in the
+                linear region. The model gives a higher figure at full modulation because it omits inductor resistance,
+                core loss and dead-time loss.
             </div>
         </div>
 
@@ -383,7 +412,8 @@
                     <div class="item"><span class="k">$\hat{v}_\text{out}$</span><span class="v" data-out="vpk"></span></div>
                     <div class="item"><span class="k">$P_\text{DC}$</span><span class="v" data-out="pdc"></span></div>
                     <div class="item"><span class="k">$P_L$</span><span class="v" data-out="pl"></span></div>
-                    <div class="item"><span class="k">$P_D$</span><span class="v" data-out="pd"></span></div>
+                    <div class="item"><span class="k">losses</span><span class="v" data-out="ploss"></span></div>
+                    <div class="item"><span class="k">$I_{L,\text{rms}}$</span><span class="v" data-out="irms"></span></div>
                     <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
                 </div>
             </div>
@@ -428,7 +458,7 @@
                 </div>
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-lo);opacity:0.5"></span>linear output stages</span>
-                    <span><span class="sw" style="background:var(--c-hi)"></span>class D, assumed 92 %; bar: typical 90 to 95 %</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>class D, simulated at $m = 1$ and the present $f_\text{sw}$; bar: typical 90 to 95 %</span>
                 </div>
             </div>
         </div>
@@ -454,6 +484,7 @@
     <script defer src="class_d_amplifier_JS/plot_traces.js"></script>
     <script defer src="class_d_amplifier_JS/plot_budget.js"></script>
     <script defer src="class_d_amplifier_JS/plot_compare.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

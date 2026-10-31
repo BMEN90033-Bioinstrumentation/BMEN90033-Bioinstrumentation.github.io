@@ -29,7 +29,8 @@
         var wire = T.fg(0.6), ink = T.fg(0.85);
         var svg = d3.select(sel);
         svg.selectAll('*').remove();
-        svg.attr('viewBox', '0 0 ' + W + ' ' + H).attr('preserveAspectRatio', 'xMidYMid meet');
+        svg.attr('viewBox', '0 -18 ' + W + ' ' + (H + 18))   /* -18: headroom under the box title */
+            .attr('preserveAspectRatio', 'xMidYMid meet');
         flows = {}; abLabels = null;
 
         function line(x1, y1, x2, y2, col, w) {
@@ -225,7 +226,10 @@
         window.katex.render(latex, div, { throwOnError: false });
     }
 
-    // Intensities follow the original drawClass*CurrentFlow functions.
+    // Class A intensities follow the original animation. For B and AB each
+    // device carries current in proportion to its share of the output, and
+    // neither carries any inside the dead zone. The AB labels give the base
+    // voltages V_B = A v_in +/- V_D and the base currents I_C / h_FE.
     function tick() {
         var A = window.AMP, p = A.p, vin = A.vinNow(), s = A.state(vin), n = s.n;
         var sig = Math.abs(n), d = A.derived();
@@ -236,37 +240,23 @@
             setFlow('base', '--c-bias', bi * 0.4);
             setFlow('vin', '--c-vin', sig * 0.6);
             setFlow('vout', '--c-npn', sig * 0.8);
-        } else if (p.cls === 'B') {
-            var dz = s.dz;
+        } else {
+            var vo = A.outputSample(vin), hi = A.limits().hi;
+            var iN = Math.max(0, vo) / hi, iP = Math.max(0, -vo) / hi;
+            if (p.cls === 'AB') setFlow('bias', '--c-bias', 0.3);
             setFlow('vin', '--c-vin', sig * 0.6);
             setFlow('toNpn', '--c-npn', sig * 0.5);
             setFlow('toPnp', '--c-pnp', sig * 0.5);
-            if (n > dz) {
-                var i1 = Math.min(1, (n - dz) / (1 - dz));
-                setFlow('npn', '--c-npn', i1); setFlow('vout', '--c-npn', i1 * 0.8);
-            } else if (n < -dz) {
-                var i2 = Math.min(1, (-n - dz) / (1 - dz));
-                setFlow('pnp', '--c-pnp', i2); setFlow('voutRev', '--c-pnp', i2 * 0.8);
-            } else if (d.vinPeak > 0) {
-                setFlow('vin', '--c-dead', 0.5);
-            }
-        } else {
-            var ni = Math.max(0.15, Math.min(1, 0.5 + n * 0.6));
-            var pi = Math.max(0.15, Math.min(1, 0.5 - n * 0.6));
-            setFlow('bias', '--c-bias', 0.3);
-            setFlow('vin', '--c-vin', Math.max(sig * 0.6, 0.15));
-            setFlow('toNpn', '--c-npn', Math.max(sig * 0.5, 0.1));
-            setFlow('toPnp', '--c-pnp', Math.max(sig * 0.5, 0.1));
-            setFlow('npn', '--c-npn', ni);
-            setFlow('pnp', '--c-pnp', pi);
-            if (n >= 0) setFlow('vout', '--c-npn', Math.max(sig * 0.8, 0.15));
-            else setFlow('voutRev', '--c-pnp', Math.max(sig * 0.8, 0.15));
+            if (iN > 0) { setFlow('npn', '--c-npn', 0.25 + 0.75 * iN); setFlow('vout', '--c-npn', 0.2 + 0.6 * iN); }
+            else if (iP > 0) { setFlow('pnp', '--c-pnp', 0.25 + 0.75 * iP); setFlow('voutRev', '--c-pnp', 0.2 + 0.6 * iP); }
+            else if (d.vinPeak > 0 && A.deadZone() > 0) setFlow('vin', '--c-dead', 0.5);
             if (abLabels) {
-                var icq = d.icq > 0 ? d.icq : 5;
-                setTex(abLabels.vbN, 'V_B = ' + (A.VBE + vin).toFixed(2) + '\\,\\text{V}');
-                setTex(abLabels.ibN, 'I_B = ' + (ni * icq / A.BETA * 1000).toFixed(0) + '\\,\\mu\\text{A}');
-                setTex(abLabels.vbP, 'V_B = ' + (-A.VBE + vin).toFixed(2) + '\\,\\text{V}');
-                setTex(abLabels.ibP, 'I_B = ' + (pi * icq / A.BETA * 1000).toFixed(0) + '\\,\\mu\\text{A}');
+                var vdrv = A.GAIN * vin;
+                var ibN = Math.max(0, vo) / A.RC / A.BETA * 1e6, ibP = Math.max(0, -vo) / A.RC / A.BETA * 1e6;
+                setTex(abLabels.vbN, 'V_B = ' + (vdrv + p.vd).toFixed(2) + '\\,\\text{V}');
+                setTex(abLabels.ibN, 'I_B = ' + ibN.toFixed(0) + '\\,\\mu\\text{A}');
+                setTex(abLabels.vbP, 'V_B = ' + (vdrv - p.vd).toFixed(2) + '\\,\\text{V}');
+                setTex(abLabels.ibP, 'I_B = ' + ibP.toFixed(0) + '\\,\\mu\\text{A}');
             }
         }
         var st = document.querySelector('[data-out="state"]');

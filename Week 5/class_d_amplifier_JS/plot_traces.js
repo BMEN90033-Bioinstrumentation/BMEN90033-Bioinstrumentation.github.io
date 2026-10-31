@@ -1,5 +1,6 @@
 // Section 05 · The three signals of the chain on one time axis: input,
-// PWM at the switching node (0 = ground, 1 = V_CC) and the filtered output.
+// PWM at the switching node (0 = ground, 1 = V_CC) and the load voltage
+// after the LC filter and the DC-blocking capacitor.
 // Each panel has its own y title, so no in-plot labels are needed.
 (function () {
     var sel = '#plot-traces';
@@ -11,7 +12,7 @@
         var P = C.panels(f, [
             { domain: [-1.15, 1.15], ticks: [-1, 0, 1], title: 'v_\\text{in} / \\hat{v}_c' },
             { domain: [-0.15, 1.15], ticks: [0, 1], title: 'v_\\text{sw} / V_{CC}' },
-            { domain: [-0.05, 1.05], ticks: [0, 0.5, 1], title: 'v_\\text{out} / V_{CC}' }
+            { domain: [-7.5, 7.5], ticks: [-6, 0, 6], title: 'v_\\text{out}~[\\mathrm{V}]' }
         ], 18);
         var L = P.list;
         function trace(p, fn, col, w, n) {
@@ -21,7 +22,7 @@
         trace(L[0], C.inputSignal, '--c-vin', 2, 800);
         L[1].g.append('path').attr('class', 'trace').attr('stroke', css('--c-hi')).attr('stroke-width', 1.5)
             .attr('d', d3.line()(C.pwmSteps(0, C.WINDOW).map(function (d) { return [P.x(d[0]), L[1].y(d[1])]; })));
-        function out(t) { return 0.5 + 0.5 * C.filteredSignal(t); }
+        function out(t) { return C.loadAt(t); }
         trace(L[2], out, '--c-hi', 2.4, Math.max(1200, C.p.ratio * 48));
         cur = C.cursor(P, [
             { panel: 0, col: '--c-vin', fn: C.inputSignal },

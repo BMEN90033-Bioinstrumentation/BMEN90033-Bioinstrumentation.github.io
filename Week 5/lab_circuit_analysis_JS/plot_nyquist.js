@@ -141,7 +141,7 @@
                 var d1 = Math.abs(nx) * w / 2 + Math.abs(ny) * h / 2 + 6;
                 return [[mx + nx * d1, my + ny * d1], [mx - nx * d1, my - ny * d1],
                         [mx + nx * (d1 + 14), my + ny * (d1 + 14)], [mx - nx * (d1 + 14), my - ny * (d1 + 14)]];
-            }, { color: cCur });
+            }, { color: cCur, anchor: [mx, my] });
             var am = [X0 + arcR * Math.cos(ang / 2), Y0 - arcR * Math.sin(ang / 2)];
             var ra = Pl.label((ang * 180 / Math.PI).toFixed(0) + '^\\circ', function (w, h) {
                 var mid = ang / 2, out = [];
@@ -150,17 +150,17 @@
                     out.push([X0 + r1 * Math.cos(mid), Y0 - r1 * Math.sin(mid)]);
                 });
                 return out.concat(ring(am[0], am[1], w, h, [8, 30, 54]));
-            }, { color: cAng });
-            if (ra && ra.i >= 11) leader(ra, am, cAng);
+            }, { color: cAng, anchor: am });
+            if (ra && ra.i >= 11 && !ra.lead) leader(ra, am, cAng);
         }
         var rm = Pl.label('-1', function (w, h) { return ring(x(-1), Y0, w, h, [8, 30, 54]); },
-            { color: cWarn, size: 13 });
-        if (rm && rm.i >= 8) leader(rm, [x(-1), Y0], cWarn);
+            { color: cWarn, size: 13, anchor: [x(-1), Y0] });
+        if (rm && rm.i >= 8 && !rm.lead) leader(rm, [x(-1), Y0], cWarn);
         dots.forEach(function (d) {
             var r = Pl.label(d[2], function (w, h) { return ring(d[0], d[1], w, h, [8, 32, 56]); },
-                { color: css('--c-hf'), size: 12 });
+                { color: css('--c-hf'), size: 12, anchor: [d[0], d[1]] });
             // Labels moved beyond the first ring get a leader to their dot.
-            if (r && r.i >= 8) leader(r, d, css('--c-hf'));
+            if (r && r.i >= 8 && !r.lead) leader(r, d, css('--c-hf'));
         });
     }
 

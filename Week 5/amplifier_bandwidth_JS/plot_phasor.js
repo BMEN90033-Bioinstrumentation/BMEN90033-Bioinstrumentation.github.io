@@ -88,18 +88,18 @@
             var d = [0.5 * w + 0.5 * h + 6, 0.5 * w + 0.5 * h + 20];
             return [[mx + nx * d[0], my + ny * d[0]], [mx + nx * d[1], my + ny * d[1]],
                     [mx + nx * d[0], my + ny * d[0] - h - 4], [mx - nx * d[0], my - ny * d[0]]];
-        }, { color: cPh });
+        }, { color: cPh, anchor: [mx, my] });
         P.label('j\\,' + A.texNum(s.ratio, 3), function (w, h) {
             var ym = (Y0 + tip[1]) / 2;
             return [[one[0] + w / 2 + 10, ym], [one[0] + w / 2 + 10, tip[1] + h], [one[0] + w / 2 + 10, Y0 - h],
                     [tip[0] + w / 2 + 12, tip[1]]];
-        }, { color: cIm });
+        }, { color: cIm, anchor: [one[0], (Y0 + tip[1]) / 2] });
         P.label('\\theta = ' + s.angle.toFixed(1) + '^\\circ', function (w, h) {
             var bis = th / 2, r1 = rArc + 0.5 * w + 6;
             return [[X0 + r1 * Math.cos(bis), Y0 - r1 * Math.sin(bis)],
                     [X0 + rArc + w / 2 + 8, Y0 - h / 2 - 4],
                     [X0 + rArc + w / 2 + 8, Y0 - h - 10]];
-        }, { color: css('--c-test') });
+        }, { color: css('--c-test'), anchor: [X0 + rArc * Math.cos(th / 2), Y0 - rArc * Math.sin(th / 2)] });
     }
 
     window.AMP.onRender(render);

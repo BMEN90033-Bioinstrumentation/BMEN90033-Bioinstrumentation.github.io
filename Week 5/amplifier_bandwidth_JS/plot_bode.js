@@ -2,8 +2,9 @@
 // range (1 to 1e9 rad/s). Draws the mid-band and -20 dB/decade asymptotes,
 // the w0 guide, the -3 dB point and the test-frequency marker. Every
 // in-plot label is placed by collision test against all lines, markers and
-// earlier labels; a label with no free candidate is omitted (its value is
-// also in the readout row).
+// earlier labels; a label with no free candidate is moved outward with a
+// leader line. When the test marker sits on the -3 dB point the two labels
+// are merged into one.
 (function () {
     var sel = '#plot-bode';
     var DB_MIN = -30, DB_MAX = 70;
@@ -66,40 +67,45 @@
             P.box([tx - 8, ty - 8, tx + 8, ty + 8]);
         }
 
-        // Labels, in order of priority.
+        // Labels, in order of priority. The -3 dB label merges into the
+        // test-marker label when the two markers coincide.
+        var hasW0 = w0 >= A.FREQ_MIN && w0 <= A.FREQ_MAX;
+        var merged = onPlot && hasW0 && Math.hypot(tx - xw0, ty - y3) < 16;
         if (onPlot) {
-            P.label(s.db.toFixed(1) + '\\,\\text{dB}', function (w, h) {
+            P.label(s.db.toFixed(1) + '\\,\\text{dB}' + (merged ? ',\\ -3\\,\\text{dB point}' : ''), function (w, h) {
                 var dx = w / 2 + 12, dy = h / 2 + 8;
                 return [[tx + dx, ty - dy], [tx - dx, ty - dy], [tx + dx, ty + dy], [tx - dx, ty + dy],
                         [tx + dx, ty - dy - 16], [tx - dx, ty - dy - 16]];
-            }, { color: cTest });
+            }, { color: cTest, anchor: [tx, ty] });
         }
-        if (w0 >= A.FREQ_MIN && w0 <= A.FREQ_MAX) {
-            P.label('-3\\,\\text{dB}', function (w, h) {
-                return [[xw0 - w / 2 - 10, y3 + h / 2 + 6], [xw0 + w / 2 + 10, y3 + h / 2 + 8],
-                        [xw0 - w / 2 - 10, y3 + h + 14], [xw0 + w / 2 + 10, y3 - h / 2 - 8]];
-            }, { color: cOut });
+        if (hasW0) {
+            if (!merged) {
+                P.label('-3\\,\\text{dB}', function (w, h) {
+                    return [[xw0 - w / 2 - 10, y3 + h / 2 + 6], [xw0 + w / 2 + 10, y3 + h / 2 + 8],
+                            [xw0 - w / 2 - 10, y3 + h + 14], [xw0 + w / 2 + 10, y3 - h / 2 - 8]];
+                }, { color: cOut, anchor: [xw0, y3] });
+            }
             P.label('\\omega_0', function (w, h) {
                 return [[xw0 + w / 2 + 6, h / 2 + 6], [xw0 - w / 2 - 6, h / 2 + 6],
                         [xw0 + w / 2 + 6, ih - h / 2 - 6], [xw0 - w / 2 - 6, ih - h / 2 - 6]];
-            }, { color: cGuide });
+            }, { color: cGuide, anchor: [xw0, 12] });
         }
         if (dEnd > 0.6) {
             P.label('-20\\,\\text{dB/dec}', function (w, h) {
                 var out = [];
-                [1.5, 1, 2, 2.5, 3, 0.8].forEach(function (d) {
+                [1.5, 1, 2, 2.5, 3, 0.8, dEnd / 2].forEach(function (d) {
                     if (d > dEnd) return;
                     var px = x(w0 * Math.pow(10, d)), py = y(avDb - 20 * d);
                     out.push([px + w / 2 + 6, py - h / 2 - 6], [px - w / 2 - 4, py + h / 2 + 6]);
                 });
                 return out;
-            }, { color: T.textDim });
+            }, { color: T.textDim, anchor: [x(w0 * Math.pow(10, dEnd / 2)), y(avDb - 10 * dEnd)] });
         }
         P.label('\\text{mid-band } ' + avDb.toFixed(1) + '\\,\\text{dB}', function (w, h) {
             var yl = y(avDb);
             return [[iw - w / 2 - 8, yl - h / 2 - 6], [w / 2 + 8, yl - h / 2 - 6],
                     [iw * 0.5, yl - h / 2 - 6], [w / 2 + 8, yl + h / 2 + 6]];
-        }, { color: T.textDim });
+        }, { color: T.textDim, anchor: [iw * 0.5, y(avDb)] });
     }
 
     window.AMP.onRender(render);

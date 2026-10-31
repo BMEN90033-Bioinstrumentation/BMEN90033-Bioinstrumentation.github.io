@@ -57,6 +57,11 @@
         k.capV = function (x, ya, yb) {
             k.line(x - 14, ya, x + 14, ya, ink, 2.2); k.line(x - 14, yb, x + 14, yb, ink, 2.2);
         };
+        // Capacitor on a horizontal wire: plates at xa and xb. The wire is
+        // drawn up to each plate, so callers leave the gap open.
+        k.capH = function (xa, xb, y) {
+            k.line(xa, y - 14, xa, y + 14, ink, 2.2); k.line(xb, y - 14, xb, y + 14, ink, 2.2);
+        };
         k.ground = function (x, y) {
             [12, 8, 4].forEach(function (hw, i) { k.line(x - hw, y + i * 5, x + hw, y + i * 5, wire, 1.6); });
         };
@@ -96,8 +101,8 @@
             k.path([[cx, cy], [rx, cy], [rx, n ? cy + 12 : cy - 12]], ink, 1.8);
             var a = n ? [[cx + 1, cy], [cx + 9, cy - 4], [cx + 9, cy + 4]] : [[cx + 15, cy], [cx + 7, cy - 4], [cx + 7, cy + 4]];
             svg.append('polygon').attr('points', a.map(function (q) { return q.join(','); }).join(' ')).attr('fill', ink);
-            var o = { width: 16, size: 11, color: T.textDim };
-            k.tex('\\text{G}', cx - 16, cy - 11, { width: 16, height: 16, size: 11, color: T.textDim });
+            var o = { width: 16, size: 12, color: T.textDim };
+            k.tex('\\text{G}', cx - 16, cy - 11, { width: 16, height: 16, size: 12, color: T.textDim });
             k.texL('\\text{' + (n ? 'D' : 'S') + '}', rx + 5, cy - 24, o);
             k.texL('\\text{' + (n ? 'S' : 'D') + '}', rx + 5, cy + 24, o);
         };

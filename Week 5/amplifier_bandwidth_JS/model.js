@@ -49,24 +49,41 @@
         return i < 0 ? s : s.slice(0, i) + '\\times 10^{' + parseInt(s.slice(i + 1), 10) + '}';
     }
 
+    // Plain-text number with p significant figures; values that toPrecision
+    // would write in exponent form are written as m×10ⁿ with Unicode
+    // superscripts, matching the KaTeX form used in the plots.
+    function supNum(v, prec) {
+        var s = v.toPrecision(prec), i = s.indexOf('e');
+        if (i < 0) return s;
+        var sup = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+        return s.slice(0, i) + '×10' + String(parseInt(s.slice(i + 1), 10)).split('')
+            .map(function (c) { return sup[c]; }).join('');
+    }
+
+    // Unit formatters. Each value is first rounded to 3 significant figures
+    // so that, for example, 999.7 rad/s is shown as 1.00 krad/s rather than
+    // in exponent form.
     function fmtR(v) {
+        v = +v.toPrecision(3);
         if (v >= 1e6) return (v / 1e6).toPrecision(3) + ' MΩ';
         if (v >= 1e3) return (v / 1e3).toPrecision(3) + ' kΩ';
         return v.toPrecision(3) + ' Ω';
     }
     function fmtC(v) {
+        v = +v.toPrecision(3);
         if (v >= 1e-6) return (v * 1e6).toPrecision(3) + ' µF';
         if (v >= 1e-9) return (v * 1e9).toPrecision(3) + ' nF';
         return (v * 1e12).toPrecision(3) + ' pF';
     }
     function fmtFreq(v) {
+        v = +v.toPrecision(3);
         if (v >= 1e9) return (v / 1e9).toPrecision(3) + ' Grad/s';
         if (v >= 1e6) return (v / 1e6).toPrecision(3) + ' Mrad/s';
         if (v >= 1e3) return (v / 1e3).toPrecision(3) + ' krad/s';
         return v.toPrecision(3) + ' rad/s';
     }
     function fmtHz(w) {
-        var hz = w / (2 * Math.PI);
+        var hz = +(w / (2 * Math.PI)).toPrecision(3);
         if (hz >= 1e9) return (hz / 1e9).toPrecision(3) + ' GHz';
         if (hz >= 1e6) return (hz / 1e6).toPrecision(3) + ' MHz';
         if (hz >= 1e3) return (hz / 1e3).toPrecision(3) + ' kHz';
@@ -85,7 +102,7 @@
         AV_MIN: AV_MIN, AV_MAX: AV_MAX, FREQ_MIN: FREQ_MIN, FREQ_MAX: FREQ_MAX,
         GBP_MIN: GBP_MIN, GBP_MAX: GBP_MAX,
         omega0: omega0, gainAt: gainAt, gainDb: gainDb, state: state,
-        fmtAv: fmtAv, texNum: texNum, fmtR: fmtR, fmtC: fmtC, fmtFreq: fmtFreq, fmtHz: fmtHz, tex: tex,
+        fmtAv: fmtAv, texNum: texNum, supNum: supNum, fmtR: fmtR, fmtC: fmtC, fmtFreq: fmtFreq, fmtHz: fmtHz, tex: tex,
         // Run fn now (after DOM ready) and on every parameter, theme or size change.
         onRender: function (fn) {
             function go() {

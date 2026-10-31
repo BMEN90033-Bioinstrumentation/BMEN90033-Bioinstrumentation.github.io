@@ -51,7 +51,7 @@
             <p class="sub">An output stage is classified by its conduction angle, the fraction of each input cycle
                 during which an output device conducts. Class A conducts over the whole cycle and is linear but
                 inefficient. Class B splits the cycle between two complementary devices and is efficient but
-                distorts near zero. Class AB adds a small standing bias to remove most of that distortion. This page
+                distorts near zero. Class AB biases the two devices towards conduction to remove most of that distortion. This page
                 compares the three circuits, their operating points, their waveforms and their power budgets.</p>
             <div class="tags">
                 <span class="field-tag">conduction angle</span>
@@ -78,12 +78,15 @@
                 <li><strong>class A</strong>, $\theta_c = 360^\circ$: a single common-emitter transistor is biased
                     in the active region by the divider $R_1$, $R_2$ and conducts for the entire cycle. It draws
                     supply current even with no input.</li>
-                <li><strong>class B</strong>, $\theta_c = 180^\circ$: a complementary NPN and PNP pair of emitter
-                    followers. The NPN conducts on the positive half-cycle and the PNP on the negative half-cycle;
-                    with no input both are off.</li>
-                <li><strong>class AB</strong>, $\theta_c$ slightly above $180^\circ$: the push-pull pair with two
-                    diodes between the bases. The diodes hold each base about one junction drop from the input
-                    node, so both devices sit at the edge of conduction.</li>
+                <li><strong>class B</strong>, $\theta_c \approx 180^\circ$: a complementary NPN and PNP pair of
+                    emitter followers with joined bases. The NPN conducts on the positive half-cycle and the PNP on
+                    the negative half-cycle; with no input both are off. Each device needs
+                    $V_{BE(\text{on})} = 0.6\,\text{V}$ before it conducts, so its conduction angle falls short of
+                    $180^\circ$ by the dead zone about each zero crossing.</li>
+                <li><strong>class AB</strong>, $\theta_c$ at or slightly above $180^\circ$: the push-pull pair with
+                    two diodes between the bases, fed by the bias current $I_\text{bias}$ through $R_{b1}$ and
+                    $R_{b2}$. Each diode lifts its base by its forward drop $V_D$, so the dead zone shrinks to
+                    $V_{BE(\text{on})} - V_D$ and vanishes when $V_D = V_{BE(\text{on})}$.</li>
             </ul>
 
             <p>The emitter followers of classes B and AB have a voltage gain close to 1. In this model their bases
@@ -95,9 +98,10 @@
                 neither does.</p>
 
             <div class="callout">
-                In class AB the readouts beside each base show the base voltages one diode drop either side of the
-                input node. Both devices carry current at the zero crossing, which is the property that removes the
-                class B dead zone.
+                In class AB the readouts beside each base give $V_B = 20\,v_\text{in} \pm V_D$, the driver output
+                one diode drop either side of the input node, and the base current $I_C/h_{FE}$ with
+                $h_{FE} = 100$. The model treats each output device as off below $V_{BE(\text{on})}$, and the
+                diode drop $V_D$ is set directly by the slider rather than derived from a diode law.
             </div>
         </div>
 
@@ -114,6 +118,11 @@
                         <span class="lab">$\hat{v}_\text{in}$</span>
                         <input type="range" data-param="amp" min="0" max="100" step="1">
                         <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$V_D$</span>
+                        <input type="range" data-param="vd" min="0.4" max="0.6" step="0.01">
+                        <span class="val" data-param="vd"></span>
                     </span>
                     <span class="seg">
                         <button class="seg-btn" data-param="paused" data-value="no">run</button>
@@ -134,6 +143,7 @@
                 <div class="readout">
                     <div class="item"><span class="k">class</span><span class="v" data-out="cls"></span></div>
                     <div class="item"><span class="k">$\theta_c$</span><span class="v" data-out="angle"></span></div>
+                    <div class="item"><span class="k">dead zone</span><span class="v" data-out="dz"></span></div>
                     <div class="item"><span class="k">instantaneous state</span><span class="v" data-out="state"></span></div>
                 </div>
             </div>
@@ -146,31 +156,37 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>bias and swing</span></div>
             <h2>The Q-point on the load line</h2>
 
-            <p class="lead">With $V_{CC} = 12\,\text{V}$ and $R_C = 1.2\,\text{k}\Omega$ the collector loop
-                constrains the transistor to the load line</p>
+            <p class="lead">With $V_{CC} = 12\,\text{V}$, $R_C = 1.2\,\text{k}\Omega$ and
+                $R_E = 200\,\Omega$, and taking $I_E \approx I_C$, the DC collector loop constrains the class A
+                transistor to the DC load line</p>
 
-            <div class="eq-block">$$I_C = \frac{V_{CC} - V_{CE}}{R_C}$$</div>
+            <div class="eq-block">$$I_C = \frac{V_{CC} - V_{CE}}{R_C + R_E}, \qquad
+                V_{CEQ} = V_{CC} - I_{CQ}\left(R_C + R_E\right)$$</div>
 
-            <p>which runs from $V_{CE} = V_{CC}$ at cutoff to $I_C = V_{CC}/R_C = 10\,\text{mA}$ at saturation.
-                The bias network places the quiescent point $Q$ at $(V_{CEQ}, I_{CQ})$ on this line, and the
-                signal moves the operating point along it.</p>
+            <p>which runs from $V_{CE} = V_{CC}$ at cutoff to $I_C = V_{CC}/(R_C + R_E) = 8.57\,\text{mA}$ at
+                saturation. The divider $R_1$, $R_2$ places the quiescent point $Q$ at $(V_{CEQ}, I_{CQ})$ on this
+                line. It is designed with $10\,I_B$ in $R_2$, so $R_1$ carries $11\,I_B$ with
+                $I_B = I_{CQ}/h_{FE}$ and $h_{FE} = 100$.</p>
 
-            <p>The class A output is the AC swing of the collector about $V_{CEQ}$. It reaches cutoff when the
-                collector rises to $V_{CC}$ and saturation when $v_{CE}$ falls to
-                $V_{CE(\text{sat})} = 0.2\,\text{V}$, so with the stage gain $A_v = 20$ the peak output swing is</p>
+            <p>At signal frequencies $C_E$ bypasses $R_E$, so the signal moves the operating point along the AC
+                load line through $Q$ with slope $-1/R_C$. The collector can rise by $I_{CQ} R_C$ before the
+                transistor cuts off and fall by $V_{CEQ} - V_{CE(\text{sat})}$, with
+                $V_{CE(\text{sat})} = 0.2\,\text{V}$, before it saturates. With the stage gain $A_v = 20$ the peak
+                undistorted output is</p>
 
-            <div class="eq-block">$$\hat{v}_\text{out} = \min\!\left(A_v \hat{v}_\text{in},\; V_{CEQ} - V_{CE(\text{sat})},\; V_{CC} - V_{CEQ}\right)$$</div>
+            <div class="eq-block">$$\hat{v}_\text{out} = \min\!\left(A_v \hat{v}_\text{in},\; V_{CEQ} - V_{CE(\text{sat})},\; I_{CQ} R_C\right)$$</div>
 
-            <p>A Q-point at the centre of the line gives the largest symmetric swing. Moving it towards either end
-                shortens the swing on that side, and the output then clips asymmetrically.</p>
+            <p>The largest symmetric swing occurs when the two limits are equal,
+                $I_{CQ} = (V_{CC} - V_{CE(\text{sat})})/(2R_C + R_E) = 4.54\,\text{mA}$. Moving the Q-point either
+                way shortens the swing on one side, and the output then clips asymmetrically.</p>
 
-            <p>Classes B and AB place $Q$ at, or just above, cutoff. Each device then swings from $Q$ towards
-                saturation over its own half-cycle and is idle for the other half, which is the origin of their
-                higher efficiency.</p>
+            <p>Classes B and AB idle at cutoff, $I_{CQ} = 0$. Each device swings along its own load line,
+                $I_C = (V_{CC} - V_{CE})/R_L$, towards saturation over its half-cycle and is idle for the other
+                half, which is the origin of their higher efficiency.</p>
 
             <div class="callout">
-                The bias slider applies to class A only. Selecting class B fixes $I_{CQ} = 0$; selecting class AB
-                fixes $I_{CQ} = 0.5\,\text{mA}$.
+                The bias slider applies to class A only. The readout gives the divider resistances that set the
+                selected Q-point.
             </div>
         </div>
 
@@ -200,13 +216,15 @@
                     <svg class="bode" id="plot-loadline"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw dash"></span>load line</span>
+                    <span><span class="sw dash"></span>DC load line (class A)</span>
+                    <span><span class="sw" style="background:var(--c-load)"></span>AC load line</span>
                     <span><span class="sw" style="background:var(--c-npn)"></span>signal swing</span>
                     <span><span class="sw" style="background:var(--c-dead)"></span>dot: Q-point; large dot: swing reaches an end of the line</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I_{CQ}$</span><span class="v" data-out="icq"></span></div>
                     <div class="item"><span class="k">$V_{CEQ}$</span><span class="v" data-out="vceq"></span></div>
+                    <div class="item"><span class="k">$R_1 / R_2$</span><span class="v" data-out="r12"></span></div>
                     <div class="item"><span class="k">$\hat{v}_\text{out}$</span><span class="v" data-out="vpk"></span></div>
                     <div class="item"><span class="k">output</span><span class="v" data-out="clip"></span></div>
                 </div>
@@ -224,14 +242,16 @@
                 With the bases joined, neither device conducts while the base voltage lies within about
                 $\pm 0.6\,\text{V}$ of the output, and the output stays at zero.</p>
 
-            <p>Referred to the input through the driver gain $A = 20$, the class B dead zone is
-                $\pm 0.6/A = \pm 30\,\text{mV}$, and the output is</p>
+            <p>With the driver output $v_\text{drv} = A\,v_\text{in}$, $A = 20$, the output is</p>
 
-            <div class="eq-block">$$v_\text{out} = \begin{cases} 0, & |v_\text{in}| < V_\text{dz}/A \\[4pt]
-                \operatorname{sgn}(v_\text{in})\left(|v_\text{in}| - V_\text{dz}/A\right) A, & \text{otherwise} \end{cases}$$</div>
+            <div class="eq-block">$$v_\text{out} = \begin{cases} 0, & |v_\text{drv}| \le V_\text{dz} \\[4pt]
+                \operatorname{sgn}(v_\text{drv})\left(|v_\text{drv}| - V_\text{dz}\right), & \text{otherwise} \end{cases}$$</div>
 
-            <p>with $V_\text{dz} = 0.6\,\text{V}$ for class B and $0.05\,\text{V}$ for class AB, and the result
-                limited to $\pm(V_{CC} - V_{CE(\text{sat})})$. The flat step at each zero crossing is crossover
+            <div class="eq-block">$$V_\text{dz} = \begin{cases} V_{BE(\text{on})}, & \text{class B} \\[2pt]
+                \max\left(0,\, V_{BE(\text{on})} - V_D\right), & \text{class AB} \end{cases}$$</div>
+
+            <p>with $V_{BE(\text{on})} = 0.6\,\text{V}$, so the class B dead zone referred to the input is
+                $\pm 0.6/A = \pm 30\,\text{mV}$. The result is limited to $\pm(V_{CC} - V_{CE(\text{sat})})$. The flat step at each zero crossing is crossover
                 distortion. Its size is fixed, so it is a large fraction of a small signal and a small fraction of
                 a large one.</p>
 
@@ -240,9 +260,10 @@
                 distortion mechanism removes part of the waveform.</p>
 
             <div class="callout">
-                The bias diodes of class AB reduce the effective dead zone from 0.6 V to 0.05 V at the bases. The
-                step at the zero crossing is then too small to see at this scale, while the quiescent current
-                stays small.
+                The bias diodes of class AB shrink the dead zone to $V_{BE(\text{on})} - V_D$. The diode drop slider
+                shows the residual step at the zero crossing narrowing to nothing as $V_D$ approaches
+                $V_{BE(\text{on})}$. Real designs set $V_D$ slightly above $V_{BE(\text{on})}$ and add small
+                emitter resistors to fix a stable quiescent current; that region is outside this model.
             </div>
         </div>
 
@@ -259,6 +280,11 @@
                         <span class="lab">$\hat{v}_\text{in}$</span>
                         <input type="range" data-param="amp" min="0" max="100" step="1">
                         <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$V_D$</span>
+                        <input type="range" data-param="vd" min="0.4" max="0.6" step="0.01">
+                        <span class="val" data-param="vd"></span>
                     </span>
                     <span class="slider-group">
                         <span class="lab">frequency</span>
@@ -303,9 +329,12 @@
             <div class="eq-block">$$\eta = \frac{P_L}{P_\text{DC}}, \qquad P_D = P_\text{DC} - P_L, \qquad
                 P_L = \frac{\hat{v}_\text{out}^{\,2}}{2R_L}$$</div>
 
-            <p><strong>Class A.</strong> The supply delivers $P_\text{DC} = V_{CC} I_{CQ}$ whatever the signal.
-                With a resistive load the efficiency cannot exceed 25 %; a transformer-coupled load raises the limit
-                to 50 %. At zero input all of $P_\text{DC}$ is dissipated in the circuit.</p>
+            <p><strong>Class A.</strong> The supply delivers the collector current and the current in $R_1$
+                whatever the signal, $P_\text{DC} = V_{CC}\left(I_{CQ} + I_{R1}\right)$ with
+                $I_{R1} = 11\,I_{CQ}/h_{FE}$. With the collector resistor as load the efficiency cannot exceed 25 %;
+                the divider current and the drop across $R_E$ lower the achievable value to about 20 % here. A
+                transformer-coupled load raises the ideal limit to 50 %. At zero input all of $P_\text{DC}$ is
+                dissipated in the circuit.</p>
 
             <p><strong>Class B.</strong> Each supply delivers a half-wave rectified current of peak
                 $\hat{\imath} = \hat{v}_\text{out}/R_L$, whose average is $\hat{\imath}/\pi$, so</p>
@@ -313,9 +342,11 @@
             <div class="eq-block">$$P_\text{DC} = \frac{2 V_{CC}\, \hat{\imath}}{\pi}, \qquad
                 \eta = \frac{\pi}{4}\,\frac{\hat{v}_\text{out}}{V_{CC}} \le \frac{\pi}{4} \approx 78.5\,\%$$</div>
 
-            <p><strong>Class AB.</strong> The standing bias current $I_Q$ adds to both supplies,
-                $P_\text{DC} = 2 V_{CC}\left(\hat{\imath}/\pi + I_Q\right)$. Typical efficiencies lie between
-                50 % and 60 %, between those of classes A and B.</p>
+            <p><strong>Class AB.</strong> The bias current $I_\text{bias} = 0.5\,\text{mA}$ flows from $+V_{CC}$
+                to $-V_{CC}$ through $R_{b1}$, the diodes and $R_{b2}$ at all times, so
+                $P_\text{DC} = 2 V_{CC}\left(\hat{\imath}/\pi + I_\text{bias}\right)$. Its efficiency therefore lies
+                below that of class B, by an amount that is largest at low output. Practical class AB stages also carry a quiescent collector current and
+                typically reach 50 % to 60 %.</p>
 
             <div class="callout">
                 The efficiency of classes B and AB rises in proportion to the output amplitude, because the supply
@@ -353,6 +384,7 @@
                     <div class="item"><span class="k">$P_\text{DC}$</span><span class="v" data-out="pdc"></span></div>
                     <div class="item"><span class="k">$P_L$</span><span class="v" data-out="pl"></span></div>
                     <div class="item"><span class="k">$P_D$</span><span class="v" data-out="pd"></span></div>
+                    <div class="item"><span class="k">$I_{R1}$</span><span class="v" data-out="idiv"></span></div>
                     <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
                 </div>
                 <div class="plot-box eff">
@@ -384,6 +416,7 @@
     <script defer src="amplifier_classes_JS/plot_wave.js"></script>
     <script defer src="amplifier_classes_JS/plot_budget.js"></script>
     <script defer src="amplifier_classes_JS/plot_efficiency.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

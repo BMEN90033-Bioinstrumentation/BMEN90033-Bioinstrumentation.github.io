@@ -3,7 +3,7 @@
 // labels sit in the top margin, merged when same-coloured guides are close
 // and moved to a second row when labels would overlap. The midband line,
 // the -180 deg line and the cursor readings are labelled in-plot by
-// collision test.
+// collision test, with a leader-line fallback.
 (function () {
     var sel = '#plot-bode';
     var F_MIN = 10, F_MAX = 1e8, DB_MIN = -30, DB_MAX = 40, PH_MIN = -315, PH_MAX = 45;
@@ -123,7 +123,7 @@
                 var dx = w / 2 + 10, dy = h / 2 + 6;
                 return [[xc + dx, yv - dy], [xc - dx, yv - dy], [xc + dx, yv + dy], [xc - dx, yv + dy],
                         [xc + dx, yv - dy - 18], [xc - dx, yv - dy - 18], [xc + dx, yv + dy + 18], [xc - dx, yv + dy + 18]];
-            }, { color: T.text });
+            }, { color: T.text, anchor: [xc, yv] });
         });
 
         // Reference-line labels.
@@ -131,12 +131,12 @@
             var yl = yM(midDb);
             return [[iw - w / 2 - 6, yl - h / 2 - 5], [iw / 2, yl - h / 2 - 5], [w / 2 + 6, yl - h / 2 - 5],
                     [iw - w / 2 - 6, yl + h / 2 + 5]];
-        }, { color: css('--c-mag'), size: 13 });
+        }, { color: css('--c-mag'), size: 13, anchor: [iw / 2, Math.max(0, Math.min(ph, yM(midDb)))] });
         PB.label('-180^\\circ\\ \\text{(inverting)}', function (w, h) {
             var yl = yP(-180);
             return [[iw - w / 2 - 6, yl - h / 2 - 5], [iw - w / 2 - 6, yl + h / 2 + 5],
                     [w / 2 + 6, yl + h / 2 + 5], [iw / 2, yl + h / 2 + 5]];
-        }, { color: T.textDim, size: 13 });
+        }, { color: T.textDim, size: 13, anchor: [iw / 2, yP(-180)] });
     }
 
     window.LCA.onRender(render);

@@ -39,7 +39,7 @@
             var dx = w / 2 + 14, dy = h / 2 + 10;
             return [[qx + dx, qy - dy], [qx - dx, qy - dy], [qx + dx, qy + dy], [qx - dx, qy + dy],
                     [qx + dx, qy - dy - 20], [qx - dx, qy - dy - 20], [qx + dx, qy + dy + 20], [qx - dx, qy + dy + 20]];
-        }, { color: qc });
+        }, { color: qc, anchor: [qx, qy] });
     }
 
     window.LCA.onRender(render);

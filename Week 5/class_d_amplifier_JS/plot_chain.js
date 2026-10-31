@@ -1,13 +1,13 @@
 // Section 05 · Complete class D signal chain: input and carrier sources,
 // comparator with reversed inputs (output = inverted PWM), MOSFET
-// half-bridge, LC filter and load. Device states and current flow follow
+// half-bridge, LC filter, DC-blocking capacitor and load. Device states and current flow follow
 // the shared clock.
 //
 // Layout (viewBox 900 x 400): v_in source (60, 260), carrier source
 // (150, 300), comparator left edge x = 200, apex (260, 210), inputs at
 // y = 192 (-) and y = 228 (+). Gate split x = 330. PMOS (420, 130), NMOS
 // (420, 290), rail x = 440, node (440, 210). Inductor x 520..620, node
-// (680, 210), C on x = 680, R_L on x = 780, grounds y = 350 / 360,
+// (680, 210), C on x = 680, C_B plates x 726 / 734, R_L on x = 780, grounds y = 350 / 360,
 // output terminal (850, 210). Stage names on y = 388.
 (function () {
     var sel = '#plot-chain';
@@ -35,7 +35,9 @@
         k.mos(420, 290, 'n', 330);
         k.line(440, 320, 440, 360); k.ground(440, 360);
         k.dot(440, 210);
-        k.line(440, 210, 520, 210); k.inductorH(520, 620, 210, 4); k.line(620, 210, 846, 210);
+        k.line(440, 210, 520, 210); k.inductorH(520, 620, 210, 4); k.line(620, 210, 726, 210);
+        k.capH(726, 734, 210); k.line(734, 210, 846, 210);
+        k.tex('C_B', 730, 182, { width: 40 });
         k.tex('L', 570, 184, { width: 30 });
         k.dot(680, 210);
         k.line(680, 210, 680, 250); k.capV(680, 250, 258); k.line(680, 258, 680, 360); k.ground(680, 360);
@@ -45,7 +47,7 @@
         k.texL('R_L', 796, 280, { width: 40 });
         k.terminal(850, 210); k.tex('v_\\text{out}', 850, 188, { width: 50 });
         [['input', 105], ['comparator', 230], ['half-bridge', 430], ['LC filter', 650], ['output', 830]]
-            .forEach(function (s) { k.text(s[0], s[1], 388, { size: 11 }); });
+            .forEach(function (s) { k.text(s[0], s[1], 388, { size: 13 }); });
         k.flow('sig', [[60, 242], [60, 192], [200, 192]]);
         k.flow('gate', [[260, 210], [330, 210]]);
         k.flow('p', [[440, 50], [440, 210]]);

@@ -51,15 +51,15 @@
             source: function (cx, cy, r) {
                 svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', r)
                     .attr('fill', 'none').attr('stroke', ink).attr('stroke-width', 1.6);
-                S.tex('+', cx, cy - r / 2, { width: 16, height: 16, size: 14 });
-                S.tex('-', cx, cy + r / 2, { width: 16, height: 16, size: 14 });
+                S.tex('+', cx, cy - r / 2, { width: 18, height: 18, size: 16.5 });
+                S.tex('-', cx, cy + r / 2, { width: 18, height: 18, size: 16.5 });
             },
             dot: function (x, y) { svg.append('circle').attr('cx', x).attr('cy', y).attr('r', 3.5).attr('fill', ink); },
             // Node number in a small badge.
             node: function (n, x, y) {
-                svg.append('circle').attr('cx', x).attr('cy', y).attr('r', 9)
+                svg.append('circle').attr('cx', x).attr('cy', y).attr('r', 10.5)
                     .attr('fill', bg).attr('stroke', css('--c-node')).attr('stroke-width', 1.2);
-                S.tex('\\text{' + n + '}', x, y, { width: 18, height: 18, size: 11, color: css('--c-node') });
+                S.tex('\\text{' + n + '}', x, y, { width: 20, height: 20, size: 13, color: css('--c-node') });
             }
         };
         return S;

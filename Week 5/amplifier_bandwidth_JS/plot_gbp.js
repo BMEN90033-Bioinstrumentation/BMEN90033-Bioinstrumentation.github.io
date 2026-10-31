@@ -2,7 +2,8 @@
 // and for the present A_v, all from one amplifier of fixed GBP, with the
 // open-loop envelope GBP/w and a guide at w = GBP. Curve labels sit above
 // each plateau near the left edge, collision-tested against every curve,
-// guide and earlier label, with fallbacks below the plateau.
+// guide and earlier label, with fallbacks below the plateau and, failing
+// those, a leader-line placement.
 (function () {
     var sel = '#plot-gbp';
     var DB_MIN = -20, DB_MAX = 80, W_MIN = 1, W_MAX = 1e12;
@@ -60,7 +61,7 @@
             P.label(txt, function (w, h) {
                 return [[w / 2 + 8, yl - h / 2 - 5], [w / 2 + 8, yl + h / 2 + 5],
                         [iw * 0.18 + w / 2, yl - h / 2 - 5], [iw * 0.18 + w / 2, yl + h / 2 + 5]];
-            }, { color: col, size: 13 });
+            }, { color: col, size: 13, anchor: [8, yl] });
         }
         plateau(p.Av, 'A_v = ' + A.fmtAv(p.Av) + '\\ \\text{(present)}', cCur);
         GAINS.forEach(function (av, i) {
@@ -69,7 +70,7 @@
         P.label('\\omega = \\text{GBP}', function (w, h) {
             return [[gx + w / 2 + 6, h / 2 + 6], [gx - w / 2 - 6, h / 2 + 6],
                     [gx + w / 2 + 6, ih - h / 2 - 6], [gx - w / 2 - 6, ih - h / 2 - 6]];
-        }, { color: css('--c-guide'), size: 13 });
+        }, { color: css('--c-guide'), size: 13, anchor: [gx, 12] });
     }
 
     window.AMP.onRender(render);

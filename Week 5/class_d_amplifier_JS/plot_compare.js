@@ -1,15 +1,18 @@
-// Section 06 · Efficiency of the amplifier classes as quoted on this page:
-// class A 25 %, AB 55 %, B 78.5 %, D 92 % (the assumed value, with its
-// typical 90-95 % range as an error bar). Values sit above the bars.
+// Section 06 · Efficiency of the amplifier classes: class A 25 %, AB 55 %
+// and B 78.5 % as quoted on this page, and class D from the simulation at
+// full modulation and the present switching ratio, with the typical
+// 90-95 % range of practical designs as an error bar. Values sit above the
+// bars.
 (function () {
     var sel = '#plot-compare';
     var CLS = [
         { tex: '\\text{A}', v: 25 }, { tex: '\\text{AB}', v: 55 },
-        { tex: '\\text{B}', v: 78.5 }, { tex: '\\text{D}', v: 92, lo: 90, hi: 95 }
+        { tex: '\\text{B}', v: 78.5 }, { tex: '\\text{D}', v: 0, lo: 90, hi: 95 }
     ];
 
     function render() {
         var C = window.CLD, css = window.CMP.cssVar, T = window.T;
+        CLS[3].v = +C.power({ amp: 100, ratio: C.p.ratio }).eff.toFixed(1);
         var f = C.frame(sel, { margin: { top: 36, bottom: 70 } });
         var g = f.g, iw = f.iw, ih = f.ih;
         var x = d3.scaleBand().domain(d3.range(4)).range([0, iw]).padding(0.4);
@@ -30,7 +33,7 @@
                 [c.lo, c.hi].forEach(function (v) {
                     g.append('line').attr('x1', cx - 8).attr('x2', cx + 8).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', T.text).attr('stroke-width', 1.5);
                 });
-                top = y(c.hi);
+                top = Math.min(y(c.hi), y(c.v));
             }
             g.append('text').attr('x', bx + bw / 2).attr('y', top - 8).attr('text-anchor', 'middle')
                 .attr('fill', T.text).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")

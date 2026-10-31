@@ -1,11 +1,12 @@
-// Section 04 · LC low-pass output filter between the half-bridge node v_sw
-// and the load. The overlay shows inductor current (coloured by the PWM
+// Section 04 · LC low-pass output filter and DC-blocking capacitor between
+// the half-bridge node v_sw and the load. The overlay shows inductor current (coloured by the PWM
 // state), load current and the capacitor charging path, with the
 // intensities of the original animation.
 //
 // Layout (viewBox 640 x 260): input terminal (70, 110), inductor x 150..270
-// on y = 110, node (330, 110), C on x = 330 (plates y 146 / 154), R_L on
-// x = 470 (box y 140..190), grounds at y = 210, output terminal (560, 110).
+// on y = 110, node (330, 110), C on x = 330 (plates y 146 / 154), DC-blocking
+// C_B on the wire (plates x 396 / 404), R_L on x = 470 (box y 140..190),
+// grounds at y = 210, output terminal (560, 110).
 (function () {
     var sel = '#plot-lc';
     var k = null;
@@ -16,7 +17,9 @@
         svg.attr('viewBox', '0 0 640 260').attr('preserveAspectRatio', 'xMidYMid meet');
         k = window.CLD.kit(svg);
         k.terminal(70, 110); k.texR('v_\\text{sw}', 60, 110, { width: 60 });
-        k.line(74, 110, 150, 110); k.inductorH(150, 270, 110, 4); k.line(270, 110, 470, 110);
+        k.line(74, 110, 150, 110); k.inductorH(150, 270, 110, 4); k.line(270, 110, 396, 110);
+        k.capH(396, 404, 110); k.line(404, 110, 470, 110);
+        k.tex('C_B', 400, 82, { width: 40 });
         k.tex('L', 210, 78, { width: 30 });
         k.dot(330, 110);
         k.line(330, 110, 330, 146); k.capV(330, 146, 154); k.line(330, 154, 330, 210); k.ground(330, 210);

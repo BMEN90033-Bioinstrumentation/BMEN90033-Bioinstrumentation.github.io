@@ -52,7 +52,9 @@
     // Label placer in inner-plot pixel coordinates. Obstacles are polylines
     // (resampled every 1.5 px) and boxes; a label box is rejected when it
     // leaves the plot, contains an obstacle point, or overlaps a box.
+    // Labels that find no free slot fall back to a leader-line placement.
     A.placer = function (f) {
+        var ox = 0, oy = 0, pw = f.iw, ph = f.ih;
         var pts = [], boxes = [];
         function line(poly) {
             for (var i = 1; i < poly.length; i++) {
@@ -77,25 +79,58 @@
             });
         }
         // Render latex, measure it, then move it to the first free candidate.
-        // cands(w, h) returns a list of [cx, cy] centres. Returns false and
-        // removes the label when no candidate is free.
+        // cands(w, h) returns [cx, cy] centres; o.anchor is the point the
+        // label describes (default: the first candidate). When no candidate
+        // is free the label moves outward on rings around the anchor and is
+        // joined to it by a leader line; as a last resort it ignores line
+        // obstacles but still avoids other labels. A label is never dropped.
+        // Returns { i, c, w, h, lead }.
         function label(latex, cands, o) {
             o = Object.assign({ size: 14, color: window.T.text, pad: 3 }, o);
             var fo = window.renderKatex(f.svg, latex, 0, 0, { width: 260, height: 22, size: o.size, color: o.color });
             var k = fo.select('.katex').node();
             var r = k ? k.getBoundingClientRect() : { width: 80, height: 16 };
             var w = Math.ceil(r.width) + 2, h = Math.max(14, Math.ceil(r.height));
-            var list = cands(w, h);
-            for (var i = 0; i < list.length; i++) {
-                var c = list[i], b = [c[0] - w / 2, c[1] - h / 2, c[0] + w / 2, c[1] + h / 2];
-                if (free(b, o.pad)) {
-                    boxes.push(b);
-                    fo.attr('x', f.m.left + c[0] - 130).attr('y', f.m.top + c[1] - 11);
-                    return true;
-                }
+            var list = cands(w, h), anchor = o.anchor || list[0];
+            function bx(c) { return [c[0] - w / 2, c[1] - h / 2, c[0] + w / 2, c[1] + h / 2]; }
+            function inside(b) { return b[0] >= 2 && b[1] >= 2 && b[2] <= pw - 2 && b[3] <= ph - 2; }
+            function clear(b) {
+                return !boxes.some(function (q) {
+                    return b[0] < q[2] + 4 && b[2] > q[0] - 4 && b[1] < q[3] + 4 && b[3] > q[1] - 4;
+                });
             }
-            fo.remove();
-            return false;
+            function put(c, i, lead) {
+                var b = bx(c);
+                boxes.push(b);
+                fo.attr('x', f.m.left + ox + c[0] - 130).attr('y', f.m.top + oy + c[1] - 11);
+                // Leader from the anchor to the nearest point of the label box.
+                var ex = Math.max(b[0], Math.min(anchor[0], b[2])), ey = Math.max(b[1], Math.min(anchor[1], b[3]));
+                lead = lead && Math.hypot(ex - anchor[0], ey - anchor[1]) > 8;
+                if (lead) {
+                    f.svg.append('line').attr('x1', f.m.left + ox + anchor[0]).attr('y1', f.m.top + oy + anchor[1])
+                        .attr('x2', f.m.left + ox + ex).attr('y2', f.m.top + oy + ey)
+                        .attr('stroke', o.color).attr('stroke-opacity', 0.6).attr('stroke-width', 1);
+                }
+                return { i: i, c: c, w: w, h: h, lead: lead };
+            }
+            var i;
+            for (i = 0; i < list.length; i++) if (free(bx(list[i]), o.pad)) return put(list[i], i, false);
+            var ring = [];
+            [36, 60, 90, 130, 180].forEach(function (rr) {
+                for (var q = 0; q < 16; q++) {
+                    var a = q * Math.PI / 8;
+                    ring.push([anchor[0] + Math.cos(a) * (rr + w / 2), anchor[1] - Math.sin(a) * (rr + h / 2)]);
+                }
+            });
+            for (i = 0; i < ring.length; i++) if (free(bx(ring[i]), o.pad)) return put(ring[i], list.length + i, true);
+            var all = list.concat(ring);
+            for (i = 0; i < all.length; i++) {
+                var b = bx(all[i]);
+                if (inside(b) && clear(b)) return put(all[i], list.length + ring.length + i, true);
+            }
+            var c0 = [Math.max(w / 2 + 2, Math.min(pw - w / 2 - 2, list[0][0])),
+                      Math.max(h / 2 + 2, Math.min(ph - h / 2 - 2, list[0][1]))];
+            return put(c0, -1, true);
         }
         return { line: line, box: box, label: label };
     };

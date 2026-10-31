@@ -1,7 +1,7 @@
 // Section 03 · AC small-signal equivalent: V_CC shorted to ground, the bias
 // divider as R_BB, the BJT as its hybrid-pi model (r_pi from base to
 // emitter, g_m v_pi from collector to emitter) and the emitter impedance
-// R_E || C_E. Fixed 840 x 300 viewBox (y from 80); all wires
+// R_E || C_E. Fixed 840 x 324 viewBox (y from 56); all wires
 // orthogonal.
 //
 // Layout (viewBox units):
@@ -21,8 +21,9 @@
         var L = window.LCA, p = L.p, P = L.params(), T = window.T, css = window.CMP.cssVar;
         var svg = d3.select(sel);
         svg.selectAll('*').remove();
-        svg.attr('viewBox', '0 80 ' + W + ' ' + (H - 80)).attr('preserveAspectRatio', 'xMidYMid meet');
-        var S = L.schem(svg), dim = { size: 13, color: T.textDim }, gnd = 356, yb = 150;
+        // y from 56 leaves headroom under the plot-box title.
+        svg.attr('viewBox', '0 56 ' + W + ' ' + (H - 56)).attr('preserveAspectRatio', 'xMidYMid meet');
+        var S = L.schem(svg), dim = { size: 14.5, color: T.textDim }, gnd = 356, yb = 150;
 
         // Input side.
         S.source(70, 250, 22); S.texR('v_s', 40, 250);
@@ -33,20 +34,20 @@
         S.tex('C_{C1}', 231, yb - 30, { width: 50 }); S.tex(L.tex(L.fmtCap(p.cc1)), 231, yb + 30, Object.assign({ width: 80 }, dim));
 
         // R_BB.
-        S.dot(300, yb); S.tex('\\text{B}', 300, yb - 18, { width: 20, size: 13, color: T.textDim });
+        S.dot(300, yb); S.tex('\\text{B}', 300, yb - 18, { width: 20, size: 14.5, color: T.textDim });
         S.line(300, yb, 300, 190); S.resV(300, 190, 250); S.line(300, 250, 300, gnd); S.ground(300, gnd);
         S.texR('R_{BB}', 282, 210); S.texR('66.7\\,\\text{k}\\Omega', 282, 230, dim);
 
         // r_pi with v_pi polarity.
         S.line(400, yb, 400, 180); S.resV(400, 180, 240); S.line(400, 240, 400, 270);
         S.texR('r_\\pi', 382, 200); S.texR(L.tex(L.fmtRes(P.r_pi)), 382, 220, dim);
-        S.tex('+', 422, 186, { width: 16, size: 14, color: css('--c-q') });
-        S.tex('-', 422, 234, { width: 16, size: 14, color: css('--c-q') });
+        S.tex('+', 422, 186, { width: 18, size: 15.5, color: css('--c-q') });
+        S.tex('-', 422, 234, { width: 18, size: 15.5, color: css('--c-q') });
         S.tex('v_\\pi', 424, 210, { width: 30, size: 15, color: css('--c-q') });
 
         // Emitter rail and Z_E = R_E || C_E.
         S.line(400, 270, 520, 270); S.dot(460, 270);
-        S.tex('\\text{E}', 446, 256, { width: 20, size: 13, color: T.textDim });
+        S.tex('\\text{E}', 446, 256, { width: 20, size: 14.5, color: T.textDim });
         S.line(460, 270, 460, 290); S.line(430, 290, 490, 290);
         S.line(430, 290, 430, 300); S.resV(430, 300, 340); S.line(430, 340, 430, 350);
         S.line(490, 290, 490, 314); S.capV(490, 314); S.line(490, 324, 490, 350);
@@ -62,7 +63,7 @@
         svg.append('polygon').attr('fill', S.ink).attr('points', [[520, 225], [514, 214], [526, 214]].join(' '));
         S.texL('g_m v_\\pi', 548, 202, { size: 15 });
         S.texL((P.gm * 1e3).toFixed(1) + '\\,\\text{mA/V}', 548, 222, dim);
-        S.tex('\\text{C}', 520, yb - 18, { width: 20, size: 13, color: T.textDim });
+        S.tex('\\text{C}', 520, yb - 18, { width: 20, size: 14.5, color: T.textDim });
 
         // Collector side: R_C to AC ground, C_C2, R_L.
         S.line(520, yb, 690, yb); S.dot(650, yb);

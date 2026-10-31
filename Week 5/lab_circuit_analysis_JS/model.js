@@ -32,7 +32,10 @@
         var r_pi = beta / gm;
         var Rin  = (RBB * r_pi) / (RBB + r_pi);
         // Edge of saturation: V_CE = VCC - IC(RC + RE) must stay above VCE_SAT.
-        // ponytail: gain is held at the edge-of-saturation value; real gain collapses in saturation
+        // Every small-signal quantity (A_mid, w_L2, w_H2, C_in,Miller) uses the
+        // same collector resistance RC_ac, clipped to RC_max when the stage
+        // would saturate.
+        // ponytail: small-signal values are held at the edge-of-saturation value; a saturated stage has no linear gain
         var RC_max = (VCC - VCE_SAT) / IC - RE;
         var sat = RC > RC_max;
         var RC_ac = Math.min(RC, RC_max);
@@ -41,7 +44,7 @@
 
         // Low-frequency poles and zero.
         var wL1 = 1 / (CC1 * (RS + Rin));
-        var wL2 = 1 / (CC2 * (RC + RL));
+        var wL2 = 1 / (CC2 * (RC_ac + RL));
         var Rth_e = (RS * RBB) / (RS + RBB);
         var Re_seen = (r_pi + Rth_e) / (beta + 1);
         var RE_par = (RE * Re_seen) / (RE + Re_seen);
