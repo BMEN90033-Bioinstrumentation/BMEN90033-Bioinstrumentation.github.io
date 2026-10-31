@@ -238,7 +238,7 @@
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the system</span></div>
         <h2>A pendulum supported above its pivot.</h2>
-        <p class="lead">The inverted pendulum consists of a uniform rigid rod of length $L$ and point mass $m$ mounted at its base on a frictionless pivot, with the mass positioned <em>above</em> the pivot rather than below. The angle $\theta$ is measured from the upright vertical.</p>
+        <p class="lead">The inverted pendulum consists of a massless rigid rod of length $L$ with a point mass $m$ at its tip, mounted at its base on a frictionless pivot, with the mass positioned <em>above</em> the pivot rather than below. The angle $\theta$ is measured from the upright vertical.</p>
         <p>An external torque $\tau(t)$, supplied by a motor at the pivot, constitutes the input. The angle $\theta(t)$ is the output. A viscous damping coefficient $b$ acts on the angular velocity. The configuration differs from the conventional gravity pendulum only in the orientation of the mass, but this change reverses the sign of the gravitational term, with consequences developed below.</p>
         <ul>
             <li>The downward pendulum returns to $\theta = 0$ from any small disturbance.</li>
@@ -275,7 +275,7 @@
         <div class="eq-line">$$mL^2\,\ddot{\theta} = mgL\sin\theta - b\,\dot{\theta} + \tau(t).$$</div>
 
         <h3>Step 2 · linearise about the upright equilibrium</h3>
-        <p>For small $\theta$ the Taylor expansion $\sin\theta = \theta - \theta^3/6 + \ldots$ is truncated at first order, accurate to within $2\%$ for $\theta \le 20^\circ$:</p>
+        <p>For small $\theta$ the Taylor expansion $\sin\theta = \theta - \theta^3/6 + \ldots$ is truncated at first order, with an error of about $2\%$ at $\theta = 20^\circ$:</p>
         <div class="eq-line">$$mL^2\,\ddot{\theta} - mgL\,\theta + b\,\dot{\theta} = \tau(t).$$</div>
         <p>The sign of the gravitational term is the single point of difference between this equation and that of the standard gravity pendulum. The standard pendulum carries $+mgL\theta$ on the left-hand side (a restoring stiffness); the inverted pendulum carries $-mgL\theta$ (a <em class="imag">destabilising</em> stiffness).</p>
 
@@ -313,7 +313,7 @@
         <p>A pole in the right half-plane corresponds to a time-domain mode of the form $e^{s_1 t}$, which grows without bound. Any nonzero initial condition, including disturbance from sensor noise or air currents, projects onto this mode and produces unbounded growth. The system is therefore <em class="imag">unstable</em> in the bounded-input bounded-output sense.</p>
 
         <h3>Numerical instance</h3>
-        <p>For $L = 0.5~\mathrm{m}$, $m = 1~\mathrm{kg}$, $b = 0.05~\mathrm{N{\cdot}m{\cdot}s/rad}$, and $g = 9.81~\mathrm{m/s^2}$ one finds $\omega_0 = \sqrt{g/L} \approx 4.43~\mathrm{rad/s}$. The poles are approximately $s_1 \approx +4.41$ and $s_2 \approx -4.51$. The unstable mode grows by a factor of $e \approx 2.72$ every $1/s_1 \approx 0.23~\mathrm{s}$.</p>
+        <p>For $L = 0.5~\mathrm{m}$, $m = 1~\mathrm{kg}$, $b = 0.05~\mathrm{N{\cdot}m{\cdot}s/rad}$, and $g = 9.81~\mathrm{m/s^2}$ one finds $\omega_0 = \sqrt{g/L} \approx 4.43~\mathrm{rad/s}$. The poles are approximately $s_1 \approx +4.33$ and $s_2 \approx -4.53$. The unstable mode grows by a factor of $e \approx 2.72$ every $1/s_1 \approx 0.23~\mathrm{s}$.</p>
 
         <div class="callout warn">
             <strong>Stability criterion.</strong> A linear system is stable if and only if every pole of its transfer function lies in the open left half of the complex plane. The presence of even a single pole with positive real part is sufficient to guarantee instability.

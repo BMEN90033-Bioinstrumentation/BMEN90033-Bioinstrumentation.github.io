@@ -272,7 +272,7 @@
         <div class="eq-line">$$mL^2\,\ddot{\theta} = -mgL\sin\theta - b\,\dot{\theta} + F(t)\,L.$$</div>
 
         <h3>Step 3 · small-angle approximation</h3>
-        <p>For modest displacements the Taylor expansion $\sin\theta = \theta - \theta^3/6 + \ldots$ is truncated at first order, an approximation accurate to within $2\%$ for $\theta \le 20^\circ$. The governing equation thereby becomes linear:</p>
+        <p>For modest displacements the Taylor expansion $\sin\theta = \theta - \theta^3/6 + \ldots$ is truncated at first order, an approximation with an error of about $2\%$ at $\theta = 20^\circ$. The governing equation thereby becomes linear:</p>
         <div class="eq-line">$$mL^2\,\ddot{\theta} + b\,\dot{\theta} + mgL\,\theta = F(t)\,L.$$</div>
         <p>Each term admits a direct physical interpretation:</p>
         <div class="eq-line">$$\underbrace{mL^2\,\ddot{\theta}}_{\text{inertia}} + \underbrace{b\,\dot{\theta}}_{\text{damping}} + \underbrace{mgL\,\theta}_{\text{gravity restoring}} = \underbrace{F(t)\,L}_{\text{forcing}}.$$</div>
@@ -342,8 +342,8 @@
 
         <div class="callout">
             <strong>Resonance.</strong> For $\omega \ll \omega_0$ or $\omega \gg \omega_0$ the
-            response is small. At $\omega = \omega_0$ the amplitude reaches $1/(2\zeta)$,
-            approximately ten times the input for the parameters shown.
+            response is small. At $\omega = \omega_0$ the amplitude reaches $1/(2\zeta\omega_0^2)$,
+            which is $1/(2\zeta)$ times the static ($\omega \to 0$) response: approximately ten times for the parameters shown.
         </div>
         <p>The peak of the Bode magnitude defines the quality factor $Q \approx 1/(2\zeta)$. Lightly-damped systems exhibit tall, narrow peaks; heavily-damped systems exhibit broad, flat responses. Increasing $\zeta$ progressively flattens the peak.</p>
     </div>
@@ -368,8 +368,8 @@
         <ul>
             <li><strong>Real part</strong> $\sigma = -\zeta\omega_0$ governs the <em>decay rate</em>; greater magnitude corresponds to faster decay. Both poles in the <em class="real">left half-plane</em> ensure stability.</li>
             <li><strong>Imaginary part</strong> $\pm\omega_d$ is the <em>damped oscillation frequency</em>; for light damping $\omega_d \approx \omega_0$.</li>
-            <li><strong>Distance from the origin</strong> equals $\omega_0$, independent of damping. Varying $L$ translates the poles along an arc of radius $\omega_0$.</li>
-            <li><strong>Angular displacement</strong> $\phi$ from the negative real axis satisfies $\sin\phi = \zeta$.</li>
+            <li><strong>Distance from the origin</strong> equals $\omega_0$, independent of damping. Varying $L$ changes $\omega_0 = \sqrt{g/L}$ and moves the poles radially at constant angle; varying $\zeta$ moves them along an arc of radius $\omega_0$.</li>
+            <li><strong>Angular displacement</strong> $\phi$ from the negative real axis satisfies $\cos\phi = \zeta$.</li>
         </ul>
 
         <div class="controls">
@@ -456,7 +456,7 @@
             <span><i style="background:var(--accent)"></i>|H(jω)|</span>
         </div>
 
-        <p><strong>Observe.</strong> As $\mu \to 0$ the intermediate mass vanishes, the zero recedes to infinity, and the transfer function reduces to that of the simple pendulum. Increasing $\mu$ deepens the notch. Displacing $\alpha$ from $0.5$ shifts $\omega_z$: higher placement of the intermediate mass along the rope raises the notch frequency.</p>
+        <p><strong>Observe.</strong> As $\mu \to 0$ the intermediate mass vanishes, the zero recedes to infinity, and the transfer function reduces to that of the simple pendulum. Increasing $\mu$ deepens the notch. Displacing $\alpha$ shifts $\omega_z$: the notch frequency is minimised at $\alpha^* = \sqrt{1+\mu}/(1+\sqrt{1+\mu})$ (about $0.56$ for $\mu = 0.6$) and rises as the intermediate mass moves toward either end of the rope.</p>
 
         <div class="callout">
             <strong>Taipei 101.</strong> The 660-tonne tuned mass damper in Taipei 101 applies this

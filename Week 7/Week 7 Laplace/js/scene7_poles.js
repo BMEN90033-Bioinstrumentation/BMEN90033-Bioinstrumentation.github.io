@@ -134,8 +134,9 @@
     let s = 'marginally stable · pure oscillation';
     if (pole.sigma < -0.02) s = 'stable · decaying';
     if (pole.sigma > 0.02) s = 'unstable · growing';
-    if (pole.sigma < -0.02 && pole.omega < 0.5) s = 'heavily damped · fast settle';
-    if (pole.sigma < -0.02 && Math.abs(pole.sigma) < 0.3 && pole.omega > 1.5) s = 'lightly damped · rings';
+    const zeta = -pole.sigma / Math.hypot(pole.sigma, pole.omega);   // damping ratio of the pole pair
+    if (pole.sigma < -0.02 && zeta >= 0.7) s = 'heavily damped · little overshoot';
+    if (pole.sigma < -0.02 && zeta < 0.2) s = 'lightly damped · rings';
     sub.textContent = s;
   }
 

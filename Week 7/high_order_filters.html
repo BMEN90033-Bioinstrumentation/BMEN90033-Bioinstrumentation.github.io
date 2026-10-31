@@ -332,7 +332,7 @@
         <p>For $N = 4$ with stopband edge $\omega_s = 1.5\,\omega_c$, the zeros are located at approximately $\pm j\,1.62\,\omega_c$ and $\pm j\,3.92\,\omega_c$, situated within the stopband so as to maximise local attenuation.</p>
 
         <div class="callout cheby2">
-            <strong>Applicability.</strong> The Chebyshev type II response is indicated when passband fidelity is required and specific narrow-band interferers must be attenuated. Typical examples include the rejection of mains harmonics at 50 or 60 Hz, suppression of switching-converter noise, and the removal of coherent carrier components. Placement of the transmission zeros permits targeted attenuation at frequencies of known interference.
+            <strong>Applicability.</strong> The Chebyshev type II response is indicated when a monotonic passband is required together with a guaranteed minimum stopband attenuation, for example to suppress switching-converter noise or carrier components above the signal band. The zero frequencies $\omega_s/\cos\theta_k$ follow from the equiripple design and cannot be placed independently; rejection of a single known interferer, such as 50 or 60 Hz mains, requires a notch filter.
         </div>
     </div>
     <div class="canvas-wrap" style="max-width: 680px;">
@@ -351,15 +351,15 @@
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>the elliptic filter</span></div>
         <h2>Equiripple in <em class="ellip">both bands</em>.</h2>
-        <p class="lead">The elliptic, or Cauer, filter is the rational approximation obtained when equi-ripple behaviour is permitted in both the passband and the stopband simultaneously. For a given filter order, it achieves the steepest transition band of any rational transfer function, and is optimal in the minimax sense over both bands. Its poles lie on an ellipse, as in the Chebyshev type I design, while its zeros are distributed along the imaginary axis, as in the Chebyshev type II design. Both sets of singularities are determined by the Jacobian elliptic functions, from which the family derives its name.</p>
+        <p class="lead">The elliptic, or Cauer, filter is the rational approximation obtained when equi-ripple behaviour is permitted in both the passband and the stopband simultaneously. For a given filter order, it achieves the steepest transition band of any rational transfer function, and is optimal in the minimax sense over both bands. Its poles lie near an ellipse, as in the Chebyshev type I design, while its zeros are distributed along the imaginary axis, as in the Chebyshev type II design. Both sets of singularities are determined by the Jacobian elliptic functions, from which the family derives its name.</p>
         <div class="eq-block">$$|H(j\omega)|^2 = \frac{1}{1 + \varepsilon^2\, R_N^2(\omega/\omega_c,\, L)}$$</div>
-        <p>Here $R_N(\cdot, L)$ denotes the elliptic rational function of degree $N$, parameterised by a selectivity factor $L$ that fixes the ratio of stopband to passband edge frequencies. For the design illustrated here ($N = 4$, $R_p = 1$ dB, $R_s = 40$ dB), the transition from passband to stopband is completed within approximately $1.1\,\omega_c$; a Butterworth filter of the same order requires a further $6$ dB of attenuation at this frequency to reach comparable stopband levels.</p>
+        <p>Here $R_N(\cdot, L)$ denotes the elliptic rational function of degree $N$, parameterised by a selectivity factor $L$ that fixes the ratio of stopband to passband edge frequencies. For the design illustrated here ($N = 4$, $R_p = 1$ dB, $R_s = 40$ dB), the response falls from $-1$ dB at $\omega_c$ to $-40$ dB at approximately $1.52\,\omega_c$; a Butterworth filter of the same order attenuates by only about $15$ dB at this frequency.</p>
 
         <h3>Singularity structure</h3>
         <ul>
-            <li>Four poles on an ellipse in close proximity to the imaginary axis, generating the passband ripple.</li>
+            <li>Four poles near an ellipse, generating the passband ripple; the pair at $-0.105 \pm j0.994$ lies close to the imaginary axis.</li>
             <li>Two conjugate pairs of zeros on the imaginary axis, each within the stopband and responsible for local nulls that bound the stopband ripple.</li>
-            <li>The poles and zeros have reciprocal symmetry across the passband edge, as required by the elliptic approximation.</li>
+            <li>The elliptic rational function satisfies $R_N(L/x) \propto 1/R_N(x)$, where $L = \omega_s/\omega_c$ ($\approx 1.52$ here). The transmission zeros therefore lie at $L\omega_c^2/\omega_k$, where $\omega_k$ are the passband frequencies of 0 dB gain.</li>
         </ul>
 
         <div class="callout ellip">
@@ -550,23 +550,28 @@ function chebyshev2(N, ws, Rs) {
     }
     return { poles, zeros };
 }
-/* Elliptic (Cauer) — for the teaching page, use a tabulated design
-   (N=4, Rp=1 dB, Rs=40 dB, ωc=1). Values rounded from a standard table. */
-function ellipticDesign() {
-    return {
-        poles: [
-            { re: -0.1206, im:  1.0062 },
-            { re: -0.1206, im: -1.0062 },
-            { re: -0.3929, im:  0.6829 },
-            { re: -0.3929, im: -0.6829 },
-        ],
-        zeros: [
-            { re: 0, im:  1.2645 },
-            { re: 0, im: -1.2645 },
-            { re: 0, im:  2.3900 },
-            { re: 0, im: -2.3900 },
-        ],
-    };
+/* Elliptic (Cauer), Rp = 1 dB, Rs = 40 dB, passband edge ωc = 1, tabulated for
+   N = 2..8 from scipy.signal.ellip(N, 1, 40, 1, analog=True). Each entry lists the
+   upper-half-plane poles [re, im] and the positive imaginary parts of the jω-axis zeros;
+   conjugates are added below. */
+const ELLIP_TABLE = {
+    2: { p: [[-0.54575, 0.90012]], z: [9.93763] },
+    3: { p: [[-0.52372, 0.0], [-0.22726, 0.97657]], z: [2.75834] },
+    4: { p: [[-0.36429, 0.4786], [-0.10528, 0.99371]], z: [1.60955, 3.52529] },
+    5: { p: [[-0.38534, 0.0], [-0.21911, 0.74103], [-0.04992, 0.9982]], z: [1.25381, 1.76429] },
+    6: { p: [[-0.31552, 0.41013], [-0.11842, 0.87515], [-0.02379, 0.99943]], z: [1.11383, 1.30694, 2.96274] },
+    7: { p: [[-0.35765, 0.0], [-0.20591, 0.68879], [-0.06014, 0.94039], [-0.01134, 0.9998]], z: [1.05276, 1.13583, 1.62579] },
+    8: { p: [[-0.3045, 0.39559], [-0.11567, 0.8453], [-0.02958, 0.97159], [-0.00541, 0.99992]], z: [1.02483, 1.0626, 1.25711, 2.85485] },
+};
+function ellipticDesign(N) {
+    const d = ELLIP_TABLE[N];
+    const poles = [], zeros = [];
+    for (const [re, im] of d.p) {
+        poles.push({ re, im });
+        if (im > 0) poles.push({ re, im: -im });
+    }
+    for (const w of d.z) zeros.push({ re: 0, im: w }, { re: 0, im: -w });
+    return { poles, zeros };
 }
 
 /* ----- Filter definitions (mutable via order slider) ----- */
@@ -575,26 +580,21 @@ function designFilters(N) {
     const epsilon = Math.sqrt(Math.pow(10, Rp/10) - 1);
     const ws = 1.5;   // stopband edge for Chebyshev II
     const cheby2 = chebyshev2(N, ws, Rs);
-    // Elliptic: only tabulated for N=4. For other orders fall back to a scaled Chebyshev II look.
-    let ellip;
-    if (N === 4) {
-        ellip = ellipticDesign();
-    } else {
-        // Approximate elliptic shape for other orders: use Cheby II scaled more aggressively
-        const e = chebyshev2(N, 1.3, Rs);
-        ellip = { poles: e.poles, zeros: e.zeros };
-    }
+    const ellip = ellipticDesign(N);
+    // Equiripple-passband designs of even order start at the bottom of the ripple band,
+    // so |H(0)| = 1/√(1+ε²) and the passband maximum is 0 dB.
+    const h0 = (N % 2 === 0) ? 1 / Math.sqrt(1 + epsilon*epsilon) : 1;
     return {
         first:  { poles: [{re:-1, im:0}], zeros: [], order: 1, name: '1st-order' },
         butter: { poles: butterworthPoles(N), zeros: [], order: N, name: 'Butterworth' },
-        cheby1: { poles: chebyshev1Poles(N, epsilon), zeros: [], order: N, name: 'Chebyshev I', epsilon },
+        cheby1: { poles: chebyshev1Poles(N, epsilon), zeros: [], order: N, name: 'Chebyshev I', epsilon, h0 },
         cheby2: { poles: cheby2.poles, zeros: cheby2.zeros, order: N, name: 'Chebyshev II' },
-        ellip:  { poles: ellip.poles,  zeros: ellip.zeros,  order: N, name: 'Elliptic' },
+        ellip:  { poles: ellip.poles,  zeros: ellip.zeros,  order: N, name: 'Elliptic', h0 },
     };
 }
 let FILTERS = designFilters(4);
 
-/* ----- DC normalisation factor so |H(0)| = 1 (cached per filter) ----- */
+/* ----- DC normalisation factor so |H(0)| = filt.h0 (default 1; cached per filter) ----- */
 function dcNorm(filt) {
     if (filt._dcNorm !== undefined) return filt._dcNorm;
     const zero = { re: 0, im: 0 };
@@ -604,11 +604,11 @@ function dcNorm(filt) {
     for (const p of filt.poles) denDC = Cx.mul(denDC, Cx.sub(zero, p));
     const H0 = Cx.div(numDC, denDC);
     const h0abs = Cx.abs(H0);
-    filt._dcNorm = h0abs > 1e-9 ? 1 / h0abs : 1;
+    filt._dcNorm = h0abs > 1e-9 ? (filt.h0 ?? 1) / h0abs : 1;
     return filt._dcNorm;
 }
 
-/* ----- Evaluate H(s) at an arbitrary complex s; returns complex H/|H(0)| ----- */
+/* ----- Evaluate H(s) at an arbitrary complex s; returns H scaled by dcNorm ----- */
 function evalHAt(filt, s) {
     let num = { re: 1, im: 0 };
     for (const z of filt.zeros) num = Cx.mul(num, Cx.sub(s, z));
@@ -720,7 +720,28 @@ function drawSPlane(canvas, filterKey, opts = {}) {
         ctx.stroke();
     }
     ctx.fillStyle = 'transparent';
+    const zLim = maxExt - 0.1;
     for (const z of filt.zeros) {
+        if (Math.abs(z.im) > zLim) {
+            // Zero beyond the plotted range: arrowhead at the plot edge plus its value.
+            // ponytail: assumes at most one off-range conjugate pair (true for N = 2..8 here).
+            const sgn = Math.sign(z.im);
+            const ye = sgn > 0 ? padT + 2 : padT + plotH - 2;
+            ctx.fillStyle = colour;
+            ctx.beginPath();
+            ctx.moveTo(cx, ye); ctx.lineTo(cx - 4, ye + sgn * 9); ctx.lineTo(cx + 4, ye + sgn * 9);
+            ctx.closePath(); ctx.fill();
+            ctx.font = "500 10px 'JetBrains Mono', monospace";
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            const zt = `○ ${sgn > 0 ? '' : '−'}j${Math.abs(z.im).toFixed(2)}`;
+            const tw = ctx.measureText(zt).width;
+            ctx.fillStyle = getComputedStyle(canvas.parentElement).backgroundColor;   // mask grid lines behind the label
+            ctx.fillRect(cx - 9 - tw - 2, ye + sgn * 7 - 7, tw + 4, 14);
+            ctx.fillStyle = colour;
+            ctx.fillText(zt, cx - 9, ye + sgn * 7);
+            continue;
+        }
         const x = xMap(z.re), y = yMap(z.im);
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, Math.PI * 2);
@@ -1005,6 +1026,7 @@ function drawSPlane3D(canvas, filterKey) {
         ctx.restore();
     }
     for (const z of filt.zeros) {
+        if (Math.abs(z.im) > omegaMax) continue;   // outside the plotted surface
         const bp = projBase(z.re, z.im);
         ctx.strokeStyle = c.time;
         ctx.lineWidth = 2;

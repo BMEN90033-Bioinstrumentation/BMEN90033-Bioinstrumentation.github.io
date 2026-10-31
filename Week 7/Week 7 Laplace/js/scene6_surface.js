@@ -51,6 +51,8 @@
     },
   };
   let currentSys = 'stable';
+  // Causal system with RHP poles: ROC is σ > max Re(p), so σ = 0 has no Fourier transform.
+  const fourierTag = () => (currentSys === 'unstable' ? 'outside ROC' : 'Fourier');
 
   // ─── Interaction state ───────────────────────────────────────────────────
   let rotY = DEFAULT_ROT_Y;   // yaw (around vertical)
@@ -294,7 +296,7 @@
     // Label on ridge
     if (!bodeMode) {
       const ridgeLbl = pts[iZero][Nw];
-      CFG.label(ctx, 'σ = 0  ·  Fourier', ridgeLbl.x + 8, ridgeLbl.y - 6, C.real, { size: 10 });
+      CFG.label(ctx, `σ = 0  ·  ${fourierTag()}`, ridgeLbl.x + 8, ridgeLbl.y - 6, C.real, { size: 10 });
     }
 
     // ── Highlight 2: current σ slice — accent colored (pen-lifted near poles)
@@ -489,7 +491,7 @@
       CFG.label(ctx, '|F| (dB)', x0 - 4, y0 - 6, C.muted, { size: 10, align: 'right' });
 
       // legend
-      CFG.label(ctx, '— Fourier (σ=0)', x0 + 6, y0 + 2,  C.real, { size: 10 });
+      CFG.label(ctx, currentSys === 'unstable' ? '— σ=0 (outside ROC)' : '— Fourier (σ=0)', x0 + 6, y0 + 2,  C.real, { size: 10 });
       CFG.label(ctx, `— slice σ=${sigma0.toFixed(2)}`, x0 + 6, y0 + 16, C.accent, { size: 10 });
 
       sliceTitle.textContent = `Bode magnitude  ·  20 log₁₀|F(σ + jω)|  ·  σ = ${sigma0.toFixed(2)}`;
@@ -533,7 +535,7 @@
     CFG.label(ctx, '+' + spanW.toFixed(1), x1, y1 + 6, C.muted, { size: 10, align: 'right' });
     CFG.label(ctx, '0', xMid + 3, y1 + 6, C.muted, { size: 10 });
 
-    CFG.label(ctx, '— Fourier (σ=0)', x0, y0 + 2,  C.real, { size: 10 });
+    CFG.label(ctx, currentSys === 'unstable' ? '— σ=0 (outside ROC)' : '— Fourier (σ=0)', x0, y0 + 2,  C.real, { size: 10 });
     CFG.label(ctx, `— slice σ=${sigma0.toFixed(2)}`, x0, y0 + 16, C.accent, { size: 10 });
 
     sliceTitle.textContent = `slice at σ = ${sigma0.toFixed(2)}  ·  |F(σ + jω)|`;
@@ -586,7 +588,7 @@
     ctx.lineWidth = 2;
     const xZero = xOf(0);
     ctx.beginPath(); ctx.moveTo(xZero, y0); ctx.lineTo(xZero, y1); ctx.stroke();
-    CFG.label(ctx, 'jω · Fourier', xZero + 5, y0 + 4, C.real, { size: 10 });
+    CFG.label(ctx, `jω · ${fourierTag()}`, xZero + 5, y0 + 4, C.real, { size: 10 });
 
     // current σ slice line
     ctx.strokeStyle = C.accent;
