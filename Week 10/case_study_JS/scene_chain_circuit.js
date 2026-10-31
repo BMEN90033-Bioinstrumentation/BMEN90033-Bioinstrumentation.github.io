@@ -113,7 +113,7 @@
         // Input
         var inB = block(20, midY - BH / 2, 130, BH, 'EEG input', 'v_in (mV)');
         // Pre-amp
-        var amp = block(190, midY - BH / 2, 150, BH, 'Pre-amp', 'G ≈ 100');
+        var amp = block(190, midY - BH / 2, 150, BH, 'Pre-amp', 'G ≈ 1000');
 
         var splitX = amp.r + 36;
 

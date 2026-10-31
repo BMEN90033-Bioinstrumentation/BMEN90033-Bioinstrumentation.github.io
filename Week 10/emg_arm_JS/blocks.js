@@ -17,7 +17,7 @@
         { id: 'peak',    short: 'PKD', name: 'Peak Detector',  help: 'Active envelope detector; charges to the peak fast and decays slowly. Replaces REC + LPF.' },
         { id: 'comp',    short: 'CMP', name: 'Comparator',     help: 'Single-threshold gate; chatters near the threshold under noise.' },
         { id: 'schmitt', short: 'SCH', name: 'Schmitt Trigger',help: 'Hysteretic comparator; clean gating even with a noisy envelope.' },
-        { id: 'pwm',     short: 'PWM', name: 'PWM',            help: 'Converts the gated envelope into a servo duty cycle.' }
+        { id: 'pwm',     short: 'PWM', name: 'PWM',            help: 'Encodes the gated envelope as a 50 Hz pulse train (simplified: duty 0 to 100 %, not 1 to 2 ms servo pulses).' }
     ];
 
     // Canonical chain — eight stages with mains rejection and the

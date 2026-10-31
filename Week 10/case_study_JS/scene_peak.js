@@ -1,6 +1,8 @@
 // scene_peak.js  ·  Slide 4
 // Passive peak detector (diode + capacitor) with adjustable leak time-
-// constant and diode forward drop V_D. The capacitor charges to V_in - V_D
+// constant and diode forward drop V_D. The filtered EEG (mV) is passed
+// through a pre-amp of gain 1000, so the plotted signal and V_D are in volts
+// (1 mV in = 1 V out). The capacitor charges to V_in - V_D
 // when the input is rising and the diode conducts; otherwise the held
 // voltage decays through the leak resistor. Spikes smaller than V_D produce
 // no held output at all — the failure mode that motivates the gain stage on
@@ -34,7 +36,7 @@
 
     var state = {
         tau: 2.0,
-        vd: 0.30,
+        vd: 0.60,            // silicon diode drop at the pre-amp output, V
         // Per-sample peak buffer (recomputed every frame from the EEG ring buffer)
         held: new Float32Array(EEG.HISTORY * EEG.FS)
     };
@@ -75,7 +77,7 @@
         gTitles.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-42) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude, mV');
+            .text('pre-amp output, V');
     }
 
     // Passive peak detector model (diode + capacitor + leak resistor):
@@ -141,16 +143,16 @@
             .attr('text-anchor', 'end')
             .attr('font-family', "'JetBrains Mono', monospace")
             .attr('font-size', 10).style('fill', 'var(--c-thresh)')
-            .text('V_D = ' + state.vd.toFixed(2));
+            .text('V_D = ' + state.vd.toFixed(2) + ' V');
 
         var lastHeld = state.held[data.length - 1];
-        ui.rVal.textContent = lastHeld.toFixed(2) + ' mV';
+        ui.rVal.textContent = lastHeld.toFixed(2) + ' V';
 
         var sp = EEG.spikesRecent(WINDOW);
         if (sp.length) {
-            ui.rLast.textContent = sp[sp.length - 1].amp.toFixed(2) + ' mV';
+            ui.rLast.textContent = sp[sp.length - 1].amp.toFixed(2) + ' V';
         } else {
-            ui.rLast.textContent = '— mV';
+            ui.rLast.textContent = '— V';
         }
 
         // Envelope slope: simple linear regression on the held trace, downsampled.
@@ -189,7 +191,7 @@
         });
         ui.vd.addEventListener('input', function () {
             state.vd = parseFloat(ui.vd.value);
-            ui.vdVal.textContent = state.vd.toFixed(2);
+            ui.vdVal.textContent = state.vd.toFixed(2) + ' V';
             drawFrame();
         });
         EEG.onTick(drawFrame);

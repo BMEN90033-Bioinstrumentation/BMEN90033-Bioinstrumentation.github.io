@@ -2,9 +2,11 @@
 // Exposes window.EMGSignal with:
 //   makeChainRunner()  -> independent chain runner with rolling buffers
 // Each runner samples a synthetic Wheatstone-bridge signal at FS=2000 Hz over
-// a 2 s rolling window. The bridge output combines a small DC bias, an AC
-// strain-activity component whose amplitude scales with the finger curl, mains
-// interference, and broadband noise.
+// a 2 s rolling window. The bridge is AC-excited at a carrier frequency fc, so
+// the finger curl amplitude-modulates the carrier; HPF/BPF, rectifier and LPF
+// then act as an AM demodulator. The output also contains a small DC offset,
+// mains interference, and broadband noise. (A DC-excited bridge would instead
+// give a quasi-static output proportional to strain, with no carrier.)
 (function () {
     var FS = 2000;
     var T_WIN = 2.0;
@@ -14,24 +16,20 @@
     function makeSource() {
         var phase50 = 0;
         var driftPhase = 0;
+        var carrierPhase = 0;
         return function step(dt, params) {
             phase50 += 2 * Math.PI * 50 * dt;
             driftPhase += 2 * Math.PI * 0.4 * dt;
             var strain = params.strain;       // 0..1 finger curl
-            var fc = params.fc;               // centre of strain-activity band (Hz)
-            // AC activity in the bridge as the strained beam vibrates and the
-            // user's finger micro-tremors modulate the gauge resistance. Six
-            // randomly-phased tones fake band-limited noise around fc.
-            var ac = 0;
-            for (var k = 0; k < 6; k++) {
-                var f = fc * (0.6 + 0.15 * k);
-                ac += (Math.random() - 0.5) * Math.sin(2 * Math.PI * f * Math.random());
-            }
-            ac *= 0.4 * (0.05 + strain);
+            var fc = params.fc;               // bridge excitation carrier (Hz)
+            carrierPhase += 2 * Math.PI * fc * dt;
+            // Bridge imbalance ∝ strain scales the carrier amplitude; 0.05 is
+            // the residual imbalance at rest.
+            var ac = 0.175 * (0.05 + strain) * Math.sin(carrierPhase);
             // Slow temperature/posture drift on the bridge bias.
             var drift = 0.05 * Math.sin(driftPhase);
-            // Bridge DC bias, plus a small strain-proportional offset.
-            var dcBias = 0.18 + 0.10 * strain;
+            // DC offset from the bridge and amplifier (not strain-dependent).
+            var dcBias = 0.18;
             // 50 Hz mains coupling.
             var mains = 0.03 * Math.sin(phase50);
             // Broadband electronic noise.
@@ -62,9 +60,14 @@
     var BPF_LO = 1.5;    // Hz
     var BPF_HI = 500;    // Hz
     var LPF_FC = 6;      // Hz, envelope detector
-    var COMP_TH = 0.18;
-    var COMP_HYST = 0.05;
-    var PWM_FREQ = 60;   // Hz pulse rate
+    // Threshold sits between the rest envelope (about 0.5 after gain 80) and
+    // the envelope at light curl (about 1.3 at strain 0.1).
+    var COMP_TH = 1.0;
+    var COMP_HYST = 0.2;
+    // Simplification: servo command modelled as a 50 Hz pulse train with duty 0 to 100 %,
+    // averaged by the actuator. A hobby servo instead decodes a 1 to 2 ms pulse
+    // width in a 20 ms frame; change PWM and servo blocks together if that matters.
+    var PWM_FREQ = 50;   // Hz frame rate
 
     // Notch filter (biquad) at 50 Hz. Coefficients are pre-computed for
     // the fixed sample rate so the per-sample inner loop stays cheap.

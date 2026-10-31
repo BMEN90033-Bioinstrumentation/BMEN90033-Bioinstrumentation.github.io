@@ -65,7 +65,8 @@
                 <div class="brief-box">
                     <div class="brief-label">The brief</div>
                     <p class="brief-body">A wearable glove carries one strain gauge across each finger,
-                        wired into a Wheatstone bridge. The clinical team asks for a benchtop
+                        wired into a Wheatstone bridge excited by an AC carrier, so that finger curl
+                        amplitude-modulates the bridge output. The clinical team asks for a benchtop
                         demonstrator: five bridge channels in the millivolt range, conditioned to
                         produce a per-finger drive that closes a corresponding finger on a desktop
                         robotic hand. Live finger-curl data is captured from a webcam using ML5
@@ -98,7 +99,7 @@
                     <span class="lab" style="color: var(--accent); font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.10em;" id="hand-cam-status">camera off</span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">strain f<sub>c</sub></span>
+                        <span class="lab">carrier f<sub>c</sub></span>
                         <input type="range" id="arm-fc" min="40" max="200" step="1" value="100">
                         <span class="val" id="arm-fc-val">100 Hz</span>
                     </span>

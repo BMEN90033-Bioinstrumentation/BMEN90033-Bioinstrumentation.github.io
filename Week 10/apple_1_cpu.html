@@ -2200,7 +2200,7 @@
                     to drive the array. Three presets load real functions: a 2-to-4 decoder, a dual 2:1 multiplexer that
                     uses $A_2$ and $A_3$ as independent select bits over the same data pair, and a fragment of a 6502
                     opcode decoder that recognises the low nibbles of <code>LDA #</code>, <code>STA zp</code> and
-                    <code>NOP</code>. The same physical PLA appears in the lower-left of the 6502 die in Section 03.
+                    <code>NOP</code>. The same physical PLA appears across the top of the 6502 die in Section 03.
                 </div>
             </div>
 
@@ -2639,22 +2639,22 @@
             {
                 id: 'timing', label: 'timing<br>chain', color: '#f5c451',
                 x: 6, y: 42, w: 14, h: 14,
-                body: 'Six-state instruction timing FSM (T1–T6). Sequences the cycles of every opcode and tells the PLA which cycle of the instruction is currently running.'
+                body: 'Instruction timing state machine (states T0–T6). Sequences the 2 to 7 cycles of each opcode and tells the PLA which cycle of the instruction is currently running.'
             },
             {
                 id: 'alu', label: 'ALU', color: '#7be089',
                 x: 20, y: 42, w: 30, h: 14,
-                body: '8-bit arithmetic and logic unit. Handles add, subtract (with carry), AND, OR, EOR, shifts and rotates. Also computes branch target addresses and the +1 increment for the program counter.'
+                body: '8-bit arithmetic and logic unit. Handles add, subtract (with carry), AND, OR, EOR, shifts and rotates. Also adds the relative offset to PCL for taken branches and computes indexed effective addresses.'
             },
             {
                 id: 'flags', label: 'P · flags', color: '#f97066',
                 x: 50, y: 42, w: 13, h: 14,
-                body: 'Status register P. Holds the seven flags N, V, B, D, I, Z, C. Updated by ALU operations, branches, BIT, CLC/SEC and friends.'
+                body: 'Status register P. Holds the flags N, V, D, I, Z, C (B is not a stored bit; it appears only in the copy of P pushed by BRK or PHP). Updated by ALU operations, BIT, and the flag set/clear instructions (CLC, SEC, CLI, SEI, CLD, SED, CLV). Read by conditional branches.'
             },
             {
                 id: 'pc', label: 'program counter<br>PCL · PCH', color: '#58a6ff',
                 x: 63, y: 42, w: 30, h: 14,
-                body: '16-bit program counter. PCL and PCH are two 8-bit halves with a small adder for the +1 increment after each fetch and for relative-branch offset addition.'
+                body: '16-bit program counter. PCL and PCH are two 8-bit halves with a dedicated incrementer that advances the PC after each fetch; relative-branch offsets are added by the ALU.'
             },
             {
                 id: 'regs', label: 'registers<br>A · X · Y · S', color: '#34d399',

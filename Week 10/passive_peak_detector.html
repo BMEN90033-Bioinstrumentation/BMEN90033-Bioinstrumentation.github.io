@@ -314,7 +314,8 @@
                 $V_F$ before any charge transfer to the capacitor occurs. A typical electroencephalographic
                 spike measured at the scalp has an amplitude of order $50\,\mathrm{\mu V}$. Direct application
                 of a passive peak detector at this amplitude produces no output. Recovery of the spike
-                requires a preamplifier of gain at least $10^4$ to be placed ahead of the detector. No choice
+                requires a preamplifier ahead of the detector: a gain of about $1.4 \times 10^4$ only raises the peak
+                to $V_F \approx 0.7\,\mathrm{V}$, so a gain of order $10^5$ is needed for the peak to exceed $V_F$ by a useful margin. No choice
                 of capacitor or resistor restores the lost information; the loss is set by the diode physics.</p>
 
             <h3>Latching of the diode-capacitor detector</h3>
@@ -336,8 +337,8 @@
                 purely passive: a logic-level clock and a gate (or base) driver must be supplied. The choice
                 of window length is itself a design parameter. A window shorter than the duration of a single
                 spike causes the spike to be split between two consecutive windows and reported as two smaller
-                peaks. A window much longer than the inter-spike interval averages the amplitudes of
-                consecutive spikes into a single output value.</p>
+                peaks. A window much longer than the inter-spike interval holds only the largest of several
+                consecutive spikes, so the amplitudes of the smaller spikes are not reported.</p>
 
             <div class="callout">
                 Each of the failure modes described above is removed in the active, op-amp-based peak detector

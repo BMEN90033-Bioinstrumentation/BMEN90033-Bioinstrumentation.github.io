@@ -103,9 +103,11 @@
                 <div class="callout">
                     The op-amp has finite slew rate and must recover from negative saturation at every zero
                     crossing. Near the crossing, the output departs from the ideal half-wave for a short
-                    interval set by the slew rate and the gain-bandwidth product. Connecting a second diode
-                    from the output node to the inverting input clamps the op-amp output one diode drop above
-                    ground during the blocked half-cycle and reduces the recovery interval.
+                    interval set by the slew rate and the gain-bandwidth product. The usual remedy is the
+                    inverting precision rectifier, in which a second diode connects the op-amp output to the
+                    virtual-ground inverting input. This diode conducts during the blocked half-cycle and holds
+                    the op-amp output within one diode drop of ground, so the op-amp does not saturate and the
+                    recovery interval is reduced.
                 </div>
             </div>
 
@@ -188,8 +190,8 @@
                     The storage capacitor $C$ is the central design parameter. A smaller value shortens the
                     acquisition time but increases the rate at which $V_C$ droops between peaks, owing to
                     leakage through the reverse-biased diode and the buffer input. A FET-input op-amp with
-                    bias current of order tens of picoamperes holds a $1\,\mathrm{nF}$ storage capacitor flat
-                    to within $1\,\mathrm{mV}$ over a hundred milliseconds.
+                    bias current of about $10\,\mathrm{pA}$ holds a $1\,\mathrm{nF}$ storage capacitor flat
+                    to within $1\,\mathrm{mV}$ over a hundred milliseconds ($\Delta V = I t / C$).
                 </div>
             </div>
 
@@ -344,8 +346,9 @@
                     recorded signal:</p>
 
                 <ul class="bullets">
-                    <li><strong>Spikes below $V_F$ are not detected.</strong> Filtered EEG spikes have
-                        amplitudes in the millivolt range, whereas a silicon diode requires $V_F \approx
+                    <li><strong>Spikes below $V_F$ are not detected.</strong> The spikes in the case-study
+                        recording peak at a few millivolts, and scalp EEG spikes are smaller, tens to hundreds of
+                        microvolts, whereas a silicon diode requires $V_F \approx
                         0.6\,\mathrm{V}$ before conduction begins. The earliest pre-state spikes, which carry
                         the greatest predictive value, are exactly those the passive circuit discards.</li>
                     <li><strong>The held value droops between events.</strong> The leak resistor needed to

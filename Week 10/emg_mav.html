@@ -482,7 +482,7 @@
                     <li><strong>Averaging method:</strong> three options for the averaging stage are
                         provided. The first-order LPF is the analog default; the moving-window average
                         is the literal $\tfrac{1}{T}\!\int|x|\,\mathrm{d}t$; a 1-D Kalman filter
-                        adapts its gain as the estimated variance changes.</li>
+                        estimates $\log\sigma^2$ from $\log x^2$ (after Sanger, 2007).</li>
                     <li><strong>Latency and smoothness:</strong> the smoothing parameter $f_c$ sets
                         the bandwidth of all three. Lower $f_c$ rejects more EMG burst noise but
                         lengthens the delay between intent and grip. $f_c = 0$ is the limit of pure
@@ -492,8 +492,10 @@
                 <div class="callout">
                     Drag the effort slider to simulate a contraction. Switch between the three
                     smoothers and lower $f_c$ toward zero to see the trace flatten. The Kalman option
-                    gives the smoothest envelope at the same response time, because it weights new
-                    measurements against the running variance instead of using a fixed time constant.
+                    uses fixed process and measurement variances, so its gain converges to a constant,
+                    set here to match the first-order LPF at the same $f_c$. It then acts as a first-order
+                    smoother on $\log\sigma^2$ rather than on $|x|$. An adaptive gain would require
+                    time-varying process or measurement variances.
                 </div>
             </div>
             <div>

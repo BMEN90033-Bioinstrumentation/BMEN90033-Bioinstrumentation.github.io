@@ -16,7 +16,9 @@
     var OUT_DOMAIN = [0, 3.0];
 
     var MONO_WIDTH = 0.18;
-    var V_DROP = 0.30;
+    // Pre-amp gain 1000 maps the filtered EEG (mV) to volts at the detector
+    // input, so a silicon diode drop of 0.6 V applies directly to the signal.
+    var V_DROP = 0.60;
 
     var state = {
         vtp: 0.55,
@@ -122,7 +124,7 @@
         gPanel.out.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (L.out.h / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('V_held (mV)');
+            .text('V_held (V)');
 
         gAxisX.attr('transform', 'translate(0,' + (L.out.top + L.out.h) + ')');
         gAxisX.call(d3.axisBottom(L.x).tickValues([-10, -8, -6, -4, -2, 0])
@@ -239,7 +241,7 @@
         // Readouts use rises that fall in the last 4 s
         var pulses4s = ev.rises.filter(function (t) { return t >= nowT - 4; }).length;
         ui.rPulses.textContent = pulses4s;
-        ui.rPeak.textContent = ev.held[ev.held.length - 1].toFixed(2) + ' mV';
+        ui.rPeak.textContent = ev.held[ev.held.length - 1].toFixed(2) + ' V';
 
         // Envelope direction over the last 5 s of the visible window.
         var midIdx = Math.max(0, ev.held.length - Math.round(EEG.FS * (WINDOW / 2)));
