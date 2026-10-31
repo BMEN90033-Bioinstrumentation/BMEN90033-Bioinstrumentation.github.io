@@ -4,6 +4,7 @@
 // resampled every frame so the cloud shimmers. Physics comes from EO.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const EO = window.EO, p = EO.p;
 const css = window.CMP.cssVar;
@@ -25,6 +26,7 @@ controls.dampingFactor = 0.08;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.5;
 controls.addEventListener('start', function () { controls.autoRotate = false; });
+guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
 const nucleusMat = new THREE.MeshBasicMaterial();
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), nucleusMat));
@@ -72,8 +74,10 @@ function makeCloud(key, Zeff, numPoints) {
     geo.setAttribute('size', new THREE.BufferAttribute(s.densities, 1));
     geo.setAttribute('sign', new THREE.BufferAttribute(s.signs, 1));
     geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(numPoints * 3), 3));
+    // Point size scales with the orbital extent (0.08 a0 for hydrogen 1s, as
+    // before), so every cloud keeps the same graininess at any zoom.
     const mat = new THREE.PointsMaterial({
-        vertexColors: true, size: 0.08, transparent: true, opacity: p.opacity / 100,
+        vertexColors: true, size: 0.02 * s.rMax, transparent: true, opacity: p.opacity / 100,
         sizeAttenuation: true, depthWrite: false, clippingPlanes: planes()
     });
     const pts = new THREE.Points(geo, mat);
@@ -214,6 +218,24 @@ function frame() {
     controls.update();
     renderer.render(scene, camera);
 }
+// Place the camera, along its present viewing direction, far enough out that
+// the largest orbital in the configuration (0.8 of its sampling radius
+// 4 n^2 a0 / Zeff) fits the narrower field of view with a 15 % margin.
+function fitCamera() {
+    let R = 0;
+    p.config.forEach(function (o) {
+        R = Math.max(R, 0.8 * EO.rMaxOf(EO.ORBITAL_DEFS[o.key].n, o.Zeff));
+    });
+    const half = THREE.MathUtils.degToRad(camera.fov / 2);
+    const tanH = Math.tan(half) * Math.min(1, camera.aspect || 1);
+    const dir = camera.position.clone().normalize();
+    if (dir.lengthSq() < 1e-6) dir.set(0, 0, 1);
+    camera.position.copy(dir.multiplyScalar(1.15 * R / tanH));
+    controls.target.set(0, 0, 0);
+    camera.far = Math.max(1000, camera.position.length() * 4);
+    camera.updateProjectionMatrix();
+}
+
 function resize() {
     const r = host.getBoundingClientRect();
     if (!r.width || !r.height) return;
@@ -224,6 +246,8 @@ function resize() {
 }
 
 applyTheme();
+resize();
+fitCamera();
 new ResizeObserver(resize).observe(host);
 new IntersectionObserver(function (es) {
     es.forEach(function (e) {
@@ -236,10 +260,8 @@ regenerate(false);
 window.addEventListener('themechange', applyTheme);
 window.addEventListener('eochange', function (e) {
     const k = e.detail && e.detail.key;
-    if (k === 'element') {
-        camera.position.set(0, 0, EO.CAMERA_DIST[p.element] || 10);
-        regenerate(true);
-    } else if (k === 'config') {
+    if (k === 'element' || k === 'config') {
+        fitCamera();
         regenerate(true);
     } else if (k === 'density') {
         regenerate(false);

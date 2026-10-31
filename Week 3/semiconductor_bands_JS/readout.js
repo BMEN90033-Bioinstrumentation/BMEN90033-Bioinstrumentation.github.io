@@ -5,10 +5,10 @@
         var ni = B.niSi(p.temp);
         var out = {
             material: s.cfg.label,
-            eg: s.cfg.bandGapEV,
+            eg: p.mode === 'semiconductor' ? s.eg.toFixed(3) + ' eV' : s.cfg.bandGapEV,
             gap: s.gap > 0.05 ? s.gap.toFixed(2) + ' units' : 'touching',
             free: s.numFree + ' / ' + s.numValence,
-            cond: s.conductivity,
+            cond: s.sigma < 1e-20 ? '< 1e-20 S/cm' : s.sigma.toExponential(2).replace('e+', 'e') + ' S/cm',
             temp: Math.round(p.temp) + ' K',
             egsi: B.egSi(p.temp).toFixed(3) + ' eV',
             kt: (B.K_B * p.temp * 1e3).toFixed(1) + ' meV'

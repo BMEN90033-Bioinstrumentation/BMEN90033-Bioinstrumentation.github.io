@@ -128,7 +128,10 @@
             <div class="eq-block">$$W \propto \sqrt{V_{bi} + V_R} \quad\Longrightarrow\quad
                 W = W_0\sqrt{1 + \frac{V_R}{V_{bi}}}$$</div>
 
-            <p>The model takes $V_{bi} = 0.7\,\text{V}$. A wider depletion region has two consequences:</p>
+            <p>The model assumes non-degenerate doping, with each Fermi level $0.1\,\text{eV}$ from its majority
+                band edge, so $qV_{bi} = E_g - 0.2\,\text{eV}$: $0.92\,\text{V}$ for silicon, $0.55\,\text{V}$
+                for InGaAs and $2.06\,\text{V}$ for GaP. The particle view draws the depletion region up to
+                $4.4\,W_0$. A wider depletion region has two consequences:</p>
 
             <ul class="bullets">
                 <li>a larger volume in which photogenerated carriers are collected by drift;</li>
@@ -136,8 +139,8 @@
                     constant of the detector and its load.</li>
             </ul>
 
-            <p>In the band diagram the n-side bands fall further below the p side, and the quasi-Fermi levels
-                separate by $qV_R$, with $E_{Fn}$ below $E_{Fp}$. Majority electrons on the n side cannot cross
+            <p>In the band diagram, drawn to scale in eV, the n-side bands lie $q(V_{bi} + V_R)$ below the p side,
+                and the quasi-Fermi levels separate by $qV_R$, with $E_{Fn}$ below $E_{Fp}$. Majority electrons on the n side cannot cross
                 the raised barrier.</p>
 
             <div class="callout">
@@ -164,11 +167,14 @@
                     <svg class="bode" data-bands-step="1"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw dash"></span>quasi-Fermi levels</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-elec)"></span>$E_{Fn}$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-hole)"></span>$E_{Fp}$</span>
                     <span>shaded: depletion region</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$V_R$</span><span class="v" data-out="vr"></span></div>
+                    <div class="item"><span class="k">material</span><span class="v" data-out="mat"></span></div>
+                    <div class="item"><span class="k">$V_{bi}$</span><span class="v" data-out="vbi"></span></div>
                     <div class="item"><span class="k">$W / W_0$</span><span class="v" data-out="depl"></span></div>
                 </div>
             </div>
@@ -240,6 +246,11 @@
                 <div class="plot-box bands">
                     <div class="label">band diagram · <b>absorption</b></div>
                     <svg class="bode" data-bands-step="2"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dash" style="border-top-color:var(--c-elec)"></span>$E_{Fn}$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-hole)"></span>$E_{Fp}$</span>
+                    <span>arrow: absorption, $h\nu \ge E_g$</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$P$</span><span class="v" data-out="P"></span></div>
@@ -333,6 +344,7 @@
     <script defer src="photodiode_JS/sim_junction.js"></script>
     <script defer src="photodiode_JS/plot_bands.js"></script>
     <script defer src="photodiode_JS/plot_response.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

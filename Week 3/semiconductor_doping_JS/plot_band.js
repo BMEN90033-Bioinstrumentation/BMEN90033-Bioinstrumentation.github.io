@@ -1,29 +1,34 @@
-// Section 02 · Flat-band diagram for pure, n-type and p-type silicon.
-// Level positions are those of the original simulator: E_F at the middle of
-// the gap (pure), one quarter below E_C (n-type) or three quarters below E_C
-// (p-type); donor level 15 % of the gap below E_C, acceptor level 15 % above
-// E_V; both are drawn far from scale.
+// Section 02 · Flat-band diagram for pure, n-type and p-type silicon, with
+// the energy levels to scale within the gap. The gap of E_g(T) spans the
+// space between the bands; E_i is taken at midgap; E_F sits at
+// E_F - E_i = kT ln(n / n_i) from DOP.state(), the same statistics as the
+// section 03 plot. E_D lies 45 meV below E_C and E_A 45 meV above E_V.
+// Where complete ionisation and non-degenerate statistics would put E_F
+// within 2 px of a band edge (heavy doping or low temperature), the drawn
+// line is held at that limit and the plot label says so.
 //
-// Layout (inner coordinates, ih = inner height):
+// Layout (inner coordinates):
 //   conduction band 0.08 ih .. 0.28 ih, valence band 0.68 ih .. ih.
-//   Level labels (E_F, E_D, E_A) sit at the left end of their line; each
-//   line starts 36 px in, so no label touches a line. With a 0.40 ih gap the
-//   closest pair (E_D and E_F) is 0.04 ih >= 18 px apart at the smallest box.
-//   Excitation arrows at x = 0.6 iw; carriers in the bands right of 0.3 iw;
-//   band names at the left. E_g bracket and value in the right margin.
+//   E_F label at the left, x < 32, centred on its line. Only the band edges
+//   cross x < 36 (every level line starts at x = 36), so the label moves
+//   13 px below its line when within 12 px of E_C, or above when within
+//   12 px of E_V. E_D and E_A labels sit in the right margin at their own
+//   heights, 16 px right of the E_g bracket; the bracket value sits at
+//   midgap, at least 0.37 E_g from either of them.
 (function () {
     var sel = '#plot-band';
 
     function render() {
         var D = window.DOP, p = D.p, T = window.T, css = window.CMP.cssVar, mode = p.mode;
-        var f = D.frame(sel, { margin: { top: 44, right: 78, bottom: 44, left: 56 } });
+        var s = D.state();
+        var f = D.frame(sel, { margin: { top: 56, right: 78, bottom: 44, left: 56 } });
         var g = f.g, iw = f.iw, ih = f.ih;
 
         var cbTop = ih * 0.08, cbBot = ih * 0.28, vbTop = ih * 0.68, vbBot = ih;
-        var gapH = vbTop - cbBot;
-        var fermiY = cbBot + gapH * (mode === 'ntype' ? 0.25 : mode === 'ptype' ? 0.75 : 0.5);
+        var gapH = vbTop - cbBot, yMid = (cbBot + vbTop) / 2;
         var cV = css('--c-valence'), cC = css('--c-conduction'), cF = css('--c-free'), cH = css('--c-hole');
         var mono = "'JetBrains Mono', monospace";
+        function yE(eFromEi) { return yMid - eFromEi / s.eg * gapH; }
 
         g.append('rect').attr('x', 0).attr('y', cbTop).attr('width', iw).attr('height', cbBot - cbTop)
             .attr('fill', cC).attr('fill-opacity', 0.13).attr('stroke', cC).attr('stroke-opacity', 0.55).attr('stroke-width', 1.5);
@@ -46,57 +51,78 @@
         name('conduction band', cbTop + 16, cC);
         name('valence band', vbBot - 16, cV);
 
-        // Gap bracket in the right margin.
+        // Gap bracket and value in the right margin.
         var bx = iw + 8;
         g.append('path').attr('fill', 'none').attr('stroke', T.overlay50).attr('stroke-width', 1.2)
             .attr('d', 'M' + (bx - 4) + ',' + cbBot + 'H' + bx + 'V' + vbTop + 'H' + (bx - 4));
-        window.renderKatex(f.svg, '1.1\\,\\text{eV}', f.m.left + bx + 34, f.m.top + (cbBot + vbTop) / 2,
+        window.renderKatex(f.svg, s.eg.toFixed(2) + '\\,\\text{eV}', f.m.left + bx + 34, f.m.top + yMid,
             { width: 56, height: 20, size: 14 });
 
-        // A level: label at the left end, line from x = 36 to the right edge.
-        function level(y, latex, col, dash) {
+        function line(y, col, dash) {
             g.append('line').attr('x1', 36).attr('x2', iw - 6).attr('y1', y).attr('y2', y)
                 .attr('stroke', col).attr('stroke-width', 1.6).attr('stroke-dasharray', dash);
-            window.renderKatex(f.svg, latex, f.m.left + 18, f.m.top + y, { width: 30, height: 18, size: 14, color: col });
-        }
-        function arrow(x, y0, y1, col) {
-            g.append('line').attr('x1', x).attr('x2', x).attr('y1', y0).attr('y2', y1 + 2)
-                .attr('stroke', col).attr('stroke-width', 1.3).attr('stroke-dasharray', '2 2');
-            g.append('path').attr('d', 'M' + (x - 3) + ',' + (y1 + 7) + 'L' + x + ',' + y1 + 'L' + (x + 3) + ',' + (y1 + 7))
-                .attr('fill', 'none').attr('stroke', col).attr('stroke-width', 1.3);
         }
         function dot(x, y, r, col, open) {
             var c = g.append('circle').attr('cx', x).attr('cy', y).attr('r', r);
             if (open) c.attr('fill', 'none').attr('stroke', col).attr('stroke-width', 1.6);
             else c.attr('fill', col);
         }
-        var x0 = iw * 0.32, x1 = iw - 20, cx = iw * 0.6;
+        var x0 = iw * 0.32, x1 = iw - 20;
         function dx(i, n) { return x0 + i * (x1 - x0) / Math.max(n - 1, 1); }
 
-        level(fermiY, 'E_F', css('--c-fermi'), '6 4');
-
+        // Dopant level, to scale.
         if (mode === 'ntype') {
-            var donorY = cbBot + gapH * 0.15;
-            level(donorY, 'E_D', css('--c-p'), '2 3');
-            for (var a = 0; a < 3; a++) arrow(cx - 20 + a * 20, donorY - 2, cbBot + 2, cF);
+            var yD = cbBot + D.E_ION / s.eg * gapH;
+            line(yD, css('--c-p'), '2 3');
+            window.renderKatex(f.svg, 'E_D', f.m.left + iw + 30, f.m.top + yD, { width: 30, height: 18, size: 14, color: css('--c-p') });
             for (var d = 0; d < 4; d++) dot(dx(d, 4), (cbTop + cbBot) / 2 + 6, 4.5, cF);
         } else if (mode === 'ptype') {
-            var accY = cbBot + gapH * 0.85;
-            level(accY, 'E_A', css('--c-b'), '2 3');
-            for (var b = 0; b < 3; b++) arrow(cx - 20 + b * 20, vbTop - 2, accY + 2, cH);
+            var yA = vbTop - D.E_ION / s.eg * gapH;
+            line(yA, css('--c-b'), '2 3');
+            window.renderKatex(f.svg, 'E_A', f.m.left + iw + 30, f.m.top + yA, { width: 30, height: 18, size: 14, color: css('--c-b') });
             for (var h = 0; h < 4; h++) dot(dx(h, 4), vbTop + (vbBot - vbTop) * 0.25, 4.5, cH, true);
         } else {
-            var numTh = Math.floor(Math.pow(p.temp / 1000, 2) * 4);
+            // Thermal pairs, proportional to n_i: four at 1000 K, none below about 700 K.
+            var numTh = Math.min(4, Math.round(4 * s.ni / D.niSi(1000)));
             for (var k = 0; k < numTh; k++) {
                 dot(dx(k, 4), (cbTop + cbBot) / 2 + 6, 4, cF);
                 dot(dx(k, 4), vbTop + (vbBot - vbTop) * 0.25, 4, cH, true);
             }
-            for (var q = 0; q < numTh; q++) arrow(cx - 20 + q * 14, vbTop - 2, cbBot + 2, cF);
+            for (var q = 0; q < numTh; q++) {
+                var ax = iw * 0.6 - 20 + q * 14;
+                g.append('line').attr('x1', ax).attr('x2', ax).attr('y1', vbTop - 2).attr('y2', cbBot + 4)
+                    .attr('stroke', cF).attr('stroke-width', 1.3).attr('stroke-dasharray', '2 2');
+                g.append('path').attr('d', 'M' + (ax - 3) + ',' + (cbBot + 9) + 'L' + ax + ',' + (cbBot + 2) + 'L' + (ax + 3) + ',' + (cbBot + 9))
+                    .attr('fill', 'none').attr('stroke', cF).attr('stroke-width', 1.3);
+            }
         }
         for (var v = 0; v < 6; v++) dot(dx(v, 6), vbTop + (vbBot - vbTop) * 0.55, 3.5, cV);
 
+        // Fermi level from the carrier statistics.
+        // Within 3kT of a band edge the non-degenerate statistics used here
+        // are no longer accurate; the label says so.
+        var nearEdge = !isNaN(s.ef) && s.eg / 2 - Math.abs(s.ef) < 3 * D.K_B * p.temp;
+        var clamped = false, yF;
+        if (isNaN(s.ef)) { yF = null; }
+        else {
+            yF = yE(s.ef);
+            if (yF < cbBot + 2) { yF = cbBot + 2; clamped = true; }
+            if (yF > vbTop - 2) { yF = vbTop - 2; clamped = true; }
+        }
+        if (yF !== null) {
+            var cE = css('--c-fermi');
+            line(yF, cE, '6 4');
+            var ly = yF - cbBot < 12 ? yF + 13 : vbTop - yF < 12 ? yF - 13 : yF;
+            window.renderKatex(f.svg, 'E_F', f.m.left + 18, f.m.top + ly, { width: 30, height: 18, size: 14, color: cE });
+        }
+
         var lab = document.getElementById('band-label');
-        if (lab) lab.innerHTML = 'energy band diagram · <b>' + D.LABELS[mode].name + '</b> · levels not to scale';
+        if (lab) {
+            var Ntxt = mode === 'pure' ? '' : ' · N = ' + D.N().toExponential(1).replace('e+', 'e') + ' cm⁻³';
+            lab.innerHTML = '<b>' + D.LABELS[mode].name + '</b>' + Ntxt + ' · ' + Math.round(p.temp) + ' K' +
+                (yF === null ? ' · E_F undefined at 0 K' : clamped ? ' · E_F held at band edge (model invalid)'
+                : nearEdge ? ' · E_F within 3kT of band edge (model inaccurate)' : '');
+        }
     }
 
     window.DOP.onRender(render);

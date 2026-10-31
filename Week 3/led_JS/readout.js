@@ -5,9 +5,12 @@
         var L = window.LED, m = L.mat();
         document.querySelectorAll('.readout[data-vparam]').forEach(function (row) {
             var v = L.p[row.dataset.vparam], on = L.exceeded(v, m);
-            var dz = L.deplFrac(1, v, m) / L.deplFrac(0, 0, m);
+            var dz = L.deplFrac(1, v, m) / L.deplFrac(0, 0, m), b = L.bands(1, v, m);
             var out = {
                 mat: m.name,
+                v0: b.v0.toFixed(2) + ' V',
+                vj: b.vj.toFixed(2) + ' V',
+                split: (b.efn - b.efp).toFixed(2) + ' eV',
                 vth: m.threshold.toFixed(1) + ' V',
                 state: on ? 'conducting' : 'blocking',
                 depl: (dz * 100).toFixed(0) + ' %',

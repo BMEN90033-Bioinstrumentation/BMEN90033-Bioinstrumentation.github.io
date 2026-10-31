@@ -5,8 +5,9 @@
         var R = PD.responsivity(m.peakWavelength, m);
         var out = {
             vr: p.vr.toFixed(1) + ' V',
-            depl: '×' + (PD.deplFrac(p.vr) / PD.deplFrac(0)).toFixed(2),
+            depl: '×' + (PD.deplFrac(p.vr, m) / PD.deplFrac(0, m)).toFixed(2),
             mat: m.name,
+            vbi: PD.vbi(m).toFixed(2) + ' V',
             eg: m.bandgap.toFixed(2) + ' eV',
             lc: m.cutoffWavelength + ' nm',
             lp: m.peakWavelength + ' nm',

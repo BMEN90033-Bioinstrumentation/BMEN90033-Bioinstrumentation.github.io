@@ -4,7 +4,9 @@
 // data-action="reset" sets the bias to zero and restarts junction formation.
 (function () {
     var fmt = {
-        bias: function (v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + ' V'; }
+        bias: function (v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + ' V'; },
+        logNA: function (v) { return Math.pow(10, v).toExponential(1).replace('e+', 'e') + ' cm⁻³'; },
+        logND: function (v) { return Math.pow(10, v).toExponential(1).replace('e+', 'e') + ' cm⁻³'; }
     };
 
     function sync() {

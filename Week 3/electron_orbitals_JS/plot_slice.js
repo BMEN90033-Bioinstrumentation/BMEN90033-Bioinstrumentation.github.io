@@ -19,7 +19,7 @@
         var root = d3.select(sel);
         root.selectAll('*').remove();
         var rect = root.node().getBoundingClientRect(), W = rect.width, H = rect.height || 400;
-        var m = { top: 48, right: 64, bottom: 40, left: 64 };
+        var m = { top: 70, right: 64, bottom: 36, left: 64 };   // top clears the wrapped box title
         var side = Math.min(W - m.left - m.right, H - m.top - m.bottom);
         m.left = Math.max(64, (W - side) / 2);   // centre the square horizontally
         var svg = root.append('svg').attr('width', W).attr('height', H);
@@ -43,6 +43,15 @@
                 if (Math.abs(val) > peak) peak = Math.abs(val);
             }
         }
+        // Reference amplitude: peak |R_nl| times the harmonic normalisation.
+        // A plane that is itself a nodal plane (p_y on xz, for example) gives
+        // only floating-point residue, which would otherwise be stretched to
+        // full colour by the peak normalisation.
+        var ref = 0;
+        for (var q = 1; q <= 200; q++) ref = Math.max(ref, Math.abs(EO.radialWavefunction(d.n, d.l, L * q / 200, Z)));
+        ref *= Math.sqrt((2 * d.l + 1) / (4 * Math.PI));
+        var nodal = peak < 1e-8 * ref;
+        if (nodal) peak = 0;
         var cp = rgb(css('--c-pos')), cn = rgb(css('--c-neg'));
         for (var k = 0; k < vals.length; k++) {
             var t = peak > 0 ? vals[k] / peak : 0, c = t >= 0 ? cp : cn;
@@ -58,9 +67,18 @@
         var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
         [xa, ya].forEach(window.CMP.styleAxis);
         g.append('circle').attr('cx', x(0)).attr('cy', y(0)).attr('r', 3).attr('fill', window.T.text);
+        if (nodal) {
+            // Placed in the upper-left quadrant on a background pill, clear of
+            // the zero lines and the nucleus marker.
+            var bg = g.append('rect').attr('fill', css('--bg-2')).attr('rx', 4);
+            var fo = window.renderKatex(svg, '\\text{nodal plane: } \\psi = 0 \\text{ everywhere}',
+                m.left + side / 4, m.top + side / 4, { width: 280, height: 24, size: 14, color: window.T.textDim });
+            var kw = fo.select('.katex').node().getBoundingClientRect().width || 220;
+            bg.attr('x', side / 4 - kw / 2 - 8).attr('y', side / 4 - 14).attr('width', kw + 16).attr('height', 28);
+        }
 
         var vName = p.plane === 'xy' ? 'y' : 'z';
-        window.renderKatex(svg, vName + '\\;[a_0]', m.left + x(0), m.top - 22, { width: 90, height: 22, size: 16 });
+        window.renderKatex(svg, vName + '\\;[a_0]', m.left + x(0), m.top - 16, { width: 90, height: 22, size: 16 });
         window.renderKatex(svg, 'x\\;[a_0]', m.left + side + 34, m.top + y(0), { width: 60, height: 22, size: 16 });
 
         var lab = document.getElementById('slice-label');

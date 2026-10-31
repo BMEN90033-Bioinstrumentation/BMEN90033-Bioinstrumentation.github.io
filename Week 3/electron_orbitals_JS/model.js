@@ -42,11 +42,14 @@
         return m < 0 ? Pll * Math.pow(-1, am) * factorial(l - am) / factorial(l + am) : Pll;
     }
 
-    // Real spherical harmonics: cos(m phi) for m > 0, sin(|m| phi) for m < 0.
+    // Real spherical harmonics: cos(m phi) for m > 0, sin(|m| phi) for m < 0,
+    // in the chemistry convention without the Condon-Shortley phase.
+    // assocLegendre includes the (-1)^m phase, so it is removed here; then
+    // p_x is positive on +x, p_y on +y, d_xz in the +x +z quadrant, and so on.
     function realSphericalHarmonic(l, m, theta, phi) {
         var am = Math.abs(m);
         var norm = Math.sqrt((2 * l + 1) / (4 * Math.PI) * factorial(l - am) / factorial(l + am));
-        var P = assocLegendre(l, am, Math.cos(theta));
+        var P = (am % 2 ? -1 : 1) * assocLegendre(l, am, Math.cos(theta));
         if (m > 0) return Math.SQRT2 * norm * P * Math.cos(m * phi);
         if (m === 0) return norm * P;
         return Math.SQRT2 * norm * P * Math.sin(am * phi);
@@ -160,9 +163,6 @@
         }
     };
 
-    // Camera distance per element: higher Zeff gives tighter orbitals.
-    var CAMERA_DIST = { hydrogen: 15, carbon: 10, silicon: 8, gold: 5 };
-
     function rMaxOf(n, Z) { return 4 * n * n * a0 / Z; }
 
     // Peak of r^2 |psi|^2 on a coarse (r, theta, phi) grid, used as the
@@ -251,6 +251,27 @@
     // Hydrogenic energy estimate with an effective nuclear charge, eV.
     function energy(n, Zeff) { return -13.6 * Zeff * Zeff / (n * n); }
 
+    // Measured first ionisation energies, eV, from the NIST Atomic Spectra
+    // Database (ionisation energies of neutral atoms): H 13.598434,
+    // C 11.260288, Si 8.151683, Au 9.225554. By Koopmans' approximation the
+    // energy of the highest occupied subshell of the ground state is about
+    // -IE, so these replace the hydrogenic estimate for that subshell, which
+    // overstates the binding of valence electrons (Si 3p: about 28 eV).
+    var HOMO = {
+        hydrogen: { shell: '1s', ie: 13.598 },
+        carbon:   { shell: '2p', ie: 11.260 },
+        silicon:  { shell: '3p', ie: 8.152 },
+        gold:     { shell: '6s', ie: 9.226 }
+    };
+    // Orbital energy for subshell (n, l) of the element: the measured value
+    // for the ground-state highest occupied subshell, otherwise the
+    // hydrogenic estimate. src is 'measured' or 'hydrogenic'.
+    function orbitalEnergy(element, n, l, Zeff) {
+        var h = HOMO[element];
+        if (h && h.shell === n + 'spdf'[l]) return { E: -h.ie, src: 'measured' };
+        return { E: energy(n, Zeff), src: 'hydrogenic' };
+    }
+
     // Shared, page-wide parameters. controls.js writes these and dispatches
     // 'eochange'; the scene and plots read them.
     var p = {
@@ -280,11 +301,11 @@
     }
 
     window.EO = {
-        a0: a0, ORBITAL_DEFS: ORBITAL_DEFS, ELEMENTS: ELEMENTS, ELEMENT_ZEFF: ELEMENT_ZEFF, CAMERA_DIST: CAMERA_DIST,
+        a0: a0, ORBITAL_DEFS: ORBITAL_DEFS, ELEMENTS: ELEMENTS, ELEMENT_ZEFF: ELEMENT_ZEFF,
         factorial: factorial, radialWavefunction: radialWavefunction, realSphericalHarmonic: realSphericalHarmonic,
         psi: psi, psiSquared: psiSquared, rMaxOf: rMaxOf,
         computeMaxDensity: computeMaxDensity, samplePoint: samplePoint, sampleOrbital: sampleOrbital,
-        isosurfaceVertices: isosurfaceVertices, configFor: configFor, energy: energy,
+        isosurfaceVertices: isosurfaceVertices, configFor: configFor, energy: energy, orbitalEnergy: orbitalEnergy,
         p: p, setConfig: setConfig, zeffOf: zeffOf, fmtConfig: fmtConfig,
         // Run fn now (after DOM ready) and on every parameter, theme or size change.
         onRender: function (fn) {

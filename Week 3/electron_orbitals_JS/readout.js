@@ -15,7 +15,7 @@
             n: d.n, l: d.l, m: d.m,
             rnodes: d.n - d.l - 1, anodes: d.l,
             zeff: Z.toFixed(2),
-            energy: EO.energy(d.n, Z).toFixed(1) + ' eV',
+            energy: (function () { var o = EO.orbitalEnergy(p.element, d.n, d.l, Z); return o.E.toFixed(o.src === 'measured' ? 2 : 1) + ' eV (' + o.src + ')'; })(),
             electrons: p.config.reduce(function (a, o) { return a + o.electrons; }, 0)
         };
         Object.keys(out).forEach(function (k) {

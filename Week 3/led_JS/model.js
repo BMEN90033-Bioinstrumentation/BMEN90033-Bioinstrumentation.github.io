@@ -1,8 +1,7 @@
 // LED model. Material table, depletion width and threshold logic ported from
-// the original step-by-step simulator without change to the values. The
-// junction is schematic: the depletion half-width is a fraction of the
-// device width that narrows linearly with the applied voltage up to the
-// material threshold.
+// the original step-by-step simulator. The built-in potential, junction
+// voltage, depletion width and band edges follow the textbook abrupt
+// junction relations below.
 (function () {
     // name, bandgap (eV), peak wavelength (nm), forward threshold (V).
     // col is the CSS variable that holds the emission colour.
@@ -18,35 +17,36 @@
 
     function mat(q) { return MATERIALS[(q || p).mat]; }
 
-    // Depletion half-width as a fraction of the device width. Step 0 is the
-    // unbiased junction; otherwise the width falls to 5 % of its zero-bias
-    // value at the threshold.
+    // Heavily doped junction: each Fermi level lies DELTA inside its majority
+    // band, so the built-in potential is qV0 = E_g + 2 DELTA.
+    var DELTA = 0.05;   // eV
+    function v0(m) { return m.bandgap + 2 * DELTA; }
+
+    // Junction voltage. It follows the applied voltage up to the turn-on
+    // voltage V_th; above it the current rises steeply, the junction voltage
+    // stays at V_th and the excess drops across the series resistance of the
+    // neutral regions. Step 0 is the unbiased junction.
+    function vj(step, v, m) { return step === 0 ? 0 : Math.min(v, m.threshold); }
+
+    // Depletion half-width as a fraction of the device width,
+    // W = W0 sqrt((V0 - V_j) / V0) with W0 = 0.1.
     function deplFrac(step, v, m) {
-        var maxDepl = 0.1;
-        if (step === 0) return maxDepl;
-        var ratio = Math.min(v / m.threshold, 1);
-        return maxDepl * (1 - ratio * 0.95);
+        var V0 = v0(m);
+        return 0.1 * Math.sqrt((V0 - vj(step, v, m)) / V0);
     }
 
     function exceeded(v, m) { return v >= m.threshold; }
 
-    // Band-diagram geometry in units of E_g, measured from the P-side valence
-    // band edge. At zero bias the built-in drop is 2/3 E_g, so the Fermi level
-    // stays inside the gap; it falls with bias and is nearly flat above the
-    // threshold. The quasi-Fermi levels sit E_g / 6 inside each band edge.
+    // Band edges in eV, measured from the P-side valence band. The N side
+    // sits q(V0 - V_j) lower; the quasi-Fermi levels separate by qV_j.
     function bands(step, v, m) {
-        var MAX_DROP = 16 / 24, EF_OFF = 4 / 24;
-        var ratio = step === 0 ? 0 : Math.min(v / m.threshold, 1);
-        var drop = step !== 0 && exceeded(v, m) ? 1 / 24 : MAX_DROP * (1 - ratio);
-        return {
-            ecP: 1, evP: 0, ecN: 1 - drop, evN: -drop,
-            efP: EF_OFF, efN: 1 - drop - EF_OFF, ratio: ratio, drop: drop
-        };
+        var V = vj(step, v, m), off = v0(m) - V;
+        return { eg: m.bandgap, off: off, efp: -DELTA, efn: m.bandgap - off + DELTA, vj: V, v0: v0(m) };
     }
 
     window.LED = {
         MATERIALS: MATERIALS, p: p, mat: mat,
-        deplFrac: deplFrac, exceeded: exceeded, bands: bands,
+        deplFrac: deplFrac, exceeded: exceeded, bands: bands, v0: v0, vj: vj, DELTA: DELTA,
         HC: 1239.84,   // h c in eV nm
         // Run fn after DOM ready and on every parameter, theme or size change.
         onRender: function (fn) {

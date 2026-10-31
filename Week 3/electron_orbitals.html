@@ -310,11 +310,17 @@
                 <li>In gold the 5d subshell is full, so the 6s electron is promoted to 6p.</li>
             </ul>
 
+            <p>The hydrogenic formula overstates the binding of valence electrons: for the silicon 3p electron it
+                gives about $28\,\text{eV}$. The diagram therefore takes the energy of the ground-state highest
+                occupied subshell from the measured first ionisation energy, using Koopmans' approximation
+                $\varepsilon_\text{HOMO} \approx -\mathrm{IE}$: $13.60\,\text{eV}$ for H 1s, $11.26\,\text{eV}$ for
+                C 2p, $8.15\,\text{eV}$ for Si 3p and $9.23\,\text{eV}$ for Au 6s. All other subshells use the
+                hydrogenic estimate.</p>
+
             <div class="callout">
-                The formula is a rough guide. It reproduces the large spread between core and valence binding
-                energies but overestimates the binding of outer electrons: for the silicon 3p electron it gives
-                about $28\,\text{eV}$, whereas the measured first ionisation energy of silicon is
-                $8.15\,\text{eV}$.
+                Solid levels are measured values and dashed levels are hydrogenic estimates. The estimates reproduce
+                the large spread between core and valence binding energies, but individual core values are
+                approximate.
             </div>
         </div>
 
@@ -335,12 +341,14 @@
                     </span>
                 </div>
                 <div class="plot-box levels">
-                    <div class="label">energy levels · <b>hydrogenic estimate with $Z_\text{eff}$</b></div>
+                    <div class="label">energy levels · <b>binding energy by subshell</b></div>
                     <svg class="bode" id="plot-levels"></svg>
                 </div>
                 <div class="legend">
                     <span>filled circle: electron</span>
                     <span>open circle: vacancy</span>
+                    <span><span class="sw" style="background:var(--c-level)"></span>measured (first ionisation energy)</span>
+                    <span><span class="sw dashed"></span>hydrogenic estimate</span>
                     <span>highlighted: focus subshell</span>
                 </div>
                 <div class="readout">
@@ -367,6 +375,7 @@
     <script defer src="electron_orbitals_JS/plot_slice.js"></script>
     <script defer src="electron_orbitals_JS/plot_levels.js"></script>
     <script type="module" src="electron_orbitals_JS/scene_orbitals.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

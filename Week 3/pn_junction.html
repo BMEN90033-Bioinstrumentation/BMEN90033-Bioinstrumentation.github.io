@@ -94,7 +94,9 @@
                 $V_0$.</p>
 
             <p>The scene replays the formation over ten seconds, then holds the junction at the bias set by the
-                slider. A battery connected through the wires applies the bias: forward bias places the positive
+                slider. The width of the shaded depletion region follows the computed $W$ of section 03 for the
+                doping set there, scaled so that $0.43\,\mu\text{m}$ spans 12.8 scene units; it is drawn symmetric
+                about the junction and capped at the block faces. A battery connected through the wires applies the bias: forward bias places the positive
                 terminal on the p-side, reverse bias on the n-side.</p>
 
             <div class="callout">
@@ -158,8 +160,10 @@
 
             <div class="eq-block">$$V_0 = \frac{kT}{q}\,\ln\frac{N_A N_D}{n_i^2}$$</div>
 
-            <p>For $N_A = N_D = 10^{16}\,\text{cm}^{-3}$ at $300\,\text{K}$ this gives about $0.7\,\text{V}$, the
-                value used throughout the page.</p>
+            <p>The page takes silicon at $300\,\text{K}$, with $kT/q = 25.85\,\text{mV}$ and
+                $n_i = 1.0\times10^{10}\,\text{cm}^{-3}$, and computes $V_0$ from the doping sliders. For
+                $N_A = N_D = 10^{16}\,\text{cm}^{-3}$ it is $0.71\,\text{V}$. The Fermi level on each side sits
+                $kT\ln(N/n_i)$ from the intrinsic level, which is taken at midgap.</p>
 
             <p>An applied bias $V$ shifts the barrier to $q(V_0 - V)$. Under bias the junction is no longer in
                 equilibrium, and the single Fermi level splits into quasi-Fermi levels for electrons and holes,
@@ -175,9 +179,11 @@
             </ul>
 
             <div class="callout">
-                The diagram draws the barrier for $V &gt; V_0$ as zero, as the simulation does. The band edges are
-                schematic in shape, but the bending and the quasi-Fermi splitting are to scale relative to the
-                $1.12\,\text{eV}$ gap.
+                Both axes are to scale: position in micrometres, and energy with the bending, the quasi-Fermi
+                splitting and the $1.12\,\text{eV}$ gap on one scale. The band edges are parabolic on each side
+                of the junction, as Poisson's equation requires for uniform doping, and most of the bending falls
+                on the more lightly doped side. As $V$ approaches $V_0$ the depletion approximation fails, so the
+                diagram shows flat bands for $V \ge V_0$.
             </div>
         </div>
 
@@ -188,6 +194,17 @@
                         <span class="lab">$V_\text{bias}$</span>
                         <input type="range" data-param="bias" min="-2" max="2" step="0.01">
                         <span class="val" data-param="bias"></span>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$N_A$</span>
+                        <input type="range" data-param="logNA" min="14" max="18" step="0.1">
+                        <span class="val" data-param="logNA"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$N_D$</span>
+                        <input type="range" data-param="logND" min="14" max="18" step="0.1">
+                        <span class="val" data-param="logND"></span>
                     </span>
                 </div>
                 <div class="plot-box band">
@@ -204,6 +221,7 @@
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">state</span><span class="v" data-out="state"></span></div>
+                    <div class="item"><span class="k">$V_0$</span><span class="v" data-out="v0eq"></span></div>
                     <div class="item"><span class="k">$q(V_0 - V)$</span><span class="v" data-out="barrier"></span></div>
                     <div class="item"><span class="k">$E_{Fn} - E_{Fp}$</span><span class="v" data-out="split"></span></div>
                 </div>
@@ -222,15 +240,16 @@
 
             <div class="eq-block">$$W = \sqrt{\frac{2\varepsilon_s}{q}\left(\frac{1}{N_A} + \frac{1}{N_D}\right)(V_0 - V)}$$</div>
 
-            <p>where $\varepsilon_s$ is the permittivity of silicon. For $N_A = N_D = 10^{16}\,\text{cm}^{-3}$ the
-                equilibrium width is about $0.4\,\mu\text{m}$. Normalising to the equilibrium width $W_0$ gives the
-                form used by the simulation:</p>
+            <p>where $\varepsilon_s = 11.7\,\varepsilon_0 = 1.04\times10^{-12}\,\text{F/cm}$ is the permittivity of
+                silicon. For $N_A = N_D = 10^{16}\,\text{cm}^{-3}$ the equilibrium width is $0.43\,\mu\text{m}$.
+                Charge neutrality, $N_A x_p = N_D x_n$, divides it between the two sides:</p>
 
-            <div class="eq-block">$$\frac{W}{W_0} = \sqrt{1 - \frac{V}{V_0}}$$</div>
+            <div class="eq-block">$$x_p = W\,\frac{N_D}{N_A + N_D},\qquad x_n = W\,\frac{N_A}{N_A + N_D}$$</div>
 
-            <p>Reverse bias widens the region, forward bias narrows it, and the model sets $W = 0$ once
-                $V \ge V_0$. The depletion region holds equal and opposite fixed charge on its two sides, so it
-                behaves as a capacitor whose plate separation is $W$:</p>
+            <p>so the region extends furthest into the more lightly doped side. Reverse bias widens it as
+                $\sqrt{V_0 - V}$; forward bias narrows it, and $W$ falls continuously to zero as $V \to V_0$, where
+                the depletion approximation ceases to hold. The region holds equal and opposite fixed charge on its
+                two sides, so it behaves as a capacitor whose plate separation is $W$:</p>
 
             <div class="eq-block">$$C_j = \frac{\varepsilon_s A}{W} \propto (V_0 - V)^{-1/2}$$</div>
 
@@ -248,15 +267,34 @@
                         <input type="range" data-param="bias" min="-2" max="2" step="0.01">
                         <span class="val" data-param="bias"></span>
                     </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$N_A$</span>
+                        <input type="range" data-param="logNA" min="14" max="18" step="0.1">
+                        <span class="val" data-param="logNA"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$N_D$</span>
+                        <input type="range" data-param="logND" min="14" max="18" step="0.1">
+                        <span class="val" data-param="logND"></span>
+                    </span>
                 </div>
                 <div class="plot-box wplot">
-                    <div class="label">depletion width · <b>$W / W_0$ against bias</b></div>
+                    <div class="label">depletion width · <b>$W$, $x_p$ and $x_n$ against bias</b></div>
                     <svg class="bode" id="plot-width"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-w)"></span>total $W$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-b)"></span>$x_p$ (p-side)</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-p)"></span>$x_n$ (n-side)</span>
+                    <span>dot: present bias</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$V$</span><span class="v" data-out="bias"></span></div>
                     <div class="item"><span class="k">$V_0 - V$</span><span class="v" data-out="v0mv"></span></div>
-                    <div class="item"><span class="k">$W / W_0$</span><span class="v" data-out="w"></span></div>
+                    <div class="item"><span class="k">$W$</span><span class="v" data-out="w"></span></div>
+                    <div class="item"><span class="k">$x_p$</span><span class="v" data-out="xp"></span></div>
+                    <div class="item"><span class="k">$x_n$</span><span class="v" data-out="xn"></span></div>
                 </div>
             </div>
         </div>
@@ -282,12 +320,21 @@
             <p>At a large enough reverse voltage the field in the depletion region accelerates carriers until
                 they free further electron-hole pairs by impact ionisation. The multiplication produces a large
                 reverse current: avalanche breakdown. In heavily doped junctions breakdown at a few volts occurs
-                instead by tunnelling (Zener breakdown).</p>
+                instead by tunnelling (Zener breakdown). The page adds the breakdown term of the SPICE diode
+                model,</p>
+
+            <div class="eq-block">$$I = I_S\left(e^{V/V_T} - 1\right) - I_{BV}\,e^{-(V + V_{BR})/V_T},$$</div>
+
+            <p>with $V_{BR} = 1.5\,\text{V}$ and $I_{BV} = 1\,\text{mA}$, the reverse current at
+                $V = -V_{BR}$. The characteristic is continuous, and beyond $-V_{BR}$ the reverse current rises
+                tenfold for every further $60\,\text{mV}$. The breakdown term exceeds $I_S$ for reverse voltages
+                beyond about $0.96\,\text{V}$, so the flat $-I_S$ plateau of the log plot ends there.</p>
 
             <div class="callout">
-                The breakdown voltage is scaled to $-1.5\,\text{V}$ and the breakdown current fixed at
-                $1\,\text{mA}$ for display. Real silicon diodes break down at reverse voltages from a few volts to
-                more than $1000\,\text{V}$, depending on doping.
+                $V_{BR} = 1.5\,\text{V}$ is a display value chosen to lie within the plotted range; it is not
+                computed from the doping. An abrupt silicon junction doped at $10^{16}\,\text{cm}^{-3}$ on its
+                lighter side breaks down near $60\,\text{V}$, and practical diodes range from a few volts to
+                more than $1000\,\text{V}$.
             </div>
         </div>
 
@@ -330,6 +377,7 @@
     <script defer src="pn_junction_JS/plot_width.js"></script>
     <script defer src="pn_junction_JS/plot_iv.js"></script>
     <script type="module" src="pn_junction_JS/scene_junction.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

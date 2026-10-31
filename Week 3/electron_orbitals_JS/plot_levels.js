@@ -1,5 +1,7 @@
-// Section 04 · Energy-level diagram of the present configuration from the
-// hydrogenic estimate |E| = 13.6 Zeff^2 / n^2 eV. One column per subshell
+// Section 04 · Energy-level diagram of the present configuration. The
+// ground-state highest occupied subshell uses the measured first ionisation
+// energy (Koopmans' approximation, solid line); every other subshell uses the
+// hydrogenic estimate |E| = 13.6 Zeff^2 / n^2 eV (dashed line). One column per subshell
 // type (s, p, d, f); deeper levels sit lower on a log axis. Each level shows
 // its capacity 2(2l+1) as open circles and its electrons as filled ones.
 // Subshell labels sit right of the level line inside its column and are
@@ -22,7 +24,7 @@
             shells[k].keys.push(o.key);
         });
         var list = Object.keys(shells).map(function (k) {
-            var s = shells[k]; s.E = Math.abs(EO.energy(s.n, s.Zeff)); return s;
+            var s = shells[k]; var o = EO.orbitalEnergy(p.element, s.n, s.l, s.Zeff); s.E = Math.abs(o.E); s.src = o.src; return s;
         });
         var eMin = d3.min(list, function (s) { return s.E; }), eMax = d3.max(list, function (s) { return s.E; });
         var lo = Math.pow(10, Math.floor(Math.log10(eMin / 1.5))), hi = Math.pow(10, Math.ceil(Math.log10(eMax * 1.5)));
@@ -52,7 +54,8 @@
             var x0 = bx + 8, x1 = bx + bw * 0.66, cap = 2 * (2 * s.l + 1);
             var hot = s.name === focusShell;
             g.append('line').attr('x1', x0).attr('x2', x1).attr('y1', yy).attr('y2', yy)
-                .attr('stroke', hot ? css('--accent') : css('--c-level')).attr('stroke-width', hot ? 3 : 2);
+                .attr('stroke', hot ? css('--accent') : css('--c-level')).attr('stroke-width', hot ? 3 : 2)
+                .attr('stroke-dasharray', s.src === 'measured' ? null : '6 4');
             // Capacity and occupancy, centred on the line just above it.
             var step = Math.min(9, (x1 - x0) / cap), cx0 = (x0 + x1) / 2 - step * (cap - 1) / 2;
             for (var i = 0; i < cap; i++) {

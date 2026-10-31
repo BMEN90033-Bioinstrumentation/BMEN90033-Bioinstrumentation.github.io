@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const CI = window.CI;
 const css = (n) => window.CMP.cssVar(n);
@@ -30,6 +31,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.target.set(0, 1.2, 0);
+// Wheel zoom only after a click into the scene, so page scroll passes through.
+guardWheel(controls, renderer.domElement, box.querySelector('.hint'));
 
 // ── Lights ──
 const ambient = new THREE.AmbientLight(css('--c-light-amb'), 1.8);
@@ -252,7 +255,8 @@ function frame() {
 const v3 = new THREE.Vector3();
 function cullLabels() {
     const r = host.getBoundingClientRect(), w = r.width, h = r.height;
-    const placed = [[0, 0, w, 30], [w - 250, h - 28, w, h]];
+    const hint = box.querySelector('.hint');
+    const placed = [[0, 0, w, 30], [w - (hint ? hint.offsetWidth + 24 : 360), h - 28, w, h]];
     const ls = contacts.filter((c) => c.label);
     const order = ls.length > 2 ? [ls[0], ls[ls.length - 1]].concat(ls.slice(1, -1)) : ls;
     order.forEach((c) => {
@@ -276,6 +280,9 @@ window.addEventListener('themechange', recolor);
 window.addEventListener('cichange', (e) => {
     if (['nch', 'fmin', 'fmax', 'preset'].indexOf(e.detail.key) >= 0) buildElectrodes();
 });
+
+// Camera and controls, exposed so the view can be set from the console.
+CI.view = { camera, controls };
 
 resize();
 buildElectrodes();

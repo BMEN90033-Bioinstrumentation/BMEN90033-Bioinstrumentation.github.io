@@ -1,5 +1,5 @@
 // Particle model of the p-n junction, one instance per canvas[data-sim-step].
-// Step 0: unbiased. Step 1: forward bias, drift only. Step 2: recombination
+// Step 0: unbiased. Step 1: forward bias, injection and drift. Step 2: recombination
 // with hole hopping and photon emission. data-vparam names the LED.p voltage
 // that drives the instance. The particle rules (hole lattice, neighbour hops,
 // electron state machine, photon rise) are ported from the original page; the
@@ -136,8 +136,9 @@
             var jiggle = 0.4;
             var driftStrength = exceeded ? 0.6 : 0;
 
-            // Inject electrons from the right edge while current flows.
-            if (exceeded && step >= 2) {
+            // Inject electrons from the N contact (right edge) while current
+            // flows, so the forward-bias and emission views reach a steady state.
+            if (exceeded && step >= 1) {
                 spawnTimer++;
                 if (spawnTimer >= 12) {
                     spawnTimer = 0;
@@ -159,6 +160,8 @@
                     if (e.x > W - e.r) { e.x = W - e.r; e.vx *= -0.8; }
                     if (e.y < Y0 - 5 + e.r) { e.y = Y0 - 5 + e.r; e.vy *= -0.8; }
                     if (e.y > H - e.r - 25) { e.y = H - e.r - 25; e.vy *= -0.8; }
+                    // Leaves through the P contact (left edge).
+                    if (e.x < -10) { e.dead = true; return; }
 
                     if (exceeded && step >= 2 && e.x < jx) {
                         var hi = findEntryHole(e.x, e.y);

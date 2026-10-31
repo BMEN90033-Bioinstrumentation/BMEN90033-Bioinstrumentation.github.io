@@ -82,7 +82,8 @@
 
             <ul class="bullets">
                 <li>$E_g = 1.42\,\text{eV}$, giving emission near $\lambda = 870\,\text{nm}$;</li>
-                <li>$V_0 \approx 1.2\,\text{V}$ built-in potential;</li>
+                <li>$qV_0 = E_g + 0.1\,\text{eV} = 1.52\,\text{eV}$: the model assumes the degenerate doping of a
+                    homojunction laser, with each Fermi level $0.05\,\text{eV}$ inside its majority band;</li>
                 <li>refractive index $n \approx 3.5$.</li>
             </ul>
 
@@ -138,8 +139,16 @@
 
             <p>The states near the conduction-band edge are then more likely to be occupied than those near the
                 valence-band edge: a population inversion. The current at which $E_{Fc} - E_{Fv}$ reaches $E_g$ is
-                the transparency current. In the model it is $0.8\,I_{th} = 32\,\text{mA}$, and above threshold the
-                separation is clamped.</p>
+                the transparency current.</p>
+
+            <p>The model obtains the junction voltage from the diode law with ideality factor $n = 2$,</p>
+
+            <div class="eq-block">$$V_j = \frac{nkT}{q}\ln\!\left(1 + \frac{I}{I_S}\right), \qquad
+                E_{Fc} - E_{Fv} = qV_j,$$</div>
+
+            <p>with $I_S$ chosen so that $qV_j = E_g$ at the transparency current $0.8\,I_{th} = 32\,\text{mA}$.
+                The band offset across the junction is $q(V_0 - V_j)$. Above threshold the carrier density, and
+                with it $V_j$, is clamped at its value at $I_{th}$.</p>
 
             <div class="callout">
                 Below transparency, recombination in the active region is spontaneous and photons leave in random
@@ -164,7 +173,6 @@
                 <div class="legend">
                     <span><span class="sw dash" style="border-top-color:var(--c-elec)"></span>$E_{Fc}$</span>
                     <span><span class="sw dash" style="border-top-color:var(--c-hole)"></span>$E_{Fv}$</span>
-                    <span><span class="sw band" style="background:var(--c-elec);opacity:0.3"></span>inverted states</span>
                 </div>
                 <div class="plot-box sim">
                     <div class="label">particle view · <b>injection</b></div>
@@ -178,6 +186,7 @@
                 <div class="readout">
                     <div class="item"><span class="k">$I$</span><span class="v" data-out="I"></span></div>
                     <div class="item"><span class="k">regime</span><span class="v" data-out="regime"></span></div>
+                    <div class="item"><span class="k">$V_j$</span><span class="v" data-out="vj"></span></div>
                     <div class="item"><span class="k">$E_{Fc} - E_{Fv}$</span><span class="v" data-out="split"></span></div>
                     <div class="item"><span class="k">inversion</span><span class="v" data-out="inv"></span></div>
                 </div>
@@ -371,6 +380,7 @@
     <script defer src="laser_diode_JS/sim_cavity.js"></script>
     <script defer src="laser_diode_JS/plot_bands.js"></script>
     <script defer src="laser_diode_JS/plot_li.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

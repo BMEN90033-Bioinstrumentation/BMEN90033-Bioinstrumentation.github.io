@@ -216,22 +216,28 @@
             }
 
             photons.forEach(function (ph) {
+                // A facet is tested only when a photon crosses it from inside
+                // the cavity, so each arrival is reflected with probability R
+                // or transmitted with probability 1 - R exactly once.
+                var mirrorLeft = active.left - 26, mirrorRight = active.right + 26;
+                var inside = ph.x > mirrorLeft && ph.x < mirrorRight;
                 ph.x += ph.vx;
                 ph.y += (ph.vy || 0);
-                if (step >= 4) {
-                    var mirrorLeft = active.left - 26, mirrorRight = active.right + 26;
+                if (step >= 4 && inside) {
                     if (ph.x <= mirrorLeft && ph.vx < 0) {
                         if (Math.random() < LD.REAR_FACET_REFLECTIVITY) {
                             ph.vx *= -1; ph.x = mirrorLeft + 2; ph.bounces++; ph.stimulated = true;
-                        } else ph.dead = true;
+                        }   // otherwise it leaves through the rear facet
                     }
                     if (ph.x >= mirrorRight && ph.vx > 0) {
                         if (Math.random() < LD.FACET_REFLECTIVITY) {
                             ph.vx *= -1; ph.x = mirrorRight - 2; ph.bounces++; ph.stimulated = true;
                         } else if (aboveThresh) {
-                            ph.vx = 4; ph.stimulated = true;   // leaves as part of the beam
-                        } else ph.dead = true;
+                            ph.vx = 4; ph.stimulated = true;   // transmitted, joins the beam
+                        }
                     }
+                }
+                if (step >= 4) {
                     // Photons in the cavity stimulate further, in-phase emission.
                     if (aboveThresh && ph.x > active.left && ph.x < active.right && ph.bounces > 0 && Math.random() < 0.01) {
                         var np = makePhoton(ph.x, ph.y, ph.vx > 0 ? 2.5 : -2.5);

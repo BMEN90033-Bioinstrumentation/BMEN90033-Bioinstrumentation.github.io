@@ -5,8 +5,9 @@
         var out = {
             I: I.toFixed(0) + ' mA',
             regime: I <= 5 ? 'no injection' : on ? 'lasing' : 'spontaneous (LED)',
-            split: b.qfl ? ((b.efc - b.efv) * LD.BANDGAP).toFixed(2) + ' eV' : '–',
-            inv: b.qfl && b.inverted ? 'yes' : 'no',
+            vj: b.vj.toFixed(3) + ' V',
+            split: (b.efc - b.efv).toFixed(3) + ' eV',
+            inv: b.inverted ? 'yes' : 'no',
             power: (LD.power(I) * 100).toFixed(0) + ' %',
             lam: LD.WAVELENGTH + ' nm'
         };

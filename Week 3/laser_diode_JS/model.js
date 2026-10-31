@@ -3,7 +3,6 @@
 // change to the values. GaAs device, schematic units.
 (function () {
     var BANDGAP = 1.42;                // eV (GaAs)
-    var BUILTIN_V = 1.2;               // V built-in potential
     var THRESHOLD_CURRENT = 40;        // mA, lasing threshold
     var CAVITY_LENGTH_UM = 300;        // um, typical cavity length
     var FACET_REFLECTIVITY = 0.32;     // cleaved GaAs facet (n = 3.5)
@@ -15,25 +14,30 @@
 
     function aboveThreshold(I) { return I >= THRESHOLD_CURRENT; }
 
-    // Band diagram in units of E_g (the original drew E_g as 72 px), measured
-    // upward from the P-side valence band. The N side sits lower by the
-    // band bending, which falls to zero at 30 mA. The quasi-Fermi levels are
-    // drawn above 5 mA; their separation reaches E_g at the transparency
-    // current 0.8 I_th and is clamped above threshold.
+    // Degenerately doped homojunction: each Fermi level lies DELTA inside its
+    // majority band, so qV0 = E_g + 2 DELTA.
+    var DELTA = 0.05;                  // eV
+    var V0 = BANDGAP + 2 * DELTA;      // V, built-in potential
+    var KT = 0.02585;                  // eV at 300 K
+    var N_IDEAL = 2;                   // diode ideality factor
+    var I_TR = 0.8 * THRESHOLD_CURRENT;   // mA, transparency current
+    // Saturation current chosen so that qV_j = E_g at the transparency current.
+    var I_S = I_TR / (Math.exp(BANDGAP / (N_IDEAL * KT)) - 1);   // mA
+
+    // Junction voltage from the diode law, I = I_S (exp(qV/nkT) - 1). Above
+    // threshold the carrier density, and with it V_j, is clamped.
+    function vj(I) {
+        return N_IDEAL * KT * Math.log(1 + Math.min(I, THRESHOLD_CURRENT) / I_S);
+    }
+
+    // Band edges in eV from the P-side valence band. The N side sits
+    // q(V0 - V_j) lower and the quasi-Fermi levels separate by qV_j.
+    // Inversion (Bernard-Duraffourg) when E_Fc - E_Fv > E_g, i.e. I > I_TR.
     function bands(step, I) {
-        var PX = 72;
-        var ratio = step === 0 ? 0 : Math.min(I / 30, 1);
-        var bend = (1 - ratio) * 22;
-        var out = { ecP: 1, evP: 0, ecN: 1 - bend / PX, evN: -bend / PX, qfl: false };
-        if (step >= 2 && I > 5) {
-            var I_TR = 0.8 * THRESHOLD_CURRENT;
-            var split = 20 * Math.min(I, THRESHOLD_CURRENT) / I_TR;
-            out.qfl = true;
-            out.efc = 1 - (bend / 2 + 8 - split * 0.4) / PX;
-            out.efv = -(bend / 2 - 8 + split * 0.4) / PX;
-            out.inverted = out.efc - out.efv > 1;
-        }
-        return out;
+        var V = step === 0 ? 0 : vj(I), off = V0 - V;
+        var efc = BANDGAP - off + DELTA, efv = -DELTA;
+        return { eg: BANDGAP, off: off, efp: efv, efn: efc, efc: efc, efv: efv, vj: V,
+                 inverted: efc - efv > BANDGAP };
     }
 
     // Normalised optical output power, spontaneous below threshold and
@@ -44,7 +48,7 @@
     }
 
     window.LD = {
-        BANDGAP: BANDGAP, BUILTIN_V: BUILTIN_V, THRESHOLD_CURRENT: THRESHOLD_CURRENT,
+        BANDGAP: BANDGAP, V0: V0, I_TR: I_TR, vj: vj, THRESHOLD_CURRENT: THRESHOLD_CURRENT,
         CAVITY_LENGTH_UM: CAVITY_LENGTH_UM, FACET_REFLECTIVITY: FACET_REFLECTIVITY,
         REAR_FACET_REFLECTIVITY: REAR_FACET_REFLECTIVITY, WAVELENGTH: WAVELENGTH, I_MAX: I_MAX,
         p: p, aboveThreshold: aboveThreshold, bands: bands, power: power,

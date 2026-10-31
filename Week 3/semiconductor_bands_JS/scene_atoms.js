@@ -1,8 +1,8 @@
 // Section 01 · Three.js scene: a row of six atoms, each with a nucleus,
 // inner-shell electrons, a valence shell and a conduction shell. Shell radius
-// stands for energy. As temperature rises the conduction shell contracts as
-// in the original simulator, and the number of electrons promoted from the
-// valence shell follows the material's freeElectronCurve; promoted electrons
+// stands for energy. The conduction-shell radius and the number of electrons
+// promoted from the valence shell come from BANDS.state (E_g(T) and n_i(T),
+// see model.js); promoted electrons
 // hop between atoms along arcs at the conduction-shell radius.
 // Colours come from the page CSS variables and are re-read on rebuild.
 // Shells are identified by the HTML legend; the only in-scene text is the
@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const B = window.BANDS;
 const box = document.getElementById('scene-atoms');
@@ -36,6 +37,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
+guardWheel(controls, renderer.domElement, box.querySelector('.hint'));
 
 const white = new THREE.Color(1, 1, 1);
 scene.add(new THREE.AmbientLight(white, 0.5));

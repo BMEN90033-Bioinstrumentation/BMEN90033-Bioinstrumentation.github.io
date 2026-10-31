@@ -164,12 +164,11 @@
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">material</span><span class="v" data-out="material"></span></div>
-                    <div class="item"><span class="k">carriers</span><span class="v" data-live="carrier"></span></div>
+                    <div class="item"><span class="k">carriers</span><span class="v" data-out="carrier"></span></div>
                     <div class="item"><span class="k">atoms</span><span class="v" data-live="atoms"></span></div>
                     <div class="item"><span class="k">bonds</span><span class="v" data-live="bonds"></span></div>
                     <div class="item"><span class="k">free electrons</span><span class="v" data-live="free"></span></div>
                     <div class="item"><span class="k">holes</span><span class="v" data-live="holes"></span></div>
-                    <div class="item"><span class="k">conductivity</span><span class="v" data-live="cond"></span></div>
                 </div>
             </div>
         </div>
@@ -190,17 +189,22 @@
                 the valence band. This is the assumption of complete ionisation.</p>
 
             <p>The Fermi level $E_F$, the energy at which a state has an occupation probability of one half,
-                moves with the doping. In pure silicon it lies near the middle of the gap. In doped material,</p>
+                moves with the doping. In pure silicon it lies at the intrinsic level $E_i$, near the middle of the
+                gap. In doped material it follows from the carrier concentrations of section 03:</p>
 
-            <div class="eq-block">$$E_C - E_F = kT \ln\frac{N_C}{N_D}\quad(\text{n-type}),\qquad
-                E_F - E_V = kT \ln\frac{N_V}{N_A}\quad(\text{p-type}),$$</div>
+            <div class="eq-block">$$\begin{aligned} E_F - E_i &= kT \ln\frac{n}{n_i} &&(\text{n-type}),\\
+                E_i - E_F &= kT \ln\frac{p}{n_i} &&(\text{p-type}),\end{aligned}$$</div>
 
             <p>so $E_F$ approaches the conduction band edge as the donor concentration $N_D$ rises and the valence
-                band edge as the acceptor concentration $N_A$ rises.</p>
+                band edge as the acceptor concentration $N_A$ rises. Raising the temperature raises $n_i$ and moves
+                $E_F$ back towards $E_i$.</p>
 
             <div class="callout">
-                The diagram places $E_D$ and $E_A$ at 15 % of the gap from the band edges so that they can be seen.
-                At $45\,\text{meV}$ they would lie at about 4 % of the $1.12\,\text{eV}$ gap.
+                All levels are drawn to scale within the gap, with $E_i$ taken at midgap; $E_D$ and $E_A$ therefore
+                sit about 4 % of the gap from the band edges. The model assumes complete ionisation and
+                non-degenerate statistics, which fail at low temperature (freeze-out) and above about
+                $10^{18}\,\text{cm}^{-3}$; where they would place $E_F$ beyond a band edge the line is held at the
+                edge and the plot label says so.
             </div>
         </div>
 
@@ -218,6 +222,11 @@
                         <input type="range" data-param="temp" min="0" max="1000" step="10">
                         <span class="val" data-param="temp"></span>
                     </span>
+                    <span class="slider-group">
+                        <span class="lab">$\log_{10} N$</span>
+                        <input type="range" data-param="logN" min="8" max="19" step="0.1">
+                        <span class="val" data-param="logN"></span>
+                    </span>
                 </div>
                 <div class="plot-box band">
                     <div class="label" id="band-label">energy band diagram</div>
@@ -233,7 +242,9 @@
                 <div class="readout">
                     <div class="item"><span class="k">material</span><span class="v" data-out="material"></span></div>
                     <div class="item"><span class="k">dopant</span><span class="v" data-out="dopant"></span></div>
-                    <div class="item"><span class="k">carriers</span><span class="v" data-live="carrier"></span></div>
+                    <div class="item"><span class="k">carriers</span><span class="v" data-out="carrier"></span></div>
+                    <div class="item"><span class="k">$E_F - E_i$</span><span class="v" data-out="ef"></span></div>
+                    <div class="item"><span class="k">$\sigma$</span><span class="v" data-out="sigma"></span></div>
                 </div>
             </div>
         </div>
@@ -259,11 +270,20 @@
             <div class="eq-block">$$n = \frac{N_D}{2} + \sqrt{\frac{N_D^2}{4} + n_i^2},\qquad p = \frac{n_i^2}{n},$$</div>
 
             <p>and the corresponding result with $n$ and $p$ exchanged for acceptor doping. Once $N_D \gg n_i$,
-                $n \approx N_D$ and $p \approx n_i^2 / N_D$. With $n_i = 10^{10}\,\text{cm}^{-3}$ at
-                $300\,\text{K}$, a donor concentration of $10^{16}\,\text{cm}^{-3}$ gives $10^{16}$ electrons and
+                $n \approx N_D$ and $p \approx n_i^2 / N_D$. The page uses
+                $n_i = 1.0\times10^{10}\,\text{cm}^{-3}$ at $300\,\text{K}$, scaled with temperature as
+                $T^{3/2}\exp(-E_g(T)/2kT)$ with the Varshni gap of the band-theory page. At $300\,\text{K}$, a donor concentration of $10^{16}\,\text{cm}^{-3}$ gives $10^{16}$ electrons and
                 only $10^{4}$ holes per cubic centimetre. The Fermi level sits above the intrinsic level $E_i$ by</p>
 
             <div class="eq-block">$$E_F - E_i = kT \ln\frac{n}{n_i}.$$</div>
+
+            <p>The conductivity follows from both carrier densities,</p>
+
+            <div class="eq-block">$$\sigma = q\,(n\,\mu_n + p\,\mu_p),$$</div>
+
+            <p>evaluated with the $300\,\text{K}$ mobilities of lightly doped silicon,
+                $\mu_n = 1350$ and $\mu_p = 480\,\text{cm}^2/\text{V s}$. Both mobilities fall at high doping
+                and high temperature, which the model does not include, so $\sigma$ is overestimated there.</p>
 
             <div class="callout">
                 Electrons are the majority carriers in n-type material and holes in p-type material. The minority
@@ -275,8 +295,15 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="seg">
-                        <button class="seg-btn" data-param="ctype" data-value="donor">donors</button>
-                        <button class="seg-btn" data-param="ctype" data-value="acceptor">acceptors</button>
+                        <button class="seg-btn" data-param="mode" data-value="pure">pure Si</button>
+                        <button class="seg-btn" data-param="mode" data-value="ntype">n-type (P)</button>
+                        <button class="seg-btn" data-param="mode" data-value="ptype">p-type (B)</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$T$</span>
+                        <input type="range" data-param="temp" min="0" max="1000" step="10">
+                        <span class="val" data-param="temp"></span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
@@ -286,7 +313,7 @@
                     </span>
                 </div>
                 <div class="plot-box conc">
-                    <div class="label">silicon at 300 K · <b>$n$ and $p$ against dopant concentration</b></div>
+                    <div class="label" id="conc-label">silicon · <b>$n$ and $p$ against dopant concentration</b></div>
                     <svg class="bode" id="plot-conc"></svg>
                 </div>
                 <div class="legend">
@@ -299,7 +326,9 @@
                     <div class="item"><span class="k">$N$</span><span class="v" data-out="N"></span></div>
                     <div class="item"><span class="k">$n$</span><span class="v" data-out="n"></span></div>
                     <div class="item"><span class="k">$p$</span><span class="v" data-out="p"></span></div>
+                    <div class="item"><span class="k">$n_i$</span><span class="v" data-out="ni"></span></div>
                     <div class="item"><span class="k">$E_F - E_i$</span><span class="v" data-out="ef"></span></div>
+                    <div class="item"><span class="k">$\sigma$</span><span class="v" data-out="sigma"></span></div>
                 </div>
             </div>
         </div>
@@ -316,6 +345,7 @@
     <script defer src="semiconductor_doping_JS/plot_band.js"></script>
     <script defer src="semiconductor_doping_JS/plot_conc.js"></script>
     <script type="module" src="semiconductor_doping_JS/scene_lattice.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

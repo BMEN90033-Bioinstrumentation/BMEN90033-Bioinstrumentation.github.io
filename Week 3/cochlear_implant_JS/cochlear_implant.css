@@ -68,5 +68,5 @@
     background: linear-gradient(90deg, hsl(0, 50%, 55%), hsl(75, 50%, 55%), hsl(150, 50%, 55%), hsl(225, 50%, 55%), hsl(300, 50%, 55%));
 }
 .legend .sw.dash { border-top-color: var(--c-guide); }
-/* KaTeX inside uppercase buttons keeps its case (mu, not capital Mu). */
-.seg-btn .katex { text-transform: none; font-size: 13px !important; }
+/* KaTeX size inside buttons (case is handled by lecture_page.css). */
+.seg-btn .katex { font-size: 13px !important; }

@@ -79,7 +79,7 @@
                 that opposes further diffusion.</p>
 
             <p>At equilibrium drift and diffusion balance, the Fermi level $E_F$ is constant across the device,
-                and the bands bend by the built-in potential</p>
+                and the bands bend by the built-in potential $V_0$. For non-degenerate doping it is</p>
 
             <div class="eq-block">$$V_0 = \frac{kT}{q}\,\ln\!\left(\frac{N_A N_D}{n_i^2}\right)$$</div>
 
@@ -88,6 +88,11 @@
                 <li>$n_i$: intrinsic carrier concentration of the semiconductor;</li>
                 <li>$kT/q$: thermal voltage, about $25.9\,\text{mV}$ at $300\,\text{K}$.</li>
             </ul>
+
+            <p>In terms of the band edges, $qV_0 = E_g - (E_C - E_F)_n - (E_F - E_V)_p$. LED junctions are heavily
+                doped; the model places each Fermi level $0.05\,\text{eV}$ inside its majority band, so
+                $qV_0 = E_g + 0.1\,\text{eV}$: $2.74\,\text{V}$ for InGaN, $2.05\,\text{V}$ for AlGaInP and
+                $1.52\,\text{V}$ for GaAs. The band diagram is drawn to this scale.</p>
 
             <div class="callout">
                 The barrier $qV_0$ prevents electrons in the n-type conduction band from entering the p side.
@@ -143,13 +148,15 @@
                 forward voltage.</p>
 
             <p>Under bias the system is no longer in equilibrium. The single Fermi level separates into
-                quasi-Fermi levels $E_{Fn}$ for electrons and $E_{Fp}$ for holes, and their separation corresponds
-                to $qV$.</p>
+                quasi-Fermi levels $E_{Fn}$ for electrons and $E_{Fp}$ for holes, separated by the junction voltage:
+                $E_{Fn} - E_{Fp} = qV_j$. The band offset across the junction falls to $q(V_0 - V_j)$.</p>
 
             <div class="callout">
-                The simulation narrows the depletion region in proportion to $V$ and treats the turn-on voltage as
-                a sharp threshold, $V_{th}$, set per material. Below $V_{th}$ electrons remain on the n side;
-                above it they drift across the junction.
+                The model treats the turn-on voltage $V_{th}$ of each material as sharp. Below it the whole
+                applied voltage appears across the junction, $V_j = V$, and electrons remain on the n side. Above
+                it the current is limited by the series resistance of the neutral regions, which takes the excess
+                voltage, so $V_j$ stays at $V_{th}$ and electrons are injected across the junction. The depletion
+                width follows $W = W_0\sqrt{(V_0 - V_j)/V_0}$.
             </div>
         </div>
 
@@ -177,13 +184,17 @@
                     <svg class="bode" data-bands-step="1" data-vparam="vf"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw dash"></span>quasi-Fermi levels</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-elec)"></span>$E_{Fn}$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-hole)"></span>$E_{Fp}$</span>
                     <span>shaded: depletion region</span>
                 </div>
                 <div class="readout" data-vparam="vf">
                     <div class="item"><span class="k">material</span><span class="v" data-out="mat"></span></div>
                     <div class="item"><span class="k">$V_{th}$</span><span class="v" data-out="vth"></span></div>
                     <div class="item"><span class="k">state</span><span class="v" data-out="state"></span></div>
+                    <div class="item"><span class="k">$V_0$</span><span class="v" data-out="v0"></span></div>
+                    <div class="item"><span class="k">$V_j$</span><span class="v" data-out="vj"></span></div>
+                    <div class="item"><span class="k">$E_{Fn} - E_{Fp}$</span><span class="v" data-out="split"></span></div>
                     <div class="item"><span class="k">$W / W_0$</span><span class="v" data-out="depl"></span></div>
                 </div>
             </div>
@@ -246,6 +257,11 @@
                 <div class="plot-box bands">
                     <div class="label">band diagram · <b>recombination</b></div>
                     <svg class="bode" data-bands-step="2" data-vparam="ve"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dash" style="border-top-color:var(--c-elec)"></span>$E_{Fn}$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-hole)"></span>$E_{Fp}$</span>
+                    <span>arrow: recombination, $h\nu \approx E_g$</span>
                 </div>
                 <div class="readout" data-vparam="ve">
                     <div class="item"><span class="k">material</span><span class="v" data-out="mat"></span></div>
@@ -330,6 +346,7 @@
     <script defer src="led_JS/sim_junction.js"></script>
     <script defer src="led_JS/plot_bands.js"></script>
     <script defer src="led_JS/plot_emission.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

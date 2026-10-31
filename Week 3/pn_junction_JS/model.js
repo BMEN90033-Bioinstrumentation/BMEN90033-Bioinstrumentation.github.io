@@ -1,34 +1,46 @@
-// pn-junction model. Constants and the depletion-width, current and state
-// functions are ported from the original simulator without change.
+// pn-junction model: abrupt silicon junction at 300 K under the depletion
+// approximation, with the Shockley diode equation and a SPICE-style
+// breakdown term.
+//   V0 = V_T ln(N_A N_D / n_i^2)
+//   W  = sqrt(2 eps_s (V0 - V)(N_A + N_D) / (q N_A N_D)),  V < V0
+//   x_p = W N_D / (N_A + N_D),  x_n = W N_A / (N_A + N_D)
+//   I  = I_S (exp(V / V_T) - 1) - I_BV exp(-(V + V_BR) / V_T)
 (function () {
-    var V0 = 0.7;              // built-in potential, V
-    var V_BREAKDOWN = -1.5;    // scaled for display
-    var V_TURN_ON = 0.5;       // forward turn-on threshold, V
-    var I0 = 1e-12;            // saturation current, A
-    var q_kT = 38.68;          // 1/V_T at 300 K, 1/V
-    var EG_EV = 1.12;          // silicon band gap, eV
-    var W0 = 1;                // equilibrium half-width (normalised; the 3D scene scales it)
+    var Q = 1.602e-19;          // C
+    var V_T = 0.025852;         // kT/q at 300 K, V
+    var NI = 1.0e10;            // silicon intrinsic concentration at 300 K, cm^-3
+    var EPS_S = 11.7 * 8.854e-14;   // silicon permittivity, F/cm
+    var I_S = 1e-12;            // saturation current, A
+    var V_BR = 1.5;             // breakdown voltage magnitude (display value), V
+    var I_BV = 1e-3;            // current at V = -V_BR, A
+    var V_TURN_ON = 0.5;        // label threshold for "forward bias", V
+    var EG_EV = 1.12;           // silicon band gap at 300 K, eV
+    var q_kT = 1 / V_T;
 
-    // Shared page parameters. bias in V (old slider -200..200 mapped to -2..2 V).
-    var p = { bias: 0, run: 'play' };
+    // Shared page parameters. bias in V; doping as log10 of cm^-3.
+    var p = { bias: 0, run: 'play', logNA: 16, logND: 16 };
 
-    function depletionHalfWidth(V, w0) {
-        w0 = w0 || W0;
-        if (V >= V0) return 0;
-        if (V >= 0) return w0 * Math.sqrt(Math.max(0, 1 - V / V0));
-        return w0 * Math.sqrt(1 + Math.abs(V) / V0);
+    function NA() { return Math.pow(10, p.logNA); }
+    function ND() { return Math.pow(10, p.logND); }
+    function V0() { return V_T * Math.log(NA() * ND() / (NI * NI)); }
+
+    // Total depletion width in cm; zero once V reaches V0.
+    function W(V) {
+        var na = NA(), nd = ND(), d = V0() - V;
+        if (d <= 0) return 0;
+        return Math.sqrt(2 * EPS_S * d * (na + nd) / (Q * na * nd));
     }
+    function xp(V) { return W(V) * ND() / (NA() + ND()); }
+    function xn(V) { return W(V) * NA() / (NA() + ND()); }
 
-    function currentMagnitude(V) {
-        if (V <= V_BREAKDOWN) return 1e-3;
-        return Math.abs(I0 * (Math.exp(q_kT * V) - 1));
+    // Signed diode current, A.
+    function current(V) {
+        return I_S * (Math.exp(V / V_T) - 1) - I_BV * Math.exp(-(V + V_BR) / V_T);
     }
-
-    // Signed current: positive in forward bias, negative in reverse.
-    function current(V) { return V < 0 ? -currentMagnitude(V) : currentMagnitude(V); }
+    function currentMagnitude(V) { return Math.abs(current(V)); }
 
     function junctionState(V) {
-        if (V <= V_BREAKDOWN) return 'Breakdown';
+        if (V <= -V_BR) return 'Breakdown';
         if (V < -0.01) return 'Reverse Bias';
         if (V >= V_TURN_ON) return 'Forward Bias';
         if (V > 0.01) return 'Forward Bias (sub-threshold)';
@@ -42,10 +54,10 @@
 
     var DESC = {
         'Equilibrium': 'At equilibrium, carrier diffusion across the junction is balanced by the built-in electric field. The depletion region contains fixed donor and acceptor ions but few mobile carriers.',
-        'Forward Bias (sub-threshold)': 'The forward bias lowers the potential barrier and narrows the depletion region, but the voltage is below the turn-on threshold (about ' + V_TURN_ON.toFixed(1) + ' V for Si). The current is negligible.',
+        'Forward Bias (sub-threshold)': 'The forward bias lowers the potential barrier and narrows the depletion region, but the current is still small; with this saturation current it reaches only 0.25 mA at ' + V_TURN_ON.toFixed(1) + ' V.',
         'Forward Bias': 'Forward bias has lowered the barrier far enough for conduction. Electrons from the n-side conduction band cross into the p-side, where they recombine with holes, and current flows through the junction.',
-        'Reverse Bias': 'Reverse bias: a brief transient removes majority carriers from the edges of the depletion region, which widens. The steady reverse current is only the saturation current I₀, carried by minority carriers generated near the junction. The animation exaggerates carrier loss; the neutral regions of a real diode stay populated.',
-        'Breakdown': 'Avalanche breakdown: the strong field accelerates carriers until impact ionisation creates additional electron-hole pairs, and carrier multiplication produces a large reverse current. The breakdown voltage is scaled to ' + V_BREAKDOWN.toFixed(1) + ' V for display.'
+        'Reverse Bias': 'Reverse bias: a brief transient removes majority carriers from the edges of the depletion region, which widens. The steady reverse current is only the saturation current Iₛ, carried by minority carriers generated near the junction. The animation exaggerates carrier loss; the neutral regions of a real diode stay populated.',
+        'Breakdown': 'Breakdown: the field in the depletion region is high enough for carrier multiplication, and the reverse current rises steeply, by a factor of ten for every further 60 mV. The breakdown voltage is set to ' + V_BR.toFixed(1) + ' V for display.'
     };
     var FORM_DESC = [
         'The p-type and n-type materials have just been joined. Free electrons on the n-side (right) diffuse towards the abundant holes on the p-side (left).',
@@ -64,8 +76,10 @@
     }
 
     window.PN = {
-        V0: V0, V_BREAKDOWN: V_BREAKDOWN, V_TURN_ON: V_TURN_ON, I0: I0, q_kT: q_kT, EG_EV: EG_EV, W0: W0,
-        p: p, depletionHalfWidth: depletionHalfWidth, currentMagnitude: currentMagnitude, current: current,
+        Q: Q, V_T: V_T, NI: NI, EPS_S: EPS_S, I_S: I_S, V_BR: V_BR, I_BV: I_BV,
+        V_BREAKDOWN: -V_BR, V_TURN_ON: V_TURN_ON, EG_EV: EG_EV, q_kT: q_kT,
+        p: p, NA: NA, ND: ND, V0: V0, W: W, xp: xp, xn: xn,
+        current: current, currentMagnitude: currentMagnitude,
         junctionState: junctionState, STATE_VAR: STATE_VAR, DESC: DESC, FORM_DESC: FORM_DESC, fmtI: fmtI,
         // Formation progress written by the 3D scene: null once formed.
         formation: null,

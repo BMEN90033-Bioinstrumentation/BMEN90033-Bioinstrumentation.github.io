@@ -62,6 +62,10 @@
 
 .readout .item .v .katex { font-size: 15px !important; }
 .legend .sw.dash { border-top-color: var(--c-ref); }
+.legend .sw.dashed {
+    width: 26px;
+    background: repeating-linear-gradient(90deg, var(--c-level) 0 6px, transparent 6px 10px);
+}
 
 /* Label and hint over the 3D scene sit on a panel so dense geometry behind
    them does not reduce their legibility. */

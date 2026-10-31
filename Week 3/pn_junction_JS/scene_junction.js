@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const PN = window.PN;
 const box = document.getElementById('scene-junction');
@@ -33,6 +34,7 @@ const orbitControls = new OrbitControls(camera, renderer.domElement);
 orbitControls.enableDamping = true;
 orbitControls.dampingFactor = 0.08;
 orbitControls.target.set(0, 3, 0);
+guardWheel(orbitControls, renderer.domElement, box.querySelector('.hint'));
 
 const white = new THREE.Color(1, 1, 1);
 scene.add(new THREE.AmbientLight(white, 0.5));
@@ -91,7 +93,14 @@ const HOLE_RADIUS = 0.3;
 const V_BREAKDOWN = PN.V_BREAKDOWN;
 const V_TURN_ON = PN.V_TURN_ON;
 const LATTICE_N = 2;
-const W0 = A * 0.8;
+// Depletion mapping: scene half-width = SCALE * W / 2, with W the total
+// width from PN.W in µm. SCALE puts the equilibrium width of the default
+// 10^16 / 10^16 cm^-3 junction (about 0.43 µm) at 2 x 6.4 units, the width of
+// the original scene. The drawn half-width is capped at 15 units so the
+// region stays inside the 16-unit blocks; x_p and x_n are drawn equal.
+const W_DEF_UM = 1e4 * Math.sqrt(2 * PN.EPS_S * PN.V_T * Math.log(1e32 / (PN.NI * PN.NI)) * 2e16 / (PN.Q * 1e32));
+const SCALE = 2 * 6.4 / W_DEF_UM;
+const W_CAP = 15;
 const MAX_CARRIERS = 100;
 const MAX_CARRIERS_AVALANCHE = 200;
 const FULL_EXTENT = LATTICE_N * A;    // 16
@@ -106,7 +115,8 @@ const FORMATION_DURATION = 10.0;
 const clock = new THREE.Clock();
 let elapsed = 0;
 
-const depletionHalfWidth = (V) => PN.depletionHalfWidth(V, W0);
+const depletionHalfWidth = (V) => Math.min(W_CAP, SCALE * PN.W(V) * 1e4 / 2);
+let W0 = depletionHalfWidth(0);       // equilibrium half-width, refreshed each frame
 const carrierCap = () => (biasVoltage <= V_BREAKDOWN ? MAX_CARRIERS_AVALANCHE : MAX_CARRIERS);
 
 function publishFormation() {
@@ -115,7 +125,7 @@ function publishFormation() {
         let phase = 'diffusion';
         if (progress > 0.5) phase = 'field building';
         if (progress > 0.85) phase = 'equilibrium forming';
-        PN.formation = { progress, phase, w: formationDepletionWidth() / W0 };
+        PN.formation = { progress, phase, wfrac: W0 > 0 ? formationDepletionWidth() / W0 : 0 };
     } else {
         PN.formation = null;
     }
@@ -258,8 +268,13 @@ function buildLatticeVisuals() {
             new THREE.MeshBasicMaterial({ color: c, wireframe: true, transparent: true, opacity: 0.15 }));
         bx.position.set(s * LATTICE_N * A / 2, 0, 0);
         latticeGroup.add(bx);
+        // Beyond the outer face of each block (x = +-26, the blocks end at
+        // +-16 and the wires at +-16), so in the default view neither the
+        // field lines (|x| <= 12.75, |y|, |z| <= 6.5) nor the wireframe edges
+        // reach the label.
         const l = cssLabel(txt, css(v));
-        l.position.set(s * LATTICE_N * A / 2, extent / 2 + 1, 0);
+        l.center.set(0.5, 0.5);
+        l.position.set(s * (extent + 10), -4, 0);
         latticeGroup.add(l);
     });
 }
@@ -280,7 +295,11 @@ function buildFieldLines(W, fieldIntensity) {
     const baseOpacity = Math.min(0.92, 0.5 + fieldIntensity * 0.3);
     const segments = 40;
     // Symmetric parametric arcs from + to -, defined by peak height and azimuth.
-    const arcHeights = [0, W * 0.25, W * 0.5, W * 0.75, W * 1.05, W * 1.35, W * 1.7, W * 2.1];
+    // Heights keep the original proportions (0.25 W .. 2.1 W) but are capped
+    // at 6.5 units so every arc stays inside the 16-unit block cross-section
+    // and clear of the labels beside the blocks and above the battery.
+    const H = Math.min(W * 2.1, 6.5);
+    const arcHeights = [0, 0.119, 0.238, 0.357, 0.5, 0.643, 0.81, 1].map((r) => r * H);
     const numAzBase = Math.min(8, Math.max(6, Math.round(5 + fieldIntensity)));
     const overshoot = W * 0.15;
     const xMin = -(halfSep + overshoot), xMax = halfSep + overshoot;
@@ -489,10 +508,12 @@ function initCarriers() {
     if (formationPhase) {
         // Just after joining: electrons on the n-side and holes on the
         // p-side, concentrated near the junction so they visibly cross.
-        for (let i = 0; i < 20; i++) spawnElectron(Math.random() * W0 * 2.5, yz(), yz());
-        for (let i = 0; i < 15; i++) spawnElectron(W0 * 2 + Math.random() * (extent - W0 * 2), yz(), yz());
-        for (let i = 0; i < 20; i++) spawnHole(-Math.random() * W0 * 2.5, yz(), yz());
-        for (let i = 0; i < 15; i++) spawnHole(-(W0 * 2 + Math.random() * (extent - W0 * 2)), yz(), yz());
+        // Bands capped inside the block when lightly doped junctions make W0 large.
+        const w25 = Math.min(W0 * 2.5, extent * 0.9), w2 = Math.min(W0 * 2, extent * 0.75);
+        for (let i = 0; i < 20; i++) spawnElectron(Math.random() * w25, yz(), yz());
+        for (let i = 0; i < 15; i++) spawnElectron(w2 + Math.random() * (extent - w2), yz(), yz());
+        for (let i = 0; i < 20; i++) spawnHole(-Math.random() * w25, yz(), yz());
+        for (let i = 0; i < 15; i++) spawnHole(-(w2 + Math.random() * (extent - w2)), yz(), yz());
     } else {
         const W = depletionHalfWidth(0);
         for (let i = 0; i < count; i++) spawnElectron(W + Math.random() * (extent - W), yz(), yz());
@@ -1034,6 +1055,7 @@ initCarriers();
 let lastPublish = 0;
 function step(dt) {
     paused = PN.p.run === 'pause';
+    W0 = depletionHalfWidth(0);
     if (!paused) elapsed += dt;
     biasVoltage = formationPhase ? 0 : PN.p.bias;
     if (!paused) updateFormation(dt);

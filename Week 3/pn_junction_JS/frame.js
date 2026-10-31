@@ -19,7 +19,7 @@
     window.PN.axes = function (f, g, x, y, ph, oy, t) {
         window.CMP.drawGrid(g, x, y, f.iw, ph, { xTicks: x.ticks(6), yTicks: y.ticks(5) });
         var xa = g.append('g').attr('transform', 'translate(0,' + ph + ')')
-            .call(d3.axisBottom(x).ticks(6).tickSizeOuter(0)
+            .call(d3.axisBottom(x).ticks(6).tickSizeOuter(0).tickPadding(7)   // clears the bottom y tick label at the corner
                 .tickFormat(t.xTitle ? null : function () { return ''; }));
         var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
         [xa, ya].forEach(window.CMP.styleAxis);

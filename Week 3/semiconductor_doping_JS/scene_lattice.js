@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
 const D = window.DOP;
 const P = D.p;
@@ -31,6 +32,7 @@ host.appendChild(labelRenderer.domElement);
 const orbitControls = new OrbitControls(camera, renderer.domElement);
 orbitControls.enableDamping = true;
 orbitControls.dampingFactor = 0.08;
+guardWheel(orbitControls, renderer.domElement, box.querySelector('.hint'));
 
 const white = new THREE.Color(1, 1, 1);
 scene.add(new THREE.AmbientLight(white, 0.5));

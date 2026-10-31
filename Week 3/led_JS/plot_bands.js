@@ -1,16 +1,10 @@
-// Energy band diagram, one instance per svg[data-bands-step]. Schematic: the
-// x axis is position across the device and the y axis is electron energy in
-// units of E_g (no numeric ticks). Geometry comes from LED.bands, ported from
-// the band strip of the original canvas.
-//
-// Label plan (inner plot coordinates, energy domain -0.85 .. 1.3 E_g):
-//   left column, left-aligned at x = 8:  E_C below E_C(p), E_Fp above E_Fp,
-//     E_V below E_V(p). The gaps are 5/6 E_g, 1/6 E_g and the bottom margin.
-//   right column, right-aligned at iw - 8: E_Fn below E_Fn (5/6 E_g to E_V(n)).
-//   E_g double arrow at x = iw - 64 from E_C(n) to E_V(n); its label sits to
-//   the left at mid-gap, shortened to E_g alone if it would meet the h nu label.
-//   h nu arrow at the junction + 10 px; its label sits left of the arrow.
+// Energy band diagram, one instance per svg[data-bands-step] (data-vparam
+// names the voltage). Quantitative: energies in eV from LED.bands, with the
+// N side q(V0 - V_j) below the P side and quasi-Fermi levels split by qV_j.
+// Step 2 adds the recombination arrow from E_C(n) to E_V(n).
 (function () {
+    var NS = window.LED;
+
     function tri(g, x, y, dir, c) {
         var a = 5, pts = dir === 'down' ? [[x, y], [x - a, y - 8], [x + a, y - 8]]
             : [[x, y], [x - a, y + 8], [x + a, y + 8]];
@@ -18,87 +12,149 @@
             .attr('fill', c);
     }
 
-    function render(el) {
-        var L = window.LED, T = window.T, css = window.CMP.cssVar;
-        var step = +el.dataset.bandsStep, m = L.mat();
-        var v = step === 0 ? 0 : L.p[el.dataset.vparam];
-        var b = L.bands(step, v, m);
-        var f = L.frame(el, { margin: { top: 34, right: 20, bottom: 40, left: 46 } });
+    // ── Quantitative band diagram ──
+    // d: { eg, off, efp, efn (eV, from the P-side valence band), df (depletion
+    // half-width as a fraction of the width), fullQfl (quasi-Fermi levels
+    // across the whole device), names: [n-side label, p-side label],
+    // arrow: { x (px offset from the junction), e0, e1 (eV), col } }.
+    // Energy axis in eV with ticks; position axis schematic. Every label is
+    // placed at the first candidate box that no drawn line, other label or
+    // plot edge enters; a quasi-Fermi label with no free candidate is left to
+    // the legend.
+    function drawBands(el, d) {
+        var T = window.T, css = window.CMP.cssVar;
+        var f = NS.frame(el, { margin: { top: 34, right: 20, bottom: 44, left: 64 } });
         var g = f.g, iw = f.iw, ih = f.ih;
+        if (ih <= 0 || iw <= 0) return;   // not laid out yet
+        var ecP = d.eg, evP = 0, ecN = d.eg - d.off, evN = -d.off;
+        var lo = Math.min(evN, evP, d.efp, d.efn), hi = Math.max(ecP, ecN, d.efp, d.efn), span = hi - lo;
         var x = d3.scaleLinear().domain([0, 1]).range([0, iw]);
-        var y = d3.scaleLinear().domain([-0.85, 1.3]).range([ih, 0]);
+        var y = d3.scaleLinear().domain([lo - 0.16 * span, hi + 0.3 * span]).range([ih, 0]).nice(5);
 
-        // Depletion region shading.
-        var df = L.deplFrac(step, v, m) * 1.5;
+        var df = Math.max(d.df * 1.5, 0.04);
         var dl = x(0.5 - df), dr = x(0.5 + df), mid = x(0.5);
-        g.append('rect').attr('x', dl).attr('y', 0).attr('width', dr - dl).attr('height', ih)
+        if (d.shade) g.append('rect').attr('x', dl).attr('y', 0).attr('width', dr - dl).attr('height', ih)
             .attr('fill', T.overlay05);
 
-        L.axes(f, g, x, y, { bare: true, xTitle: '\\text{position } x', yTitle: '\\text{electron energy } E' });
+        // Energy grid, ticked energy axis, plain position axis.
+        var yt = y.ticks(5);
+        g.append('g').selectAll('line').data(yt).join('line')
+            .attr('x1', 0).attr('x2', iw).attr('y1', y).attr('y2', y)
+            .attr('stroke', css('--grid-line'));
+        var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
+        window.CMP.styleAxis(ya);
+        g.append('line').attr('x1', 0).attr('x2', iw).attr('y1', ih).attr('y2', ih)
+            .attr('stroke', T.gridAxis).attr('stroke-width', 1.2);
+        window.renderKatex(f.svg, 'E\\;[\\mathrm{eV}]', 18, f.m.top + ih / 2,
+            { width: 160, height: 22, rotate: -90, size: 16 });
+        window.renderKatex(f.svg, '\\text{position } x', f.m.left + iw / 2, f.H - 16,
+            { width: 200, height: 22, size: 16 });
 
-        // E_C and E_V with the transition through the depletion region.
+        var nodes = [];
         function band(e0, e1, c) {
             var pth = d3.path();
             pth.moveTo(x(0.01), y(e0));
             pth.lineTo(dl, y(e0));
             pth.bezierCurveTo(mid - 5, y(e0), mid + 5, y(e1), dr, y(e1));
             pth.lineTo(x(0.99), y(e1));
-            g.append('path').attr('d', pth.toString()).attr('fill', 'none')
-                .attr('stroke', c).attr('stroke-width', 2.2);
+            nodes.push(g.append('path').attr('d', pth.toString()).attr('fill', 'none')
+                .attr('stroke', c).attr('stroke-width', 2.2).node());
         }
-        var cE = css('--c-elec'), cH = css('--c-hole');
-        band(b.ecP, b.ecN, cE);
-        band(b.evP, b.evN, cH);
+        var cE = css('--c-elec'), cH = css('--c-hole'), cT = T.textDim;
+        band(ecP, ecN, cE);
+        band(evP, evN, cH);
 
-        // (Quasi-)Fermi levels: one flat level at equilibrium, split under bias.
-        g.append('path').attr('fill', 'none').attr('stroke', T.gridMax).attr('stroke-width', 1.4)
-            .attr('stroke-dasharray', '5 4')
-            .attr('d', 'M' + x(0.01) + ',' + y(b.efP) + 'H' + mid + 'M' + mid + ',' + y(b.efN) + 'H' + x(0.99));
-
-        var split = Math.abs(b.efN - b.efP) > 1e-6;
-        function texL(s, x0, y0, c, w) {
-            window.renderKatex(f.svg, s, f.m.left + x0 + w / 2, f.m.top + y0,
-                { width: w, height: 20, size: 15, color: c, align: 'left' });
+        function dash(x0, x1, e, c) {
+            nodes.push(g.append('line').attr('x1', x0).attr('x2', x1).attr('y1', y(e)).attr('y2', y(e))
+                .attr('stroke', c).attr('stroke-width', 1.4).attr('stroke-dasharray', '5 4').node());
         }
-        function texR(s, x1, y0, c, w) {
-            window.renderKatex(f.svg, s, f.m.left + x1 - w / 2, f.m.top + y0,
-                { width: w, height: 20, size: 15, color: c, align: 'right' });
-        }
-        texL('E_C', 8, y(b.ecP) + 13, cE, 40);
-        texL('E_V', 8, y(b.evP) + 13, cH, 40);
-        texL(split ? 'E_{Fp}' : 'E_F', 8, y(b.efP) - 12, T.textDim, 50);
-        if (split) texR('E_{Fn}', iw - 8, y(b.efN) + 13, T.textDim, 50);
+        var split = Math.abs(d.efn - d.efp) > 1e-6;
+        if (!split) dash(x(0.01), x(0.99), d.efp, T.gridMax);
+        else if (d.fullQfl) { dash(x(0.01), x(0.99), d.efn, cE); dash(x(0.01), x(0.99), d.efp, cH); }
+        else { dash(x(0.01), mid, d.efp, cH); dash(mid, x(0.99), d.efn, cE); }
 
-        // Region names inside the top of the plot, above E_C(p).
+        if (d.arrow) {
+            var a = d.arrow, ax = mid + a.x, ya0 = y(a.e0), ya1 = y(a.e1), up = ya1 < ya0;
+            nodes.push(g.append('line').attr('x1', ax).attr('x2', ax).attr('y1', ya0)
+                .attr('y2', ya1 + (up ? 7 : -7)).attr('stroke', a.col).attr('stroke-width', 1.6)
+                .attr('stroke-dasharray', '3 3').node());
+            tri(g, ax, ya1, up ? 'up' : 'down', a.col);
+        }
+
+        var bx = iw - 64, gap = y(evN) - y(ecN);
+        nodes.push(g.append('line').attr('x1', bx).attr('x2', bx).attr('y1', y(ecN) + (gap > 18 ? 7 : 0))
+            .attr('y2', y(evN) - (gap > 18 ? 7 : 0)).attr('stroke', cT).attr('stroke-width', 1.2).node());
+        if (gap > 18) { tri(g, bx, y(ecN), 'up', cT); tri(g, bx, y(evN), 'down', cT); }
+
+        // Collision geometry: points along every line, plus placed boxes.
+        var pts = [];
+        nodes.forEach(function (n) {
+            var L = n.getTotalLength();
+            for (var i = 0; i <= 300; i++) { var q = n.getPointAtLength(L * i / 300); pts.push([q.x, q.y]); }
+        });
+        var placed = [];
         [['p-type', 0.22, cH], ['n-type', 0.78, cE]].forEach(function (r) {
             g.append('text').attr('x', x(r[1])).attr('y', 16).attr('text-anchor', 'middle')
                 .attr('fill', r[2]).attr('font-size', 13).attr('font-family', 'Inter, sans-serif')
                 .attr('font-weight', 600).text(r[0]);
+            placed.push([x(r[1]) - 28, 2, x(r[1]) + 28, 22]);
         });
-
-        // Recombination: electron drops from E_C(n) to E_V(n), emitting h nu.
-        var boxes = [];
-        var gm = (y(b.ecN) + y(b.evN)) / 2;
-        if (step >= 2 && L.exceeded(v, m)) {
-            var ax = mid + 10, pc = css(m.col);
-            g.append('line').attr('x1', ax).attr('x2', ax).attr('y1', y(b.ecN)).attr('y2', y(b.evN) - 7)
-                .attr('stroke', pc).attr('stroke-width', 1.6).attr('stroke-dasharray', '3 3');
-            tri(g, ax, y(b.evN), 'down', pc);
-            texR('h\\nu', ax - 8, gm, pc, 34);
-            boxes.push([ax - 42, gm - 10, ax + 6, gm + 10]);
+        function free(b) {
+            if (b[0] < 2 || b[2] > iw - 2 || b[1] < 2 || b[3] > ih - 2) return false;
+            if (!NS.clear(b, placed)) return false;
+            return !pts.some(function (q) { return q[0] > b[0] - 2 && q[0] < b[2] + 2 && q[1] > b[1] - 2 && q[1] < b[3] + 2; });
         }
+        // cands: [left edge, vertical centre]; returns true when placed.
+        function place(s, w, c, cands) {
+            for (var i = 0; i < cands.length; i++) {
+                var b = [cands[i][0], cands[i][1] - 10, cands[i][0] + w, cands[i][1] + 10];
+                if (free(b)) {
+                    placed.push(b);
+                    window.renderKatex(f.svg, s, f.m.left + b[0] + w / 2, f.m.top + cands[i][1],
+                        { width: w, height: 20, size: 15, color: c });
+                    return true;
+                }
+            }
+            return false;
+        }
+        function around(x0, e) { return [[x0, y(e) - 13], [x0, y(e) + 13]]; }
 
-        // E_g bracket on the N side.
-        var bx = iw - 64, cT = T.textDim;
-        g.append('line').attr('x1', bx).attr('x2', bx).attr('y1', y(b.ecN) + 7).attr('y2', y(b.evN) - 7)
-            .attr('stroke', cT).attr('stroke-width', 1.2);
-        tri(g, bx, y(b.ecN), 'up', cT);
-        tri(g, bx, y(b.evN), 'down', cT);
-        var full = 'E_g = ' + m.bandgap.toFixed(2) + '\\,\\text{eV}', fw = 128;
-        if (window.LED.clear([bx - 8 - fw, gm - 10, bx - 8, gm + 10], boxes)) texR(full, bx - 8, gm, cT, fw);
-        else texR('E_g', bx - 8, gm, cT, 30);
+        place('E_C', 34, cE, around(8, ecP).concat(around(x(0.12), ecP)));
+        place('E_V', 34, cH, around(8, evP).reverse().concat(around(x(0.12), evP).reverse()));
+        if (!split) place('E_F', 34, cT, around(8, d.efp).concat(around(x(0.12), d.efp), around(x(0.3), d.efp)));
+        else {
+            var nm = d.names || ['E_{Fn}', 'E_{Fp}'];
+            place(nm[1], 44, cH, around(8, d.efp).concat(around(x(0.12), d.efp), around(x(0.3), d.efp)));
+            var xr = iw - 8 - 44;
+            place(nm[0], 44, cE, around(xr, d.efn).reverse().concat(around(xr - 60, d.efn).reverse(), around(x(0.62), d.efn)));
+        }
+        if (d.arrow) {
+            var aCands = [];
+            [0.5, 0.35, 0.65, 0.2, 0.8].forEach(function (t) {
+                var yy = ya1 + (ya0 - ya1) * t;
+                aCands.push([ax + 6, yy], [ax - 40, yy]);
+            });
+            // Beyond the ends of a short arrow.
+            aCands.push([ax + 8, ya1 + (up ? -14 : 14)], [ax - 42, ya1 + (up ? -14 : 14)],
+                        [ax + 8, ya0 + (up ? 14 : -14)], [ax - 42, ya0 + (up ? 14 : -14)]);
+            place('h\\nu', 34, d.arrow.col, aCands);
+        }
+        var full = 'E_g = ' + d.eg.toFixed(2) + '\\,\\text{eV}', gm = (y(ecN) + y(evN)) / 2;
+        var eCands = [[bx - 8 - 128, gm], [bx - 8 - 128, y(ecN) - 14], [bx - 8 - 128, y(evN) + 14]];
+        if (!place(full, 128, cT, eCands)) place('E_g', 30, cT, eCands.map(function (c) { return [bx - 8 - 30, c[1]]; }));
+    }
+
+    function render(el) {
+        var L = NS, m = L.mat(), step = +el.dataset.bandsStep;
+        var v = step === 0 ? 0 : L.p[el.dataset.vparam];
+        var b = L.bands(step, v, m);
+        drawBands(el, {
+            eg: b.eg, off: b.off, efp: b.efp, efn: b.efn, shade: true, df: L.deplFrac(step, v, m),
+            arrow: step >= 2 && L.exceeded(v, m)
+                ? { x: 10, e0: b.eg - b.off, e1: -b.off, col: window.CMP.cssVar(m.col) } : null
+        });
     }
 
     function renderAll() { document.querySelectorAll('svg[data-bands-step]').forEach(render); }
-    window.LED.onRender(renderAll);
+    NS.onRender(renderAll);
 })();

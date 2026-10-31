@@ -1,6 +1,6 @@
-// Photodiode model. Material table, depletion width, band-diagram geometry
-// and responsivity ported from the original step-by-step simulator without
-// change to the values.
+// Photodiode model. Material table and responsivity ported from the
+// original simulator; built-in potential, depletion width and band edges
+// follow the textbook abrupt-junction relations below.
 (function () {
     // bandgap (eV), cutoff and peak-response wavelengths (nm). col is the CSS
     // variable holding the photon colour drawn for that material.
@@ -10,7 +10,7 @@
         'GaP':    { name: 'GaP',     short: 'GaP',    bandgap: 2.26, cutoffWavelength: 550,  peakWavelength: 440,  label: 'GaP (550 nm cutoff)',      col: '--c-ph-gap' }
     };
     var ETA = 0.8;       // quantum efficiency
-    var V_BI = 0.7;      // built-in potential used for the depletion width, V
+    var DELTA = 0.1;     // eV, Fermi level depth below the majority band edge
     var P_MAX_UW = 100;  // optical power at 100 % light intensity, uW
 
     // vr: reverse bias (V); light: intensity (%); mat: material key.
@@ -18,17 +18,21 @@
 
     function mat(q) { return MATERIALS[(q || p).mat]; }
 
-    // Depletion half-width as a fraction of the device width:
-    // W = W0 sqrt(1 + V_R / V_bi), capped at 0.22.
-    function deplFrac(vr) { return Math.min(0.05 * Math.sqrt(1 + vr / V_BI), 0.22); }
+    // Non-degenerate doping: each Fermi level lies DELTA inside the gap from
+    // its majority band edge, so qV_bi = E_g - 2 DELTA.
+    function vbi(m) { return m.bandgap - 2 * DELTA; }
 
-    // Band diagram in units of E_g (the original drew E_g as 24 px), upward
-    // from the P-side valence band. The N side drops by the built-in step
-    // (16 px, about 2/3 E_g) plus a schematic 0.8 px per volt of reverse bias.
-    // Quasi-Fermi levels sit E_g / 6 inside the majority band edge.
-    function bands(vr) {
-        var drop = (16 + vr * 0.8) / 24, off = 4 / 24;
-        return { ecP: 1, evP: 0, ecN: 1 - drop, evN: -drop, efP: off, efN: 1 - drop - off };
+    // Depletion half-width as a fraction of the device width:
+    // W = W0 sqrt((V_bi + V_R) / V_bi), drawn up to 0.22.
+    function deplFrac(vr, m) { m = m || mat(); return Math.min(0.05 * Math.sqrt((vbi(m) + vr) / vbi(m)), 0.22); }
+
+    // Band edges in eV from the P-side valence band. The N side sits
+    // q(V_bi + V_R) lower; the quasi-Fermi levels separate by qV_R with E_Fn
+    // below E_Fp.
+    function bands(vr, m) {
+        m = m || mat();
+        var off = vbi(m) + vr;
+        return { eg: m.bandgap, off: off, efp: DELTA, efn: m.bandgap - off - DELTA, vbi: vbi(m) };
     }
 
     // Ideal responsivity R = eta q lambda / (h c) = eta lambda[nm] / 1240 A/W
@@ -43,7 +47,7 @@
     }
 
     window.PD = {
-        MATERIALS: MATERIALS, ETA: ETA, V_BI: V_BI, P_MAX_UW: P_MAX_UW,
+        MATERIALS: MATERIALS, ETA: ETA, DELTA: DELTA, vbi: vbi, P_MAX_UW: P_MAX_UW,
         p: p, mat: mat, deplFrac: deplFrac, bands: bands,
         responsivity: responsivity, photocurrent: photocurrent,
         // Run fn after DOM ready and on every parameter, theme or size change.

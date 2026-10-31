@@ -94,9 +94,13 @@
             </ul>
 
             <p>The scene represents energy by radius. Each atom carries a valence shell at a fixed radius and a
-                conduction shell outside it; the radial separation stands for the band gap. As the temperature
-                rises, electrons are promoted from the valence shell and hop between atoms at the radius of the
-                conduction shell.</p>
+                conduction shell outside it; the radial separation stands for the band gap. For silicon the
+                separation is $E_g(T)$ from section 03 at $1.45$ radius units per electronvolt, so the conduction
+                shell contracts slightly as the gap narrows with temperature. The number of electrons drawn promoted
+                is proportional to the intrinsic density $n_i(T)$, scaled so that all 24 valence electrons are
+                promoted at $1000\,\text{K}$. Silicon therefore shows none below about $700\,\text{K}$; at
+                $300\,\text{K}$ the true fraction is below $10^{-13}$. Promoted electrons hop between atoms at the
+                radius of the conduction shell.</p>
 
             <div class="callout">
                 The shells are a schematic. Electrons in a crystal occupy states that extend over the whole lattice
@@ -141,7 +145,7 @@
                 <div class="readout">
                     <div class="item"><span class="k">material</span><span class="v" data-out="material"></span></div>
                     <div class="item"><span class="k">promoted electrons</span><span class="v" data-out="free"></span></div>
-                    <div class="item"><span class="k">conductivity</span><span class="v" data-out="cond"></span></div>
+                    <div class="item"><span class="k">$\sigma$</span><span class="v" data-out="cond"></span></div>
                     <div class="item"><span class="k">temperature</span><span class="v" data-out="temp"></span></div>
                 </div>
             </div>
@@ -177,9 +181,17 @@
                 Neighbouring valence electrons can move into the hole, so the hole also carries current and behaves
                 as a positive charge.</p>
 
+            <p>The readout gives the conductivity $\sigma = q\,n_i(\mu_n + \mu_p)$ for the two gapped solids, using
+                the $300\,\text{K}$ silicon mobilities $\mu_n = 1350$ and $\mu_p = 480\,\text{cm}^2/\text{V s}$
+                at every temperature, and the room-temperature value $5.96\times10^{5}\,\text{S/cm}$ for copper.</p>
+
             <div class="callout">
-                In the diagram the band edges follow the shell radii of the 3D model. The insulator gap is therefore
-                drawn to the same schematic scale as the silicon gap and not in proportion to $9\,\text{eV}$.
+                In the diagram the band edges follow the shell radii of the 3D model. The silicon gap is drawn to
+                scale; the insulator gap is compressed to $2.7$ radius units rather than the $13$ units that
+                $9\,\text{eV}$ would need, and is held fixed because no temperature dependence is modelled for
+                SiO$_2$. Its promoted-electron count uses the silicon density-of-states prefactor with a
+                $9\,\text{eV}$ gap and is zero at every temperature shown. The copper values do not change with
+                temperature.
             </div>
         </div>
 
@@ -212,7 +224,7 @@
                     <div class="item"><span class="k">$E_g$</span><span class="v" data-out="eg"></span></div>
                     <div class="item"><span class="k">shell separation</span><span class="v" data-out="gap"></span></div>
                     <div class="item"><span class="k">promoted electrons</span><span class="v" data-out="free"></span></div>
-                    <div class="item"><span class="k">conductivity</span><span class="v" data-out="cond"></span></div>
+                    <div class="item"><span class="k">$\sigma$</span><span class="v" data-out="cond"></span></div>
                 </div>
             </div>
         </div>
@@ -296,6 +308,7 @@
     <script defer src="semiconductor_bands_JS/plot_band.js"></script>
     <script defer src="semiconductor_bands_JS/plot_thermal.js"></script>
     <script type="module" src="semiconductor_bands_JS/scene_atoms.js"></script>
+    <script defer src="../components/eq_fit.js"></script>
 </body>
 
 </html>

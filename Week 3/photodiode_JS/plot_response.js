@@ -13,6 +13,7 @@
         var PD = window.PD, T = window.T, css = window.CMP.cssVar;
         var f = PD.frame(sel, {});
         var g = f.g, iw = f.iw, ih = f.ih;
+        if (ih <= 0 || iw <= 0) return;   // not laid out yet
         var x = d3.scaleLinear().domain([LMIN, LMAX]).range([0, iw]);
         var y = d3.scaleLinear().domain([0, 1.25]).range([ih, 0]);
 
