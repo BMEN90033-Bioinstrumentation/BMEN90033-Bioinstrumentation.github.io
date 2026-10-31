@@ -461,7 +461,7 @@
       </button>
       <div class="quiz-explanation" id="s3Explanation">
         <strong>Correct: B</strong><br><br>
-        The gain equation A<sub>CL</sub> = R<sub>2</sub>/R<sub>1</sub> depends only on the <em>ratio</em>, but
+        The gain equation A<sub>CL</sub> = 1 + R<sub>2</sub>/R<sub>1</sub> depends only on the <em>ratio</em>, but
         practical constraints set a useful range, typically <strong>10 k&Omega; to 100 k&Omega;</strong>:<br><br>
         <strong>Too low (&lt; 1 k&Omega;):</strong> The op-amp output must drive heavy current through low-value
         resistors. Most op-amps can only source ~20&ndash;25 mA, so small resistances cause the output to clip, distort,
@@ -489,11 +489,11 @@
       <div class="ol-title">Resistor Controls</div>
       <div class="ol-row">
         <label>R<sub>1</sub> <span class="v" id="s4R1Val">10 kΩ</span></label>
-        <input type="range" id="s4R1Slider" min="0" max="100" step="1" value="40">
+        <input type="range" id="s4R1Slider" min="0" max="100" step="0.01" value="42.86">
       </div>
       <div class="ol-row">
         <label>R<sub>2</sub> <span class="v" id="s4R2Val">90 kΩ</span></label>
-        <input type="range" id="s4R2Slider" min="0" max="100" step="1" value="64">
+        <input type="range" id="s4R2Slider" min="0" max="100" step="0.01" value="56.49">
       </div>
       <div class="s4-compact">
         <span class="k">&beta;</span><span class="v" id="s4BetaVal">0.100</span>
@@ -2734,14 +2734,14 @@
 
       // Readout values
       const iOut = S4_VOUT_REF / (r1 + r2);
-      const vOff = S4_IB * (r1 * r2) / (r1 + r2);
+      const vOff = S4_IB * (r1 * r2) / (r1 + r2);  // input-referred; output offset = vOff * (1 + r2/r1) = IB * r2
       const fPar = 1 / (2 * Math.PI * r2 * S4_CPAR);
       const iStr = iOut >= 1e-3 ? (iOut * 1e3).toFixed(1) + 'mA' : (iOut * 1e6).toFixed(0) + '\u00B5A';
       const vStr = vOff >= 1e-3 ? (vOff * 1e3).toFixed(1) + 'mV' : (vOff * 1e6).toFixed(0) + '\u00B5V';
       const fStr = fPar >= 1e6 ? (fPar / 1e6).toFixed(1) + 'MHz' : fPar >= 1e3 ? (fPar / 1e3).toFixed(0) + 'kHz' : fPar.toFixed(0) + 'Hz';
       const rbX = hmMargin.left + plotSize - 4, rbY = hmMargin.top + 6;
       els.iText.setAttribute('x', rbX); els.iText.setAttribute('y', rbY + 12); els.iText.textContent = 'Iout = ' + iStr;
-      els.vText.setAttribute('x', rbX); els.vText.setAttribute('y', rbY + 26); els.vText.textContent = 'Voff = ' + vStr;
+      els.vText.setAttribute('x', rbX); els.vText.setAttribute('y', rbY + 26); els.vText.textContent = 'Voff,in = ' + vStr;
       els.fText.setAttribute('x', rbX); els.fText.setAttribute('y', rbY + 40); els.fText.textContent = 'fpar = ' + fStr;
 
       scene.add(...g);

@@ -136,18 +136,18 @@
     <div class="ol-panel" id="olPanel" aria-hidden="true">
       <div class="ol-title">Gain Explorer</div>
       <div class="ol-row">
-        <label>R<sub>G</sub> <span class="v" id="rgVal">10.0 k&Omega;</span></label>
+        <label>R<sub>G</sub> <span class="v" id="rgVal">3.2 k&Omega;</span></label>
         <input type="range" id="rgSlider" min="0" max="1000" step="1" value="500">
       </div>
       <div class="ol-row">
-        <label>Source Z<sub>s</sub> <span class="v" id="zsVal">1.0 k&Omega;</span></label>
+        <label>Source Z<sub>s</sub> <span class="v" id="zsVal">63 &Omega;</span></label>
         <input type="range" id="zsSlider" min="0" max="1000" step="1" value="200">
       </div>
       <div class="ol-readout">
-        <span class="k">Gain A<sub>v</sub></span><span class="v" id="gainVal">6.0</span>
-        <span class="k">V<sub>out</sub> (buf)</span><span class="v" id="voutVal" style="color:var(--slide-yellow)">60 mV</span>
-        <span class="k">V<sub>out</sub> (no buf)</span><span class="v" id="voutNoBufVal" style="color:var(--slide-red)">48 mV</span>
-        <span class="k">Signal lost</span><span class="v" id="lossVal" style="color:var(--slide-red)">20%</span>
+        <span class="k">Gain A<sub>v</sub> (R&Prime; = R&prime;)</span><span class="v" id="gainVal">16.8</span>
+        <span class="k">V<sub>out</sub> (buf)</span><span class="v" id="voutVal" style="color:var(--slide-yellow)">168.1 mV</span>
+        <span class="k">V<sub>out</sub> (no buf)</span><span class="v" id="voutNoBufVal" style="color:var(--slide-red)">167.1 mV</span>
+        <span class="k">Signal lost</span><span class="v" id="lossVal" style="color:var(--slide-red)">0.6%</span>
       </div>
       <div class="ol-strip" id="gainExplain">Drag Source Z to see why the buffer stage matters.</div>
     </div>
@@ -703,7 +703,7 @@
     function zsFromSlider(v) {
       return ZS_MIN * Math.pow(ZS_MAX / ZS_MIN, v / 1000);
     }
-    function computeGain(rg) { return 1 + (2 * R_FIXED) / rg; }
+    function computeGain(rg) { return 1 + (2 * R_FIXED) / rg; }  // difference stage unity: R'' = R'
     // Without buffers: source impedance forms voltage divider with R'
     // Signal actually reaching diff amp = Vdm * R' / (R' + Zs)
     function loadingFactor(zs) { return R_PRIME / (R_PRIME + zs); }

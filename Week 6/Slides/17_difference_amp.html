@@ -478,7 +478,7 @@
     const state = {
       section: 'rejection',
       tolerance: 0,
-      resistors: { Ra: 1000, Rb: 10000, Rc: 10000, Rd: 1000 },
+      resistors: { Ra: 1000, Rb: 10000, Rc: 1000, Rd: 10000 },
       rafId: null,
     };
 
@@ -511,7 +511,7 @@
 
     // ── Tolerance controls ──
     const tolBtns = document.querySelectorAll('#tolRow .quiz-btn');
-    const NOMINAL = { Ra: 1000, Rb: 10000, Rc: 10000, Rd: 1000 };
+    const NOMINAL = { Ra: 1000, Rb: 10000, Rc: 1000, Rd: 10000 };  // matched: Ra = Rc, Rb = Rd
 
     function rerollResistors() {
       const tol = state.tolerance;
@@ -601,7 +601,7 @@
       // CMRR readout
       const { Ra: ra, Rb: rb, Rc: rc, Rd: rd } = state.resistors;
       const Adiff = rb / ra;
-      const Acm = (ra * rc - rb * rd) / (ra * (rc + rd));
+      const Acm = (ra * rd - rb * rc) / (ra * (rc + rd));
       const humLeakMv = Math.abs(Acm) * HUM_AMPLITUDE * 1000;
       const cmrrText = Math.abs(Acm) < 1e-12
         ? 'CMRR: ∞ dB  ·  50 Hz hum leakage: 0 mV'
@@ -845,7 +845,7 @@
         const ecgVal = ecgTemplate(ecgPhase, currentBeat);
 
         const { Ra: ra, Rb: rb, Rc: rc, Rd: rd } = state.resistors;
-        const Acm = (ra * rc - rb * rd) / (ra * (rc + rd));
+        const Acm = (ra * rd - rb * rc) / (ra * (rc + rd));
         const Adiff = rb / ra;
         const ecgOut = Adiff * ECG_AMPLITUDE * ecgVal;
         const hum = Acm * HUM_AMPLITUDE * Math.sin(2 * Math.PI * 50 * ecgLastSampleT);

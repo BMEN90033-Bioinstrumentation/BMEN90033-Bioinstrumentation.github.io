@@ -337,7 +337,7 @@
         <text class="pot-tick-label" x="-31" y="31">0</text>
         <line class="pot-tick" x1="22.6" y1="22.6" x2="25.5" y2="25.5"/>
         <text class="pot-tick-label" x="31" y="31">11</text>
-        <text class="lbl-A" data-pot="A" x="-34" y="10">R_A · 7.7</text>
+        <text class="lbl-A" data-pot="A" x="-34" y="10">R_A · 8.0</text>
         <circle class="pot-hit" data-pot="A" cx="0" cy="0" r="30"/>
       </g>
       <!-- Channel B (bass) knob -->
@@ -354,7 +354,7 @@
         <text class="pot-tick-label" x="-31" y="31">0</text>
         <line class="pot-tick" x1="22.6" y1="22.6" x2="25.5" y2="25.5"/>
         <text class="pot-tick-label" x="31" y="31">11</text>
-        <text class="lbl-B" data-pot="B" x="-34" y="10">R_B · 4.4</text>
+        <text class="lbl-B" data-pot="B" x="-34" y="10">R_B · 5.0</text>
         <circle class="pot-hit" data-pot="B" cx="0" cy="0" r="30"/>
       </g>
       <!-- Channel C (lead) knob -->
@@ -371,7 +371,7 @@
         <text class="pot-tick-label" x="-31" y="31">0</text>
         <line class="pot-tick" x1="22.6" y1="22.6" x2="25.5" y2="25.5"/>
         <text class="pot-tick-label" x="31" y="31">11</text>
-        <text class="lbl-C" data-pot="C" x="-34" y="10">R_C · 6.6</text>
+        <text class="lbl-C" data-pot="C" x="-34" y="10">R_C · 7.0</text>
         <circle class="pot-hit" data-pot="C" cx="0" cy="0" r="30"/>
       </g>
       <!-- Feedback (R_F master) knob -->
@@ -948,12 +948,15 @@
       if (ind) ind.setAttribute('transform', `rotate(${(endDeg + 90).toFixed(2)})`);
       // Label
       const lbl = svg.querySelector(`text[data-pot="${p.ch}"]`);
-      if (lbl) lbl.textContent = `${p.labelPrefix} · ${(v * 11).toFixed(1)}`;
+      // Input resistors span R_n = 1..11 (arbitrary units). V_o = -R_F * sum(V_n / R_n),
+      // so a larger R_n makes that channel quieter: channel gain ∝ 1/R_n (capped at 1).
+      const rn = 1 + 10 * v;
+      if (lbl) lbl.textContent = `${p.labelPrefix} · ${(p.ch === 'F' ? v * 11 : rn).toFixed(1)}`;
       // Audio
       if (p.ch === 'F') {
         mixer.setMaster(v);
       } else {
-        mixer.setChannelGain(p.ch, v);
+        mixer.setChannelGain(p.ch, Math.min(1, 2 / rn));
       }
     }
 
