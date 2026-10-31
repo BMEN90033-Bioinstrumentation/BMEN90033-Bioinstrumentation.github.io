@@ -1,0 +1,54 @@
+/* bjt_semiconductors.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-ntype:    #e06050;   /* n-type region */
+    --c-ptype:    #5080d0;   /* p-type region */
+    --c-electron: #ffcc44;
+    --c-hole:     #ff66aa;
+    --c-donor:    #ff8866;   /* fixed donor ion (+) */
+    --c-acceptor: #66aaff;   /* fixed acceptor ion (-) */
+    --hero-a: var(--c-electron);
+    --hero-b: var(--c-hole);
+}
+
+[data-theme="light"] {
+    --c-ntype:    #c0392b;
+    --c-ptype:    #1d4ed8;
+    --c-electron: #b88200;
+    --c-hole:     #be185d;
+    --c-donor:    #c2410c;
+    --c-acceptor: #1d4ed8;
+}
+
+.plot-box.cross { aspect-ratio: 1.45 / 1; }
+.plot-box.conc  { aspect-ratio: 1.5 / 1; }
+
+/* HTML overlay on the cross-section canvas */
+.cs-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.cs-reg {
+    position: absolute; transform: translate(-50%, -100%);
+    text-align: center; white-space: nowrap; line-height: 1.25;
+}
+.cs-reg .t { font-size: 13px; font-weight: 600; color: var(--fg); }
+.cs-reg .d .katex { font-size: 13px !important; }
+.cs-cur { position: absolute; transform: translate(0, -50%); color: var(--muted); }
+.cs-cur.right { transform: translate(-100%, -50%); }
+.cs-cur .katex { font-size: 14px !important; }
+
+/* Legend swatches for carriers, ions and regions */
+.legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.legend .ring { display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; margin-right: 6px; vertical-align: middle; }
+.legend .ion { font-weight: 700; margin-right: 6px; }
+.legend .blk { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; opacity: 0.45; }
+.legend .blk.dep { opacity: 1; background: var(--grid-line); border: 1px dashed var(--muted); }
+
+/* Region description card (section 03) */
+.region-card {
+    padding: 14px 18px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg-panel); font-size: 15px;
+}
+.region-card h3 { margin: 0 0 8px; }
+.region-card p { font-size: 15px; }
+.region-card p.mech { margin: 0; padding-top: 10px; border-top: 1px solid var(--border); color: var(--muted); }
+.region-card .katex { font-size: 16px !important; }

@@ -297,6 +297,7 @@ strong { color: var(--fg); font-weight: 600; }
     padding: 6px 12px; cursor: pointer;
     transition: all 0.15s;
 }
+.seg-btn .katex { text-transform: none; }
 .seg-btn:hover { border-color: var(--accent); color: var(--accent); }
 .seg-btn.active {
     border-color: var(--accent); color: var(--accent);

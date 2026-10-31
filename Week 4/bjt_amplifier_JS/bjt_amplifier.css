@@ -1,0 +1,39 @@
+/* bjt_amplifier.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-ib:   #cca855;   /* base current, I_B curves, saturation limit */
+    --c-ic:   #5a9aba;   /* collector current, exact output */
+    --c-vout: #c96b5a;   /* Q-point, Shockley curve */
+    --c-vce:  #6aaa8e;   /* V_CE, tangent (linear) output */
+    --c-vbe:  #c96b5a;   /* V_BE bracket */
+    --c-vin:  #c8a8ff;   /* input signal */
+    --c-tan:  rgba(255, 255, 255, 0.8);   /* tangent line */
+    --c-guide: rgba(255, 255, 255, 0.45); /* v_BE input trace */
+    --c-load: rgba(255, 255, 255, 0.55);
+    --c-sat-band: rgba(255, 180, 60, 0.08);
+    --hero-a: var(--c-ic);
+    --hero-b: var(--c-vce);
+}
+
+[data-theme="light"] {
+    --c-ib:   #9a7410;
+    --c-ic:   #1d6fa5;
+    --c-vout: #b0442f;
+    --c-vce:  #2f8f5f;
+    --c-vbe:  #b0442f;
+    --c-vin:  #7c3aed;
+    --c-tan:  rgba(0, 0, 0, 0.75);
+    --c-guide: rgba(0, 0, 0, 0.45);
+    --c-load: rgba(0, 0, 0, 0.5);
+    --c-sat-band: rgba(184, 130, 0, 0.10);
+}
+
+.plot-box.circuit  { aspect-ratio: 1.6 / 1; }
+.plot-box.iv       { aspect-ratio: 1.4 / 1; }
+.plot-box.transfer { aspect-ratio: 1.15 / 1; }
+.plot-box.pair     { aspect-ratio: 1.3 / 1; }
+
+.legend .sw.dash { border-top-color: var(--c-load); }
+.legend .sw.dashc { height: 0; border-top: 2px dashed; }
+.legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
