@@ -696,7 +696,7 @@
         <ul>
             <li><strong>&#969; &#8810; &#969;<sub>0</sub></strong>: the angle is near 0&#176;, output tracks the input with almost no delay.</li>
             <li><strong>&#969; = &#969;<sub>0</sub></strong>: the angle is &#8722;45&#176;, the output lags the input by one-eighth of a cycle.</li>
-            <li><strong>&#969; &#8811; &#969;<sub>0</sub></strong>: the angle approaches &#8722;90&#176;. The capacitor dominates and current leads voltage by 90&#176;.</li>
+            <li><strong>&#969; &#8811; &#969;<sub>0</sub></strong>: the angle approaches &#8722;90&#176;. The capacitor dominates and the output voltage lags the input by up to 90&#176;.</li>
         </ul>
 
         <p>The time-domain plot shows the yellow input and green output. Above
@@ -915,8 +915,8 @@
         <h3 style="font-size: 16px; color: var(--text); margin: 28px 0 14px;">Open-loop vs closed-loop</h3>
 
         <p>An op-amp on its own (no external components) has a very high <strong>open-loop gain</strong>
-           A<sub>OL</sub>, typically 100,000 or more. But this gain is unstable, temperature-dependent,
-           and varies between chips. It is not usable directly.</p>
+           A<sub>OL</sub>, typically 100,000 or more. But this gain is poorly controlled, temperature-dependent,
+           and varies widely between devices. It is not usable directly.</p>
 
         <div class="canvas-container" style="height: 260px;">
             <canvas id="opamp-open-canvas"></canvas>
@@ -932,9 +932,9 @@
         </div>
 
         <div class="eq-line">
-            <span>A<sub>CL</sub> = </span>
+            <span>A<sub>CL</sub> = &#8722;</span>
             <span class="frac frac-lg">
-                <span class="num">R<sub>f</sub></span>
+                <span class="num">R<sub>2</sub></span>
                 <span class="den">R<sub>in</sub></span>
             </span>
         </div>
@@ -950,8 +950,13 @@
            open-loop response a fixed <strong>gain-bandwidth product</strong> (GBP):</p>
 
         <div class="eq-block" style="font-size: 16px; padding: 16px 24px;">
-            GBP = A<sub>CL</sub> &#215; &#969;<sub>0</sub> = constant
+            GBP = (1 + R<sub>2</sub>/R<sub>in</sub>) &#215; &#969;<sub>0</sub> = constant
         </div>
+
+        <p>The bandwidth is set by the <strong>noise gain</strong> 1 + R<sub>2</sub>/R<sub>in</sub>, not by
+           A<sub>CL</sub> directly. For a non-inverting amplifier the noise gain equals A<sub>CL</sub>; for the
+           inverting amplifier above it equals |A<sub>CL</sub>| + 1. The A<sub>v</sub> used in the plot below
+           denotes the noise gain, so &#969;<sub>0</sub> = GBP / A<sub>v</sub>.</p>
 
         <p>Reducing the gain from A<sub>OL</sub> to A<sub>CL</sub> through feedback
            increases the bandwidth by the same factor. The device therefore exchanges
@@ -962,10 +967,11 @@
                 &#969;<sub>0</sub> is low. The amplifier can only handle slow signals.</li>
             <li><strong>Low gain (A<sub>CL</sub> = 10)</strong>: modest amplification, but
                 &#969;<sub>0</sub> is 100&#215; higher. The amplifier responds to much faster signals.</li>
-            <li><strong>Unity gain (A<sub>CL</sub> = 1)</strong>: no amplification, but
+            <li><strong>Unity noise gain (voltage follower, A<sub>CL</sub> = 1)</strong>: no amplification, but
                 &#969;<sub>0</sub> equals the GBP itself. This is the maximum bandwidth
                 the amplifier can achieve, which is why datasheets call it the
-                "unity-gain bandwidth".</li>
+                "unity-gain bandwidth". An inverting amplifier with |A<sub>CL</sub>| = 1 has a noise
+                gain of 2 and therefore &#969;<sub>0</sub> = GBP/2.</li>
         </ul>
 
         <h3 style="font-size: 16px; color: var(--text); margin: 28px 0 14px;">Seeing the tradeoff</h3>
@@ -1831,7 +1837,7 @@ function drawOpampOpen() {
     ctx.textAlign = 'center';
     ctx.fillText('Open-loop: V\u2092\u1D64\u209C = A\u2092\u2097 \u00D7 V\u1D62\u2099', cx, H - 16);
     ctx.fillStyle = T.overlay25;
-    ctx.fillText('A\u2092\u2097 \u2248 100,000+    (unstable, not directly usable)', cx, H - 2);
+    ctx.fillText('A\u2092\u2097 \u2248 100,000+    (poorly controlled, not directly usable)', cx, H - 2);
 }
 
 function drawOpampFeedback() {
@@ -1974,7 +1980,7 @@ function drawOpampFeedback() {
     ctx.font = "12px 'Inter', sans-serif";
     ctx.fillStyle = T.overlay40;
     ctx.textAlign = 'center';
-    ctx.fillText('Closed-loop: A_CL = R\u2082 / R\u1D62\u2099', cx, H - 28);
+    ctx.fillText('Closed-loop: A_CL = \u2212R\u2082 / R\u1D62\u2099', cx, H - 28);
     ctx.fillStyle = T.overlay25;
     ctx.fillText('Feedback trades open-loop gain for predictability and bandwidth', cx, H - 12);
 
@@ -2219,7 +2225,7 @@ function updateReadouts() {
         regimeEl.textContent = 'Rolloff (\u221220 dB/dec)';
         regimeEl.style.color = 'var(--red)';
     } else {
-        regimeEl.textContent = 'Cutoff (\u22123 dB)';
+        regimeEl.textContent = 'Transition region';
         regimeEl.style.color = 'var(--yellow)';
     }
 

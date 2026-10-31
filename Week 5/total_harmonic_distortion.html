@@ -632,6 +632,7 @@
                 <tr><td>&lt; 0.1%</td><td>Excellent</td><td>Hi-fi audio, precision instrumentation</td></tr>
                 <tr><td>&lt; 1%</td><td>Good</td><td>Biomedical instruments (ECG, EEG)</td></tr>
                 <tr><td>1 – 5%</td><td>Noticeable</td><td>May affect signal integrity</td></tr>
+                <tr><td>5 – 10%</td><td>Significant</td><td>Visible waveform distortion</td></tr>
                 <tr><td>&gt; 10%</td><td>Heavy</td><td>Unsuitable for most measurement</td></tr>
             </tbody>
         </table>
@@ -654,13 +655,16 @@
             <li>Shift the apparent amplitude of signal components</li>
         </ul>
 
-        <p>The tradeoff in amplifier design:</p>
+        <p>The tradeoff in amplifier design (illustrative open-loop values, without global negative feedback):</p>
         <ul>
             <li><strong>Class A</strong> has the lowest THD (~1-2%) but only ~25% efficiency</li>
             <li><strong>Class AB</strong> sits in the middle: ~3-5% THD, ~55% efficiency</li>
             <li><strong>Class B</strong> suffers from crossover distortion (~5-10% THD) but reaches ~78% efficiency</li>
             <li><strong>Class D</strong> gets 90-95% efficiency; THD depends on the output filter</li>
         </ul>
+
+        <p>Global negative feedback reduces these figures substantially; Class AB amplifiers with feedback
+           routinely achieve THD below 0.1%.</p>
 
         <div class="callout">
             <strong>Design trade-off.</strong> Measurement amplifiers require low distortion, while
@@ -684,7 +688,7 @@ const state = {
 
 const PRESETS = {
     A:     { 2: 2,  3: 1,   4: 0.5, 5: 0.2 },
-    AB:    { 2: 5,  3: 3,   4: 1,   5: 0.5 },
+    AB:    { 2: 0.5, 3: 3,  4: 0.2, 5: 1.5 },  // odd-dominated (push-pull symmetry): THD = 3.4%
     B:     { 2: 3,  3: 8,   4: 1,   5: 4   },
     clear: { 2: 0,  3: 0,   4: 0,   5: 0   },
 };

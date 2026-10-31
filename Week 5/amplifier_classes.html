@@ -371,8 +371,8 @@
             <div class="legend" id="waveform-legend">
                 <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.35)"></div>V<sub>in</sub></div>
                 <div class="legend-item"><div class="legend-dot" style="background:#6aaa8e"></div>NPN</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#5080d0"></div>PNP</div>
-                <div class="legend-item"><div class="legend-dot" style="background:#e06050"></div>Crossover</div>
+                <div class="legend-item" id="legend-pnp" style="display:none"><div class="legend-dot" style="background:#5080d0"></div>PNP</div>
+                <div class="legend-item" id="legend-crossover" style="display:none"><div class="legend-dot" style="background:#e06050"></div>Crossover</div>
             </div>
         </div>
         <div class="panel-body"><canvas id="waveform-canvas"></canvas></div>
@@ -511,6 +511,8 @@ function setClass(cls) {
     biasSlider.disabled = isPushPull;
     biasNote.style.display = isPushPull ? 'inline' : 'none';
     biasNote.textContent = cls === 'B' ? 'Fixed at cutoff' : 'Fixed near cutoff';
+    document.getElementById('legend-pnp').style.display = isPushPull ? '' : 'none';
+    document.getElementById('legend-crossover').style.display = isPushPull ? '' : 'none';
     waveHistory = [];
     updateAll();
 }
@@ -546,7 +548,11 @@ function computeDerived() {
 
     dcPower = VCC * icq;
 
-    const voutPeak = Math.min(vinPeak * GAIN, vceq - VCE_SAT, VCC - vceq);
+    // Class A: swing limited by saturation and cutoff about V_CEQ.
+    // Push-pull (split ±VCC): peak set by the dead zone and the rails, taken from the output model.
+    const voutPeak = ampClass === 'A'
+        ? Math.min(vinPeak * GAIN, vceq - VCE_SAT, VCC - vceq)
+        : Math.abs(computeOutputSample(vinPeak));
     const clippedVoutPeak = Math.max(0, voutPeak);
 
     if (ampClass === 'A') {
@@ -1036,7 +1042,7 @@ function drawClassBCircuit(ctx, w, h, lineColor, activeColor, componentColor, la
     ctx.font = labelFont;
     ctx.fillStyle = '#5080d0';
     ctx.textAlign = 'right';
-    ctx.fillText('v_in', colIn - 5, rowMid + 4);
+    ctx.fillText(GAIN + '\u00B7v_in', colIn - 5, rowMid + 4);
     ctx.restore();
 
     // ── RL: load resistor (vertical from Cout output to ground) ──
@@ -1204,7 +1210,7 @@ function drawClassABCircuit(ctx, w, h, lineColor, activeColor, componentColor, l
     ctx.font = labelFont;
     ctx.fillStyle = '#5080d0';
     ctx.textAlign = 'right';
-    ctx.fillText('v_in', colIn - 5, rowMid + 4);
+    ctx.fillText(GAIN + '\u00B7v_in', colIn - 5, rowMid + 4);
     ctx.restore();
 
     // ── RL ──
@@ -1778,12 +1784,14 @@ function computeOutputSample(vinInstant) {
 
     if (ampClass === 'A') {
         const vout = -gainedSignal;
-        const upperClip = vceq - VCE_SAT;
-        const lowerClip = -(VCC - vceq);
+        // Inverting CE stage: positive excursion ends at cutoff (v_C = VCC),
+        // negative excursion at saturation (v_CE = VCE_SAT)
+        const upperClip = VCC - vceq;
+        const lowerClip = -(vceq - VCE_SAT);
         return Math.max(lowerClip, Math.min(upperClip, vout));
     } else if (ampClass === 'B') {
-        // Push-pull emitter follower: no phase inversion
-        // NPN conducts on positive half, PNP on negative half
+        // Push-pull emitter follower (A_v ≈ 1) fed by a driver stage of gain GAIN (not drawn).
+        // Dead zone of ±0.6 V at the bases, i.e. ±0.6/GAIN at v_in. NPN conducts on positive half, PNP on negative half
         const deadZone = 0.6;
         const scaledDead = deadZone / GAIN;
         if (Math.abs(vinInstant) < scaledDead) {
@@ -1878,8 +1886,8 @@ function drawWaveforms() {
             const vout = waveHistory[i].vout;
 
             if (ampClass === 'A') {
-                // Class A: single transistor, colour by output polarity
-                ctx.strokeStyle = vout >= 0 ? npnCol : pnpCol;
+                // Class A: single NPN conducts over the full cycle
+                ctx.strokeStyle = npnCol;
             } else {
                 // Class B/AB: push-pull emitter follower (no inversion)
                 // Positive output = NPN conducting, negative output = PNP conducting
@@ -1955,6 +1963,7 @@ function updateExplanation() {
         html += '<h3>Class B: Half-cycle conduction (push-pull)</h3>';
         html += '<p>Two complementary transistors (NPN and PNP) each conduct for exactly <strong>180&deg;</strong> of the input cycle. ';
         html += 'The NPN handles the positive half-cycle and the PNP handles the negative half-cycle.</p>';
+        html += '<p>The emitter followers have a voltage gain of approximately 1. The bases are driven by a preceding driver stage of gain ' + GAIN + ' (not drawn), so the overall gain is approximately ' + GAIN + '.</p>';
         html += '<p>With no input signal, both transistors are off. The zero quiescent current reduces standby power dissipation and increases efficiency relative to Class A.</p>';
 
         if (isLowAmplitude && (ampClass === 'B')) {
@@ -1976,6 +1985,7 @@ function updateExplanation() {
         html += 'Each transistor conducts for <strong>slightly more than 180&deg;</strong>, so at least one device conducts at each zero crossing.</p>';
         html += '<p>The diodes (D1, D2) create approximately 1.2 V of bias and keep both transistors near conduction. ';
         html += 'This reduces Class B crossover distortion while retaining much of its efficiency advantage.</p>';
+        html += '<p>As in Class B, the emitter followers have a voltage gain of approximately 1; a driver stage of gain ' + GAIN + ' (not drawn) supplies the bases.</p>';
 
         if (isLowAmplitude) {
             html += '<div class="physics-note"><strong>Smooth crossover:</strong> Unlike Class B, the output transitions smoothly through zero. ';

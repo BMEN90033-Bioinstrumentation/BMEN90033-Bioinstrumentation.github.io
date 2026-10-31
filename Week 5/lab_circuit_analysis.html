@@ -822,7 +822,7 @@
 
             <div class="callout warn">
                 <strong>Note:</strong> At very low frequencies (below &omega;<sub>Z</sub>), the emitter bypass is inactive and the gain reduces to
-                g<sub>m</sub>R<sub>C</sub>&prime; / (1 + g<sub>m</sub>R<sub>E</sub>) &approx; 1.94 (5.8 dB).
+                g<sub>m</sub>R<sub>C</sub>&prime; / (1 + g<sub>m</sub>R<sub>E</sub>) &approx; 1.91 (5.6 dB).
                 The bypass capacitor provides a gain boost of about 27 dB in the midband. The high-frequency
                 response is limited by the Miller effect, with C<sub>in,Miller</sub> &approx; 202 pF significantly exceeding the intrinsic C<sub>&pi;</sub>.
             </div>
@@ -967,6 +967,8 @@
         const VT = 0.026;
         const VBB = 1.667;
         const VBE = 0.7;
+        const VCC = 5;
+        const VCE_SAT = 0.2;
 
         // ─── Default slider values ───
         const DEFAULTS = { cc1: -1, cc2: -1, ce: 2.342, rl: 3.301, rc: 3.301, beta: 200 };
@@ -984,7 +986,12 @@
             const gm   = IC / VT;
             const r_pi = beta / gm;
             const Rin  = (RBB * r_pi) / (RBB + r_pi);
-            const RC_eff = (RC * RL) / (RC + RL);
+            // Edge of saturation: V_CE = VCC - IC(RC + RE) must stay above VCE_SAT.
+            // ponytail: gain is held at the edge-of-saturation value; real gain collapses in saturation
+            const RC_max = (VCC - VCE_SAT) / IC - RE;
+            const sat = RC > RC_max;
+            const RC_ac = Math.min(RC, RC_max);
+            const RC_eff = (RC_ac * RL) / (RC_ac + RL);
             const Amid = (Rin / (Rin + RS)) * gm * RC_eff;
 
             // Low-frequency poles & zero
@@ -1003,7 +1010,7 @@
             const wH1 = 1 / (Rth_b * Cin_Miller);
             const wH2 = 1 / (RC_eff * Cmu);
 
-            return { CC1, CC2, CE, RL, RC, beta, gm, r_pi, Rin, RC_eff, Amid, wL1, wL2, wL3, wZ, wH1, wH2 };
+            return { CC1, CC2, CE, RL, RC, beta, gm, r_pi, Rin, RC_eff, Amid, wL1, wL2, wL3, wZ, wH1, wH2, sat };
         }
 
         // ─── Complex arithmetic helpers ───
@@ -1129,7 +1136,7 @@
             const markers = [
                 { f: fL1, label: 'f\u2097\u2081=' + fmtFreq(fL1), color: '#e06050' },
                 { f: fL2, label: 'f\u2097\u2082=' + fmtFreq(fL2), color: '#e06050' },
-                { f: fH1, label: 'f\u2091\u2081=' + fmtFreq(fH1), color: '#5b9bd5' },
+                { f: fH1, label: 'f\u2095\u2081=' + fmtFreq(fH1), color: '#5b9bd5' },
             ];
             drawMarkers(ctx, markers, xOf, pad, ph, logMin, logMax, pw);
 
@@ -1270,7 +1277,7 @@
             const markers = [
                 { f: fL1, label: 'f\u2097\u2081=' + fmtFreq(fL1), color: '#e06050' },
                 { f: fL2, label: 'f\u2097\u2082=' + fmtFreq(fL2), color: '#e06050' },
-                { f: fH1, label: 'f\u2091\u2081=' + fmtFreq(fH1), color: '#5b9bd5' },
+                { f: fH1, label: 'f\u2095\u2081=' + fmtFreq(fH1), color: '#5b9bd5' },
             ];
             drawMarkers(ctx, markers, xOf, pad, ph, logMin, logMax, pw);
 
@@ -1335,7 +1342,7 @@
             // Find plot range by sampling
             let maxVal = 1;
             for (let i = 0; i <= 1000; i++) {
-                const logW = 0 + 8 * i / 1000;
+                const logW = 0 + 10 * i / 1000;  // 1 to 1e10 rad/s so the locus returns to the origin
                 const w = Math.pow(10, logW);
                 const h = evalH(w, P);
                 maxVal = Math.max(maxVal, Math.abs(h.re), Math.abs(h.im));
@@ -1401,7 +1408,7 @@
             let first = true;
             const points = [];
             for (let i = 0; i <= 1000; i++) {
-                const logW = 0 + 8 * i / 1000;
+                const logW = 0 + 10 * i / 1000;  // 1 to 1e10 rad/s so the locus returns to the origin
                 const w = Math.pow(10, logW);
                 const h = evalH(w, P);
                 points.push({ w, re: h.re, im: h.im });
@@ -1673,7 +1680,8 @@
             const fH1 = P.wH1 / (2 * Math.PI);
             const midDb = 20 * Math.log10(P.Amid);
 
-            document.getElementById('ro-amid').textContent = P.Amid.toFixed(1) + ' (' + midDb.toFixed(1) + ' dB)';
+            document.getElementById('ro-amid').textContent = P.Amid.toFixed(1) + ' (' + midDb.toFixed(1) + ' dB)'
+                + (P.sat ? ' [saturated: V_CE < 0.2 V, reduce R_C]' : '');
             document.getElementById('ro-fl1').textContent  = fmtFreq(fL1);
             document.getElementById('ro-fl2').textContent  = fmtFreq(fL2);
             document.getElementById('ro-fl3').textContent  = fmtFreq(fL3);
