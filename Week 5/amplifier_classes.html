@@ -1,2048 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033: Interactive Amplifier Classes</title>
+    <title>BMEN90033 · Amplifier Classes</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <style>
-        :root {
-            --bg-deep: #1a1a1e;
-            --bg-panel: #222226;
-            --bg-card: #2a2a2f;
-            --border: rgba(255,255,255,0.08);
-            --accent: var(--site-accent);
-            --accent-dim: #5a9a7e;
-            --text: #ffffff;
-            --text-dim: #a0a0a0;
-            --text-muted: #606060;
-            --col-input: #5080d0;
-            --col-output: #6aaa8e;
-            --col-heat: #e06050;
-            --col-power-in: #5080d0;
-        }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
-        [data-theme="light"] {
-            --bg: #f5f5f7;
-            --bg-deep: #f5f5f7;
-            --bg-panel: rgba(255,255,255,0.92);
-            --bg-card: #eeeef0;
-            --border: rgba(0,0,0,0.1);
-            --border-hover: rgba(0,0,0,0.2);
-            --accent: var(--site-accent);
-            --accent-dim: #357a60;
-            --text: #1a1a1e;
-            --text-dim: #555555;
-            --text-muted: #888888;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-deep);
-            color: var(--text);
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        header {
-            padding: 0.55rem 1.25rem;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-panel);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .header-left { display: flex; align-items: center; gap: 12px; }
-
-        .header-left .back-btn {
-            position: static;
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 4px 10px; border-radius: 3px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            color: var(--text-dim); text-decoration: none;
-            font-size: 11px; font-weight: 500; transition: all 0.15s;
-        }
-        .header-left .back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.18); }
-
-        h1 { font-size: 0.85rem; font-weight: 600; letter-spacing: -0.01em; }
-        .header-sub { font-size: 0.65rem; color: var(--text-dim); margin-top: 1px; }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            height: calc(100vh - 42px);
-            gap: 0;
-        }
-
-        .panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            padding: 0.4rem 0.75rem;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.72rem;
-            color: var(--text-dim);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-card);
-            flex-shrink: 0;
-        }
-        .panel-header strong { color: var(--text); font-weight: 500; font-size: 0.75rem; }
-
-        .panel-body {
-            flex: 1;
-            position: relative;
-            min-height: 0;
-        }
-        .panel-body canvas { display: block; width: 100%; height: 100%; }
-
-        /* Controls panel */
-        .controls-panel {
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            overflow-y: auto;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .ctrl-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 3px;
-            padding: 0.45rem 0.55rem;
-        }
-
-        .ctrl-title {
-            font-size: 0.65rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            margin-bottom: 0.35rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .ctrl-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 0.3rem;
-        }
-        .ctrl-row:last-child { margin-bottom: 0; }
-
-        .ctrl-row label {
-            font-size: 0.68rem;
-            color: var(--text-dim);
-            min-width: 70px;
-            flex-shrink: 0;
-        }
-
-        .ctrl-row input[type=range] {
-            flex: 1;
-            -webkit-appearance: none;
-            background: rgba(255,255,255,0.18);
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-        .ctrl-row input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        .ctrl-val {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--text);
-            min-width: 56px;
-            text-align: right;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 3px;
-        }
-        .toggle-btn {
-            flex: 1;
-            padding: 5px 10px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            font-weight: 500;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
-        }
-        .toggle-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-        .toggle-btn.active {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.18);
-            color: var(--text);
-        }
-
-        /* Power bars */
-        .power-bar-container {
-            margin-top: 4px;
-        }
-        .power-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-        .power-bar-label {
-            font-size: 0.6rem;
-            color: var(--text-dim);
-            min-width: 70px;
-            flex-shrink: 0;
-        }
-        .power-bar-track {
-            flex: 1;
-            height: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .power-bar-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.15s ease;
-        }
-        .power-bar-val {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            color: var(--text-dim);
-            min-width: 42px;
-            text-align: right;
-        }
-        .efficiency-readout {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-align: center;
-            padding: 4px 0;
-            color: var(--accent);
-        }
-
-        /* Explanation panel */
-        .explanation-panel {
-            padding: 0.75rem;
-            overflow-y: auto;
-            font-size: 0.78rem;
-            line-height: 1.6;
-            color: var(--text-dim);
-        }
-        .explanation-panel h3 {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 0.5rem;
-        }
-        .explanation-panel p {
-            margin-bottom: 0.5rem;
-        }
-        .physics-note {
-            background: rgba(106,170,142,0.08);
-            border: 1px solid rgba(106,170,142,0.2);
-            border-radius: 3px;
-            padding: 0.5rem 0.65rem;
-            margin-top: 0.5rem;
-            font-size: 0.72rem;
-            line-height: 1.5;
-        }
-        .physics-note strong {
-            color: var(--accent);
-        }
-
-        /* Legend */
-        .legend {
-            display: flex;
-            gap: 0.85rem;
-            font-size: 0.65rem;
-            flex-wrap: wrap;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-dim);
-        }
-        .legend-dot {
-            width: 8px; height: 8px;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .transport-bar {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-card);
-            flex-shrink: 0;
-        }
-        .transport-bar input[type=range] {
-            -webkit-appearance: none;
-            background: rgba(255,255,255,0.18);
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-        .transport-bar input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-        }
-        [data-theme="light"] .back-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #555; }
-        [data-theme="light"] .back-btn:hover { color: #1a1a1e; border-color: rgba(0,0,0,0.2); }
-        [data-theme="light"] .ctrl-val { color: #1a1a1e; }
-        [data-theme="light"] .toggle-btn:hover { background: rgba(0,0,0,0.06); color: #1a1a1e; }
-        [data-theme="light"] .toggle-btn.active { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.15); color: #1a1a1e; }
-        [data-theme="light"] .toggle-btn { background: rgba(0,0,0,0.03); }
-        [data-theme="light"] .ctrl-row input[type=range] { background: rgba(0,0,0,0.15); }
-        [data-theme="light"] .ctrl-row input[type=range]::-webkit-slider-thumb { background: #333; }
-        [data-theme="light"] .power-bar-track { background: rgba(0,0,0,0.04); }
-        [data-theme="light"] .transport-bar input[type=range] { background: rgba(0,0,0,0.15); }
-        [data-theme="light"] .transport-bar input[type=range]::-webkit-slider-thumb { background: #333; }
-    </style>
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
+    <link rel="stylesheet" href="amplifier_classes_JS/amplifier_classes.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$',  right: '$',  display: false }
+            ],
+            throwOnError: false
+        });"></script>
+
     <script src="../theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 </head>
+
 <body>
 
-<header>
-    <div class="header-left">
-        <a class="back-btn" href="../index.html">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 12H5" />
-                <path d="M12 19l-7-7 7-7" />
-            </svg>
-            Back
-        </a>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 5</span></div>
+    <a class="back-btn" href="../index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+    </a>
+
+    <!-- ================= LANDING ================= -->
+    <section class="landing">
         <div>
-            <h1>Amplifier Classes</h1>
-            <div class="header-sub">Week 5: Amplifiers</div>
+            <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
+            <h1 class="hero">Power amplifier <em>classes</em></h1>
+            <p class="sub">An output stage is classified by its conduction angle, the fraction of each input cycle
+                during which an output device conducts. Class A conducts over the whole cycle and is linear but
+                inefficient. Class B splits the cycle between two complementary devices and is efficient but
+                distorts near zero. Class AB adds a small standing bias to remove most of that distortion. This page
+                compares the three circuits, their operating points, their waveforms and their power budgets.</p>
+            <div class="tags">
+                <span class="field-tag">conduction angle</span>
+                <span class="field-tag">Q-point</span>
+                <span class="field-tag">push-pull</span>
+                <span class="field-tag">crossover distortion</span>
+                <span class="field-tag">efficiency</span>
+            </div>
         </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-        <span id="efficiency-badge" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:3px 8px;border-radius:3px;background:rgba(106,170,142,0.15);color:var(--accent);font-weight:500;">&eta; = 25%</span>
-    </div>
-</header>
+        <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
+    </section>
 
-<div class="main-layout">
-    <!-- Top-left: Circuit schematic -->
-    <div class="panel">
-        <div class="panel-header">
-            <strong>Circuit Schematic</strong>
-            <div class="legend">
-                <div class="legend-item"><div class="legend-dot" style="background:var(--col-input)"></div>V<sub>in</sub></div>
-                <div class="legend-item"><div class="legend-dot" style="background:var(--col-output)"></div>V<sub>out</sub></div>
-            </div>
-        </div>
-        <div class="panel-body"><canvas id="circuit-canvas"></canvas></div>
-    </div>
+    <!-- ================= 01 · CIRCUITS ================= -->
+    <section class="scene" id="sec-circuit">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>conduction angle</span></div>
+            <h2>Three output stages</h2>
 
-    <!-- Top-right: Waveforms -->
-    <div class="panel">
-        <div class="panel-header">
-            <strong>Input / Output Waveforms</strong>
-            <div class="legend" id="waveform-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.35)"></div>V<sub>in</sub></div>
-                <div class="legend-item"><div class="legend-dot" style="background:#6aaa8e"></div>NPN</div>
-                <div class="legend-item" id="legend-pnp" style="display:none"><div class="legend-dot" style="background:#5080d0"></div>PNP</div>
-                <div class="legend-item" id="legend-crossover" style="display:none"><div class="legend-dot" style="background:#e06050"></div>Crossover</div>
-            </div>
-        </div>
-        <div class="panel-body"><canvas id="waveform-canvas"></canvas></div>
-        <div class="transport-bar">
-            <button class="toggle-btn active" id="btn-pause" onclick="togglePause()" style="padding:3px 10px;flex:none;width:32px;">&#9646;&#9646;</button>
-            <input type="range" id="sl-speed" min="5" max="200" value="100" oninput="setSpeed(this.value)" style="flex:1;">
-            <span class="ctrl-val" id="val-speed" style="min-width:36px;font-size:0.6rem;">1.0x</span>
-        </div>
-    </div>
+            <p class="lead">The class of an amplifier is set by the bias of its output devices, which fixes the
+                conduction angle $\theta_c$: the portion of the $360^\circ$ input cycle over which each device
+                carries current.</p>
 
-    <!-- Bottom-left: Controls + Power -->
-    <div class="controls-panel">
-        <div class="ctrl-section">
-            <div class="ctrl-title">Amplifier Class</div>
-            <div class="btn-group">
-                <button class="toggle-btn active" id="btn-classA" onclick="setClass('A')">Class A</button>
-                <button class="toggle-btn" id="btn-classB" onclick="setClass('B')">Class B</button>
-                <button class="toggle-btn" id="btn-classAB" onclick="setClass('AB')">Class AB</button>
+            <ul class="bullets">
+                <li><strong>class A</strong>, $\theta_c = 360^\circ$: a single common-emitter transistor is biased
+                    in the active region by the divider $R_1$, $R_2$ and conducts for the entire cycle. It draws
+                    supply current even with no input.</li>
+                <li><strong>class B</strong>, $\theta_c = 180^\circ$: a complementary NPN and PNP pair of emitter
+                    followers. The NPN conducts on the positive half-cycle and the PNP on the negative half-cycle;
+                    with no input both are off.</li>
+                <li><strong>class AB</strong>, $\theta_c$ slightly above $180^\circ$: the push-pull pair with two
+                    diodes between the bases. The diodes hold each base about one junction drop from the input
+                    node, so both devices sit at the edge of conduction.</li>
+            </ul>
+
+            <p>The emitter followers of classes B and AB have a voltage gain close to 1. In this model their bases
+                are driven by a preceding stage of gain 20, drawn as the source $20\,v_\text{in}$, so the overall
+                gain of all three circuits is about 20. The class A stage is inverting.</p>
+
+            <p>The animated dots show where current flows during the cycle. Their opacity follows the conducting
+                device: in class B only one half of the pair carries current at a time, and near the zero crossing
+                neither does.</p>
+
+            <div class="callout">
+                In class AB the readouts beside each base show the base voltages one diode drop either side of the
+                input node. Both devices carry current at the zero crossing, which is the property that removes the
+                class B dead zone.
             </div>
         </div>
-        <div class="ctrl-section">
-            <div class="ctrl-title">Input Signal</div>
-            <div class="ctrl-row">
-                <label>Amplitude</label>
-                <input type="range" id="sl-amplitude" min="0" max="100" value="30" oninput="setAmplitude(this.value)">
-                <span class="ctrl-val" id="val-amplitude">0.30 V</span>
-            </div>
-        </div>
-        <div class="ctrl-section">
-            <div class="ctrl-title">Bias Point</div>
-            <div class="ctrl-row">
-                <label>Q-Point</label>
-                <input type="range" id="sl-bias" min="0" max="100" value="50" oninput="setBias(this.value)">
-                <span class="ctrl-val" id="val-bias">I<sub>CQ</sub> 5.0 mA</span>
-                <span class="ctrl-val" id="bias-fixed-note" style="display:none; color:var(--col-overlay-40); font-size:0.75rem;">Fixed at cutoff</span>
-            </div>
-        </div>
-        <div class="ctrl-section">
-            <div class="ctrl-title">Power Budget</div>
-            <div class="power-bar-container">
-                <div class="power-bar-row">
-                    <span class="power-bar-label">DC Input</span>
-                    <div class="power-bar-track"><div class="power-bar-fill" id="bar-dc" style="width:80%;background:var(--col-power-in)"></div></div>
-                    <span class="power-bar-val" id="val-dc">120 mW</span>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="cls" data-value="A">class A</button>
+                        <button class="seg-btn" data-param="cls" data-value="B">class B</button>
+                        <button class="seg-btn" data-param="cls" data-value="AB">class AB</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$\hat{v}_\text{in}$</span>
+                        <input type="range" data-param="amp" min="0" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
                 </div>
-                <div class="power-bar-row">
-                    <span class="power-bar-label">Signal Out</span>
-                    <div class="power-bar-track"><div class="power-bar-fill" id="bar-signal" style="width:20%;background:var(--col-output)"></div></div>
-                    <span class="power-bar-val" id="val-signal">30 mW</span>
+                <div class="plot-box circuit" data-anim>
+                    <div class="label" id="circuit-label">circuit</div>
+                    <svg class="bode" id="plot-circuit"></svg>
                 </div>
-                <div class="power-bar-row">
-                    <span class="power-bar-label">Heat</span>
-                    <div class="power-bar-track"><div class="power-bar-fill" id="bar-heat" style="width:60%;background:var(--col-heat)"></div></div>
-                    <span class="power-bar-val" id="val-heat">90 mW</span>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-npn)"></span>NPN current</span>
+                    <span><span class="sw" style="background:var(--c-pnp)"></span>PNP current</span>
+                    <span><span class="sw" style="background:var(--c-bias)"></span>bias current</span>
+                    <span><span class="sw" style="background:var(--c-vin)"></span>input signal</span>
+                    <span><span class="sw" style="background:var(--c-dead)"></span>blocked in dead zone</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">class</span><span class="v" data-out="cls"></span></div>
+                    <div class="item"><span class="k">$\theta_c$</span><span class="v" data-out="angle"></span></div>
+                    <div class="item"><span class="k">instantaneous state</span><span class="v" data-out="state"></span></div>
                 </div>
             </div>
-            <div class="efficiency-readout" id="efficiency-readout">&eta; = 25%</div>
         </div>
-    </div>
+    </section>
 
-    <!-- Bottom-right: Explanation -->
-    <div class="panel">
-        <div class="panel-header"><strong>Explanation</strong></div>
-        <div class="panel-body explanation-panel" id="explanation-panel">
+    <!-- ================= 02 · LOAD LINE ================= -->
+    <section class="scene" id="sec-loadline">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>bias and swing</span></div>
+            <h2>The Q-point on the load line</h2>
+
+            <p class="lead">With $V_{CC} = 12\,\text{V}$ and $R_C = 1.2\,\text{k}\Omega$ the collector loop
+                constrains the transistor to the load line</p>
+
+            <div class="eq-block">$$I_C = \frac{V_{CC} - V_{CE}}{R_C}$$</div>
+
+            <p>which runs from $V_{CE} = V_{CC}$ at cutoff to $I_C = V_{CC}/R_C = 10\,\text{mA}$ at saturation.
+                The bias network places the quiescent point $Q$ at $(V_{CEQ}, I_{CQ})$ on this line, and the
+                signal moves the operating point along it.</p>
+
+            <p>The class A output is the AC swing of the collector about $V_{CEQ}$. It reaches cutoff when the
+                collector rises to $V_{CC}$ and saturation when $v_{CE}$ falls to
+                $V_{CE(\text{sat})} = 0.2\,\text{V}$, so with the stage gain $A_v = 20$ the peak output swing is</p>
+
+            <div class="eq-block">$$\hat{v}_\text{out} = \min\!\left(A_v \hat{v}_\text{in},\; V_{CEQ} - V_{CE(\text{sat})},\; V_{CC} - V_{CEQ}\right)$$</div>
+
+            <p>A Q-point at the centre of the line gives the largest symmetric swing. Moving it towards either end
+                shortens the swing on that side, and the output then clips asymmetrically.</p>
+
+            <p>Classes B and AB place $Q$ at, or just above, cutoff. Each device then swings from $Q$ towards
+                saturation over its own half-cycle and is idle for the other half, which is the origin of their
+                higher efficiency.</p>
+
+            <div class="callout">
+                The bias slider applies to class A only. Selecting class B fixes $I_{CQ} = 0$; selecting class AB
+                fixes $I_{CQ} = 0.5\,\text{mA}$.
+            </div>
         </div>
-    </div>
-</div>
 
-<script>
-// ═══════════════════════════════════════════════════════════════
-//  Amplifier Classes — Interactive Visualization
-// ═══════════════════════════════════════════════════════════════
-
-// ─── Constants ───
-const VCC = 12;
-const VCE_SAT = 0.2;
-const MAX_IC = 10;
-const RC = 1200;
-const GAIN = 20;
-
-// ─── State ───
-let ampClass = 'A';
-let amplitude = 30;
-let biasPoint = 50;
-let simTime = 0;
-let simSpeed = 1;          // 0.05 to 2.0x speed multiplier
-
-// ─── Derived state ───
-let instantVin = 0;      // current instantaneous input voltage (updated each frame)
-let vinPeak = 0;
-let icq = 0;
-let vceq = 0;
-let dcPower = 0;
-let signalPower = 0;
-let heatPower = 0;
-let efficiency = 0;
-
-// ─── Canvas setup ───
-const circuitCanvas = document.getElementById('circuit-canvas');
-const waveformCanvas = document.getElementById('waveform-canvas');
-const circuitCtx = circuitCanvas.getContext('2d');
-const waveformCtx = waveformCanvas.getContext('2d');
-
-function resizeCanvas(canvas) {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { w: rect.width, h: rect.height };
-}
-
-let circuitSize, waveformSize;
-function resizeAll() {
-    circuitSize = resizeCanvas(circuitCanvas);
-    waveformSize = resizeCanvas(waveformCanvas);
-}
-window.addEventListener('resize', () => { resizeAll(); updateAll(); });
-resizeAll();
-
-// ─── Control handlers ───
-function setClass(cls) {
-    ampClass = cls;
-    document.getElementById('btn-classA').classList.toggle('active', cls === 'A');
-    document.getElementById('btn-classB').classList.toggle('active', cls === 'B');
-    document.getElementById('btn-classAB').classList.toggle('active', cls === 'AB');
-
-    if (cls === 'A') biasPoint = 50;
-    else if (cls === 'B') biasPoint = 0;
-    else biasPoint = 5;
-
-    const biasSlider = document.getElementById('sl-bias');
-    const biasNote = document.getElementById('bias-fixed-note');
-    const isPushPull = (cls === 'B' || cls === 'AB');
-    biasSlider.value = biasPoint;
-    biasSlider.disabled = isPushPull;
-    biasNote.style.display = isPushPull ? 'inline' : 'none';
-    biasNote.textContent = cls === 'B' ? 'Fixed at cutoff' : 'Fixed near cutoff';
-    document.getElementById('legend-pnp').style.display = isPushPull ? '' : 'none';
-    document.getElementById('legend-crossover').style.display = isPushPull ? '' : 'none';
-    waveHistory = [];
-    updateAll();
-}
-
-function setAmplitude(val) {
-    amplitude = parseInt(val);
-    updateAll();
-}
-
-function setBias(val) {
-    biasPoint = parseInt(val);
-    updateAll();
-}
-
-function setSpeed(val) {
-    simSpeed = parseInt(val) / 100;
-    document.getElementById('val-speed').textContent = simSpeed.toFixed(1) + 'x';
-}
-
-let paused = false;
-function togglePause() {
-    paused = !paused;
-    const btn = document.getElementById('btn-pause');
-    btn.innerHTML = paused ? '&#9654;' : '&#9646;&#9646;';
-    btn.classList.toggle('active', !paused);
-}
-
-function computeDerived() {
-    vinPeak = amplitude / 100;
-    icq = (biasPoint / 100) * MAX_IC;
-    vceq = VCC - (icq / 1000) * RC;
-    if (vceq < VCE_SAT) vceq = VCE_SAT;
-
-    dcPower = VCC * icq;
-
-    // Class A: swing limited by saturation and cutoff about V_CEQ.
-    // Push-pull (split ±VCC): peak set by the dead zone and the rails, taken from the output model.
-    const voutPeak = ampClass === 'A'
-        ? Math.min(vinPeak * GAIN, vceq - VCE_SAT, VCC - vceq)
-        : Math.abs(computeOutputSample(vinPeak));
-    const clippedVoutPeak = Math.max(0, voutPeak);
-
-    if (ampClass === 'A') {
-        signalPower = (clippedVoutPeak * clippedVoutPeak) / (2 * RC) * 1000;
-    } else if (ampClass === 'B') {
-        const iPeak = clippedVoutPeak / RC * 1000;
-        dcPower = 2 * VCC * iPeak / Math.PI;
-        signalPower = (clippedVoutPeak * clippedVoutPeak) / (2 * RC) * 1000;
-    } else if (ampClass === 'AB') {
-        const iPeak = clippedVoutPeak / RC * 1000;
-        const iBias = icq;
-        dcPower = 2 * VCC * (iPeak / Math.PI + iBias);
-        signalPower = (clippedVoutPeak * clippedVoutPeak) / (2 * RC) * 1000;
-    }
-
-    heatPower = Math.max(0, dcPower - signalPower);
-    efficiency = dcPower > 0 ? (signalPower / dcPower) * 100 : 0;
-}
-
-function updateUI() {
-    document.getElementById('val-amplitude').textContent = (amplitude / 100).toFixed(2) + ' V';
-    document.getElementById('val-bias').innerHTML = 'I<sub>CQ</sub> ' + icq.toFixed(1) + ' mA';
-
-    const maxPower = Math.max(dcPower, 1);
-    document.getElementById('bar-dc').style.width = '100%';
-    document.getElementById('val-dc').textContent = dcPower.toFixed(0) + ' mW';
-
-    document.getElementById('bar-signal').style.width = (signalPower / maxPower * 100).toFixed(1) + '%';
-    document.getElementById('val-signal').textContent = signalPower.toFixed(0) + ' mW';
-
-    document.getElementById('bar-heat').style.width = (heatPower / maxPower * 100).toFixed(1) + '%';
-    document.getElementById('val-heat').textContent = heatPower.toFixed(0) + ' mW';
-
-    const effStr = '\u03B7 = ' + efficiency.toFixed(0) + '%';
-    document.getElementById('efficiency-readout').textContent = effStr;
-    document.getElementById('efficiency-badge').textContent = effStr;
-
-}
-
-function updateAll() {
-    computeDerived();
-    updateUI();
-    drawCircuit();
-    drawWaveforms();
-    updateExplanation();
-}
-
-// ─── Drawing helpers ───
-const RESISTOR_BODY = 30;  // fixed body length for all resistors
-const RESISTOR_W = 7;      // half-width of resistor rectangle
-
-function drawResistor(ctx, x1, y1, x2, y2, label, labelColor, labelFont) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-
-    // Centre the fixed-size body along the span
-    const mid = len / 2;
-    const halfBody = RESISTOR_BODY / 2;
-    const bodyStart = mid - halfBody;
-    const bodyEnd = mid + halfBody;
-
-    // Lead wires
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x1 + ux * bodyStart, y1 + uy * bodyStart);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x1 + ux * bodyEnd, y1 + uy * bodyEnd);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    // Rectangle body
-    const bx = x1 + ux * bodyStart;
-    const by = y1 + uy * bodyStart;
-    ctx.beginPath();
-    ctx.moveTo(bx + px * RESISTOR_W, by + py * RESISTOR_W);
-    ctx.lineTo(bx + px * RESISTOR_W + ux * RESISTOR_BODY, by + py * RESISTOR_W + uy * RESISTOR_BODY);
-    ctx.lineTo(bx - px * RESISTOR_W + ux * RESISTOR_BODY, by - py * RESISTOR_W + uy * RESISTOR_BODY);
-    ctx.lineTo(bx - px * RESISTOR_W, by - py * RESISTOR_W);
-    ctx.closePath();
-    ctx.stroke();
-
-    if (label) {
-        ctx.save();
-        ctx.font = labelFont;
-        ctx.fillStyle = labelColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const mx = (x1 + x2) / 2 + px * 16;
-        const my = (y1 + y2) / 2 + py * 16;
-        ctx.fillText(label, mx, my);
-        ctx.restore();
-    }
-}
-
-function drawCapacitor(ctx, x1, y1, x2, y2, label, labelColor, labelFont) {
-    const mx = (x1 + x2) / 2;
-    const my = (y1 + y2) / 2;
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const gap = 3;
-    const plateLen = 8;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(mx - ux * gap, my - uy * gap);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx - ux * gap + px * plateLen, my - uy * gap + py * plateLen);
-    ctx.lineTo(mx - ux * gap - px * plateLen, my - uy * gap - py * plateLen);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * gap + px * plateLen, my + uy * gap + py * plateLen);
-    ctx.lineTo(mx + ux * gap - px * plateLen, my + uy * gap - py * plateLen);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * gap, my + uy * gap);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    if (label) {
-        ctx.save();
-        ctx.font = labelFont;
-        ctx.fillStyle = labelColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, mx + px * 14, my + py * 14);
-        ctx.restore();
-    }
-}
-
-function drawNPNTransistor(ctx, x, y, scale, labelColor, labelFont) {
-    const s = scale || 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 16 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = T.overlay30;
-    ctx.stroke();
-    ctx.strokeStyle = T.overlay50;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 16 * s, y);
-    ctx.lineTo(x - 6 * s, y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y - 10 * s);
-    ctx.lineTo(x - 6 * s, y + 10 * s);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y - 6 * s);
-    ctx.lineTo(x + 10 * s, y - 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y + 6 * s);
-    ctx.lineTo(x + 10 * s, y + 14 * s);
-    ctx.stroke();
-
-    const ax = x + 10 * s, ay = y + 14 * s;
-    ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(ax - 6 * s, ay - 2 * s);
-    ctx.lineTo(ax - 3 * s, ay - 6 * s);
-    ctx.closePath();
-    ctx.fillStyle = T.overlay50;
-    ctx.fill();
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = labelColor;
-    ctx.textAlign = 'center';
-    ctx.fillText('B', x - 22 * s, y + 4);
-    ctx.fillText('C', x + 16 * s, y - 16 * s);
-    ctx.fillText('E', x + 16 * s, y + 18 * s);
-    ctx.restore();
-}
-
-function drawPNPTransistor(ctx, x, y, scale, labelColor, labelFont) {
-    const s = scale || 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 16 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = T.overlay30;
-    ctx.stroke();
-    ctx.strokeStyle = T.overlay50;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 16 * s, y);
-    ctx.lineTo(x - 6 * s, y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y - 10 * s);
-    ctx.lineTo(x - 6 * s, y + 10 * s);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y + 6 * s);
-    ctx.lineTo(x + 10 * s, y + 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 6 * s, y - 6 * s);
-    ctx.lineTo(x + 10 * s, y - 14 * s);
-    ctx.stroke();
-
-    const bx = x - 6 * s, by = y - 6 * s;
-    ctx.beginPath();
-    ctx.moveTo(bx, by);
-    ctx.lineTo(bx + 6 * s, by - 2 * s);
-    ctx.lineTo(bx + 3 * s, by - 6 * s);
-    ctx.closePath();
-    ctx.fillStyle = T.overlay50;
-    ctx.fill();
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = labelColor;
-    ctx.textAlign = 'center';
-    ctx.fillText('B', x - 22 * s, y + 4);
-    ctx.fillText('E', x + 16 * s, y - 16 * s);
-    ctx.fillText('C', x + 16 * s, y + 18 * s);
-    ctx.restore();
-}
-
-function drawDiode(ctx, x1, y1, x2, y2) {
-    const mx = (x1 + x2) / 2;
-    const my = (y1 + y2) / 2;
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const triSize = 6;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(mx - ux * triSize, my - uy * triSize);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx - ux * triSize + px * triSize, my - uy * triSize + py * triSize);
-    ctx.lineTo(mx - ux * triSize - px * triSize, my - uy * triSize - py * triSize);
-    ctx.lineTo(mx + ux * triSize, my + uy * triSize);
-    ctx.closePath();
-    ctx.fillStyle = T.overlay40;
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * triSize + px * triSize, my + uy * triSize + py * triSize);
-    ctx.lineTo(mx + ux * triSize - px * triSize, my + uy * triSize - py * triSize);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * triSize, my + uy * triSize);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
-
-function drawGround(ctx, x, y) {
-    const w = 10;
-    ctx.beginPath();
-    ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x - w * 0.6, y + 4); ctx.lineTo(x + w * 0.6, y + 4); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x - w * 0.25, y + 8); ctx.lineTo(x + w * 0.25, y + 8); ctx.stroke();
-}
-
-// ─── Class A: Common-Emitter ───
-function drawClassACircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont) {
-    ctx.strokeStyle = lineColor;
-
-    // Grid-based layout — all coordinates on a strict grid for clean routing
-    const mx = w / 2;
-    const my = h / 2;
-    const s = Math.min(w, h);
-
-    // Column positions (x)
-    const colIn   = mx - s * 0.32;   // input / Cin
-    const colBias = mx - s * 0.16;   // R1, R2 bias divider
-    const colQ    = mx + s * 0.02;   // transistor center
-    const colRC   = mx + s * 0.18;   // RC, RE column
-    const colCE   = mx + s * 0.26;   // bypass cap
-    const colOut  = mx + s * 0.36;   // output / Cout
-
-    // Row positions (y)
-    const rowVCC  = my - s * 0.32;   // VCC rail
-    const rowBase = my - s * 0.06;   // base / R1-R2 junction
-    const rowQ    = my + s * 0.02;   // transistor center
-    const rowGnd  = my + s * 0.30;   // ground line
-
-    // Transistor pin offsets (from center)
-    const qBaseX = colQ - 16;
-    const qCollY = rowQ - 14;
-    const qEmitY = rowQ + 14;
-    const qCollX = colQ + 10;
-    const qEmitX = colQ + 10;
-
-    // ── VCC rail ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#e06050';
-    ctx.textAlign = 'center';
-    ctx.fillText('VCC = ' + VCC + 'V', mx, rowVCC - 8);
-    ctx.restore();
-    ctx.beginPath();
-    ctx.moveTo(colBias, rowVCC);
-    ctx.lineTo(colRC, rowVCC);
-    ctx.strokeStyle = 'rgba(224,96,80,0.4)';
-    ctx.stroke();
-    ctx.strokeStyle = lineColor;
-
-    // ── R1: VCC to base junction (vertical) ──
-    drawResistor(ctx, colBias, rowVCC, colBias, rowBase, 'R1', labelColor, labelFont);
-
-    // ── R2: base junction to ground (vertical) ──
-    drawResistor(ctx, colBias, rowBase, colBias, rowGnd, 'R2', labelColor, labelFont);
-    drawGround(ctx, colBias, rowGnd + 5);
-
-    // ── Transistor ──
-    drawNPNTransistor(ctx, colQ, rowQ, 1, labelColor, labelFont);
-
-    // ── Wire: R1/R2 junction to base (L-shaped: horizontal then nothing — same row) ──
-    ctx.beginPath();
-    ctx.moveTo(colBias, rowBase);
-    ctx.lineTo(qBaseX, rowBase);   // horizontal to base x
-    ctx.lineTo(qBaseX, rowQ);      // vertical down to base pin
-    ctx.stroke();
-
-    // ── RC: VCC to collector level (vertical) ──
-    drawResistor(ctx, colRC, rowVCC, colRC, qCollY, 'RC', labelColor, labelFont);
-    // Horizontal wire: collector pin to RC column
-    ctx.beginPath();
-    ctx.moveTo(qCollX, qCollY);
-    ctx.lineTo(colRC, qCollY);
-    ctx.stroke();
-
-    // ── RE: emitter to ground (vertical) ──
-    drawResistor(ctx, colRC, qEmitY, colRC, rowGnd, 'RE', labelColor, labelFont);
-    // Horizontal wire: emitter pin to RE column
-    ctx.beginPath();
-    ctx.moveTo(qEmitX, qEmitY);
-    ctx.lineTo(colRC, qEmitY);
-    ctx.stroke();
-    drawGround(ctx, colRC, rowGnd + 5);
-
-    // ── CE: bypass capacitor across RE ──
-    drawCapacitor(ctx, colCE, qEmitY, colCE, rowGnd, 'CE', labelColor, labelFont);
-    ctx.beginPath();
-    ctx.moveTo(colRC, qEmitY); ctx.lineTo(colCE, qEmitY); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(colRC, rowGnd); ctx.lineTo(colCE, rowGnd); ctx.stroke();
-
-    // ── Cin: input coupling capacitor (horizontal) ──
-    drawCapacitor(ctx, colIn, rowBase, colBias, rowBase, 'Cin', labelColor, labelFont);
-
-    // ── Vin label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#5080d0';
-    ctx.textAlign = 'right';
-    ctx.fillText('v_in', colIn - 5, rowBase + 4);
-    ctx.restore();
-
-    // ── Cout: output coupling capacitor (horizontal at collector level) ──
-    drawCapacitor(ctx, colRC, qCollY, colOut, qCollY, 'Cout', labelColor, labelFont);
-
-    // ── Vout label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = activeColor;
-    ctx.textAlign = 'left';
-    ctx.fillText('v_out', colOut + 5, qCollY + 4);
-    ctx.restore();
-}
-
-// ─── Class B: Push-Pull ───
-function drawClassBCircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont) {
-    ctx.strokeStyle = lineColor;
-    const mx = w / 2;
-    const my = h / 2;
-    const s = Math.min(w, h);
-
-    // Column positions
-    const colIn   = mx - s * 0.30;
-    const colBase = mx - s * 0.08;   // base join line
-    const colQ    = mx + s * 0.08;   // transistor centers
-    const colRail = mx + s * 0.22;   // VCC/VEE rail + emitter join
-    const colCout = mx + s * 0.36;   // Cout end
-    const colRL   = mx + s * 0.36;   // RL column (same as Cout end)
-
-    // Row positions
-    const rowVCC  = my - s * 0.32;
-    const rowNPN  = my - s * 0.12;
-    const rowMid  = my;
-    const rowPNP  = my + s * 0.12;
-    const rowVEE  = my + s * 0.32;
-    const rowGnd  = my + s * 0.28;
-
-    // NPN and PNP transistor pin offsets
-    const npnCollY = rowNPN - 14;
-    const npnEmitY = rowNPN + 14;
-    const pnpCollY = rowPNP + 14;
-    const pnpEmitY = rowPNP - 14;
-    const pinOutX  = colQ + 10;
-
-    // ── VCC label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#e06050';
-    ctx.textAlign = 'center';
-    ctx.fillText('VCC = +' + VCC + 'V', colRail, rowVCC - 8);
-    ctx.restore();
-
-    // ── VEE label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#5080d0';
-    ctx.textAlign = 'center';
-    ctx.fillText('VEE = −' + VCC + 'V', colRail, rowVEE + 14);
-    ctx.restore();
-
-    // ── Transistors ──
-    drawNPNTransistor(ctx, colQ, rowNPN, 1, labelColor, labelFont);
-    drawPNPTransistor(ctx, colQ, rowPNP, 1, labelColor, labelFont);
-
-    // ── NPN collector to VCC (vertical via rail column) ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, npnCollY);
-    ctx.lineTo(colRail, npnCollY);
-    ctx.lineTo(colRail, rowVCC);
-    ctx.stroke();
-
-    // ── PNP collector to VEE (vertical via rail column) ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, pnpCollY);
-    ctx.lineTo(colRail, pnpCollY);
-    ctx.lineTo(colRail, rowVEE);
-    ctx.stroke();
-
-    // ── Emitter join (output node) — NPN emitter down, PNP emitter up, meet at midpoint ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, npnEmitY);
-    ctx.lineTo(colRail, npnEmitY);
-    ctx.lineTo(colRail, rowMid);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, pnpEmitY);
-    ctx.lineTo(colRail, pnpEmitY);
-    ctx.lineTo(colRail, rowMid);
-    ctx.stroke();
-
-    // ── Cout (horizontal from output node) ──
-    drawCapacitor(ctx, colRail, rowMid, colCout, rowMid, 'Cout', labelColor, labelFont);
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = activeColor;
-    ctx.textAlign = 'left';
-    ctx.fillText('v_out', colCout + 5, rowMid + 4);
-    ctx.restore();
-
-    // ── Base join line (vertical between NPN and PNP bases) ──
-    const baseX = colQ - 16;
-    ctx.beginPath();
-    ctx.moveTo(baseX, rowNPN);
-    ctx.lineTo(baseX, rowPNP);
-    ctx.stroke();
-
-    // ── Cin (horizontal to base join) ──
-    drawCapacitor(ctx, colIn, rowMid, baseX, rowMid, 'Cin', labelColor, labelFont);
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#5080d0';
-    ctx.textAlign = 'right';
-    ctx.fillText(GAIN + '\u00B7v_in', colIn - 5, rowMid + 4);
-    ctx.restore();
-
-    // ── RL: load resistor (vertical from Cout output to ground) ──
-    drawResistor(ctx, colRL, rowMid, colRL, rowGnd, 'RL', labelColor, labelFont);
-    drawGround(ctx, colRL, rowGnd + 5);
-}
-
-// ─── Class AB: Biased Push-Pull ───
-function drawClassABCircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont) {
-    ctx.strokeStyle = lineColor;
-    const mx = w / 2;
-    const my = h / 2;
-    const s = Math.min(w, h);
-
-    // Same grid as Class B but with more vertical space for diodes
-    const colIn   = mx - s * 0.30;
-    const colBase = mx - s * 0.08;
-    const colQ    = mx + s * 0.08;
-    const colRail = mx + s * 0.22;
-    const colCout = mx + s * 0.36;
-    const colRL   = mx + s * 0.36;
-
-    const rowVCC  = my - s * 0.34;
-    const rowNPN  = my - s * 0.14;
-    const rowMid  = my;
-    const rowPNP  = my + s * 0.14;
-    const rowVEE  = my + s * 0.34;
-    const rowGnd  = my + s * 0.28;
-
-    const npnCollY = rowNPN - 14;
-    const npnEmitY = rowNPN + 14;
-    const pnpCollY = rowPNP + 14;
-    const pnpEmitY = rowPNP - 14;
-    const pinOutX  = colQ + 10;
-
-    // ── VCC label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#e06050';
-    ctx.textAlign = 'center';
-    ctx.fillText('VCC = +' + VCC + 'V', colRail, rowVCC - 8);
-    ctx.restore();
-
-    // ── VEE label ──
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#5080d0';
-    ctx.textAlign = 'center';
-    ctx.fillText('VEE = −' + VCC + 'V', colRail, rowVEE + 14);
-    ctx.restore();
-
-    // ── Transistors ──
-    drawNPNTransistor(ctx, colQ, rowNPN, 1, labelColor, labelFont);
-    drawPNPTransistor(ctx, colQ, rowPNP, 1, labelColor, labelFont);
-
-    // ── NPN collector to VCC ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, npnCollY);
-    ctx.lineTo(colRail, npnCollY);
-    ctx.lineTo(colRail, rowVCC);
-    ctx.stroke();
-
-    // ── PNP collector to VEE ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, pnpCollY);
-    ctx.lineTo(colRail, pnpCollY);
-    ctx.lineTo(colRail, rowVEE);
-    ctx.stroke();
-
-    // ── Emitter join (output node) ──
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, npnEmitY);
-    ctx.lineTo(colRail, npnEmitY);
-    ctx.lineTo(colRail, rowMid);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(pinOutX, pnpEmitY);
-    ctx.lineTo(colRail, pnpEmitY);
-    ctx.lineTo(colRail, rowMid);
-    ctx.stroke();
-
-    // ── Cout ──
-    drawCapacitor(ctx, colRail, rowMid, colCout, rowMid, 'Cout', labelColor, labelFont);
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = activeColor;
-    ctx.textAlign = 'left';
-    ctx.fillText('v_out', colCout + 5, rowMid + 4);
-    ctx.restore();
-
-    // ── Bias network: VCC → Rb1 → D1 → D2 → Rb2 → VEE ──
-    const baseX = colQ - 16;
-    const colBias = baseX;  // bias chain runs vertically on the base line
-
-    // Rb1: VCC to top of diode chain
-    // Wire from VCC rail across to bias column, then down through Rb1
-    ctx.beginPath();
-    ctx.moveTo(colRail, rowVCC);
-    ctx.lineTo(colBias, rowVCC);
-    ctx.stroke();
-    const rb1Bot = rowNPN - 2;
-    drawResistor(ctx, colBias, rowVCC, colBias, rb1Bot, 'Rb1', labelColor, labelFont);
-
-    // Wire from Rb1 to NPN base
-    ctx.beginPath();
-    ctx.moveTo(colBias, rb1Bot);
-    ctx.lineTo(colBias, rowNPN);
-    ctx.stroke();
-
-    // Diodes between NPN base and PNP base
-    const d1Top = rowMid - 14;
-    const d1Bot = rowMid - 2;
-    const d2Top = rowMid + 2;
-    const d2Bot = rowMid + 14;
-
-    // Wire from NPN base down to D1
-    ctx.beginPath();
-    ctx.moveTo(baseX, rowNPN);
-    ctx.lineTo(baseX, d1Top);
-    ctx.stroke();
-
-    drawDiode(ctx, baseX, d1Top, baseX, d1Bot);
-
-    // Wire between diodes
-    ctx.beginPath();
-    ctx.moveTo(baseX, d1Bot);
-    ctx.lineTo(baseX, d2Top);
-    ctx.stroke();
-
-    drawDiode(ctx, baseX, d2Top, baseX, d2Bot);
-
-    // Wire from D2 to PNP base
-    ctx.beginPath();
-    ctx.moveTo(baseX, d2Bot);
-    ctx.lineTo(baseX, rowPNP);
-    ctx.stroke();
-
-    // Rb2: PNP base to VEE
-    const rb2Top = rowPNP + 2;
-    ctx.beginPath();
-    ctx.moveTo(colBias, rowPNP);
-    ctx.lineTo(colBias, rb2Top);
-    ctx.stroke();
-    drawResistor(ctx, colBias, rb2Top, colBias, rowVEE, 'Rb2', labelColor, labelFont);
-    // Wire from Rb2 to VEE rail
-    ctx.beginPath();
-    ctx.moveTo(colBias, rowVEE);
-    ctx.lineTo(colRail, rowVEE);
-    ctx.stroke();
-
-    // Diode labels
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = labelColor;
-    ctx.textAlign = 'left';
-    ctx.fillText('D1', baseX + 10, d1Top + 6);
-    ctx.fillText('D2', baseX + 10, d2Top + 6);
-    ctx.restore();
-
-    // ── Cin (horizontal to midpoint of diode chain) ──
-    drawCapacitor(ctx, colIn, rowMid, baseX, rowMid, 'Cin', labelColor, labelFont);
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = '#5080d0';
-    ctx.textAlign = 'right';
-    ctx.fillText(GAIN + '\u00B7v_in', colIn - 5, rowMid + 4);
-    ctx.restore();
-
-    // ── RL ──
-    drawResistor(ctx, colRL, rowMid, colRL, rowGnd, 'RL', labelColor, labelFont);
-    drawGround(ctx, colRL, rowGnd + 5);
-}
-
-// ─── Load Line Inset ───
-function drawLoadLineInset(ctx, w, h) {
-    const insetW = 100;
-    const insetH = 70;
-    const ix = w - insetW - 12;
-    const iy = h - insetH - 12;
-    const pad = 15;
-
-    ctx.fillStyle = T.cardBg;
-    ctx.fillRect(ix, iy, insetW, insetH);
-    ctx.strokeStyle = T.gridStrong;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(ix, iy, insetW, insetH);
-
-    const ox = ix + pad;
-    const oy = iy + insetH - pad;
-    const axW = insetW - pad * 2;
-    const axH = insetH - pad * 2;
-
-    ctx.strokeStyle = T.overlay30;
-    ctx.beginPath();
-    ctx.moveTo(ox, oy - axH);
-    ctx.lineTo(ox, oy);
-    ctx.lineTo(ox + axW, oy);
-    ctx.stroke();
-
-    ctx.save();
-    ctx.font = '8px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.overlay40;
-    ctx.textAlign = 'center';
-    ctx.fillText('V_CE', ox + axW / 2, oy + 11);
-    ctx.textAlign = 'right';
-    ctx.fillText('I_C', ox - 3, oy - axH / 2);
-    ctx.restore();
-
-    ctx.strokeStyle = T.overlay50;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(ox, oy - axH);
-    ctx.lineTo(ox + axW, oy);
-    ctx.stroke();
-
-    const qFrac = biasPoint / 100;
-    const qx = ox + axW * (1 - qFrac);
-    const qy = oy - axH * qFrac;
-
-    ctx.beginPath();
-    ctx.arc(qx, qy, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#e06050';
-    ctx.fill();
-
-    if (amplitude > 0) {
-        const loadLineRange = VCC - VCE_SAT;
-        const isPushPull = (ampClass === 'B' || ampClass === 'AB');
-
-        // Account for dead zone in Class B/AB swing calculation
-        let effectiveSwing;
-        if (ampClass === 'B') {
-            const deadZone = 0.6;
-            const vinPeakLocal = (amplitude / 100);
-            const scaledDead = deadZone / GAIN;
-            effectiveSwing = Math.max(0, vinPeakLocal - scaledDead) * GAIN;
-        } else if (ampClass === 'AB') {
-            const deadZone = 0.05;
-            const vinPeakLocal = (amplitude / 100);
-            const scaledDead = deadZone / GAIN;
-            effectiveSwing = Math.max(0, vinPeakLocal - scaledDead) * GAIN;
-        } else {
-            effectiveSwing = (amplitude / 100) * GAIN;
-        }
-        const swingFrac = effectiveSwing / loadLineRange;
-
-        // For push-pull B/AB, swing goes upward from Q-point toward saturation only
-        const s1Frac = isPushPull ? qFrac : Math.max(0, qFrac - swingFrac);
-        const s2Frac = Math.min(1, qFrac + swingFrac);
-
-        ctx.strokeStyle = 'rgba(106,170,142,0.5)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(ox + axW * (1 - s2Frac), oy - axH * s2Frac);
-        ctx.lineTo(ox + axW * (1 - s1Frac), oy - axH * s1Frac);
-        ctx.stroke();
-
-        // Draw clipping indicators — only at saturation for push-pull B/AB
-        const clipColor = 'rgba(224,96,80,0.7)';
-        if (s2Frac >= 1) {
-            ctx.beginPath();
-            ctx.arc(ox, oy - axH, 3, 0, Math.PI * 2);
-            ctx.fillStyle = clipColor;
-            ctx.fill();
-        }
-        if (!isPushPull && s1Frac <= 0) {
-            ctx.beginPath();
-            ctx.arc(ox + axW, oy, 3, 0, Math.PI * 2);
-            ctx.fillStyle = clipColor;
-            ctx.fill();
-        }
-    }
-
-    ctx.lineWidth = 1.5;
-
-    ctx.save();
-    ctx.font = '600 8px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#e06050';
-    ctx.textAlign = 'left';
-    ctx.fillText('Q', qx + 5, qy - 3);
-    ctx.restore();
-}
-
-// ─── Current flow animation ───
-// Draws animated dots ("marching ants") along a polyline path
-function drawCurrentFlow(ctx, path, color, intensity) {
-    if (intensity <= 0 || path.length < 2) return;
-    const alpha = Math.min(1, intensity);
-
-    // Draw glowing path
-    ctx.save();
-    ctx.strokeStyle = color.replace(')', ',' + (alpha * 0.3) + ')').replace('rgb', 'rgba');
-    ctx.lineWidth = 4;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(path[0][0], path[0][1]);
-    for (let i = 1; i < path.length; i++) {
-        ctx.lineTo(path[i][0], path[i][1]);
-    }
-    ctx.stroke();
-
-    // Compute total path length
-    let totalLen = 0;
-    for (let i = 1; i < path.length; i++) {
-        const dx = path[i][0] - path[i-1][0];
-        const dy = path[i][1] - path[i-1][1];
-        totalLen += Math.sqrt(dx * dx + dy * dy);
-    }
-
-    // Draw marching dots
-    const dotSpacing = 18;
-    const dotCount = Math.floor(totalLen / dotSpacing);
-    const speed = simTime * 80;  // pixels per second
-
-    ctx.fillStyle = color.replace(')', ',' + alpha + ')').replace('rgb', 'rgba');
-    for (let d = 0; d < dotCount; d++) {
-        let targetDist = ((d * dotSpacing + speed) % totalLen + totalLen) % totalLen;
-        // Walk along the path to find the position
-        let walked = 0;
-        for (let i = 1; i < path.length; i++) {
-            const dx = path[i][0] - path[i-1][0];
-            const dy = path[i][1] - path[i-1][1];
-            const segLen = Math.sqrt(dx * dx + dy * dy);
-            if (walked + segLen >= targetDist) {
-                const t = (targetDist - walked) / segLen;
-                const px = path[i-1][0] + dx * t;
-                const py = path[i-1][1] + dy * t;
-                ctx.beginPath();
-                ctx.arc(px, py, 2, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-            walked += segLen;
-        }
-    }
-    ctx.restore();
-}
-
-// Draw a small arrow head at a point along a path to show direction
-function drawFlowArrow(ctx, x, y, dx, dy, color, alpha) {
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len === 0) return;
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const sz = 5;
-    ctx.save();
-    ctx.fillStyle = color.replace(')', ',' + alpha + ')').replace('rgb', 'rgba');
-    ctx.beginPath();
-    ctx.moveTo(x + ux * sz, y + uy * sz);
-    ctx.lineTo(x - ux * sz + px * sz * 0.6, y - uy * sz + py * sz * 0.6);
-    ctx.lineTo(x - ux * sz - px * sz * 0.6, y - uy * sz - py * sz * 0.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-}
-
-function drawClassACurrentFlow(ctx, w, h) {
-    const mx = w / 2, my = h / 2, s = Math.min(w, h);
-    const colIn   = mx - s * 0.32;
-    const colBias = mx - s * 0.16;
-    const colQ    = mx + s * 0.02;
-    const colRC   = mx + s * 0.18;
-    const colOut  = mx + s * 0.36;
-    const rowVCC  = my - s * 0.32;
-    const rowBase = my - s * 0.06;
-    const rowQ    = my + s * 0.02;
-    const rowGnd  = my + s * 0.30;
-    const qBaseX  = colQ - 16;
-    const qCollY  = rowQ - 14;
-    const qEmitY  = rowQ + 14;
-    const qCollX  = colQ + 10;
-    const qEmitX  = colQ + 10;
-
-    const normalizedVin = vinPeak > 0 ? instantVin / vinPeak : 0;
-    const baseIntensity = 0.5 + normalizedVin * 0.4;
-    const collectorIntensity = baseIntensity;
-    const signalIntensity = Math.abs(normalizedVin);
-
-    const flowColor = 'rgb(106,170,142)';
-
-    // Collector current path: VCC → RC → collector → emitter → RE → GND
-    const collectorPath = [
-        [colRC, rowVCC],
-        [colRC, qCollY],
-        [qCollX, qCollY],
-        [colQ, rowQ],
-        [qEmitX, qEmitY],
-        [colRC, qEmitY],
-        [colRC, rowGnd]
-    ];
-    drawCurrentFlow(ctx, collectorPath, flowColor, collectorIntensity);
-
-    // Base current path (small): bias junction → base
-    const basePath = [
-        [colBias, rowVCC],
-        [colBias, rowBase],
-        [qBaseX, rowBase],
-        [qBaseX, rowQ]
-    ];
-    drawCurrentFlow(ctx, basePath, 'rgb(204,168,85)', baseIntensity * 0.4);
-
-    // V_in signal path: input → Cin → bias junction → base pin
-    const vinPath = [
-        [colIn, rowBase],
-        [colBias, rowBase],
-        [qBaseX, rowBase],
-        [qBaseX, rowQ]
-    ];
-    drawCurrentFlow(ctx, vinPath, 'rgb(255,255,255)', signalIntensity * 0.6);
-
-    // V_out signal path: collector node → Cout → output
-    const voutPath = [
-        [colRC, qCollY],
-        [colOut, qCollY]
-    ];
-    drawCurrentFlow(ctx, voutPath, flowColor, signalIntensity * 0.8);
-
-    // Signal state label
-    ctx.save();
-    ctx.font = '600 9px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    if (Math.abs(normalizedVin) < 0.05) {
-        ctx.fillStyle = T.overlay50;
-        ctx.fillText('v_in ≈ 0  (quiescent)', 8, 14);
-    } else if (normalizedVin > 0) {
-        ctx.fillStyle = 'rgba(106,170,142,0.8)';
-        ctx.fillText('v_in > 0  (I_C increasing)', 8, 14);
-    } else {
-        ctx.fillStyle = 'rgba(80,128,208,0.8)';
-        ctx.fillText('v_in < 0  (I_C decreasing)', 8, 14);
-    }
-    ctx.restore();
-}
-
-function drawClassBCurrentFlow(ctx, w, h) {
-    const mx = w / 2, my = h / 2, s = Math.min(w, h);
-    const colIn   = mx - s * 0.30;
-    const colQ    = mx + s * 0.08;
-    const colRail = mx + s * 0.22;
-    const colCout = mx + s * 0.36;
-    const colRL   = mx + s * 0.36;
-    const rowVCC  = my - s * 0.32;
-    const rowNPN  = my - s * 0.12;
-    const rowMid  = my;
-    const rowPNP  = my + s * 0.12;
-    const rowVEE  = my + s * 0.32;
-    const rowGnd  = my + s * 0.28;
-    const pinOutX = colQ + 10;
-    const baseX   = colQ - 16;
-    const npnCollY = rowNPN - 14;
-    const npnEmitY = rowNPN + 14;
-    const pnpCollY = rowPNP + 14;
-    const pnpEmitY = rowPNP - 14;
-
-    const normalizedVin = vinPeak > 0 ? instantVin / vinPeak : 0;
-    const deadZone = 0.6 / (vinPeak * GAIN + 0.001);
-
-    const npnColor = 'rgb(106,170,142)';   // green for NPN path
-    const pnpColor = 'rgb(80,128,208)';    // blue for PNP path
-    const deadColor = 'rgb(224,96,80)';    // red for dead zone
-
-    // V_in signal path: input → Cin → base join → up to NPN base / down to PNP base
-    const signalIntensity = Math.abs(normalizedVin);
-    const vinToJunction = [
-        [colIn, rowMid],
-        [baseX, rowMid]
-    ];
-    drawCurrentFlow(ctx, vinToJunction, 'rgb(255,255,255)', signalIntensity * 0.6);
-
-    // Signal flows to NPN base (upward)
-    const vinToNPN = [
-        [baseX, rowMid],
-        [baseX, rowNPN]
-    ];
-    drawCurrentFlow(ctx, vinToNPN, npnColor, signalIntensity * 0.5);
-
-    // Signal flows to PNP base (downward)
-    const vinToPNP = [
-        [baseX, rowMid],
-        [baseX, rowPNP]
-    ];
-    drawCurrentFlow(ctx, vinToPNP, pnpColor, signalIntensity * 0.5);
-
-    if (normalizedVin > deadZone) {
-        const intensity = Math.min(1, (normalizedVin - deadZone) / (1 - deadZone));
-        const npnPath = [
-            [colRail, rowVCC],
-            [colRail, npnCollY],
-            [pinOutX, npnCollY],
-            [colQ, rowNPN],
-            [pinOutX, npnEmitY],
-            [colRail, npnEmitY],
-            [colRail, rowMid]
-        ];
-        drawCurrentFlow(ctx, npnPath, npnColor, intensity);
-
-        // V_out path: output node → Cout → RL → GND
-        const voutPath = [
-            [colRail, rowMid],
-            [colCout, rowMid],
-            [colRL, rowGnd]
-        ];
-        drawCurrentFlow(ctx, voutPath, npnColor, intensity * 0.8);
-
-    } else if (normalizedVin < -deadZone) {
-        const intensity = Math.min(1, (-normalizedVin - deadZone) / (1 - deadZone));
-        const pnpPath = [
-            [colRail, rowMid],
-            [colRail, pnpEmitY],
-            [pinOutX, pnpEmitY],
-            [colQ, rowPNP],
-            [pinOutX, pnpCollY],
-            [colRail, pnpCollY],
-            [colRail, rowVEE]
-        ];
-        drawCurrentFlow(ctx, pnpPath, pnpColor, intensity);
-
-        // V_out path
-        const voutPath = [
-            [colRail, rowMid],
-            [colCout, rowMid],
-            [colRL, rowGnd]
-        ];
-        drawCurrentFlow(ctx, voutPath, pnpColor, intensity * 0.8);
-
-    } else if (vinPeak > 0) {
-        // Dead zone — show red pulsing on base path to indicate blocked signal
-        drawCurrentFlow(ctx, vinToJunction, deadColor, 0.5);
-    }
-
-    // Signal state label
-    ctx.save();
-    ctx.font = '600 9px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    if (Math.abs(normalizedVin) <= deadZone && vinPeak > 0) {
-        ctx.fillStyle = 'rgba(224,96,80,0.9)';
-        ctx.fillText('v_in ≈ 0  (crossover: no conduction)', 8, 14);
-    } else if (normalizedVin > 0) {
-        ctx.fillStyle = 'rgba(106,170,142,0.8)';
-        ctx.fillText('v_in > 0  (NPN conducts)', 8, 14);
-    } else if (normalizedVin < 0) {
-        ctx.fillStyle = 'rgba(80,128,208,0.8)';
-        ctx.fillText('v_in < 0  (PNP conducts)', 8, 14);
-    }
-    ctx.restore();
-}
-
-function drawClassABCurrentFlow(ctx, w, h) {
-    const mx = w / 2, my = h / 2, s = Math.min(w, h);
-    const colIn   = mx - s * 0.30;
-    const colQ    = mx + s * 0.08;
-    const colRail = mx + s * 0.22;
-    const colCout = mx + s * 0.36;
-    const colRL   = mx + s * 0.36;
-    const rowVCC  = my - s * 0.34;
-    const rowNPN  = my - s * 0.14;
-    const rowMid  = my;
-    const rowPNP  = my + s * 0.14;
-    const rowVEE  = my + s * 0.34;
-    const rowGnd  = my + s * 0.28;
-    const pinOutX = colQ + 10;
-    const baseX   = colQ - 16;
-    const npnCollY = rowNPN - 14;
-    const npnEmitY = rowNPN + 14;
-    const pnpCollY = rowPNP + 14;
-    const pnpEmitY = rowPNP - 14;
-
-    const normalizedVin = vinPeak > 0 ? instantVin / vinPeak : 0;
-    const signalIntensity = Math.abs(normalizedVin);
-
-    const npnColor = 'rgb(106,170,142)';
-    const pnpColor = 'rgb(80,128,208)';
-    const biasColor = 'rgb(204,168,85)';  // gold for DC bias current
-
-    const npnIntensity = Math.max(0.15, Math.min(1, 0.5 + normalizedVin * 0.6));
-    const pnpIntensity = Math.max(0.15, Math.min(1, 0.5 - normalizedVin * 0.6));
-
-    // DC bias current path: VCC → Rb1 → D1 → D2 → Rb2 → VEE (always flowing)
-    const biasPath = [
-        [baseX, rowVCC],
-        [baseX, rowNPN],
-        [baseX, rowMid],
-        [baseX, rowPNP],
-        [baseX, rowVEE]
-    ];
-    drawCurrentFlow(ctx, biasPath, biasColor, 0.3);
-
-    // V_in signal path: input → Cin → diode junction
-    const vinToJunction = [
-        [colIn, rowMid],
-        [baseX, rowMid]
-    ];
-    drawCurrentFlow(ctx, vinToJunction, 'rgb(255,255,255)', Math.max(signalIntensity * 0.6, 0.15));
-
-    // Signal modulates base voltages — show flow toward the conducting transistor's base
-    const vinToNPN = [
-        [baseX, rowMid],
-        [baseX, rowNPN]
-    ];
-    drawCurrentFlow(ctx, vinToNPN, npnColor, Math.max(signalIntensity * 0.5, 0.1));
-
-    // Signal flows through diodes to PNP base (downward)
-    const vinToPNP = [
-        [baseX, rowMid],
-        [baseX, rowPNP]
-    ];
-    drawCurrentFlow(ctx, vinToPNP, pnpColor, Math.max(signalIntensity * 0.5, 0.1));
-
-    // NPN path
-    const npnPath = [
-        [colRail, rowVCC],
-        [colRail, npnCollY],
-        [pinOutX, npnCollY],
-        [colQ, rowNPN],
-        [pinOutX, npnEmitY],
-        [colRail, npnEmitY],
-        [colRail, rowMid]
-    ];
-    drawCurrentFlow(ctx, npnPath, npnColor, npnIntensity);
-
-    // PNP path
-    const pnpPath = [
-        [colRail, rowMid],
-        [colRail, pnpEmitY],
-        [pinOutX, pnpEmitY],
-        [colQ, rowPNP],
-        [pinOutX, pnpCollY],
-        [colRail, pnpCollY],
-        [colRail, rowVEE]
-    ];
-    drawCurrentFlow(ctx, pnpPath, pnpColor, pnpIntensity);
-
-    // V_out path: output node → Cout → RL → GND
-    const dominantColor = normalizedVin >= 0 ? npnColor : pnpColor;
-    const voutPath = [
-        [colRail, rowMid],
-        [colCout, rowMid],
-        [colRL, rowGnd]
-    ];
-    drawCurrentFlow(ctx, voutPath, dominantColor, Math.max(signalIntensity * 0.8, 0.15));
-
-    // ── Base voltage & current annotations ──
-    // In Class AB the bias diodes set VB_NPN ≈ +VBE above midpoint,
-    // VB_PNP ≈ −VBE below midpoint. The input signal shifts both together.
-    const VBE = 0.6;  // forward diode / base-emitter voltage
-    const BETA = 100; // transistor current gain (hFE)
-
-    // Instantaneous base voltages (referenced to output midpoint = 0V)
-    const vbNPN = VBE + instantVin;    // NPN base tracks input + diode offset
-    const vbPNP = -VBE + instantVin;   // PNP base tracks input − diode offset
-
-    // Collector currents from the intensity model (mA)
-    const icNPN_mA = npnIntensity * (icq > 0 ? icq : 5);  // scale to quiescent current
-    const icPNP_mA = pnpIntensity * (icq > 0 ? icq : 5);
-    const ibNPN_uA = (icNPN_mA / BETA) * 1000;  // base current in µA
-    const ibPNP_uA = (icPNP_mA / BETA) * 1000;
-
-    // Draw NPN base annotation (to the left of the base pin)
-    ctx.save();
-    ctx.font = '500 9px "JetBrains Mono", monospace';
-    ctx.textAlign = 'right';
-
-    // NPN base voltage
-    ctx.fillStyle = 'rgba(106,170,142,0.9)';
-    const npnLabelX = baseX - 22;
-    const npnLabelY = rowNPN - 6;
-    ctx.fillText('Vb=' + vbNPN.toFixed(2) + 'V', npnLabelX, npnLabelY);
-    // NPN base current
-    ctx.fillStyle = 'rgba(106,170,142,0.65)';
-    ctx.fillText('Ib=' + ibNPN_uA.toFixed(0) + 'µA', npnLabelX, npnLabelY + 11);
-
-    // PNP base voltage
-    ctx.fillStyle = 'rgba(80,128,208,0.9)';
-    const pnpLabelX = baseX - 22;
-    const pnpLabelY = rowPNP - 6;
-    ctx.fillText('Vb=' + vbPNP.toFixed(2) + 'V', pnpLabelX, pnpLabelY);
-    // PNP base current
-    ctx.fillStyle = 'rgba(80,128,208,0.65)';
-    ctx.fillText('Ib=' + ibPNP_uA.toFixed(0) + 'µA', pnpLabelX, pnpLabelY + 11);
-
-    ctx.restore();
-
-    // Signal state label
-    ctx.save();
-    ctx.font = '600 9px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    if (Math.abs(normalizedVin) < 0.05) {
-        ctx.fillStyle = T.overlay50;
-        ctx.fillText('v_in ≈ 0  (both conduct: no dead zone)', 8, 14);
-    } else if (normalizedVin > 0) {
-        ctx.fillStyle = 'rgba(106,170,142,0.8)';
-        ctx.fillText('v_in > 0  (NPN dominates, PNP assists)', 8, 14);
-    } else {
-        ctx.fillStyle = 'rgba(80,128,208,0.8)';
-        ctx.fillText('v_in < 0  (PNP dominates, NPN assists)', 8, 14);
-    }
-    ctx.restore();
-}
-
-function drawCircuit() {
-    const ctx = circuitCtx;
-    const { w, h } = circuitSize;
-    ctx.clearRect(0, 0, w, h);
-
-    const lineColor = T.overlay50;
-    const activeColor = '#6aaa8e';
-    const componentColor = T.overlay70;
-    const labelColor = T.textDim;
-    const labelFont = '500 10px "JetBrains Mono", monospace';
-    const titleFont = '500 11px "Inter", sans-serif';
-
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    if (ampClass === 'A') {
-        drawClassACircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont);
-        drawClassACurrentFlow(ctx, w, h);
-    } else if (ampClass === 'B') {
-        drawClassBCircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont);
-        drawClassBCurrentFlow(ctx, w, h);
-    } else if (ampClass === 'AB') {
-        drawClassABCircuit(ctx, w, h, lineColor, activeColor, componentColor, labelColor, labelFont, titleFont);
-        drawClassABCurrentFlow(ctx, w, h);
-    }
-
-    drawLoadLineInset(ctx, w, h);
-}
-
-// ─── Waveform rendering ───
-const WAVEFORM_HISTORY = 400;
-let waveHistory = [];
-
-function computeOutputSample(vinInstant) {
-    const gainedSignal = vinInstant * GAIN;
-
-    if (ampClass === 'A') {
-        const vout = -gainedSignal;
-        // Inverting CE stage: positive excursion ends at cutoff (v_C = VCC),
-        // negative excursion at saturation (v_CE = VCE_SAT)
-        const upperClip = VCC - vceq;
-        const lowerClip = -(vceq - VCE_SAT);
-        return Math.max(lowerClip, Math.min(upperClip, vout));
-    } else if (ampClass === 'B') {
-        // Push-pull emitter follower (A_v ≈ 1) fed by a driver stage of gain GAIN (not drawn).
-        // Dead zone of ±0.6 V at the bases, i.e. ±0.6/GAIN at v_in. NPN conducts on positive half, PNP on negative half
-        const deadZone = 0.6;
-        const scaledDead = deadZone / GAIN;
-        if (Math.abs(vinInstant) < scaledDead) {
-            return 0;
-        }
-        const sign = vinInstant > 0 ? 1 : -1;
-        const vout = sign * (Math.abs(vinInstant) - scaledDead) * GAIN;
-        const clipMax = VCC - VCE_SAT;
-        return Math.max(-clipMax, Math.min(clipMax, vout));
-    } else if (ampClass === 'AB') {
-        // Class AB: same as B but with minimal dead zone
-        const deadZone = 0.05;
-        const scaledDead = deadZone / GAIN;
-        if (Math.abs(vinInstant) < scaledDead) {
-            return 0;
-        }
-        const sign = vinInstant > 0 ? 1 : -1;
-        const vout = sign * (Math.abs(vinInstant) - scaledDead) * GAIN;
-        const clipMax = VCC - VCE_SAT;
-        return Math.max(-clipMax, Math.min(clipMax, vout));
-    }
-}
-
-function drawWaveforms() {
-    const ctx = waveformCtx;
-    const { w, h } = waveformSize;
-    ctx.clearRect(0, 0, w, h);
-
-    const padL = 40;
-    const padR = 10;
-    const padT = 20;
-    const padB = 10;
-    const plotW = w - padL - padR;
-    const plotH = h - padT - padB;
-    const cy = padT + plotH / 2;
-
-    // ─── Vertical grid lines ───
-    ctx.strokeStyle = T.gridFine;
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 8; i++) {
-        const gx = padL + (i / 8) * plotW;
-        ctx.beginPath();
-        ctx.moveTo(gx, padT); ctx.lineTo(gx, h - padB); ctx.stroke();
-    }
-
-    // ─── Horizontal zero line ───
-    ctx.strokeStyle = T.grid;
-    ctx.beginPath();
-    ctx.moveTo(padL, cy); ctx.lineTo(w - padR, cy); ctx.stroke();
-
-    // ─── Horizontal grid lines (quarter marks) ───
-    ctx.strokeStyle = T.gridFine;
-    for (let i = 1; i <= 3; i++) {
-        if (i === 2) continue; // skip center (already drawn)
-        const gy = padT + (i / 4) * plotH;
-        ctx.beginPath();
-        ctx.moveTo(padL, gy); ctx.lineTo(w - padR, gy); ctx.stroke();
-    }
-
-    // Normalise both traces to the same scale so they overlay meaningfully
-    // Use the output's max range (VCC) as the shared scale
-    const maxVout = VCC;
-    const scale = plotH * 0.45;
-
-    // ─── Draw V_in trace (white) ───
-    if (waveHistory.length > 1 && vinPeak > 0) {
-        ctx.strokeStyle = T.overlay35;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let i = 0; i < waveHistory.length; i++) {
-            const x = padL + (i / WAVEFORM_HISTORY) * plotW;
-            const y = cy - (waveHistory[i].vin / maxVout) * scale;
-            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-    }
-
-    // ─── Draw V_out trace (colour-coded: green=NPN/positive, blue=PNP/negative) ───
-    // For Class A, green for positive output, accent-dim for negative
-    // For Class B/AB, green when NPN conducts (vout < 0 since inverted), blue when PNP
-    if (waveHistory.length > 1) {
-        ctx.lineWidth = 2;
-        const npnCol = '#6aaa8e';   // green — matches NPN current flow
-        const pnpCol = '#5080d0';   // blue — matches PNP current flow
-        const deadCol = '#e06050';   // red for crossover distortion
-
-        for (let i = 1; i < waveHistory.length; i++) {
-            const x0 = padL + ((i - 1) / WAVEFORM_HISTORY) * plotW;
-            const x1 = padL + (i / WAVEFORM_HISTORY) * plotW;
-            const y0 = cy - (waveHistory[i-1].vout / maxVout) * scale;
-            const y1 = cy - (waveHistory[i].vout / maxVout) * scale;
-            const vout = waveHistory[i].vout;
-
-            if (ampClass === 'A') {
-                // Class A: single NPN conducts over the full cycle
-                ctx.strokeStyle = npnCol;
-            } else {
-                // Class B/AB: push-pull emitter follower (no inversion)
-                // Positive output = NPN conducting, negative output = PNP conducting
-                if (Math.abs(vout) < 0.01) {
-                    ctx.strokeStyle = deadCol;
-                } else if (vout > 0) {
-                    ctx.strokeStyle = npnCol;  // NPN conducts on positive half
-                } else {
-                    ctx.strokeStyle = pnpCol;  // PNP conducts on negative half
-                }
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(x0, y0);
-            ctx.lineTo(x1, y1);
-            ctx.stroke();
-        }
-    }
-
-    // ─── Y-axis labels ───
-    ctx.save();
-    ctx.font = '9px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.overlay30;
-    ctx.textAlign = 'right';
-    ctx.fillText('+' + maxVout + 'V', padL - 6, padT + plotH * 0.05 + 4);
-    ctx.fillText('0', padL - 6, cy + 4);
-    ctx.fillText('−' + maxVout + 'V', padL - 6, h - padB - plotH * 0.05 + 4);
-    ctx.restore();
-
-    // ─── Gain readout ───
-    if (vinPeak > 0 && waveHistory.length > 0) {
-        const peakOut = Math.max(...waveHistory.map(s => Math.abs(s.vout)));
-        const measuredGain = peakOut / vinPeak;
-        ctx.save();
-        ctx.font = '500 10px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(106,170,142,0.6)';
-        ctx.textAlign = 'right';
-        ctx.fillText('Gain: ~' + measuredGain.toFixed(1) + 'x', w - padR, padT + 12);
-        ctx.restore();
-    }
-}
-
-function updateExplanation() {
-    const panel = document.getElementById('explanation-panel');
-    let html = '';
-
-    const isClipping = checkClipping();
-    const isBiasLow = (ampClass === 'A' && biasPoint < 20);
-    const isLowAmplitude = amplitude < 10 && amplitude > 0;
-
-    if (ampClass === 'A') {
-        html += '<h3>Class A: Full-cycle conduction</h3>';
-        html += '<p>The transistor is biased in the active region and conducts for the <strong>entire 360&deg;</strong> of the input cycle. ';
-        html += 'The resulting amplification is linear and inverted, but the efficiency is low.</p>';
-        html += '<p>The transistor is always on, continuously drawing current from the supply even with no input signal. ';
-        html += 'This means significant power is dissipated as heat in the transistor at all times.</p>';
-
-        if (isBiasLow) {
-            html += '<div class="physics-note"><strong>Asymmetric clipping:</strong> The Q-point is not centred on the load line. ';
-            html += 'The output will clip on one side of the waveform before the other, causing asymmetric distortion. ';
-            html += 'For optimal Class A operation, bias the Q-point at the midpoint of the load line.</div>';
-        } else if (isClipping) {
-            html += '<div class="physics-note"><strong>Clipping detected:</strong> The input amplitude is driving the transistor beyond its linear range. ';
-            html += 'The output is being clipped at the supply rails (V<sub>CC</sub>) or at saturation (V<sub>CE(sat)</sub>). ';
-            html += 'Reduce the input amplitude to restore linear operation.</div>';
-        } else {
-            html += '<div class="physics-note"><strong>Operating point:</strong> Conduction angle = 360&deg;. ';
-            html += 'Maximum theoretical efficiency = 25% (with resistive load) or 50% (with transformer-coupled load). ';
-            html += 'The Q-point sits at the centre of the load line for maximum symmetric swing.</div>';
-        }
-
-    } else if (ampClass === 'B') {
-        html += '<h3>Class B: Half-cycle conduction (push-pull)</h3>';
-        html += '<p>Two complementary transistors (NPN and PNP) each conduct for exactly <strong>180&deg;</strong> of the input cycle. ';
-        html += 'The NPN handles the positive half-cycle and the PNP handles the negative half-cycle.</p>';
-        html += '<p>The emitter followers have a voltage gain of approximately 1. The bases are driven by a preceding driver stage of gain ' + GAIN + ' (not drawn), so the overall gain is approximately ' + GAIN + '.</p>';
-        html += '<p>With no input signal, both transistors are off. The zero quiescent current reduces standby power dissipation and increases efficiency relative to Class A.</p>';
-
-        if (isLowAmplitude && (ampClass === 'B')) {
-            html += '<div class="physics-note"><strong>Crossover distortion visible:</strong> At low signal levels, the dead zone around the zero-crossing ';
-            html += 'becomes a significant fraction of the signal. Each transistor requires ~0.6V of base-emitter voltage to begin conducting, ';
-            html += 'creating a gap where neither transistor is on. This is most visible at low amplitudes like now.</div>';
-        } else if (isClipping) {
-            html += '<div class="physics-note"><strong>Clipping detected:</strong> The output is being limited by the supply voltage. ';
-            html += 'The maximum output swing is &plusmn;(V<sub>CC</sub> &minus; V<sub>CE(sat)</sub>).</div>';
-        } else {
-            html += '<div class="physics-note"><strong>Operating point:</strong> Conduction angle = 180&deg; per transistor. ';
-            html += 'Maximum theoretical efficiency = 78.5% (&pi;/4). ';
-            html += 'The trade-off is crossover distortion at zero-crossings due to the V<sub>BE</sub> turn-on threshold.</div>';
-        }
-
-    } else if (ampClass === 'AB') {
-        html += '<h3>Class AB: Biased push-pull operation</h3>';
-        html += '<p>This is a modified push-pull design where two biasing diodes provide a small forward voltage to both transistors. ';
-        html += 'Each transistor conducts for <strong>slightly more than 180&deg;</strong>, so at least one device conducts at each zero crossing.</p>';
-        html += '<p>The diodes (D1, D2) create approximately 1.2 V of bias and keep both transistors near conduction. ';
-        html += 'This reduces Class B crossover distortion while retaining much of its efficiency advantage.</p>';
-        html += '<p>As in Class B, the emitter followers have a voltage gain of approximately 1; a driver stage of gain ' + GAIN + ' (not drawn) supplies the bases.</p>';
-
-        if (isLowAmplitude) {
-            html += '<div class="physics-note"><strong>Smooth crossover:</strong> Unlike Class B, the output transitions smoothly through zero. ';
-            html += 'The small standing bias current from the diodes keeps both transistors in a slightly conducting state, ';
-            html += 'bridging the gap that causes crossover distortion in Class B.</div>';
-        } else if (isClipping) {
-            html += '<div class="physics-note"><strong>Clipping detected:</strong> The output is being limited by the supply rails. ';
-            html += 'Reduce input amplitude to restore linear operation.</div>';
-        } else {
-            html += '<div class="physics-note"><strong>Operating point:</strong> Conduction angle slightly &gt; 180&deg; per transistor. ';
-            html += 'Typical efficiency is 50&ndash;60%, between Class A and Class B, with less crossover distortion than Class B.</div>';
-        }
-    }
-
-    panel.innerHTML = html;
-}
-
-function checkClipping() {
-    if (waveHistory.length < 10) return false;
-    const recent = waveHistory.slice(-50);
-    const maxOut = Math.max(...recent.map(s => Math.abs(s.vout)));
-    const expectedMax = vinPeak * GAIN;
-    return expectedMax > 0 && (maxOut / expectedMax) < 0.85;
-}
-
-// ─── Initial render ───
-updateAll();
-
-// ─── Animation loop ───
-let lastTimestamp = 0;
-function animate(timestamp) {
-    const dt = lastTimestamp ? (timestamp - lastTimestamp) / 1000 : 0.016;
-    lastTimestamp = timestamp;
-
-    if (!paused) {
-        simTime += dt;
-
-        const freq = 1 * simSpeed;
-        const vin = vinPeak * Math.sin(2 * Math.PI * freq * simTime);
-        instantVin = vin;
-        const vout = computeOutputSample(vin);
-
-        waveHistory.push({ vin, vout });
-        if (waveHistory.length > WAVEFORM_HISTORY) {
-            waveHistory.shift();
-        }
-    }
-
-    drawCircuit();
-    drawWaveforms();
-    requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
-
-window.addEventListener('themechange', function() { updateAll(); });
-</script>
-
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="cls" data-value="A">class A</button>
+                        <button class="seg-btn" data-param="cls" data-value="B">class B</button>
+                        <button class="seg-btn" data-param="cls" data-value="AB">class AB</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$I_{CQ}$</span>
+                        <input type="range" data-param="bias" min="0" max="100" step="1">
+                        <span class="val" data-param="bias"></span>
+                        <span class="note" data-bias-note></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$\hat{v}_\text{in}$</span>
+                        <input type="range" data-param="amp" min="0" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                </div>
+                <div class="plot-box loadline">
+                    <div class="label">load line · <b>$I_C$ against $V_{CE}$</b></div>
+                    <svg class="bode" id="plot-loadline"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dash"></span>load line</span>
+                    <span><span class="sw" style="background:var(--c-npn)"></span>signal swing</span>
+                    <span><span class="sw" style="background:var(--c-dead)"></span>dot: Q-point; large dot: swing reaches an end of the line</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$I_{CQ}$</span><span class="v" data-out="icq"></span></div>
+                    <div class="item"><span class="k">$V_{CEQ}$</span><span class="v" data-out="vceq"></span></div>
+                    <div class="item"><span class="k">$\hat{v}_\text{out}$</span><span class="v" data-out="vpk"></span></div>
+                    <div class="item"><span class="k">output</span><span class="v" data-out="clip"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 03 · WAVEFORMS ================= -->
+    <section class="scene" id="sec-wave">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>waveforms</span></div>
+            <h2>Crossover distortion and clipping</h2>
+
+            <p class="lead">A push-pull follower conducts only when its base-emitter junction is forward biased.
+                With the bases joined, neither device conducts while the base voltage lies within about
+                $\pm 0.6\,\text{V}$ of the output, and the output stays at zero.</p>
+
+            <p>Referred to the input through the driver gain $A = 20$, the class B dead zone is
+                $\pm 0.6/A = \pm 30\,\text{mV}$, and the output is</p>
+
+            <div class="eq-block">$$v_\text{out} = \begin{cases} 0, & |v_\text{in}| < V_\text{dz}/A \\[4pt]
+                \operatorname{sgn}(v_\text{in})\left(|v_\text{in}| - V_\text{dz}/A\right) A, & \text{otherwise} \end{cases}$$</div>
+
+            <p>with $V_\text{dz} = 0.6\,\text{V}$ for class B and $0.05\,\text{V}$ for class AB, and the result
+                limited to $\pm(V_{CC} - V_{CE(\text{sat})})$. The flat step at each zero crossing is crossover
+                distortion. Its size is fixed, so it is a large fraction of a small signal and a small fraction of
+                a large one.</p>
+
+            <p>The class A stage has no dead zone but clips at the limits set by its Q-point, shown dashed. The
+                measured gain below is the peak output divided by the peak input; it falls below 20 once either
+                distortion mechanism removes part of the waveform.</p>
+
+            <div class="callout">
+                The bias diodes of class AB reduce the effective dead zone from 0.6 V to 0.05 V at the bases. The
+                step at the zero crossing is then too small to see at this scale, while the quiescent current
+                stays small.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="cls" data-value="A">class A</button>
+                        <button class="seg-btn" data-param="cls" data-value="B">class B</button>
+                        <button class="seg-btn" data-param="cls" data-value="AB">class AB</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$\hat{v}_\text{in}$</span>
+                        <input type="range" data-param="amp" min="0" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">frequency</span>
+                        <input type="range" data-param="speed" min="5" max="200" step="1">
+                        <span class="val" data-param="speed"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
+                </div>
+                <div class="plot-box wave" data-anim>
+                    <div class="label">waveforms · <b>$v_\text{in}$ and $v_\text{out}$ over two cycles</b></div>
+                    <svg class="bode" id="plot-wave"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-vin)"></span>$v_\text{in}$</span>
+                    <span><span class="sw" style="background:var(--c-npn)"></span>$v_\text{out}$, NPN conducting</span>
+                    <span><span class="sw" style="background:var(--c-pnp)"></span>$v_\text{out}$, PNP conducting</span>
+                    <span><span class="sw" style="background:var(--c-dead)"></span>neither conducting</span>
+                    <span><span class="sw dash"></span>clipping limits</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">measured gain</span><span class="v" data-out="gain"></span></div>
+                    <div class="item"><span class="k">$\hat{v}_\text{out}$</span><span class="v" data-out="vpk"></span></div>
+                    <div class="item"><span class="k">output</span><span class="v" data-out="clip"></span></div>
+                </div>
+                <div class="callout live" id="class-note"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 04 · POWER ================= -->
+    <section class="scene" id="sec-power">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>power budget</span></div>
+            <h2>Efficiency of each class</h2>
+
+            <p class="lead">The efficiency is the fraction of the DC supply power that reaches the load as signal
+                power; the remainder is dissipated as heat in the output devices:</p>
+
+            <div class="eq-block">$$\eta = \frac{P_L}{P_\text{DC}}, \qquad P_D = P_\text{DC} - P_L, \qquad
+                P_L = \frac{\hat{v}_\text{out}^{\,2}}{2R_L}$$</div>
+
+            <p><strong>Class A.</strong> The supply delivers $P_\text{DC} = V_{CC} I_{CQ}$ whatever the signal.
+                With a resistive load the efficiency cannot exceed 25 %; a transformer-coupled load raises the limit
+                to 50 %. At zero input all of $P_\text{DC}$ is dissipated in the circuit.</p>
+
+            <p><strong>Class B.</strong> Each supply delivers a half-wave rectified current of peak
+                $\hat{\imath} = \hat{v}_\text{out}/R_L$, whose average is $\hat{\imath}/\pi$, so</p>
+
+            <div class="eq-block">$$P_\text{DC} = \frac{2 V_{CC}\, \hat{\imath}}{\pi}, \qquad
+                \eta = \frac{\pi}{4}\,\frac{\hat{v}_\text{out}}{V_{CC}} \le \frac{\pi}{4} \approx 78.5\,\%$$</div>
+
+            <p><strong>Class AB.</strong> The standing bias current $I_Q$ adds to both supplies,
+                $P_\text{DC} = 2 V_{CC}\left(\hat{\imath}/\pi + I_Q\right)$. Typical efficiencies lie between
+                50 % and 60 %, between those of classes A and B.</p>
+
+            <div class="callout">
+                The efficiency of classes B and AB rises in proportion to the output amplitude, because the supply
+                current is drawn only in proportion to the signal. Class A draws its full supply current at all
+                amplitudes, so its efficiency is highest at full swing and zero at rest.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="cls" data-value="A">class A</button>
+                        <button class="seg-btn" data-param="cls" data-value="B">class B</button>
+                        <button class="seg-btn" data-param="cls" data-value="AB">class AB</button>
+                    </span>
+                    <span class="divider"></span>
+                    <span class="slider-group">
+                        <span class="lab">$\hat{v}_\text{in}$</span>
+                        <input type="range" data-param="amp" min="0" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$I_{CQ}$</span>
+                        <input type="range" data-param="bias" min="0" max="100" step="1">
+                        <span class="val" data-param="bias"></span>
+                        <span class="note" data-bias-note></span>
+                    </span>
+                </div>
+                <div class="plot-box budget">
+                    <div class="label">power budget · <b>present operating point</b></div>
+                    <svg class="bode" id="plot-budget"></svg>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$P_\text{DC}$</span><span class="v" data-out="pdc"></span></div>
+                    <div class="item"><span class="k">$P_L$</span><span class="v" data-out="pl"></span></div>
+                    <div class="item"><span class="k">$P_D$</span><span class="v" data-out="pd"></span></div>
+                    <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
+                </div>
+                <div class="plot-box eff">
+                    <div class="label">efficiency · <b>$\eta$ against input amplitude</b></div>
+                    <svg class="bode" id="plot-eff"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-bias)"></span>class A</span>
+                    <span><span class="sw" style="background:var(--c-pnp)"></span>class B</span>
+                    <span><span class="sw" style="background:var(--c-npn)"></span>class AB</span>
+                    <span><span class="sw dash"></span>25 % and 78.5 % limits</span>
+                    <span>dot: present operating point</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>BMEN90033 · The University of Melbourne</footer>
+
+    <script defer src="../components/katex_label.js"></script>
+    <script defer src="../components/plot_helpers.js"></script>
+    <script defer src="amplifier_classes_JS/model.js"></script>
+    <script defer src="amplifier_classes_JS/frame.js"></script>
+    <script defer src="amplifier_classes_JS/anim.js"></script>
+    <script defer src="amplifier_classes_JS/controls.js"></script>
+    <script defer src="amplifier_classes_JS/readout.js"></script>
+    <script defer src="amplifier_classes_JS/plot_circuit.js"></script>
+    <script defer src="amplifier_classes_JS/plot_loadline.js"></script>
+    <script defer src="amplifier_classes_JS/plot_wave.js"></script>
+    <script defer src="amplifier_classes_JS/plot_budget.js"></script>
+    <script defer src="amplifier_classes_JS/plot_efficiency.js"></script>
 </body>
+
 </html>

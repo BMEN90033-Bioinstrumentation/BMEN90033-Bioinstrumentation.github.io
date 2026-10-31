@@ -1,0 +1,40 @@
+/* amplifier_classes.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-vin:  #c8a8ff;   /* input signal */
+    --c-npn:  #7be089;   /* NPN device, class A output */
+    --c-pnp:  #58a6ff;   /* PNP device */
+    --c-dead: #ff5c7a;   /* crossover dead zone, clipping */
+    --c-bias: #ffcf5c;   /* DC bias current */
+    --c-dc:   #58a6ff;   /* DC input power */
+    --c-sig:  #7be089;   /* signal power */
+    --c-heat: #ff7a6b;   /* dissipated power */
+    --c-load: rgba(255, 255, 255, 0.55);
+    --hero-a: var(--c-npn);
+    --hero-b: var(--c-pnp);
+}
+
+[data-theme="light"] {
+    --c-vin:  #7c3aed;
+    --c-npn:  #2f8f3f;
+    --c-pnp:  #1d4ed8;
+    --c-dead: #dc2626;
+    --c-bias: #b88200;
+    --c-dc:   #1d4ed8;
+    --c-sig:  #2f8f3f;
+    --c-heat: #c2410c;
+    --c-load: rgba(0, 0, 0, 0.5);
+}
+
+.plot-box.circuit  { aspect-ratio: 640 / 420; }
+.plot-box.loadline { aspect-ratio: 1.45 / 1; }
+.plot-box.wave     { aspect-ratio: 1.3 / 1; }
+.plot-box.budget   { aspect-ratio: 1.8 / 1; }
+.plot-box.eff      { aspect-ratio: 1.6 / 1; }
+
+.readout .item .v.warn { color: var(--c-dead); }
+.legend .sw.dash { border-top-color: var(--c-load); }
+.toolbar input[type="range"]:disabled { opacity: 0.35; }
+.toolbar .note { color: var(--muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.callout.live { margin-top: 0; }

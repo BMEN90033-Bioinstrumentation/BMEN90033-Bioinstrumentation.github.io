@@ -1,0 +1,38 @@
+/* class_d_amplifier.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-vin:  #eef0f5;   /* input signal */
+    --c-car:  #ffcf5c;   /* triangle carrier */
+    --c-hi:   #7be089;   /* PWM high, PMOS conducting, filtered output */
+    --c-lo:   #58a6ff;   /* PWM low, NMOS conducting */
+    --c-off:  #ff5c7a;   /* device off */
+    --c-heat: #ff7a6b;
+    --c-dc:   #58a6ff;
+    --hero-a: var(--c-hi);
+    --hero-b: var(--c-car);
+}
+
+[data-theme="light"] {
+    --c-vin:  #1a1a1e;
+    --c-car:  #b88200;
+    --c-hi:   #2f8f3f;
+    --c-lo:   #1d4ed8;
+    --c-off:  #dc2626;
+    --c-heat: #c2410c;
+    --c-dc:   #1d4ed8;
+}
+
+.plot-box.input   { aspect-ratio: 2 / 1; }
+.plot-box.comp    { aspect-ratio: 640 / 260; }
+.plot-box.pwm     { aspect-ratio: 1.4 / 1; }
+.plot-box.bridge  { aspect-ratio: 640 / 400; }
+.plot-box.lc      { aspect-ratio: 640 / 260; }
+.plot-box.filter  { aspect-ratio: 1.8 / 1; }
+.plot-box.chain   { aspect-ratio: 900 / 400; }
+.plot-box.traces  { aspect-ratio: 1.2 / 1; }
+.plot-box.budget  { aspect-ratio: 2 / 1; }
+.plot-box.compare { aspect-ratio: 1.6 / 1; }
+
+.readout .item .v.hi  { color: var(--c-hi); }
+.readout .item .v.lo  { color: var(--c-lo); }

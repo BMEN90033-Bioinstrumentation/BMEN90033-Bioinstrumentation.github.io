@@ -1,2285 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033: Interactive Class D Amplifier</title>
+    <title>BMEN90033 · Class D Amplifier</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <style>
-        :root {
-            --bg: #0a0e14;
-            --bg-panel: rgba(16, 20, 28, 0.92);
-            --border: rgba(255,255,255,0.07);
-            --border-hover: rgba(255,255,255,0.15);
-            --text: #e2e8f0;
-            --text-dim: #8892a4;
-            --text-muted: #505868;
-            --accent: var(--site-accent);
-            --yellow: #ffcc44;
-            --red: #e06050;
-        }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
-        [data-theme="light"] {
-            --bg: #f5f5f7;
-            --bg-deep: #f5f5f7;
-            --bg-panel: rgba(255,255,255,0.92);
-            --bg-card: #eeeef0;
-            --border: rgba(0,0,0,0.1);
-            --border-hover: rgba(0,0,0,0.2);
-            --accent: var(--site-accent);
-            --accent-dim: #357a60;
-            --text: #1a1a1e;
-            --text-dim: #555555;
-            --text-muted: #888888;
-            --yellow: #b8860b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .explainer {
-            max-width: 880px;
-            margin: 0 auto;
-            padding: 72px 24px 120px;
-        }
-
-        .title-block {
-            margin-bottom: 56px;
-        }
-        .title-block h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-        .title-block .sub {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 12px;
-        }
-        .title-block p {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.7;
-            max-width: 640px;
-        }
-
-        /* ── Section headings ── */
-        .section {
-            margin-bottom: 72px;
-        }
-        .section-number {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--accent);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .section h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.3px;
-            margin-bottom: 16px;
-        }
-        .section p, .section li {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.8;
-            margin-bottom: 12px;
-        }
-        .section ul {
-            padding-left: 20px;
-            margin-bottom: 16px;
-        }
-
-        /* ── Canvas containers ── */
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin: 24px 0 28px;
-            overflow: hidden;
-        }
-        .canvas-container canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        .canvas-tall { height: 420px; }
-        .canvas-medium { height: 280px; }
-
-        /* ── Key equations ── */
-        .eq-block {
-            display: block;
-            margin: 16px 0;
-            padding: 12px 20px;
-            background: rgba(106,170,142,0.06);
-            border: 1px solid rgba(106,170,142,0.15);
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 15px;
-            color: var(--accent);
-            line-height: 1.8;
-            text-align: center;
-        }
-        .eq-block .dim {
-            color: var(--text-muted);
-            transition: color 0.3s;
-        }
-        .eq-block .hl {
-            color: var(--yellow);
-            transition: color 0.3s;
-        }
-
-        /* ── Controls ── */
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px 16px;
-        }
-        .control-group label {
-            font-size: 12px;
-            color: var(--text-dim);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .control-group input[type=range] {
-            width: 120px;
-            -webkit-appearance: none;
-            background: rgba(255,255,255,0.18);
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-        .control-group input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-        }
-        .control-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text);
-            min-width: 52px;
-            text-align: right;
-        }
-        .pause-btn {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px 16px;
-            color: var(--text-dim);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .pause-btn:hover { color: var(--text); border-color: var(--border-hover); }
-        .pause-btn.active { color: var(--text); }
-
-        /* ── Info callouts ── */
-        .callout {
-            padding: 14px 18px;
-            background: rgba(106,170,142,0.06);
-            border-left: 3px solid var(--accent);
-            border-radius: 0 6px 6px 0;
-            margin: 16px 0;
-            font-size: 13px;
-            color: var(--text-dim);
-            line-height: 1.7;
-        }
-        .callout strong { color: var(--text); }
-        .callout.warn {
-            background: rgba(255,200,100,0.06);
-            border-left-color: var(--yellow);
-        }
-
-        /* ── Power bars ── */
-        .power-bars {
-            margin: 24px 0;
-        }
-        .power-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-        .power-bar-label {
-            font-size: 12px;
-            color: var(--text-dim);
-            min-width: 130px;
-            text-align: right;
-            font-weight: 500;
-        }
-        .power-bar-track {
-            flex: 1;
-            height: 22px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-        .power-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.2s;
-        }
-        .power-bar-fill.dc { background: rgba(80,128,208,0.6); }
-        .power-bar-fill.signal { background: rgba(106,170,142,0.7); }
-        .power-bar-fill.heat { background: rgba(224,96,80,0.6); }
-        .power-bar-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text);
-            min-width: 72px;
-        }
-        .efficiency-readout {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 18px;
-            color: var(--accent);
-            font-weight: 600;
-            text-align: center;
-            margin: 16px 0;
-        }
-        [data-theme="light"] .back-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #555; }
-        [data-theme="light"] .back-btn:hover { color: #1a1a1e; border-color: rgba(0,0,0,0.2); }
-        [data-theme="light"] .title-block h1 { color: #1a1a1e; }
-        [data-theme="light"] .section h2 { color: #1a1a1e; }
-        [data-theme="light"] .control-value { color: #1a1a1e; }
-        [data-theme="light"] .pause-btn:hover { color: #1a1a1e; border-color: rgba(0,0,0,0.2); }
-        [data-theme="light"] .pause-btn.active { color: #1a1a1e; }
-        [data-theme="light"] .callout strong { color: #1a1a1e; }
-        [data-theme="light"] .power-bar-value { color: #1a1a1e; }
-        [data-theme="light"] .canvas-container { background: rgba(0,0,0,0.03); }
-        [data-theme="light"] .power-bar-track { background: rgba(0,0,0,0.04); }
-        [data-theme="light"] .control-group input[type=range] { background: rgba(0,0,0,0.15); }
-        [data-theme="light"] .control-group input[type=range]::-webkit-slider-thumb { background: #333; }
-    </style>
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
+    <link rel="stylesheet" href="class_d_amplifier_JS/class_d_amplifier.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$',  right: '$',  display: false }
+            ],
+            throwOnError: false
+        });"></script>
+
     <script src="../theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 </head>
+
 <body>
 
-<div class="brand"><span class="mark"></span><span>BMEN90033 · Week 5</span></div>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 5</span></div>
+    <a class="back-btn" href="../index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+    </a>
 
-<a class="back-btn" href="../index.html">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 12H5" />
-        <path d="M12 19l-7-7 7-7" />
-    </svg>
-    Back
-</a>
-
-<div class="explainer">
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- TITLE -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="title-block">
-        <div class="sub">BMEN90033 &middot; Week 5</div>
-        <h1>Class D Amplifier</h1>
-        <p>A Class D amplifier switches its output transistors fully on or off at high frequency,
-           unlike Class A, B, and AB stages that operate in the linear region. Pulse-width modulation
-           and low-pass filtering recover the input waveform with typical efficiencies of 90&ndash;95%.</p>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 1: THE INPUT SIGNAL -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-input">
-        <div class="section-number">Part 01</div>
-        <h2>The Input Signal</h2>
-
-        <p>The input is an analog sine wave representing an audio or sensor signal.</p>
-
-        <div class="canvas-container canvas-medium">
-            <canvas id="canvas-input"></canvas>
+    <!-- ================= LANDING ================= -->
+    <section class="landing">
+        <div>
+            <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
+            <h1 class="hero">The class D <em>amplifier</em></h1>
+            <p class="sub">A class D amplifier switches its output transistors fully on or fully off at high
+                frequency, unlike class A, B and AB stages, which operate in the linear region. The input is
+                encoded as a pulse-width modulated (PWM) waveform, amplified by a MOSFET half-bridge and recovered
+                by a low-pass filter, with typical efficiencies of 90 to 95 %. This page follows the signal
+                through each stage of that chain.</p>
+            <div class="tags">
+                <span class="field-tag">PWM</span>
+                <span class="field-tag">comparator</span>
+                <span class="field-tag">half-bridge</span>
+                <span class="field-tag">LC filter</span>
+                <span class="field-tag">efficiency</span>
+            </div>
         </div>
+        <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
+    </section>
 
-        <div class="controls-row">
-            <div class="control-group">
-                <label>Amplitude</label>
-                <input type="range" id="slider-amp" min="5" max="100" step="1" value="30">
-                <span class="control-value" id="val-amp">30%</span>
+    <!-- ================= 01 · INPUT ================= -->
+    <section class="scene" id="sec-input">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the input signal</span></div>
+            <h2>Linear and switching amplification</h2>
+
+            <p class="lead">The input is an analogue sine wave representing an audio or sensor signal. In a linear
+                amplifier this signal controls the transistor current continuously. In a class D amplifier it is
+                only the reference for a switching process.</p>
+
+            <p>A linear output device carries load current while a substantial voltage appears across it, so it
+                dissipates $V_{CE}\,I_C$ throughout the cycle. A switch is either open, with no current, or closed,
+                with almost no voltage across it. In both states the product of voltage and current is small, and
+                so is the dissipation.</p>
+
+            <p>The input is described relative to the peak $\hat{v}_c$ of the triangle carrier introduced in the
+                next section. The ratio is the modulation index</p>
+
+            <div class="eq-block">$$m = \frac{\hat{v}_\text{in}}{\hat{v}_c}, \qquad 0 \le m \le 1$$</div>
+
+            <p>which sets how far the duty cycle of the PWM waveform swings either side of 50 %.</p>
+
+            <div class="callout">
+                The amplitude slider sets $m$ as a percentage. For $m &gt; 1$ the input would exceed the carrier
+                peak, the comparator output would stop switching near the signal peaks, and the output would clip.
             </div>
         </div>
 
-        <div class="callout">
-            <strong>Linear and switching operation.</strong> In a linear amplifier, the signal controls
-            transistor current continuously. In a Class D amplifier, it is the reference for switching.
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 2: THE COMPARATOR -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-comparator">
-        <div class="section-number">Part 02</div>
-        <h2>The Comparator: Generating PWM</h2>
-
-        <p>A comparator receives the input signal on one
-           terminal and a high-frequency triangle-wave carrier on the other. Whenever the input
-           sits above the carrier, the output goes HIGH. Whenever it falls below, the output goes LOW.
-           The result is a pulse-width modulated (PWM) signal.</p>
-
-        <div class="canvas-container canvas-medium">
-            <canvas id="canvas-comp-circuit"></canvas>
-        </div>
-
-        <p>The white trace is the input signal, the gold trace is the triangle carrier, and the
-           coloured square wave is the resulting PWM output.</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="canvas-pwm"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>Amplitude</label>
-                <input type="range" id="slider-amp2" min="5" max="100" step="1" value="30">
-                <span class="control-value" id="val-amp2">30%</span>
-            </div>
-            <div class="control-group">
-                <label>Speed</label>
-                <input type="range" id="slider-speed" min="0.1" max="3" step="0.1" value="1">
-                <span class="control-value" id="val-speed">1.0x</span>
-            </div>
-            <div class="control-group">
-                <label>f<sub>sw</sub> / f<sub>sig</sub></label>
-                <input type="range" id="slider-ratio" min="5" max="60" step="1" value="8">
-                <span class="control-value" id="val-ratio">8x</span>
-            </div>
-            <button class="pause-btn active" id="btn-pause" onclick="togglePause()">&#9646;&#9646;</button>
-        </div>
-
-        <div class="callout">
-            <strong>Duty cycle.</strong> The proportion of time spent HIGH varies with the input signal.
-            When the input is at its peak, the PWM is HIGH most of the time. When at its trough, it's LOW most
-            of the time. At zero, it's a 50% duty cycle.
-        </div>
-
-        <div class="eq-block">
-            Duty Cycle = <span class="dim">(</span>V<sub>in</sub> + V<sub>carrier,pk</sub><span class="dim">)</span>
-            / <span class="dim">(</span>2 &times; V<sub>carrier,pk</sub><span class="dim">)</span>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 3: THE SWITCHING STAGE -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-mosfet">
-        <div class="section-number">Part 03</div>
-        <h2>The Switching Stage: MOSFET Half-Bridge</h2>
-
-        <p>The PWM signal drives a pair of complementary MOSFETs (NMOS and PMOS) arranged in a half-bridge.
-           Unlike BJTs in linear amplifiers, these MOSFETs operate as digital switches: they are either
-           fully ON or fully OFF, with nothing in between. A gate driver applies the inverted signal,
-           <span style="text-decoration:overline">PWM</span>, to both gates: PWM HIGH turns the PMOS on and
-           connects the output to V<sub>CC</sub>; PWM LOW turns the NMOS on and connects it to GND.</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="canvas-circuit"></canvas>
-        </div>
-
-        <div class="callout">
-            <strong>Switch loss.</strong> In the fully on state, R<sub>DS(on)</sub> can be in the milliohm range;
-            <strong>in the fully off state</strong>, current is negligible. Conduction loss is therefore small, although finite
-            switching losses occur during each transition.
-        </div>
-
-        <div class="eq-block">
-            P<sub>switch</sub> &asymp; 0 <span class="dim">&nbsp;&nbsp;(</span>V<sub>DS</sub> &times; I<sub>D</sub> &asymp; 0 <span class="dim">in both states)</span>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 4: THE LC LOW-PASS FILTER -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-filter">
-        <div class="section-number">Part 04</div>
-        <h2>The LC Low-Pass Filter: Recovering the Signal</h2>
-
-        <p>The PWM output is a high-frequency square wave that rapidly switches between V<sub>CC</sub> and GND.
-           To recover the original analog signal, we pass it through an LC low-pass filter. The inductor
-           resists rapid current changes, and the capacitor smooths the voltage. The filter's cutoff frequency
-           is set above the signal bandwidth but well below the switching frequency.</p>
-
-        <div class="canvas-container canvas-medium">
-            <canvas id="canvas-lc-circuit"></canvas>
-        </div>
-
-        <p>The low-pass filter attenuates the high-frequency PWM components. The faint trace is the raw PWM,
-           and the bright green trace is the filtered analog output.</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="canvas-filter"></canvas>
-        </div>
-
-        <div class="callout">
-            <strong>The LC filter averages the PWM signal.</strong> During HIGH periods, current flows through the
-            inductor into the capacitor and load. During LOW periods, the inductor's stored energy maintains the
-            current. The output voltage ends up proportional to the duty cycle, but it is not perfectly smooth.
-            <strong>Frequency-ratio control: the f<sub>sw</sub>/f<sub>sig</sub> slider</strong> changes
-            the frequency ratio. Ratios of 5&ndash;10
-            leave visible switching ripple, whereas larger ratios reduce it. A second-order LC filter
-            attenuates the stopband at &minus;40 dB/decade.
-        </div>
-
-        <div class="eq-block">
-            f<sub>cutoff</sub> = 1 / (2&pi;&radic;(LC)) <span class="dim">&nbsp;&nbsp;where&nbsp;&nbsp;</span>
-            f<sub>signal</sub> <span class="hl">&lt;&lt;</span> f<sub>cutoff</sub> <span class="hl">&lt;&lt;</span> f<sub>switching</sub>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 5: PUTTING IT ALL TOGETHER -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-full">
-        <div class="section-number">Part 05</div>
-        <h2>Complete signal chain and efficiency</h2>
-
-        <p>The complete signal chain contains the comparator, half-bridge, and LC output filter. The comparator
-           inputs are reversed relative to Part 02, so its output is <span style="text-decoration:overline">PWM</span>,
-           the gate drive required for the output to follow PWM.</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="canvas-full-circuit"></canvas>
-        </div>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="canvas-full"></canvas>
-        </div>
-
-        <div class="power-bars">
-            <div class="power-bar-row">
-                <span class="power-bar-label">DC Input Power</span>
-                <div class="power-bar-track">
-                    <div class="power-bar-fill dc" id="bar-dc" style="width:100%"></div>
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$m$</span>
+                        <input type="range" data-param="amp" min="5" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
                 </div>
-                <span class="power-bar-value" id="val-dc">0 mW</span>
-            </div>
-            <div class="power-bar-row">
-                <span class="power-bar-label">Signal Output Power</span>
-                <div class="power-bar-track">
-                    <div class="power-bar-fill signal" id="bar-signal" style="width:0%"></div>
+                <div class="plot-box input">
+                    <div class="label">input · <b>two cycles of $v_\text{in}$</b></div>
+                    <svg class="bode" id="plot-input"></svg>
                 </div>
-                <span class="power-bar-value" id="val-signal">0 mW</span>
-            </div>
-            <div class="power-bar-row">
-                <span class="power-bar-label">Wasted as Heat</span>
-                <div class="power-bar-track">
-                    <div class="power-bar-fill heat" id="bar-heat" style="width:0%"></div>
+                <div class="readout">
+                    <div class="item"><span class="k">$m$</span><span class="v" data-out="m"></span></div>
+                    <div class="item"><span class="k">$D_\text{max}$</span><span class="v" data-out="dmax"></span></div>
+                    <div class="item"><span class="k">$D_\text{min}$</span><span class="v" data-out="dmin"></span></div>
                 </div>
-                <span class="power-bar-value" id="val-heat">0 mW</span>
             </div>
         </div>
-        <div class="efficiency-readout" id="efficiency-readout">&eta; = 92% (assumed)</div>
+    </section>
 
-        <div class="callout">
-            <strong>Compare this to linear amplifiers:</strong> Class A &asymp; 25%, Class B &asymp; 78%,
-            Class AB &asymp; 55%. Class D achieves 90&ndash;95% by eliminating the transistor's linear region entirely.
+    <!-- ================= 02 · COMPARATOR ================= -->
+    <section class="scene" id="sec-comparator">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>pulse-width modulation</span></div>
+            <h2>The comparator generates PWM</h2>
+
+            <p class="lead">A comparator receives the input signal on its non-inverting terminal and a
+                high-frequency triangle carrier on its inverting terminal. Its output is HIGH whenever the input
+                lies above the carrier and LOW whenever it lies below.</p>
+
+            <p>The result is a pulse-width modulated signal: a rectangular wave at the carrier frequency
+                $f_\text{sw}$ whose duty cycle follows the input. Over one carrier period the triangle sweeps
+                linearly between $-\hat{v}_c$ and $+\hat{v}_c$, so the fraction of time spent above it is</p>
+
+            <div class="eq-block">$$D = \frac{v_\text{in} + \hat{v}_c}{2\,\hat{v}_c}$$</div>
+
+            <p>When the input is at its peak the output is HIGH for most of each carrier period; at its trough the
+                output is LOW for most of the period; at zero the duty cycle is 50 %. The average of the PWM
+                waveform over one carrier period is therefore a linear function of the input.</p>
+
+            <p>The carrier must be much faster than the signal, $f_\text{sw} \gg f_\text{sig}$, so that the input
+                is nearly constant within each carrier period. The ratio slider sets $f_\text{sw}/f_\text{sig}$.</p>
+
+            <div class="callout">
+                The cursor marks the instant shown by the schematic, whose output dot changes colour with the
+                comparator state.
+            </div>
         </div>
-    </div>
 
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 6: WHY MOSFETs? -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="section" id="sec-mosfets">
-        <div class="section-number">Part 06</div>
-        <h2>Why MOSFETs?</h2>
-
-        <p>Class D operation requires fast switching with low conduction and drive losses. MOSFETs
-           are generally preferred to BJTs for these reasons:</p>
-
-        <ul>
-            <li><strong>Switching speed:</strong> BJTs have storage time. Minority carriers in the base region
-                need to be swept out before the device turns off. MOSFETs are majority-carrier devices with
-                no storage time, so they switch significantly faster.</li>
-            <li><strong>Voltage-driven gate:</strong> A BJT requires continuous base current to stay on. A MOSFET
-                only needs its gate capacitance charged. Once charged, zero steady-state current flows into the
-                gate, which simplifies the driver circuit considerably.</li>
-            <li><strong>Lower on-resistance:</strong> Modern power MOSFETs achieve R<sub>DS(on)</sub> in the
-                low milliohm range. That is less voltage drop than a BJT's V<sub>CE(sat)</sub> at high currents,
-                which translates directly to lower conduction losses.</li>
-            <li><strong>Applications:</strong> Audio amplifiers, motor drivers, DC-DC converters,
-                and battery-powered biomedical devices.</li>
-        </ul>
-
-        <div class="callout">
-            Class D is the dominant amplifier topology in portable and battery-powered biomedical
-            devices. Power efficiency directly determines battery life and how much heat the device
-            generates, both of which are critical constraints in wearable and implantable systems.
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$m$</span>
+                        <input type="range" data-param="amp" min="5" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$f_\text{sw}/f_\text{sig}$</span>
+                        <input type="range" data-param="ratio" min="5" max="60" step="1">
+                        <span class="val" data-param="ratio"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">speed</span>
+                        <input type="range" data-param="speed" min="0.1" max="3" step="0.1">
+                        <span class="val" data-param="speed"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
+                </div>
+                <div class="plot-box comp" data-anim>
+                    <div class="label">circuit · <b>comparator</b></div>
+                    <svg class="bode" id="plot-comparator"></svg>
+                </div>
+                <div class="plot-box pwm" data-anim>
+                    <div class="label">waveforms · <b>input, carrier and PWM output</b></div>
+                    <svg class="bode" id="plot-pwm"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-vin)"></span>$v_\text{in}$</span>
+                    <span><span class="sw" style="background:var(--c-car)"></span>carrier $v_c$</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>PWM output</span>
+                    <span>dot on schematic: <b style="color:var(--c-hi)">HIGH</b> / <b style="color:var(--c-lo)">LOW</b></span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$v_\text{in}/\hat{v}_c$</span><span class="v" data-out="vin"></span></div>
+                    <div class="item"><span class="k">$v_c/\hat{v}_c$</span><span class="v" data-out="vc"></span></div>
+                    <div class="item"><span class="k">output</span><span class="v" data-out="cmp"></span></div>
+                    <div class="item"><span class="k">local $D$</span><span class="v" data-out="duty"></span></div>
+                </div>
+            </div>
         </div>
-    </div>
-
-</div><!-- .explainer -->
-
-<script>
-// ─── State ───
-let amplitude = 30;
-let simTime = 0;
-let simSpeed = 1;
-let paused = false;
-let lastFrameTime = 0;
-
-// ─── Constants ───
-const VCC = 12;
-const VCE_SAT = 0.2;
-const GAIN = 20;
-let carrierFreqRatio = 8;  // carrier frequency relative to signal (adjustable)
-const RC = 1000;               // load resistance in ohms
-const RESISTOR_BODY = 30;
-const RESISTOR_W = 7;
-const EFFICIENCY = 0.92;       // Class D typical efficiency
-
-// ─── Canvas refs ───
-const canvasIds = ['canvas-input', 'canvas-comp-circuit', 'canvas-pwm', 'canvas-circuit', 'canvas-lc-circuit', 'canvas-filter', 'canvas-full-circuit', 'canvas-full'];
-const canvases = {};
-const contexts = {};
-
-function initCanvases() {
-    for (const id of canvasIds) {
-        const c = document.getElementById(id);
-        if (c) {
-            canvases[id] = c;
-            contexts[id] = c.getContext('2d');
-            resizeCanvas(c);
-        }
-    }
-}
-
-function resizeCanvas(canvas) {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function resizeAll() {
-    for (const id of canvasIds) {
-        if (canvases[id]) resizeCanvas(canvases[id]);
-    }
-}
-
-// ─── Slider sync ───
-const ampSlider = document.getElementById('slider-amp');
-const ampSlider2 = document.getElementById('slider-amp2');
-const speedSlider = document.getElementById('slider-speed');
-
-ampSlider.addEventListener('input', () => {
-    amplitude = +ampSlider.value;
-    ampSlider2.value = amplitude;
-    document.getElementById('val-amp').textContent = amplitude + '%';
-    document.getElementById('val-amp2').textContent = amplitude + '%';
-});
-ampSlider2.addEventListener('input', () => {
-    amplitude = +ampSlider2.value;
-    ampSlider.value = amplitude;
-    document.getElementById('val-amp').textContent = amplitude + '%';
-    document.getElementById('val-amp2').textContent = amplitude + '%';
-});
-speedSlider.addEventListener('input', () => {
-    simSpeed = +speedSlider.value;
-    document.getElementById('val-speed').textContent = simSpeed.toFixed(1) + 'x';
-});
-
-const ratioSlider = document.getElementById('slider-ratio');
-ratioSlider.addEventListener('input', () => {
-    carrierFreqRatio = +ratioSlider.value;
-    document.getElementById('val-ratio').textContent = carrierFreqRatio + 'x';
-});
-
-function togglePause() {
-    paused = !paused;
-    const btn = document.getElementById('btn-pause');
-    btn.innerHTML = paused ? '&#9654;' : '&#9646;&#9646;';
-    btn.classList.toggle('active', !paused);
-}
-
-// ─── Signal helpers ───
-function inputSignal(t) {
-    return (amplitude / 100) * Math.sin(t);
-}
-
-function triangleCarrier(t) {
-    // Triangle wave from -1 to 1 at carrierFreqRatio times the signal frequency
-    const phase = (t * carrierFreqRatio) / (2 * Math.PI);
-    const frac = phase - Math.floor(phase);
-    return frac < 0.5 ? (-1 + 4 * frac) : (3 - 4 * frac);
-}
-
-function pwmSignal(t) {
-    return inputSignal(t) > triangleCarrier(t) ? 1 : 0;
-}
-
-// Compute filtered output with realistic switching ripple
-// A 2nd-order LC filter attenuates at -40dB/decade above cutoff.
-// Ripple amplitude modelled as 8 / ratio² (normalised units), i.e. ∝ 1/ratio² for a 2nd-order LC filter.
-// Real ripple depends on f_sw relative to the LC cutoff; f_cutoff is assumed proportional to f_sig here.
-// At low ratios (5x) ripple is clearly visible; at high ratios (50x+) it's negligible.
-function filteredSignal(t) {
-    const vin = inputSignal(t);
-    const duty = (vin + 1) / 2;
-    const idealOut = (duty - 0.5) * 2;  // normalized -1..1
-
-    // Ripple: sawtooth-like component at the switching frequency
-    // Amplitude inversely proportional to ratio² (2nd order filter rolloff)
-    const rippleAmp = 1.0 / (carrierFreqRatio * carrierFreqRatio) * 8;
-    const carrierPhase = (t * carrierFreqRatio) / (2 * Math.PI);
-    const frac = carrierPhase - Math.floor(carrierPhase);
-    // Triangular ripple shape (capacitor charge/discharge)
-    const ripple = (frac < 0.5 ? (frac * 2) : (2 - frac * 2)) - 0.5;
-
-    return idealOut + ripple * rippleAmp;
-}
-
-// ─── Drawing helpers ───
-// Supersampled PWM trace — samples at carrier frequency to avoid missing transitions
-function drawPWMTrace(ctx, tStart, windowT, plotW, padL, yHigh, yLow, colorHigh, colorLow, colorTransition) {
-    const samplesPerCycle = 8;
-    const totalCycles = windowT / (2 * Math.PI) * carrierFreqRatio;
-    const numSamples = Math.max(plotW, Math.ceil(totalCycles * samplesPerCycle));
-
-    let prevP = pwmSignal(tStart);
-    ctx.beginPath();
-    ctx.strokeStyle = prevP ? colorHigh : colorLow;
-    ctx.moveTo(padL, prevP ? yHigh : yLow);
-
-    for (let i = 1; i <= numSamples; i++) {
-        const frac = i / numSamples;
-        const t = tStart + frac * windowT;
-        const p = pwmSignal(t);
-        const x = padL + frac * plotW;
-
-        if (p !== prevP) {
-            ctx.lineTo(x, prevP ? yHigh : yLow);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.strokeStyle = colorTransition;
-            ctx.moveTo(x, prevP ? yHigh : yLow);
-            ctx.lineTo(x, p ? yHigh : yLow);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.strokeStyle = p ? colorHigh : colorLow;
-            ctx.moveTo(x, p ? yHigh : yLow);
-        } else {
-            ctx.lineTo(x, p ? yHigh : yLow);
-        }
-        prevP = p;
-    }
-    ctx.stroke();
-}
-
-function drawResistor(ctx, x1, y1, x2, y2, label, labelColor, labelFont) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const mid = len / 2;
-    const halfBody = RESISTOR_BODY / 2;
-    const bodyStart = mid - halfBody;
-    const bodyEnd = mid + halfBody;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x1 + ux * bodyStart, y1 + uy * bodyStart);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x1 + ux * bodyEnd, y1 + uy * bodyEnd);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    const bx = x1 + ux * bodyStart;
-    const by = y1 + uy * bodyStart;
-    ctx.beginPath();
-    ctx.moveTo(bx + px * RESISTOR_W, by + py * RESISTOR_W);
-    ctx.lineTo(bx + px * RESISTOR_W + ux * RESISTOR_BODY, by + py * RESISTOR_W + uy * RESISTOR_BODY);
-    ctx.lineTo(bx - px * RESISTOR_W + ux * RESISTOR_BODY, by - py * RESISTOR_W + uy * RESISTOR_BODY);
-    ctx.lineTo(bx - px * RESISTOR_W, by - py * RESISTOR_W);
-    ctx.closePath();
-    ctx.stroke();
-
-    if (label) {
-        ctx.save();
-        ctx.font = labelFont;
-        ctx.fillStyle = labelColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const mx = (x1 + x2) / 2 + px * 16;
-        const my = (y1 + y2) / 2 + py * 16;
-        ctx.fillText(label, mx, my);
-        ctx.restore();
-    }
-}
-
-function drawCapacitor(ctx, x1, y1, x2, y2, label, labelColor, labelFont) {
-    const mx = (x1 + x2) / 2;
-    const my = (y1 + y2) / 2;
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const gap = 3;
-    const plateLen = 8;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(mx - ux * gap, my - uy * gap);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx - ux * gap + px * plateLen, my - uy * gap + py * plateLen);
-    ctx.lineTo(mx - ux * gap - px * plateLen, my - uy * gap - py * plateLen);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * gap + px * plateLen, my + uy * gap + py * plateLen);
-    ctx.lineTo(mx + ux * gap - px * plateLen, my + uy * gap - py * plateLen);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(mx + ux * gap, my + uy * gap);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    if (label) {
-        ctx.save();
-        ctx.font = labelFont;
-        ctx.fillStyle = labelColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, mx + px * 14, my + py * 14);
-        ctx.restore();
-    }
-}
-
-function drawInductor(ctx, x1, y1, x2, y2, label, labelColor, labelFont) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / len, uy = dy / len;
-    const px = -uy, py = ux;
-    const mid = len / 2;
-    const bodyLen = 36;
-    const bodyStart = mid - bodyLen / 2;
-    const bodyEnd = mid + bodyLen / 2;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x1 + ux * bodyStart, y1 + uy * bodyStart);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x1 + ux * bodyEnd, y1 + uy * bodyEnd);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    // Draw coil bumps
-    const bumps = 4;
-    const bumpLen = bodyLen / bumps;
-    for (let i = 0; i < bumps; i++) {
-        const startDist = bodyStart + i * bumpLen;
-        const cx = x1 + ux * (startDist + bumpLen / 2);
-        const cy = y1 + uy * (startDist + bumpLen / 2);
-        ctx.beginPath();
-        ctx.arc(cx + px * 0, cy + py * 0, bumpLen / 2, Math.atan2(-py, -px), Math.atan2(py, px));
-        ctx.stroke();
-    }
-
-    if (label) {
-        ctx.save();
-        ctx.font = labelFont;
-        ctx.fillStyle = labelColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const lx = (x1 + x2) / 2 + px * 16;
-        const ly = (y1 + y2) / 2 + py * 16;
-        ctx.fillText(label, lx, ly);
-        ctx.restore();
-    }
-}
-
-function drawGround(ctx, x, y) {
-    const w = 10;
-    ctx.beginPath();
-    ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x - w * 0.6, y + 4); ctx.lineTo(x + w * 0.6, y + 4); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x - w * 0.25, y + 8); ctx.lineTo(x + w * 0.25, y + 8); ctx.stroke();
-}
-
-function drawNMOS(ctx, x, y, scale, labelColor, labelFont) {
-    const s = scale || 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 16 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = T.overlay30;
-    ctx.stroke();
-    ctx.strokeStyle = T.overlay50;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 16 * s, y);
-    ctx.lineTo(x - 8 * s, y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 8 * s, y - 10 * s);
-    ctx.lineTo(x - 8 * s, y + 10 * s);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    const chX = x - 4 * s;
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 10 * s); ctx.lineTo(chX, y - 4 * s); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 2 * s); ctx.lineTo(chX, y + 2 * s); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(chX, y + 4 * s); ctx.lineTo(chX, y + 10 * s); ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 10 * s);
-    ctx.lineTo(x + 10 * s, y - 10 * s);
-    ctx.lineTo(x + 10 * s, y - 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(chX, y + 10 * s);
-    ctx.lineTo(x + 10 * s, y + 10 * s);
-    ctx.lineTo(x + 10 * s, y + 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x + 10 * s, y + 10 * s);
-    ctx.lineTo(x + 4 * s, y + 8 * s);
-    ctx.lineTo(x + 4 * s, y + 12 * s);
-    ctx.closePath();
-    ctx.fillStyle = T.overlay50;
-    ctx.fill();
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = labelColor;
-    ctx.textAlign = 'center';
-    ctx.fillText('G', x - 22 * s, y + 4);
-    ctx.fillText('D', x + 16 * s, y - 14 * s);
-    ctx.fillText('S', x + 16 * s, y + 18 * s);
-    ctx.restore();
-}
-
-function drawPMOS(ctx, x, y, scale, labelColor, labelFont) {
-    const s = scale || 1;
-    ctx.beginPath();
-    ctx.arc(x, y, 16 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = T.overlay30;
-    ctx.stroke();
-    ctx.strokeStyle = T.overlay50;
-
-    ctx.beginPath();
-    ctx.moveTo(x - 16 * s, y);
-    ctx.lineTo(x - 8 * s, y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 8 * s, y - 10 * s);
-    ctx.lineTo(x - 8 * s, y + 10 * s);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    const chX = x - 4 * s;
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 10 * s); ctx.lineTo(chX, y - 4 * s); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 2 * s); ctx.lineTo(chX, y + 2 * s); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(chX, y + 4 * s); ctx.lineTo(chX, y + 10 * s); ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 10 * s);
-    ctx.lineTo(x + 10 * s, y - 10 * s);
-    ctx.lineTo(x + 10 * s, y - 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(chX, y + 10 * s);
-    ctx.lineTo(x + 10 * s, y + 10 * s);
-    ctx.lineTo(x + 10 * s, y + 14 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(chX, y - 10 * s);
-    ctx.lineTo(chX + 6 * s, y - 8 * s);
-    ctx.lineTo(chX + 6 * s, y - 12 * s);
-    ctx.closePath();
-    ctx.fillStyle = T.overlay50;
-    ctx.fill();
-
-    ctx.save();
-    ctx.font = labelFont;
-    ctx.fillStyle = labelColor;
-    ctx.textAlign = 'center';
-    ctx.fillText('G', x - 22 * s, y + 4);
-    ctx.fillText('S', x + 16 * s, y - 14 * s);
-    ctx.fillText('D', x + 16 * s, y + 18 * s);
-    ctx.restore();
-}
-
-function drawCurrentFlow(ctx, path, color, intensity) {
-    if (intensity <= 0 || path.length < 2) return;
-    const alpha = Math.min(1, intensity);
-
-    ctx.save();
-    ctx.strokeStyle = color.replace(')', ',' + (alpha * 0.3) + ')').replace('rgb', 'rgba');
-    ctx.lineWidth = 4;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(path[0][0], path[0][1]);
-    for (let i = 1; i < path.length; i++) {
-        ctx.lineTo(path[i][0], path[i][1]);
-    }
-    ctx.stroke();
-
-    let totalLen = 0;
-    for (let i = 1; i < path.length; i++) {
-        const dx = path[i][0] - path[i-1][0];
-        const dy = path[i][1] - path[i-1][1];
-        totalLen += Math.sqrt(dx * dx + dy * dy);
-    }
-
-    const dotSpacing = 18;
-    const dotCount = Math.floor(totalLen / dotSpacing);
-    const speed = simTime * 80;
-
-    ctx.fillStyle = color.replace(')', ',' + alpha + ')').replace('rgb', 'rgba');
-    for (let d = 0; d < dotCount; d++) {
-        let targetDist = ((d * dotSpacing + speed) % totalLen + totalLen) % totalLen;
-        let walked = 0;
-        for (let i = 1; i < path.length; i++) {
-            const dx = path[i][0] - path[i-1][0];
-            const dy = path[i][1] - path[i-1][1];
-            const segLen = Math.sqrt(dx * dx + dy * dy);
-            if (walked + segLen >= targetDist) {
-                const t = (targetDist - walked) / segLen;
-                const px = path[i-1][0] + dx * t;
-                const py = path[i-1][1] + dy * t;
-                ctx.beginPath();
-                ctx.arc(px, py, 2, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-            }
-            walked += segLen;
-        }
-    }
-    ctx.restore();
-}
-
-// ─── Draw: Part 01 — Input Signal ───
-function drawInput() {
-    const c = canvases['canvas-input'];
-    const ctx = contexts['canvas-input'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, W, H);
-
-    const padL = 60, padR = 20, padT = 30, padB = 30;
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
-    const midY = padT + plotH / 2;
-
-    // Grid
-    ctx.strokeStyle = T.overlay05;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padL, midY); ctx.lineTo(W - padR, midY);
-    ctx.stroke();
-    for (let i = 0; i <= 4; i++) {
-        const y = padT + (plotH / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(padL, y); ctx.lineTo(W - padR, y);
-        ctx.stroke();
-    }
-
-    // Axis labels
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textGray;
-    ctx.textAlign = 'right';
-    ctx.fillText('+1', padL - 8, padT + 4);
-    ctx.fillText('0', padL - 8, midY + 4);
-    ctx.fillText('-1', padL - 8, padT + plotH + 4);
-
-    // Draw sine wave
-    const windowT = 4 * Math.PI; // show 2 full cycles
-    ctx.beginPath();
-    ctx.strokeStyle = T.textLight;
-    ctx.lineWidth = 2;
-    for (let px = 0; px <= plotW; px++) {
-        const t = simTime + (px / plotW) * windowT;
-        const v = inputSignal(t);
-        const x = padL + px;
-        const y = midY - v * (plotH / 2);
-        if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Label
-    ctx.font = '11px "Inter", sans-serif';
-    ctx.fillStyle = T.textLight;
-    ctx.textAlign = 'left';
-    ctx.fillText('Input Signal', padL + 8, padT + 16);
-}
-
-// ─── Draw: Part 02 — Comparator / PWM ───
-function drawPWM() {
-    const c = canvases['canvas-pwm'];
-    const ctx = contexts['canvas-pwm'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, W, H);
-
-    const padL = 60, padR = 20, padT = 20, padB = 20;
-    const plotW = W - padL - padR;
-    // Top half: overlaid input + carrier. Bottom half: PWM output.
-    const topH = (H - padT - padB) * 0.55;
-    const gap = 30;
-    const botH = (H - padT - padB) - topH - gap;
-    const topMid = padT + topH / 2;
-    const botTop = padT + topH + gap;
-    const botMid = botTop + botH / 2;
-
-    const windowT = 4 * Math.PI;
-
-    // Grid lines for top
-    ctx.strokeStyle = T.overlay05;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padL, topMid); ctx.lineTo(W - padR, topMid);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(padL, padT); ctx.lineTo(W - padR, padT);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(padL, padT + topH); ctx.lineTo(W - padR, padT + topH);
-    ctx.stroke();
-
-    // Grid for bottom
-    ctx.beginPath();
-    ctx.moveTo(padL, botTop); ctx.lineTo(W - padR, botTop);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(padL, botTop + botH); ctx.lineTo(W - padR, botTop + botH);
-    ctx.stroke();
-
-    // Axis labels
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textGray;
-    ctx.textAlign = 'right';
-    ctx.fillText('+1', padL - 8, padT + 4);
-    ctx.fillText('0', padL - 8, topMid + 4);
-    ctx.fillText('-1', padL - 8, padT + topH + 4);
-    ctx.fillText('HIGH', padL - 8, botTop + 12);
-    ctx.fillText('LOW', padL - 8, botTop + botH + 4);
-
-    // Draw carrier (triangle wave) - gold — supersample to catch peaks at high freq
-    ctx.beginPath();
-    ctx.strokeStyle = T.yellowA(0.6);
-    ctx.lineWidth = 1.5;
-    const carrierCycles = windowT / (2 * Math.PI) * carrierFreqRatio;
-    const carrierSamples = Math.max(plotW, Math.ceil(carrierCycles * 8));
-    for (let i = 0; i <= carrierSamples; i++) {
-        const frac = i / carrierSamples;
-        const t = simTime + frac * windowT;
-        const v = triangleCarrier(t);
-        const x = padL + frac * plotW;
-        const y = topMid - v * (topH / 2);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Draw input signal - white
-    ctx.beginPath();
-    ctx.strokeStyle = T.textLight;
-    ctx.lineWidth = 2;
-    for (let px = 0; px <= plotW; px++) {
-        const t = simTime + (px / plotW) * windowT;
-        const v = inputSignal(t);
-        const x = padL + px;
-        const y = topMid - v * (topH / 2);
-        if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Draw PWM output
-    // Sample at enough points to catch every carrier transition
-    ctx.lineWidth = 2;
-    const yHigh = botTop + 4;
-    const yLow = botTop + botH - 4;
-    const samplesPerCarrierCycle = 8;
-    const totalCarrierCycles = windowT / (2 * Math.PI) * carrierFreqRatio;
-    const numSamples = Math.max(plotW, Math.ceil(totalCarrierCycles * samplesPerCarrierCycle));
-
-    let prevPwm = pwmSignal(simTime);
-    let prevX = padL;
-    ctx.beginPath();
-    ctx.strokeStyle = prevPwm ? 'rgba(106,170,142,0.9)' : 'rgba(80,128,208,0.7)';
-    ctx.moveTo(padL, prevPwm ? yHigh : yLow);
-
-    for (let i = 1; i <= numSamples; i++) {
-        const frac = i / numSamples;
-        const t = simTime + frac * windowT;
-        const p = pwmSignal(t);
-        const x = padL + frac * plotW;
-
-        if (p !== prevPwm) {
-            // Draw up to the transition point
-            ctx.lineTo(x, prevPwm ? yHigh : yLow);
-            ctx.stroke();
-            // Vertical transition line
-            ctx.beginPath();
-            ctx.strokeStyle = T.overlay30;
-            ctx.moveTo(x, prevPwm ? yHigh : yLow);
-            ctx.lineTo(x, p ? yHigh : yLow);
-            ctx.stroke();
-            // Start new segment
-            ctx.beginPath();
-            ctx.strokeStyle = p ? 'rgba(106,170,142,0.9)' : 'rgba(80,128,208,0.7)';
-            ctx.moveTo(x, p ? yHigh : yLow);
-        } else {
-            ctx.lineTo(x, p ? yHigh : yLow);
-        }
-        prevPwm = p;
-    }
-    ctx.stroke();
-
-    // Labels
-    ctx.font = '11px "Inter", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = T.textLight;
-    ctx.fillText('Input Signal', padL + 8, padT + 14);
-    ctx.fillStyle = T.yellowA(0.8);
-    ctx.fillText('Triangle Carrier', padL + 100, padT + 14);
-    ctx.fillStyle = 'rgba(106,170,142,0.9)';
-    ctx.fillText('PWM Output', padL + 8, botTop + botH - 8);
-}
-
-// ─── Draw: Part 02 circuit — Comparator schematic ───
-function drawCompCircuit() {
-    const c = canvases['canvas-comp-circuit'];
-    const ctx = contexts['canvas-comp-circuit'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-    ctx.clearRect(0, 0, W, H);
-
-    const cx = W / 2;
-    const cy = H / 2;
-    const lineColor = T.overlay50;
-    const labelColor = T.textSlate;
-    const labelFont = '11px "JetBrains Mono", monospace';
-
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    // ── Comparator triangle (large, centered) ──
-    const compW = 80;
-    const compH = 100;
-    const compX = cx;
-    const compY = cy;
-
-    ctx.beginPath();
-    ctx.moveTo(compX - compW / 2, compY - compH / 2);
-    ctx.lineTo(compX + compW / 2, compY);
-    ctx.lineTo(compX - compW / 2, compY + compH / 2);
-    ctx.closePath();
-    ctx.stroke();
-
-    // + and - input labels inside
-    ctx.save();
-    ctx.font = '600 16px "Inter", sans-serif';
-    ctx.fillStyle = T.overlay60;
-    ctx.textAlign = 'center';
-    ctx.fillText('+', compX - compW / 2 + 16, compY - compH / 4 + 6);
-    ctx.fillText('\u2212', compX - compW / 2 + 16, compY + compH / 4 + 6);
-    ctx.restore();
-
-    // ── V_in input (+ terminal, top) ──
-    const vinEndX = compX - compW / 2;
-    const vinY = compY - compH / 4;
-    const vinStartX = vinEndX - 120;
-
-    ctx.beginPath();
-    ctx.moveTo(vinStartX, vinY);
-    ctx.lineTo(vinEndX, vinY);
-    ctx.stroke();
-
-    // V_in label
-    ctx.save();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textLight;
-    ctx.textAlign = 'right';
-    ctx.fillText('v_in (signal)', vinStartX - 8, vinY + 4);
-    ctx.restore();
-
-    // Small sine wave icon
-    ctx.save();
-    ctx.strokeStyle = T.overlay40;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= 20; i++) {
-        const t = i / 20;
-        const sx = vinStartX + 10 + t * 30;
-        const sy = vinY - 12 + Math.sin(t * Math.PI * 2) * 5;
-        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    // ── Triangle carrier input (- terminal, bottom) ──
-    const triY = compY + compH / 4;
-    const triStartX = vinStartX;
-
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(triStartX, triY);
-    ctx.lineTo(vinEndX, triY);
-    ctx.stroke();
-
-    // Carrier label
-    ctx.save();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.yellowA(0.8);
-    ctx.textAlign = 'right';
-    ctx.fillText('carrier (triangle)', triStartX - 8, triY + 4);
-    ctx.restore();
-
-    // Small triangle wave icon
-    ctx.save();
-    ctx.strokeStyle = T.yellowA(0.5);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    const twStart = triStartX + 10;
-    ctx.moveTo(twStart, triY - 12);
-    ctx.lineTo(twStart + 8, triY - 12 - 5);
-    ctx.lineTo(twStart + 16, triY - 12 + 5);
-    ctx.lineTo(twStart + 24, triY - 12 - 5);
-    ctx.lineTo(twStart + 30, triY - 12);
-    ctx.stroke();
-    ctx.restore();
-
-    // ── Output (right side) ──
-    const outStartX = compX + compW / 2;
-    const outEndX = outStartX + 120;
-
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(outStartX, compY);
-    ctx.lineTo(outEndX, compY);
-    ctx.stroke();
-
-    // PWM output label
-    ctx.save();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#6aaa8e';
-    ctx.textAlign = 'left';
-    ctx.fillText('PWM output', outEndX + 8, compY + 4);
-    ctx.restore();
-
-    // Small PWM wave icon
-    ctx.save();
-    ctx.strokeStyle = 'rgba(106,170,142,0.6)';
-    ctx.lineWidth = 1.5;
-    const pwmX = outEndX + 12;
-    const pwmY = compY - 14;
-    ctx.beginPath();
-    ctx.moveTo(pwmX, pwmY + 8);
-    ctx.lineTo(pwmX, pwmY);
-    ctx.lineTo(pwmX + 10, pwmY);
-    ctx.lineTo(pwmX + 10, pwmY + 8);
-    ctx.lineTo(pwmX + 14, pwmY + 8);
-    ctx.lineTo(pwmX + 14, pwmY);
-    ctx.lineTo(pwmX + 28, pwmY);
-    ctx.lineTo(pwmX + 28, pwmY + 8);
-    ctx.stroke();
-    ctx.restore();
-
-    // ── Animated comparison indicator ──
-    const normalizedVin = amplitude > 0 ? inputSignal(simTime) : 0;
-    const carrier = triangleCarrier(simTime);
-    const pwmHigh = normalizedVin > carrier;
-
-    // Show current comparison result
-    ctx.save();
-    ctx.font = '600 13px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    if (pwmHigh) {
-        ctx.fillStyle = 'rgba(106,170,142,0.9)';
-        ctx.fillText('v_in > carrier \u2192 OUTPUT HIGH', cx, H - 20);
-    } else {
-        ctx.fillStyle = 'rgba(80,128,208,0.9)';
-        ctx.fillText('v_in < carrier \u2192 OUTPUT LOW', cx, H - 20);
-    }
-    ctx.restore();
-
-    // Animated dot on output showing state
-    ctx.beginPath();
-    ctx.arc(outStartX + 20, compY, 4, 0, Math.PI * 2);
-    ctx.fillStyle = pwmHigh ? '#6aaa8e' : '#5080d0';
-    ctx.fill();
-
-    // Component label
-    ctx.save();
-    ctx.font = '600 13px "Inter", sans-serif';
-    ctx.fillStyle = T.overlay30;
-    ctx.textAlign = 'center';
-    ctx.fillText('COMPARATOR', compX, compY + 4);
-    ctx.restore();
-}
-
-// ─── Draw: Part 04 circuit — LC Low-Pass Filter schematic ───
-function drawLCCircuit() {
-    const c = canvases['canvas-lc-circuit'];
-    const ctx = contexts['canvas-lc-circuit'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-    ctx.clearRect(0, 0, W, H);
-
-    const cy = H / 2;
-    const lineColor = T.overlay50;
-    const labelColor = T.textSlate;
-    const labelFont = '11px "JetBrains Mono", monospace';
-
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    // Layout: PWM input → inductor → node → capacitor to GND + output wire → RL to GND
-    const padL = 60;
-    const padR = 60;
-    const usableW = W - padL - padR;
-
-    const pwmInX = padL;
-    const indStartX = padL + usableW * 0.15;
-    const indEndX = padL + usableW * 0.5;
-    const nodeX = indEndX + 20;
-    const capX = nodeX;
-    const outX = padL + usableW * 0.75;
-    const rlX = outX;
-    const gndY = cy + 80;
-    const wireY = cy - 20;
-
-    // ── Input wire (PWM in) ──
-    ctx.beginPath();
-    ctx.moveTo(pwmInX, wireY);
-    ctx.lineTo(indStartX, wireY);
-    ctx.stroke();
-
-    // PWM input label
-    ctx.save();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.yellowA(0.8);
-    ctx.textAlign = 'right';
-    ctx.fillText('PWM in', pwmInX - 8, wireY + 4);
-    ctx.restore();
-
-    // ── Inductor (bumps) ──
-    const bumps = 5;
-    const bumpW = (indEndX - indStartX) / bumps;
-    ctx.beginPath();
-    ctx.moveTo(indStartX, wireY);
-    for (let i = 0; i < bumps; i++) {
-        const bx = indStartX + i * bumpW;
-        ctx.arc(bx + bumpW / 2, wireY, bumpW / 2, Math.PI, 0, false);
-    }
-    ctx.stroke();
-
-    // Inductor label
-    ctx.save();
-    ctx.font = '600 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textLight;
-    ctx.textAlign = 'center';
-    ctx.fillText('L', (indStartX + indEndX) / 2, wireY - 18);
-    ctx.restore();
-
-    // ── Wire from inductor to node ──
-    ctx.beginPath();
-    ctx.moveTo(indEndX, wireY);
-    ctx.lineTo(nodeX, wireY);
-    ctx.stroke();
-
-    // ── Capacitor (node to ground) ──
-    const capTopY = wireY + 15;
-    const capBotY = wireY + 25;
-    const plateW = 14;
-
-    // Wire from node down to cap
-    ctx.beginPath();
-    ctx.moveTo(capX, wireY);
-    ctx.lineTo(capX, capTopY);
-    ctx.stroke();
-
-    // Top plate
-    ctx.beginPath();
-    ctx.moveTo(capX - plateW, capTopY);
-    ctx.lineTo(capX + plateW, capTopY);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    // Bottom plate
-    ctx.beginPath();
-    ctx.moveTo(capX - plateW, capBotY);
-    ctx.lineTo(capX + plateW, capBotY);
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-
-    // Wire from cap to ground
-    ctx.beginPath();
-    ctx.moveTo(capX, capBotY);
-    ctx.lineTo(capX, gndY);
-    ctx.stroke();
-    drawGround(ctx, capX, gndY);
-
-    // Capacitor label
-    ctx.save();
-    ctx.font = '600 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textLight;
-    ctx.textAlign = 'left';
-    ctx.fillText('C', capX + plateW + 8, (capTopY + capBotY) / 2 + 4);
-    ctx.restore();
-
-    // ── Wire from node to output / RL ──
-    ctx.beginPath();
-    ctx.moveTo(nodeX, wireY);
-    ctx.lineTo(rlX, wireY);
-    ctx.stroke();
-
-    // ── RL (load resistor to ground) ──
-    drawResistor(ctx, rlX, wireY, rlX, gndY, 'RL', labelColor, labelFont);
-    drawGround(ctx, rlX, gndY);
-
-    // ── Output label ──
-    const outLabelX = rlX + 30;
-    ctx.beginPath();
-    ctx.moveTo(rlX, wireY);
-    ctx.lineTo(outLabelX, wireY);
-    ctx.stroke();
-
-    ctx.save();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#6aaa8e';
-    ctx.textAlign = 'left';
-    ctx.fillText('v_out', outLabelX + 8, wireY + 4);
-    ctx.restore();
-
-    // ── Ground return wire (bottom) ──
-    ctx.strokeStyle = T.overlay20;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(pwmInX, gndY);
-    ctx.lineTo(rlX, gndY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.strokeStyle = lineColor;
-
-    // GND label on left
-    ctx.save();
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textGray;
-    ctx.textAlign = 'right';
-    ctx.fillText('GND', pwmInX - 8, gndY + 4);
-    ctx.restore();
-
-    // ── Animated current flow ──
-    const normalizedVin = amplitude > 0 ? inputSignal(simTime) : 0;
-    const carrier = triangleCarrier(simTime);
-    const pwmHigh = normalizedVin > carrier;
-
-    // Current through inductor (always flowing, direction depends on state)
-    const inductorPath = [
-        [pwmInX, wireY],
-        [indStartX, wireY],
-        [indEndX, wireY],
-        [nodeX, wireY]
-    ];
-    drawCurrentFlow(ctx, inductorPath, pwmHigh ? 'rgb(106,170,142)' : 'rgb(80,128,208)', 0.7);
-
-    // Current through load
-    const loadPath = [
-        [nodeX, wireY],
-        [rlX, wireY],
-        [rlX, gndY]
-    ];
-    drawCurrentFlow(ctx, loadPath, 'rgb(106,170,142)', 0.4);
-
-    // Capacitor charge/discharge
-    const capPath = [
-        [capX, wireY],
-        [capX, capTopY]
-    ];
-    drawCurrentFlow(ctx, capPath, 'rgb(255,204,68)', pwmHigh ? 0.5 : 0.2);
-
-    // ── Explanation labels ──
-    ctx.save();
-    ctx.font = '600 12px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    if (pwmHigh) {
-        ctx.fillStyle = 'rgba(106,170,142,0.8)';
-        ctx.fillText('PWM HIGH: inductor charges, capacitor charges', W / 2, H - 16);
-    } else {
-        ctx.fillStyle = 'rgba(80,128,208,0.8)';
-        ctx.fillText('PWM LOW: inductor releases stored energy', W / 2, H - 16);
-    }
-    ctx.restore();
-}
-
-// ─── Draw: Part 03 — MOSFET Half-Bridge Circuit ───
-function drawCircuit() {
-    const c = canvases['canvas-circuit'];
-    const ctx = contexts['canvas-circuit'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, W, H);
-
-    const cx = W / 2;
-    const cy = H / 2;
-
-    // Current PWM state
-    const pwmNow = pwmSignal(simTime);
-
-    ctx.strokeStyle = T.overlay50;
-    ctx.lineWidth = 1.5;
-    ctx.fillStyle = T.textSlate;
-
-    // VCC rail at top
-    const railY = cy - 130;
-    const gndY = cy + 130;
-    const mosX = cx;
-
-    // VCC label
-    ctx.font = 'bold 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textLight;
-    ctx.textAlign = 'center';
-    ctx.fillText('VCC = +12V', cx, railY - 16);
-
-    // VCC rail line
-    ctx.strokeStyle = T.overlay30;
-    ctx.beginPath();
-    ctx.moveTo(cx - 60, railY);
-    ctx.lineTo(cx + 60, railY);
-    ctx.stroke();
-
-    // PMOS (top)
-    const pmosY = cy - 60;
-
-    // Wire from VCC to PMOS source
-    ctx.strokeStyle = T.overlay50;
-    ctx.beginPath();
-    ctx.moveTo(mosX + 14, railY);
-    ctx.lineTo(mosX + 14, pmosY - 14 * 1.4);
-    ctx.stroke();
-
-    drawPMOS(ctx, mosX, pmosY, 1.4, T.textSlate, '11px "JetBrains Mono", monospace');
-
-    // Wire from PMOS drain to midpoint
-    const midPointY = cy;
-    ctx.strokeStyle = T.overlay50;
-    ctx.beginPath();
-    ctx.moveTo(mosX + 14, pmosY + 20);
-    ctx.lineTo(mosX + 14, midPointY);
-    ctx.stroke();
-
-    // Output label at midpoint
-    ctx.beginPath();
-    ctx.moveTo(mosX + 14, midPointY);
-    ctx.lineTo(mosX + 80, midPointY);
-    ctx.stroke();
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = var_accent();
-    ctx.textAlign = 'left';
-    ctx.fillText('V_out (PWM)', mosX + 86, midPointY + 4);
-
-    // Wire from midpoint to NMOS
-    ctx.strokeStyle = T.overlay50;
-    ctx.beginPath();
-    ctx.moveTo(mosX + 14, midPointY);
-    ctx.lineTo(mosX + 14, cy + 40);
-    ctx.stroke();
-
-    // NMOS (bottom)
-    const nmosY = cy + 60;
-    drawNMOS(ctx, mosX, nmosY, 1.4, T.textSlate, '11px "JetBrains Mono", monospace');
-
-    // Wire from NMOS source to GND
-    ctx.strokeStyle = T.overlay50;
-    ctx.beginPath();
-    ctx.moveTo(mosX + 14, nmosY + 20);
-    ctx.lineTo(mosX + 14, gndY);
-    ctx.stroke();
-
-    // GND
-    drawGround(ctx, mosX + 14, gndY);
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textGray;
-    ctx.textAlign = 'center';
-    ctx.fillText('GND', mosX + 14, gndY + 22);
-
-    // PWM input — signal goes to each gate individually
-    ctx.strokeStyle = T.yellowA(0.5);
-
-    // PWM wire to PMOS gate
-    ctx.beginPath();
-    ctx.moveTo(mosX - 130, pmosY);
-    ctx.lineTo(mosX - 16 * 1.4, pmosY);
-    ctx.stroke();
-
-    // PWM wire to NMOS gate
-    ctx.beginPath();
-    ctx.moveTo(mosX - 130, nmosY);
-    ctx.lineTo(mosX - 16 * 1.4, nmosY);
-    ctx.stroke();
-
-    // Vertical line connecting the two PWM wires
-    ctx.beginPath();
-    ctx.moveTo(mosX - 130, pmosY);
-    ctx.lineTo(mosX - 130, nmosY);
-    ctx.stroke();
-
-    // Horizontal PWM input line
-    ctx.beginPath();
-    ctx.moveTo(mosX - 170, cy);
-    ctx.lineTo(mosX - 130, cy);
-    ctx.stroke();
-
-    // Gate drive label: inverted PWM (overbar), so PWM HIGH turns the PMOS on
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.yellowA(0.8);
-    ctx.textAlign = 'right';
-    fillTextOverbar(ctx, 'PWM', ' In', mosX - 174, cy + 4);
-
-    // State indicators: gates see inverted PWM, so PWM HIGH turns on PMOS, LOW turns on NMOS
-    const nmosOn = pwmNow === 0;
-    const pmosOn = pwmNow === 1;
-
-    // PMOS state
-    ctx.font = 'bold 12px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = pmosOn ? 'rgba(106,170,142,0.9)' : 'rgba(224,96,80,0.7)';
-    ctx.fillText(pmosOn ? 'ON' : 'OFF', mosX + 30, pmosY + 4);
-
-    // NMOS state
-    ctx.fillStyle = nmosOn ? 'rgba(106,170,142,0.9)' : 'rgba(224,96,80,0.7)';
-    ctx.fillText(nmosOn ? 'ON' : 'OFF', mosX + 30, nmosY + 4);
-
-    // Current flow animation
-    if (pmosOn) {
-        // Current from VCC through PMOS to output
-        drawCurrentFlow(ctx, [
-            [mosX + 14, railY],
-            [mosX + 14, pmosY - 14 * 1.4],
-            [mosX + 14, pmosY + 20],
-            [mosX + 14, midPointY],
-            [mosX + 80, midPointY]
-        ], 'rgb(106,170,142)', 1);
-    } else {
-        // Current from output through NMOS to GND
-        drawCurrentFlow(ctx, [
-            [mosX + 80, midPointY],
-            [mosX + 14, midPointY],
-            [mosX + 14, nmosY - 20],
-            [mosX + 14, nmosY + 20],
-            [mosX + 14, gndY]
-        ], 'rgb(80,128,208)', 1);
-    }
-
-    // Output voltage indicator
-    const vOut = pmosOn ? VCC : 0;
-    ctx.font = 'bold 14px "JetBrains Mono", monospace';
-    ctx.fillStyle = pmosOn ? 'rgba(106,170,142,0.9)' : 'rgba(80,128,208,0.8)';
-    ctx.textAlign = 'left';
-    ctx.fillText('V_out = ' + vOut.toFixed(0) + 'V', mosX + 86, midPointY + 22);
-}
-
-function var_accent() { return '#6aaa8e'; }
-
-// Draw `bar` with an overline (logical inversion) followed by `rest`; honours ctx.textAlign
-function fillTextOverbar(ctx, bar, rest, x, y) {
-    const wBar = ctx.measureText(bar).width;
-    const wAll = ctx.measureText(bar + rest).width;
-    const align = ctx.textAlign;
-    const x0 = align === 'right' ? x - wAll : align === 'center' ? x - wAll / 2 : x;
-    ctx.fillText(bar + rest, x, y);
-    const m = ctx.measureText(bar);
-    const yBar = y - (m.actualBoundingBoxAscent || 9) - 2;
-    ctx.save();
-    ctx.strokeStyle = ctx.fillStyle;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x0, yBar); ctx.lineTo(x0 + wBar, yBar); ctx.stroke();
-    ctx.restore();
-}
-
-// ─── Draw: Part 04 — LC Filter ───
-function drawFilter() {
-    const c = canvases['canvas-filter'];
-    const ctx = contexts['canvas-filter'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, W, H);
-
-    const padL = 60, padR = 20, padT = 30, padB = 30;
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
-    const midY = padT + plotH / 2;
-    const windowT = 4 * Math.PI;
-
-    // Grid
-    ctx.strokeStyle = T.overlay05;
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-        const y = padT + (plotH / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(padL, y); ctx.lineTo(W - padR, y);
-        ctx.stroke();
-    }
-
-    // Axis labels
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = T.textGray;
-    ctx.textAlign = 'right';
-    ctx.fillText('VCC', padL - 8, padT + 4);
-    ctx.fillText('VCC/2', padL - 8, midY + 4);
-    ctx.fillText('GND', padL - 8, padT + plotH + 4);
-
-    // Draw raw PWM (semi-transparent)
-    ctx.lineWidth = 1.5;
-    const yHighF = padT + plotH * 0.05;
-    const yLowF = padT + plotH * 0.95;
-    drawPWMTrace(ctx, simTime, windowT, plotW, padL,
-        yHighF, yLowF,
-        'rgba(106,170,142,0.2)', 'rgba(80,128,208,0.15)', T.overlay10);
-
-    // Draw filtered output (smooth bright green)
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(106,170,142,1)';
-    ctx.lineWidth = 2.5;
-    for (let px = 0; px <= plotW; px++) {
-        const t = simTime + (px / plotW) * windowT;
-        const v = filteredSignal(t);
-        const x = padL + px;
-        const y = midY - v * (plotH * 0.45);
-        if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Labels
-    ctx.font = '11px "Inter", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(106,170,142,0.4)';
-    ctx.fillText('Raw PWM', padL + 8, padT + 16);
-    ctx.fillStyle = 'rgba(106,170,142,1)';
-    ctx.fillText('Filtered Output', padL + 100, padT + 16);
-}
-
-// ─── Draw: Part 05 — Full Circuit Schematic ───
-function drawFullCircuit() {
-    const c = canvases['canvas-full-circuit'];
-    const ctx = contexts['canvas-full-circuit'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-    ctx.clearRect(0, 0, W, H);
-
-    const lineColor = T.overlay50;
-    const labelColor = T.textSlate;
-    const labelFont = '11px "JetBrains Mono", monospace';
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    const pwmNow = pwmSignal(simTime);
-    // Comparator inputs are reversed, so its output (the gate drive) is inverted PWM
-    const nmosOn = pwmNow === 0;
-    const pmosOn = pwmNow === 1;
-
-    // ── Layout ──
-    const padL = 40, padR = 30;
-    const usableW = W - padL - padR;
-    const wireY = H * 0.42;
-    const railY = H * 0.08;
-    const gndY = H * 0.88;
-
-    const srcX = padL + usableW * 0.0;
-    const compX = padL + usableW * 0.18;
-    const mosX = padL + usableW * 0.38;
-    const indStartX = padL + usableW * 0.50;
-    const indEndX = padL + usableW * 0.66;
-    const nodeX = indEndX + 12;
-    const outX = padL + usableW * 0.82;
-    const loadX = outX;
-    const endX = padL + usableW * 0.94;
-
-    // ── Input: animated sine wave ──
-    const vinAmp = amplitude / 100;
-    const waveW = 40, waveH = 20;
-    const waveY = wireY - 10;
-    ctx.save();
-    ctx.strokeStyle = T.overlay70;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= 30; i++) {
-        const t = (i / 30) * Math.PI * 2 + simTime * 2;
-        const px = srcX - waveW / 2 + (i / 30) * waveW;
-        const py = waveY - Math.sin(t) * waveH / 2 * vinAmp;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = T.textLight;
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('v_in', srcX, waveY - waveH / 2 - 8);
-
-    // Wire: input to comparator top (inverting) terminal
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    const compW = 36, compH = 50;
-    const compPlusY = wireY - compH / 4;
-    const compMinusY = wireY + compH / 4;
-    ctx.beginPath();
-    ctx.moveTo(srcX + waveW / 2 + 4, waveY);
-    ctx.lineTo(srcX + waveW / 2 + 4, compPlusY);
-    ctx.lineTo(compX - compW / 2, compPlusY);
-    ctx.stroke();
-
-    // ── Triangle carrier: animated triangle wave ──
-    const carrierWaveY = wireY + compH / 2 + 30;
-    ctx.save();
-    ctx.strokeStyle = T.yellowA(0.7);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= 30; i++) {
-        const t = simTime * 2 + (i / 30) * Math.PI * 2;
-        const tri = triangleCarrier(t);
-        const px = srcX - waveW / 2 + (i / 30) * waveW;
-        const py = carrierWaveY - tri * waveH / 2 * 0.8;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = T.yellowA(0.7);
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('carrier', srcX, carrierWaveY + waveH / 2 + 14);
-
-    // Wire: carrier to comparator bottom (non-inverting) terminal
-    ctx.strokeStyle = T.yellowA(0.4);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(srcX + waveW / 2 + 4, carrierWaveY);
-    ctx.lineTo(srcX + waveW / 2 + 4, compMinusY);
-    ctx.lineTo(compX - compW / 2, compMinusY);
-    ctx.stroke();
-    ctx.strokeStyle = lineColor;
-
-    // ── Comparator triangle ──
-    ctx.strokeStyle = T.overlay50;
-    ctx.beginPath();
-    ctx.moveTo(compX - compW / 2, wireY - compH / 2);
-    ctx.lineTo(compX + compW / 2, wireY);
-    ctx.lineTo(compX - compW / 2, wireY + compH / 2);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.font = '12px "Inter", sans-serif';
-    ctx.fillStyle = T.overlay50;
-    ctx.textAlign = 'center';
-    ctx.fillText('\u2212', compX - compW / 2 + 10, compPlusY + 5);
-    ctx.fillText('+', compX - compW / 2 + 10, compMinusY + 5);
-
-    // Wire: comparator → junction point
-    const juncX = mosX - 28;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(compX + compW / 2, wireY);
-    ctx.lineTo(juncX, wireY);
-    ctx.stroke();
-
-    // PWM label
-    ctx.font = '9px "JetBrains Mono", monospace';
-    ctx.fillStyle = pmosOn ? 'rgba(106,170,142,0.7)' : 'rgba(80,128,208,0.7)';
-    ctx.textAlign = 'center';
-    fillTextOverbar(ctx, 'PWM', '', (compX + compW / 2 + juncX) / 2, wireY - 10);
-
-    // ── Half-bridge (PMOS + NMOS) ──
-    const mosScale = 0.9;
-    const pmosY = wireY - 34;
-    const nmosY = wireY + 34;
-
-    // VCC rail
-    ctx.strokeStyle = T.overlay25;
-    ctx.beginPath(); ctx.moveTo(mosX - 20, railY); ctx.lineTo(mosX + 40, railY); ctx.stroke();
-    ctx.fillStyle = '#e06050';
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('VCC = +' + VCC + 'V', mosX + 10, railY - 6);
-
-    // Wire: VCC → PMOS source
-    const mosPin = mosX + 10 * mosScale;
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(mosPin, railY); ctx.lineTo(mosPin, pmosY - 14 * mosScale); ctx.stroke();
-
-    drawPMOS(ctx, mosX, pmosY, mosScale, labelColor, '9px "JetBrains Mono", monospace');
-
-    // Wire: PMOS drain → midpoint → NMOS drain
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(mosPin, pmosY + 14 * mosScale); ctx.lineTo(mosPin, wireY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(mosPin, wireY); ctx.lineTo(mosPin, nmosY - 14 * mosScale); ctx.stroke();
-
-    drawNMOS(ctx, mosX, nmosY, mosScale, labelColor, '9px "JetBrains Mono", monospace');
-
-    // Wire: NMOS source → GND
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(mosPin, nmosY + 14 * mosScale); ctx.lineTo(mosPin, gndY); ctx.stroke();
-    drawGround(ctx, mosPin, gndY);
-    ctx.fillStyle = T.textGray;
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('GND', mosPin, gndY + 16);
-
-    // Gate wires — PWM goes to each gate individually
-    const gateX = mosX - 16 * mosScale;
-    ctx.strokeStyle = lineColor;
-    // Junction to PMOS gate
-    ctx.beginPath();
-    ctx.moveTo(juncX, wireY);
-    ctx.lineTo(juncX, pmosY);
-    ctx.lineTo(gateX, pmosY);
-    ctx.stroke();
-    // Junction to NMOS gate
-    ctx.beginPath();
-    ctx.moveTo(juncX, wireY);
-    ctx.lineTo(juncX, nmosY);
-    ctx.lineTo(gateX, nmosY);
-    ctx.stroke();
-
-    // State indicators
-    ctx.font = 'bold 10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillStyle = pmosOn ? 'rgba(106,170,142,0.9)' : 'rgba(224,96,80,0.6)';
-    ctx.fillText(pmosOn ? 'ON' : 'OFF', mosX + 24, pmosY + 4);
-    ctx.fillStyle = nmosOn ? 'rgba(106,170,142,0.9)' : 'rgba(224,96,80,0.6)';
-    ctx.fillText(nmosOn ? 'ON' : 'OFF', mosX + 24, nmosY + 4);
-
-    // Node dot at half-bridge output
-    ctx.beginPath(); ctx.arc(mosPin, wireY, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // ── Wire: half-bridge → inductor ──
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(mosPin, wireY); ctx.lineTo(indStartX, wireY); ctx.stroke();
-
-    // ── Inductor ──
-    const bumps = 5;
-    const bumpW = (indEndX - indStartX) / bumps;
-    ctx.strokeStyle = T.overlay60;
-    ctx.beginPath();
-    ctx.moveTo(indStartX, wireY);
-    for (let i = 0; i < bumps; i++) {
-        ctx.arc(indStartX + i * bumpW + bumpW / 2, wireY, bumpW / 2, Math.PI, 0, false);
-    }
-    ctx.stroke();
-    ctx.fillStyle = T.textLight;
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('L', (indStartX + indEndX) / 2, wireY - 16);
-
-    // Wire: inductor → node
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(indEndX, wireY); ctx.lineTo(nodeX, wireY); ctx.stroke();
-
-    ctx.beginPath(); ctx.arc(nodeX, wireY, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // ── Capacitor (node to GND) ──
-    const capTopY = wireY + 22;
-    const capGap = 6;
-    const capPlateW = 14;
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(nodeX, wireY); ctx.lineTo(nodeX, capTopY); ctx.stroke();
-    ctx.strokeStyle = T.overlay60;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(nodeX - capPlateW / 2, capTopY); ctx.lineTo(nodeX + capPlateW / 2, capTopY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(nodeX - capPlateW / 2, capTopY + capGap); ctx.lineTo(nodeX + capPlateW / 2, capTopY + capGap); ctx.stroke();
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(nodeX, capTopY + capGap); ctx.lineTo(nodeX, gndY); ctx.stroke();
-    drawGround(ctx, nodeX, gndY);
-    ctx.fillStyle = T.textLight;
-    ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText('C', nodeX + capPlateW / 2 + 4, capTopY + capGap / 2 + 4);
-
-    // ── Wire: node → load ──
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(nodeX, wireY); ctx.lineTo(outX, wireY); ctx.stroke();
-
-    // ── Load resistor ──
-    drawResistor(ctx, loadX, wireY, loadX, gndY - 8, 'RL', T.textLight, '12px "JetBrains Mono", monospace');
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(loadX, gndY - 8); ctx.lineTo(loadX, gndY); ctx.stroke();
-    drawGround(ctx, loadX, gndY);
-
-    // ── Output: animated filtered waveform ──
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(outX, wireY); ctx.lineTo(endX - waveW / 2 - 4, wireY); ctx.stroke();
-
-    const outWaveX = endX;
-    const outWaveY = wireY;
-    ctx.save();
-    ctx.strokeStyle = 'rgba(106,170,142,0.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= 30; i++) {
-        const t = simTime * 2 + (i / 30) * Math.PI * 2;
-        const v = filteredSignal(t);
-        const px = outWaveX - waveW / 2 + (i / 30) * waveW;
-        const py = outWaveY - v * waveH / 2;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = '#6aaa8e';
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('v_out', outWaveX, outWaveY - waveH / 2 - 8);
-
-    // ── Animated current flow through the full chain ──
-    // Signal path: input → comparator
-    drawCurrentFlow(ctx, [
-        [srcX + waveW / 2 + 4, compPlusY],
-        [compX - compW / 2, compPlusY]
-    ], 'rgb(255,255,255)', 0.4);
-
-    // Comparator → gate
-    drawCurrentFlow(ctx, [
-        [compX + compW / 2, wireY],
-        [mosX - 20, wireY]
-    ], pmosOn ? 'rgb(106,170,142)' : 'rgb(80,128,208)', 0.6);
-
-    // Through active MOSFET
-    if (pmosOn) {
-        drawCurrentFlow(ctx, [
-            [mosX + 10, railY],
-            [mosX + 10, pmosY - 14],
-            [mosX + 10, pmosY + 14],
-            [mosX + 10, wireY]
-        ], 'rgb(106,170,142)', 0.8);
-    } else {
-        drawCurrentFlow(ctx, [
-            [mosX + 10, wireY],
-            [mosX + 10, nmosY - 14],
-            [mosX + 10, nmosY + 14],
-            [mosX + 10, gndY]
-        ], 'rgb(80,128,208)', 0.8);
-    }
-
-    // Through LC filter to output
-    drawCurrentFlow(ctx, [
-        [mosX + 10, wireY],
-        [indStartX, wireY],
-        [indEndX, wireY],
-        [nodeX, wireY],
-        [outX, wireY],
-        [outX, gndY]
-    ], 'rgb(106,170,142)', 0.5);
-
-    // ── Stage labels along the bottom ──
-    ctx.font = '10px "Inter", sans-serif';
-    ctx.fillStyle = T.overlay20;
-    ctx.textAlign = 'center';
-    const stageY = H - 6;
-    ctx.fillText('Input', srcX, stageY);
-    ctx.fillText('Comparator', compX, stageY);
-    ctx.fillText('Half-Bridge', mosX + 10, stageY);
-    ctx.fillText('LC Filter', (indStartX + nodeX) / 2, stageY);
-    ctx.fillText('Output', outWaveX, stageY);
-}
-
-// ─── Draw: Part 05 — Full View ───
-function drawFull() {
-    const c = canvases['canvas-full'];
-    const ctx = contexts['canvas-full'];
-    if (!c || !ctx) return;
-    const W = c.width / (window.devicePixelRatio || 1);
-    const H = c.height / (window.devicePixelRatio || 1);
-
-    ctx.clearRect(0, 0, W, H);
-
-    const padL = 60, padR = 20, padT = 20, padB = 20;
-    const plotW = W - padL - padR;
-    // Three stacked traces
-    const traceH = (H - padT - padB - 40) / 3;
-    const windowT = 4 * Math.PI;
-
-    const traces = [
-        { label: 'Input Signal', color: T.textLight, y0: padT + traceH / 2, h: traceH },
-        { label: 'PWM Output', color: '#6aaa8e', y0: padT + traceH + 20 + traceH / 2, h: traceH },
-        { label: 'Filtered Output', color: '#6aaa8e', y0: padT + 2 * (traceH + 20) + traceH / 2, h: traceH }
-    ];
-
-    for (const tr of traces) {
-        // Center line
-        ctx.strokeStyle = T.overlay05;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(padL, tr.y0);
-        ctx.lineTo(W - padR, tr.y0);
-        ctx.stroke();
-
-        // Label
-        ctx.font = '11px "Inter", sans-serif';
-        ctx.fillStyle = tr.color;
-        ctx.textAlign = 'left';
-        ctx.fillText(tr.label, padL + 8, tr.y0 - tr.h / 2 + 14);
-    }
-
-    // Trace 1: input sine
-    ctx.beginPath();
-    ctx.strokeStyle = traces[0].color;
-    ctx.lineWidth = 2;
-    for (let px = 0; px <= plotW; px++) {
-        const t = simTime + (px / plotW) * windowT;
-        const v = inputSignal(t);
-        const x = padL + px;
-        const y = traces[0].y0 - v * (traces[0].h / 2 * 0.9);
-        if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Trace 2: PWM
-    ctx.lineWidth = 1.5;
-    const yHighFull = traces[1].y0 - traces[1].h / 2 * 0.85;
-    const yLowFull = traces[1].y0 + traces[1].h / 2 * 0.85;
-    drawPWMTrace(ctx, simTime, windowT, plotW, padL,
-        yHighFull, yLowFull,
-        'rgba(106,170,142,0.9)', 'rgba(80,128,208,0.7)', T.overlay30);
-
-    // Trace 3: filtered output
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(106,170,142,1)';
-    ctx.lineWidth = 2.5;
-    for (let px = 0; px <= plotW; px++) {
-        const t = simTime + (px / plotW) * windowT;
-        const v = filteredSignal(t);
-        const x = padL + px;
-        const y = traces[2].y0 - v * (traces[2].h / 2 * 0.9);
-        if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Update power bars
-    updatePowerBars();
-}
-
-function updatePowerBars() {
-    const vinPeak = amplitude / 100;
-    // Single-supply half-bridge: output swings about VCC/2, peak = m * VCC/2 (m = modulation index)
-    const voutPeak = vinPeak * VCC / 2;
-    const signalPower = (voutPeak * voutPeak) / (2 * RC) * 1000;
-    const dcPower = signalPower / EFFICIENCY;  // P_DC from an assumed efficiency, not simulated losses
-    const heatPower = Math.max(0, dcPower - signalPower);
-    const eff = dcPower > 0 ? (signalPower / dcPower) * 100 : 0;
-
-    const maxP = Math.max(dcPower, 1);
-    document.getElementById('bar-dc').style.width = '100%';
-    document.getElementById('val-dc').textContent = dcPower.toFixed(1) + ' mW';
-
-    document.getElementById('bar-signal').style.width = (signalPower / maxP * 100).toFixed(1) + '%';
-    document.getElementById('val-signal').textContent = signalPower.toFixed(1) + ' mW';
-
-    document.getElementById('bar-heat').style.width = (heatPower / maxP * 100).toFixed(1) + '%';
-    document.getElementById('val-heat').textContent = heatPower.toFixed(1) + ' mW';
-
-    document.getElementById('efficiency-readout').textContent = '\u03B7 = ' + eff.toFixed(0) + '% (assumed)';
-}
-
-// ─── Animation loop ───
-function animate(now) {
-    if (!lastFrameTime) lastFrameTime = now;
-    const dt = (now - lastFrameTime) / 1000;
-    lastFrameTime = now;
-
-    if (!paused) {
-        simTime += dt * simSpeed;
-    }
-
-    drawInput();
-    drawCompCircuit();
-    drawPWM();
-    drawCircuit();
-    drawLCCircuit();
-    drawFilter();
-    drawFullCircuit();
-    drawFull();
-
-    requestAnimationFrame(animate);
-}
-
-// ─── Init ───
-window.addEventListener('resize', resizeAll);
-window.addEventListener('themechange', function() { resizeAll(); });
-initCanvases();
-requestAnimationFrame(animate);
-</script>
-
+    </section>
+
+    <!-- ================= 03 · HALF-BRIDGE ================= -->
+    <section class="scene" id="sec-bridge">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>the switching stage</span></div>
+            <h2>The MOSFET half-bridge</h2>
+
+            <p class="lead">The PWM signal drives a complementary pair of MOSFETs, a PMOS above and an NMOS below,
+                arranged as a half-bridge between $V_{CC}$ and ground. The devices act as switches: each is either
+                fully on or fully off.</p>
+
+            <p>A gate driver applies the inverted signal $\overline{\text{PWM}}$ to both gates. When PWM is HIGH
+                the gates are low, the PMOS conducts and the switching node is connected to $V_{CC}$. When PWM is
+                LOW the gates are high, the NMOS conducts and the node is connected to ground. The switching node
+                $v_\text{sw}$ is therefore a copy of the PWM waveform with amplitude $V_{CC} = 12\,\text{V}$.</p>
+
+            <p>The power dissipated in a switch is the product of the voltage across it and the current through
+                it:</p>
+
+            <div class="eq-block">$$P_\text{switch} = V_{DS}\, I_D \approx 0 \quad \text{in both states}, \qquad
+                P_\text{cond} = I_D^2\, R_{DS(\text{on})}$$</div>
+
+            <p>When off, $I_D$ is negligible. When on, $V_{DS} = I_D R_{DS(\text{on})}$, and $R_{DS(\text{on})}$
+                can be in the milliohm range, so the conduction loss is small.</p>
+
+            <div class="callout">
+                Losses are not zero. During each transition the device passes through its linear region while
+                both voltage and current are significant, so a finite switching loss occurs on every edge. This
+                loss grows with $f_\text{sw}$.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$m$</span>
+                        <input type="range" data-param="amp" min="5" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">speed</span>
+                        <input type="range" data-param="speed" min="0.1" max="3" step="0.1">
+                        <span class="val" data-param="speed"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
+                </div>
+                <div class="plot-box bridge" data-anim>
+                    <div class="label">circuit · <b>complementary half-bridge</b></div>
+                    <svg class="bode" id="plot-bridge"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-hi)"></span>current from $V_{CC}$ through the PMOS</span>
+                    <span><span class="sw" style="background:var(--c-lo)"></span>current to ground through the NMOS</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">PMOS</span><span class="v" data-out="pmos"></span></div>
+                    <div class="item"><span class="k">NMOS</span><span class="v" data-out="nmos"></span></div>
+                    <div class="item"><span class="k">$v_\text{sw}$</span><span class="v" data-out="vsw"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 04 · LC FILTER ================= -->
+    <section class="scene" id="sec-filter">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>output filter</span></div>
+            <h2>The LC low-pass filter recovers the signal</h2>
+
+            <p class="lead">The switching node is a high-frequency rectangular wave between $V_{CC}$ and ground. A
+                second-order LC low-pass filter between this node and the load removes the switching frequency and
+                passes its local average, which follows the input.</p>
+
+            <p>While PWM is HIGH, current flows from the supply through the inductor into the capacitor and load.
+                While PWM is LOW, the energy stored in the inductor maintains the current. The output settles at
+                $D\,V_{CC}$, which varies with the input, with a residual ripple at $f_\text{sw}$.</p>
+
+            <div class="eq-block">$$f_c = \frac{1}{2\pi\sqrt{LC}}, \qquad f_\text{sig} \ll f_c \ll f_\text{sw}$$</div>
+
+            <p>Above $f_c$ the filter attenuates at $-40$ dB per decade, so the ripple falls as
+                $(f_c/f_\text{sw})^2$. In this model $f_c$ is taken proportional to $f_\text{sig}$, and the ripple
+                amplitude is set proportional to $1/(f_\text{sw}/f_\text{sig})^2$.</p>
+
+            <div class="callout">
+                Ratios of 5 to 10 leave visible switching ripple on the output; larger ratios reduce it rapidly.
+                A practical design therefore places $f_\text{sw}$ well above the signal band, typically several
+                hundred kilohertz for audio.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$f_\text{sw}/f_\text{sig}$</span>
+                        <input type="range" data-param="ratio" min="5" max="60" step="1">
+                        <span class="val" data-param="ratio"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$m$</span>
+                        <input type="range" data-param="amp" min="5" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
+                </div>
+                <div class="plot-box lc" data-anim>
+                    <div class="label">circuit · <b>LC output filter</b></div>
+                    <svg class="bode" id="plot-lc"></svg>
+                </div>
+                <div class="plot-box filter" data-anim>
+                    <div class="label">waveforms · <b>switching node and filtered output</b></div>
+                    <svg class="bode" id="plot-filter"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-hi);opacity:0.35"></span>$v_\text{sw}$, switching node</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>$v_\text{out}$, filtered</span>
+                    <span><span class="sw" style="background:var(--c-car)"></span>capacitor charging current</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$f_\text{sw}/f_\text{sig}$</span><span class="v" data-out="ratio"></span></div>
+                    <div class="item"><span class="k">ripple, peak to peak</span><span class="v" data-out="ripple"></span></div>
+                    <div class="item"><span class="k">filter state</span><span class="v" data-out="lcstate"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 05 · FULL CHAIN ================= -->
+    <section class="scene" id="sec-chain">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>complete signal chain</span></div>
+            <h2>The full amplifier and its efficiency</h2>
+
+            <p class="lead">The complete amplifier joins the comparator, the half-bridge and the LC filter. The
+                comparator inputs are reversed relative to section 02, so its output is $\overline{\text{PWM}}$,
+                the gate drive required for the switching node to follow PWM.</p>
+
+            <p>The three traces show the signal at each stage: the analogue input, the two-level switching node
+                and the recovered output. The output swings about $V_{CC}/2$ with a peak of
+                $m\,V_{CC}/2$, and the power delivered to the load $R_L = 1\,\text{k}\Omega$ is</p>
+
+            <div class="eq-block">$$P_L = \frac{\left(m\,V_{CC}/2\right)^2}{2R_L}, \qquad
+                P_\text{DC} = \frac{P_L}{\eta}, \qquad P_D = P_\text{DC} - P_L$$</div>
+
+            <p>The efficiency $\eta = 92\,\%$ is assumed rather than computed from simulated losses. The remaining
+                8 % is lost in the switch resistances, the switching transitions and the filter.</p>
+
+            <div class="callout">
+                For comparison, the linear output stages reach about 25 % (class A), 55 % (class AB) and 78 %
+                (class B). Class D reaches 90 to 95 % because its output devices do not dwell in the linear region.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$m$</span>
+                        <input type="range" data-param="amp" min="5" max="100" step="1">
+                        <span class="val" data-param="amp"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$f_\text{sw}/f_\text{sig}$</span>
+                        <input type="range" data-param="ratio" min="5" max="60" step="1">
+                        <span class="val" data-param="ratio"></span>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="paused" data-value="no">run</button>
+                        <button class="seg-btn" data-param="paused" data-value="yes">pause</button>
+                    </span>
+                </div>
+                <div class="plot-box chain" data-anim>
+                    <div class="label">circuit · <b>complete class D amplifier</b></div>
+                    <svg class="bode" id="plot-chain"></svg>
+                </div>
+                <div class="plot-box traces" data-anim>
+                    <div class="label">waveforms · <b>input, switching node and output</b></div>
+                    <svg class="bode" id="plot-traces"></svg>
+                </div>
+                <div class="plot-box budget">
+                    <div class="label">power budget · <b>present amplitude</b></div>
+                    <svg class="bode" id="plot-budget"></svg>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$\hat{v}_\text{out}$</span><span class="v" data-out="vpk"></span></div>
+                    <div class="item"><span class="k">$P_\text{DC}$</span><span class="v" data-out="pdc"></span></div>
+                    <div class="item"><span class="k">$P_L$</span><span class="v" data-out="pl"></span></div>
+                    <div class="item"><span class="k">$P_D$</span><span class="v" data-out="pd"></span></div>
+                    <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 06 · MOSFETS ================= -->
+    <section class="scene" id="sec-mosfets">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>device choice</span></div>
+            <h2>Why MOSFETs</h2>
+
+            <p class="lead">Class D operation requires fast switching with low conduction and drive losses. MOSFETs
+                are generally preferred to BJTs for four reasons.</p>
+
+            <ul class="bullets">
+                <li><strong>switching speed</strong>: a saturated BJT has a storage time, because minority carriers
+                    in the base must be removed before it turns off. MOSFETs are majority-carrier devices with no
+                    storage time and switch faster.</li>
+                <li><strong>voltage-driven gate</strong>: a BJT needs continuous base current to stay on. A MOSFET
+                    needs only its gate capacitance charged, after which no steady-state gate current flows, which
+                    simplifies the driver.</li>
+                <li><strong>low on-resistance</strong>: power MOSFETs reach $R_{DS(\text{on})}$ in the low
+                    milliohm range. At high currents this gives a smaller voltage drop than the $V_{CE(\text{sat})}$
+                    of a BJT, and therefore lower conduction loss.</li>
+                <li><strong>applications</strong>: audio amplifiers, motor drivers, DC-DC converters and
+                    battery-powered biomedical devices.</li>
+            </ul>
+
+            <div class="callout">
+                Class D is the dominant amplifier topology in portable and battery-powered biomedical devices.
+                Efficiency determines battery life and the heat generated, both of which constrain wearable and
+                implantable systems.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="plot-box compare">
+                    <div class="label">comparison · <b>typical efficiency by class</b></div>
+                    <svg class="bode" id="plot-compare"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-lo);opacity:0.5"></span>linear output stages</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>class D, assumed 92 %; bar: typical 90 to 95 %</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>BMEN90033 · The University of Melbourne</footer>
+
+    <script defer src="../components/katex_label.js"></script>
+    <script defer src="../components/plot_helpers.js"></script>
+    <script defer src="class_d_amplifier_JS/model.js"></script>
+    <script defer src="class_d_amplifier_JS/frame.js"></script>
+    <script defer src="class_d_amplifier_JS/anim.js"></script>
+    <script defer src="class_d_amplifier_JS/controls.js"></script>
+    <script defer src="class_d_amplifier_JS/circuit_kit.js"></script>
+    <script defer src="class_d_amplifier_JS/readout.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_input.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_comparator.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_pwm.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_bridge.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_lc.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_filter.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_chain.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_traces.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_budget.js"></script>
+    <script defer src="class_d_amplifier_JS/plot_compare.js"></script>
 </body>
+
 </html>

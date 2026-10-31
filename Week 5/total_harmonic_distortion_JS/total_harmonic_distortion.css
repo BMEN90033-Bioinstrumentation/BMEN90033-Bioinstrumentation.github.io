@@ -1,0 +1,60 @@
+/* total_harmonic_distortion.html · page palette, plot sizes and the THD
+   reference table. Layout comes from ../components/lecture_page.css. */
+
+:root {
+    --c-fund: #eef0f5;   /* fundamental and combined waveform */
+    --c-h2:   #58a6ff;   /* 2nd harmonic */
+    --c-h3:   #7be089;   /* 3rd harmonic */
+    --c-h4:   #ffcf5c;   /* 4th harmonic */
+    --c-h5:   #ff7a6b;   /* 5th harmonic */
+    --c-hx:   rgba(255, 255, 255, 0.18);   /* harmonics above the 5th */
+    --c-ref:  rgba(255, 255, 255, 0.45);   /* dashed reference traces */
+    --c-clsA: #ffcf5c;
+    --c-clsAB:#7be089;
+    --c-clsB: #58a6ff;
+    --c-clsD: rgba(200, 168, 255, 0.22);
+    --hero-a: var(--c-h2);
+    --hero-b: var(--c-h3);
+}
+
+[data-theme="light"] {
+    --c-fund: #1a1a1e;
+    --c-h2:   #1d4ed8;
+    --c-h3:   #2f8f3f;
+    --c-h4:   #b88200;
+    --c-h5:   #c2410c;
+    --c-hx:   rgba(0, 0, 0, 0.18);
+    --c-ref:  rgba(0, 0, 0, 0.45);
+    --c-clsA: #b88200;
+    --c-clsAB:#2f8f3f;
+    --c-clsB: #1d4ed8;
+    --c-clsD: rgba(124, 58, 237, 0.16);
+}
+
+.plot-box.wave     { aspect-ratio: 1.9 / 1; }
+.plot-box.combined { aspect-ratio: 1.6 / 1; }
+.plot-box.bars     { aspect-ratio: 2 / 1; }
+.plot-box.fourier  { aspect-ratio: 1.2 / 1; }
+.plot-box.spectrum { aspect-ratio: 1.7 / 1; }
+.plot-box.contrib  { aspect-ratio: 2 / 1; }
+.plot-box.tradeoff { aspect-ratio: 1.5 / 1; }
+
+.readout .item .v.big { font-size: 22px; color: var(--accent); }
+
+table.ref-table {
+    width: 100%; border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg-panel);
+}
+table.ref-table th {
+    text-align: left; padding: 8px 12px; color: var(--muted);
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;
+    border-bottom: 1px solid var(--border);
+}
+table.ref-table td { padding: 7px 12px; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+table.ref-table tr:last-child td { border-bottom: none; }
+table.ref-table td:first-child { color: var(--fg); white-space: nowrap; }
+table.ref-table tr.now td { background: var(--accent-soft-faint); }
+table.ref-table tr.now td:first-child { color: var(--accent); }
+.legend .sw.dash { border-top-color: var(--c-ref); }

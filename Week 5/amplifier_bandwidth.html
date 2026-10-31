@@ -1,2367 +1,500 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033: Amplifier Bandwidth</title>
+    <title>BMEN90033 · Amplifier Bandwidth</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <style>
-        :root {
-            --bg: #0a0e14;
-            --bg-panel: rgba(16, 20, 28, 0.92);
-            --border: rgba(255,255,255,0.07);
-            --border-hover: rgba(255,255,255,0.15);
-            --text: #e2e8f0;
-            --text-dim: #8892a4;
-            --text-muted: #505868;
-            --accent: var(--site-accent);
-            --yellow: #ffcc44;
-            --red: #e06050;
-        }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
-        [data-theme="light"] {
-            --bg: #f5f5f7;
-            --bg-deep: #f5f5f7;
-            --bg-panel: rgba(255,255,255,0.92);
-            --bg-card: #eeeef0;
-            --border: rgba(0,0,0,0.1);
-            --border-hover: rgba(0,0,0,0.2);
-            --accent: var(--site-accent);
-            --accent-dim: #357a60;
-            --text: #1a1a1e;
-            --text-dim: #555555;
-            --text-muted: #888888;
-            --yellow: #b8860b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .explainer {
-            max-width: 880px;
-            margin: 0 auto;
-            padding: 72px 24px 120px;
-        }
-
-        .title-block {
-            margin-bottom: 56px;
-        }
-        .title-block h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-        .title-block .sub {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 12px;
-        }
-        .title-block p {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.7;
-            max-width: 640px;
-        }
-
-        /* ── Section headings ── */
-        .section {
-            margin-bottom: 72px;
-        }
-        .section summary {
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            align-items: baseline;
-            gap: 12px;
-            padding: 12px 0;
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-            transition: border-color 0.15s;
-        }
-        .section summary:hover { border-bottom-color: var(--border-hover); }
-        .section summary::-webkit-details-marker { display: none; }
-        .section summary::after {
-            content: '\25B6';
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-left: auto;
-            transition: transform 0.2s;
-        }
-        .section[open] summary::after {
-            transform: rotate(90deg);
-        }
-        .section-number {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--accent);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            flex-shrink: 0;
-        }
-        .section h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.3px;
-            margin: 0;
-        }
-        .section p, .section li {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.8;
-            margin-bottom: 12px;
-        }
-        .section ul {
-            padding-left: 20px;
-            margin-bottom: 16px;
-        }
-
-        /* ── Canvas containers ── */
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin: 24px 0 28px;
-            overflow: hidden;
-        }
-        .canvas-container canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        .canvas-tall { height: 420px; }
-        .canvas-medium { height: 360px; }
-
-        /* ── Key equations ── */
-        .eq-block {
-            display: block;
-            margin: 16px 0;
-            padding: 12px 20px;
-            background: rgba(106,170,142,0.06);
-            border: 1px solid rgba(106,170,142,0.15);
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 15px;
-            color: var(--accent);
-            line-height: 1.8;
-            text-align: center;
-        }
-        .eq-block .dim {
-            color: var(--text-muted);
-            transition: color 0.3s;
-        }
-        .eq-block .hl {
-            color: var(--yellow);
-            transition: color 0.3s;
-        }
-
-        /* ── Derivation steps ── */
-        .derivation {
-            margin: 24px 0;
-            padding: 0;
-            list-style: none;
-            counter-reset: step;
-        }
-        .derivation li {
-            counter-increment: step;
-            position: relative;
-            padding: 16px 20px 16px 52px;
-            margin-bottom: 6px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            line-height: 1.7;
-            color: var(--text-dim);
-        }
-        .derivation li::before {
-            content: counter(step);
-            position: absolute;
-            left: 18px;
-            top: 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--accent);
-            font-weight: 600;
-        }
-        .derivation .math {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text);
-            margin: 4px 0;
-        }
-        .derivation .step-note {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        /* ── LaTeX-style fractions ── */
-        .frac {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: stretch;
-            vertical-align: middle;
-            margin: 0 3px;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text);
-        }
-        .frac .num, .frac .den {
-            display: block;
-            padding: 0 4px;
-            line-height: 1.4;
-            text-align: center;
-        }
-        .frac .num {
-            border-bottom: 1px solid rgba(255,255,255,0.35);
-            padding-bottom: 2px;
-        }
-        .frac .den {
-            padding-top: 2px;
-        }
-        .frac-lg {
-            font-size: 14px;
-        }
-        .frac-lg .num, .frac-lg .den {
-            padding: 1px 6px;
-        }
-
-        /* ── Equation display line ── */
-        .eq-line {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            color: var(--text);
-            padding: 14px 16px;
-            margin: 12px 0;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            flex-wrap: wrap;
-            line-height: 1.6;
-        }
-        .eq-line .label {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-right: 8px;
-        }
-        .eq-line .accent { color: var(--accent); }
-        .eq-line .yellow { color: var(--yellow); }
-        .eq-line .dim { color: var(--text-muted); }
-
-        /* ── Controls ── */
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px 16px;
-        }
-        .control-group label {
-            font-size: 12px;
-            color: var(--text-dim);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        .control-group input[type=range] {
-            width: 120px;
-            -webkit-appearance: none;
-            background: rgba(255,255,255,0.18);
-            height: 4px;
-            border-radius: 2px;
-            outline: none;
-        }
-        .control-group input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-        }
-        .control-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text);
-            min-width: 72px;
-            text-align: right;
-        }
-
-        /* ── Info callouts ── */
-        .callout {
-            padding: 14px 18px;
-            background: rgba(106,170,142,0.06);
-            border-left: 3px solid var(--accent);
-            border-radius: 0 6px 6px 0;
-            margin: 16px 0;
-            font-size: 13px;
-            color: var(--text-dim);
-            line-height: 1.7;
-        }
-        .callout strong { color: var(--text); }
-        .callout.warn {
-            background: rgba(255,200,100,0.06);
-            border-left-color: var(--yellow);
-        }
-
-        /* ── Regime indicator ── */
-        .regime-tag {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            padding: 4px 12px;
-            border-radius: 4px;
-            margin: 4px 4px 4px 0;
-        }
-        .regime-tag.passband {
-            background: rgba(106,170,142,0.15);
-            color: var(--accent);
-            border: 1px solid rgba(106,170,142,0.3);
-        }
-        .regime-tag.cutoff {
-            background: rgba(255,200,100,0.15);
-            color: var(--yellow);
-            border: 1px solid rgba(255,200,100,0.3);
-        }
-        .regime-tag.rolloff {
-            background: rgba(224,96,80,0.15);
-            color: var(--red);
-            border: 1px solid rgba(224,96,80,0.3);
-        }
-
-        /* ── Readout bar ── */
-        .readout-bar {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            padding: 12px 16px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin: 16px 0;
-        }
-        .readout-item {
-            font-size: 12px;
-            color: var(--text-dim);
-        }
-        .readout-item .val {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text);
-            margin-left: 4px;
-        }
-
-        /* ── Presets ── */
-        .preset-btn {
-            padding: 6px 16px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .preset-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-        .preset-btn.active {
-            background: rgba(255,255,255,0.12);
-            border-color: var(--border-hover);
-            color: var(--text);
-        }
-        [data-theme="light"] .back-btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #555; }
-        [data-theme="light"] .back-btn:hover { color: #1a1a1e; border-color: rgba(0,0,0,0.2); }
-        [data-theme="light"] .title-block h1 { color: #1a1a1e; }
-        [data-theme="light"] .section h2 { color: #1a1a1e; }
-        [data-theme="light"] .derivation .math { color: #1a1a1e; }
-        [data-theme="light"] .frac { color: #1a1a1e; }
-        [data-theme="light"] .frac .num { border-bottom-color: rgba(0,0,0,0.25); }
-        [data-theme="light"] .eq-line { color: #1a1a1e; background: rgba(0,0,0,0.02); }
-        [data-theme="light"] .control-value { color: #1a1a1e; }
-        [data-theme="light"] .callout strong { color: #1a1a1e; }
-        [data-theme="light"] .readout-item .val { color: #1a1a1e; }
-        [data-theme="light"] .preset-btn:hover { background: rgba(0,0,0,0.06); color: #1a1a1e; }
-        [data-theme="light"] .preset-btn.active { background: rgba(0,0,0,0.08); color: #1a1a1e; }
-        [data-theme="light"] .canvas-container { background: rgba(0,0,0,0.03); }
-        [data-theme="light"] .derivation li { background: rgba(0,0,0,0.02); }
-        [data-theme="light"] .preset-btn { background: rgba(0,0,0,0.03); }
-        [data-theme="light"] .control-group input[type=range] { background: rgba(0,0,0,0.15); }
-        [data-theme="light"] .control-group input[type=range]::-webkit-slider-thumb { background: #333; }
-        [data-theme="light"] .section h3[style] { color: #1a1a1e !important; }
-        [data-theme="light"] strong[style*="color:#fff"] { color: #1a1a1e !important; }
-    </style>
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
+    <link rel="stylesheet" href="amplifier_bandwidth_JS/amplifier_bandwidth.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$',  right: '$',  display: false }
+            ],
+            throwOnError: false
+        });"></script>
+
     <script src="../theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 </head>
+
 <body>
 
-<div class="brand"><span class="mark"></span><span>BMEN90033 · Week 5</span></div>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 5</span></div>
+    <a class="back-btn" href="../index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+    </a>
 
-<a class="back-btn" href="../index.html">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 12H5" />
-        <path d="M12 19l-7-7 7-7" />
-    </svg>
-    Back
-</a>
-
-<div class="explainer">
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- TITLE -->
-    <!-- ════════════════════════════════════════════════ -->
-    <div class="title-block">
-        <div class="sub">BMEN90033 · Week 5</div>
-        <h1>Amplifier Bandwidth</h1>
-        <p>Every real amplifier has a finite bandwidth. A simple RC low-pass model relates
-           its transfer function, complex-plane representation, and Bode magnitude response.</p>
-    </div>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 1: THE TRANSFER FUNCTION -->
-    <!-- ════════════════════════════════════════════════ -->
-    <details class="section" id="sec-transfer" open>
-        <summary>
-            <span class="section-number">Part 01</span>
-            <h2>Deriving the Transfer Function</h2>
-        </summary>
-
-        <p>An ideal amplifier multiplies its input by a constant gain A<sub>v</sub> at all frequencies.
-           In practice, parasitic capacitance (from transistors, wiring, and the load) shunts
-           high-frequency signals to ground. We model this with a single resistor R and capacitor C
-           at the output.</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="circuit-canvas"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>R</label>
-                <input type="range" id="r-slider" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="r-val">10.0 kΩ</span>
-            </div>
-            <div class="control-group">
-                <label>C</label>
-                <input type="range" id="c-slider" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="c-val">1.00 nF</span>
-            </div>
-            <div class="control-group">
-                <label>A<sub>v</sub></label>
-                <input type="range" id="av-slider" min="0" max="1" step="0.001" value="0.667">
-                <span class="control-value" id="av-val">100</span>
+    <!-- ================= LANDING ================= -->
+    <section class="landing">
+        <div>
+            <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
+            <h1 class="hero">Amplifier <em>bandwidth</em></h1>
+            <p class="sub">Every real amplifier has a finite bandwidth. A single resistor and capacitor at the output
+                of an ideal gain stage model this limit. This page derives the resulting transfer function, represents
+                its denominator on the complex plane, builds the Bode magnitude plot, and relates gain to bandwidth
+                through the gain-bandwidth product of an op-amp.</p>
+            <div class="tags">
+                <span class="field-tag">single pole</span>
+                <span class="field-tag">phasor</span>
+                <span class="field-tag">phase lag</span>
+                <span class="field-tag">Bode plot</span>
+                <span class="field-tag">gain-bandwidth product</span>
             </div>
         </div>
+        <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
+    </section>
 
-        <p>The resistor and capacitor form a frequency-dependent voltage divider at the
-           amplifier output.</p>
+    <!-- ================= 01 · TRANSFER FUNCTION ================= -->
+    <section class="scene" id="sec-transfer">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the RC model</span></div>
+            <h2>Deriving the transfer function</h2>
 
-        <p><strong>First, recall the capacitor impedance.</strong> A capacitor's impedance in the
-           frequency domain is:</p>
+            <p class="lead">An ideal amplifier multiplies its input by a constant gain $A_v$ at all frequencies. In
+                practice, parasitic capacitance from transistors, wiring and the load shunts high-frequency signals to
+                ground. The model represents this with a series resistor $R$ and a shunt capacitor $C$ at the
+                output.</p>
 
-        <div class="eq-line">
-            <span>Z<sub>C</sub> =</span>
-            <span class="frac frac-lg"><span class="num">1</span><span class="den">j&#969;C</span></span>
+            <p>The capacitor impedance is $Z_C = 1/(j\omega C)$, which falls as $\omega$ rises: the capacitor conducts
+                better at high frequency and shunts the signal to ground. $R$ and $C$ form a frequency-dependent voltage
+                divider, with the output taken across the capacitor:</p>
+
+            <div class="eq-block">$$\begin{aligned}
+                \frac{V_\text{out}}{V_\text{amp}} &= \frac{Z_C}{R + Z_C}
+                = \frac{\dfrac{1}{j\omega C}}{R + \dfrac{1}{j\omega C}} \\[4pt]
+                &= \frac{1}{1 + j\omega RC} = \frac{1}{1 + j(\omega/\omega_0)}
+                \end{aligned}$$</div>
+
+            <p>The second line follows by multiplying numerator and denominator by $j\omega C$. The product $RC$ is the
+                time constant $\tau$, and $\omega_0 = 1/RC$ is the cutoff frequency, so the response depends only on
+                the ratio $\omega/\omega_0$. Including the gain stage, which multiplies the input by $A_v$ before the
+                RC network, gives the single-pole low-pass transfer function:</p>
+
+            <div class="eq-block">$$H(j\omega) = \frac{A_v}{1 + j(\omega/\omega_0)}, \qquad \omega_0 = \frac{1}{RC}$$</div>
+
+            <ul class="bullets">
+                <li><strong>$\omega \ll \omega_0$</strong>: $j(\omega/\omega_0)$ is negligible, the denominator is close
+                    to 1 and the gain is $A_v$. The capacitor is effectively an open circuit.</li>
+                <li><strong>$\omega \gg \omega_0$</strong>: the imaginary term dominates, the denominator grows and the
+                    gain falls. The capacitor shorts the output to ground.</li>
+                <li><strong>$\omega = \omega_0$</strong>: the real and imaginary parts of the denominator are both 1, its
+                    magnitude is $\sqrt{2}$ and the gain is $A_v/\sqrt{2}$, the $-3\,\text{dB}$ point.</li>
+            </ul>
+
+            <div class="callout">
+                The denominator $1 + j(\omega/\omega_0)$ is a complex number whose magnitude grows with frequency.
+                Because it divides $A_v$, the gain decreases. Section 02 represents this on the complex plane.
+            </div>
         </div>
 
-        <p>As &#969; increases, Z<sub>C</sub> gets <em>smaller</em>. The capacitor becomes a
-           better conductor at high frequencies, which is why it shunts the signal to ground.</p>
-
-        <ol class="derivation">
-            <li>
-                <strong>Write the voltage divider.</strong> The output voltage V<sub>out</sub> is
-                taken across the capacitor, so:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span class="frac frac-lg"><span class="num">V<sub>out</sub></span><span class="den">V<sub>amp</sub></span></span>
-                    <span>=</span>
-                    <span class="frac frac-lg"><span class="num">Z<sub>C</sub></span><span class="den">R + Z<sub>C</sub></span></span>
-                </div>
-                <span class="step-note">The standard voltage divider: output fraction equals
-                the bottom impedance over the total impedance.</span>
-            </li>
-
-            <li>
-                <strong>Substitute the capacitor impedance</strong> Z<sub>C</sub> = 1/(j&#969;C):
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>=</span>
-                    <span class="frac frac-lg">
-                        <span class="num">
-                            <span class="frac"><span class="num">1</span><span class="den">j&#969;C</span></span>
-                        </span>
-                        <span class="den">
-                            R +
-                            <span class="frac"><span class="num">1</span><span class="den">j&#969;C</span></span>
-                        </span>
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$R$</span>
+                        <input type="range" data-param="R" data-log min="2" max="5" step="0.003">
+                        <span class="val" data-param="R"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$C$</span>
+                        <input type="range" data-param="C" data-log min="-12" max="-7" step="0.005">
+                        <span class="val" data-param="C"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$A_v$</span>
+                        <input type="range" data-param="Av" data-log min="0" max="3" step="0.003">
+                        <span class="val" data-param="Av"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">test $\omega$</span>
+                        <input type="range" data-param="testFreq" data-log min="0" max="9" step="0.009">
+                        <span class="val" data-param="testFreq"></span>
                     </span>
                 </div>
-                <span class="step-note">Multiplication by j&#969;C removes the nested fraction.</span>
-            </li>
-
-            <li>
-                <strong>Multiply numerator and denominator by j&#969;C</strong> to clear the inner fractions:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>=</span>
-                    <span class="frac frac-lg">
-                        <span class="num"><span class="yellow">j&#969;C</span> &#183;
-                            <span class="frac"><span class="num">1</span><span class="den">j&#969;C</span></span>
-                        </span>
-                        <span class="den"><span class="yellow">j&#969;C</span> &#183; R &nbsp;+&nbsp; <span class="yellow">j&#969;C</span> &#183;
-                            <span class="frac"><span class="num">1</span><span class="den">j&#969;C</span></span>
-                        </span>
-                    </span>
-                    <span>=</span>
-                    <span class="frac frac-lg">
-                        <span class="num">1</span>
-                        <span class="den">j&#969;RC + 1</span>
-                    </span>
+                <div class="plot-box circuit">
+                    <div class="label">circuit · <b>gain stage with output RC network</b></div>
+                    <svg class="bode" id="plot-circuit"></svg>
                 </div>
-                <span class="step-note"><strong>Numerator:</strong> j&#969;C &#215; 1/(j&#969;C) cancels, leaving 1.<br>
-                <strong>Denominator:</strong> distribute j&#969;C across both terms. j&#969;C &#215; R = j&#969;RC, and j&#969;C &#215; 1/(j&#969;C) = 1.
-                Together that gives j&#969;RC + 1.</span>
-            </li>
-
-            <li>
-                <strong>Rearrange</strong> to put the constant term first (standard form):
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>=</span>
-                    <span class="frac frac-lg">
-                        <span class="num">1</span>
-                        <span class="den">1 + j&#969;RC</span>
-                    </span>
+                <div class="readout">
+                    <div class="item"><span class="k">$\omega_0$</span><span class="v" data-out="w0"></span></div>
+                    <div class="item"><span class="k">$f_0$</span><span class="v" data-out="f0"></span></div>
+                    <div class="item"><span class="k">$A_v$</span><span class="v" data-out="avdb"></span></div>
+                    <div class="item"><span class="k">$|H|/A_v$ at test $\omega$</span><span class="v" data-out="gainratio"></span></div>
                 </div>
-                <span class="step-note">This is already the first-order low-pass transfer function.
-                The product RC is the time constant &#964; = RC.</span>
-            </li>
+            </div>
+        </div>
+    </section>
 
-            <li>
-                <strong>Define the cutoff frequency</strong> &#969;<sub>0</sub> = 1/RC. Since
-                &#969;RC = &#969;/(1/RC) = &#969;/&#969;<sub>0</sub>, the expression becomes:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>=</span>
-                    <span class="frac frac-lg">
-                        <span class="num">1</span>
-                        <span class="den">1 + j(<span class="accent">&#969;/&#969;<sub>0</sub></span>)</span>
+    <!-- ================= 02 · COMPLEX PLANE ================= -->
+    <section class="scene" id="sec-complex">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>the complex plane</span></div>
+            <h2>The denominator as a phasor</h2>
+
+            <p class="lead">The denominator $D = 1 + j(\omega/\omega_0)$ is a point in the complex plane. Its real part
+                is fixed at 1; its imaginary part is $\omega/\omega_0$ and grows with frequency.</p>
+
+            <p>Raising the test frequency changes both the length and the angle of the phasor:</p>
+
+            <ul class="bullets">
+                <li><strong>The phasor lengthens.</strong> Its magnitude is $|D| = \sqrt{1 + (\omega/\omega_0)^2}$.
+                    Since $D$ divides $A_v$, the gain falls.</li>
+                <li><strong>The phasor rotates towards the imaginary axis.</strong> Its angle is
+                    $\theta = \arctan(\omega/\omega_0)$, which becomes the phase lag of the output.</li>
+                <li><strong>At $\omega = \omega_0$</strong> the imaginary part equals the real part, so
+                    $|D| = \sqrt{2} \approx 1.414$ and $\theta = 45^\circ$. The gain is $A_v/\sqrt{2}$, which is
+                    $3\,\text{dB}$ below the mid-band gain.</li>
+            </ul>
+
+            <div class="eq-block">$$|H(j\omega)| = \frac{A_v}{|D|} = \frac{A_v}{\sqrt{1 + (\omega/\omega_0)^2}}$$</div>
+
+            <p>The audio-amplifier preset sets $R = 10\,\text{k}\Omega$, $C = 10\,\text{nF}$ and $A_v = 100$; the
+                RF-stage preset sets $R = 500\,\Omega$, $C = 5\,\text{pF}$ and $A_v = 20$. Both place the test
+                frequency at $\omega_0$.</p>
+
+            <div class="callout">
+                The dashed arc has unit radius. The phasor tip always lies on the vertical line $\mathrm{Re} = 1$,
+                so $|D| \ge 1$ and the gain never exceeds $A_v$.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">test $\omega$</span>
+                        <input type="range" data-param="testFreq" data-log min="0" max="9" step="0.009">
+                        <span class="val" data-param="testFreq"></span>
                     </span>
-                </div>
-                <span class="step-note">The behaviour now depends on a single ratio:
-                the signal frequency &#969; compared to the natural frequency &#969;<sub>0</sub>.</span>
-            </li>
-
-            <li>
-                <strong>Include the amplifier gain A<sub>v</sub>.</strong> The amplifier multiplies
-                the input by A<sub>v</sub> before the RC network, so the complete transfer function is:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>H(j&#969;) =</span>
-                    <span class="frac frac-lg">
-                        <span class="num"><span class="accent">A<sub>v</sub></span></span>
-                        <span class="den">1 + j(&#969;/&#969;<sub>0</sub>)</span>
+                    <span class="divider"></span>
+                    <span class="seg">
+                        <button class="seg-btn" data-preset="audio">audio amp</button>
+                        <button class="seg-btn" data-preset="rf">RF stage</button>
                     </span>
                 </div>
-                <span class="step-note">This is the standard single-pole low-pass transfer function.
-                Everything from here follows from this one equation.</span>
-            </li>
-        </ol>
-
-        <div class="eq-block" style="font-size: 16px; padding: 16px 24px;">
-            H(j&#969;) &nbsp;=&nbsp;
-            <span class="frac frac-lg" style="color: var(--accent);">
-                <span class="num" style="border-color: rgba(106,170,142,0.4);">A<sub>v</sub></span>
-                <span class="den">1 + j(&#969;/&#969;<sub>0</sub>)</span>
-            </span>
-            &nbsp;&nbsp;where&nbsp;&nbsp; &#969;<sub>0</sub> =
-            <span class="frac" style="color: var(--accent);">
-                <span class="num" style="border-color: rgba(106,170,142,0.4);">1</span>
-                <span class="den">RC</span>
-            </span>
-        </div>
-
-        <p>The limiting cases give the physical interpretation:</p>
-        <ul>
-            <li><strong>At low frequencies</strong> (&#969; &#8810; &#969;<sub>0</sub>): the term
-                j(&#969;/&#969;<sub>0</sub>) is negligibly small, so the denominator &#8776; 1 and the
-                gain is simply A<sub>v</sub>. The capacitor is essentially an open circuit.</li>
-            <li><strong>At high frequencies</strong> (&#969; &#8811; &#969;<sub>0</sub>): the imaginary
-                term dominates, the denominator grows, and the gain drops. The capacitor
-                shorts the output to ground.</li>
-            <li><strong>At &#969; = &#969;<sub>0</sub></strong>: the real and imaginary parts of the
-                denominator are equal (both = 1), giving a denominator magnitude of &#8730;2
-                and a gain of A<sub>v</sub>/&#8730;2. This is the <strong>&#8722;3 dB point</strong>.</li>
-        </ul>
-
-        <div class="readout-bar">
-            <div class="readout-item">&#969;<sub>0</sub> = <span class="val" id="omega0-val">100 krad/s</span></div>
-            <div class="readout-item">f<sub>0</sub> = <span class="val" id="f0-val">15.9 kHz</span></div>
-            <div class="readout-item">A<sub>v</sub> = <span class="val" id="av-db-val">40.0 dB</span></div>
-        </div>
-
-        <div class="callout">
-            <strong>Frequency dependence:</strong> the denominator (1 + j(&#969;/&#969;<sub>0</sub>)) is a complex number
-            that grows with frequency. Since it sits in the denominator, the gain <em>decreases</em>.
-            Part 02 represents this change on the complex plane.
-        </div>
-    </details>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 2: THE COMPLEX PLANE -->
-    <!-- ════════════════════════════════════════════════ -->
-    <details class="section" id="sec-complex" open>
-        <summary>
-            <span class="section-number">Part 02</span>
-            <h2>Visualising on the Complex Plane</h2>
-        </summary>
-
-        <p>The denominator <strong>1 + j(&#969;/&#969;<sub>0</sub>)</strong> is a point in the complex plane.
-           The real part is fixed at 1. The imaginary part is &#969;/&#969;<sub>0</sub>, which grows with frequency.
-           The test-frequency slider varies the phasor:</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="phasor-canvas"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>Test &#969;</label>
-                <input type="range" id="freq-slider" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="freq-val">100 krad/s</span>
-            </div>
-            <div class="control-group">
-                <label style="min-width:0">= </label>
-                <span class="control-value" id="freq-hz-val">15.9 kHz</span>
-            </div>
-            <button class="preset-btn" id="preset-audio">Audio Amp</button>
-            <button class="preset-btn" id="preset-rf">RF Stage</button>
-        </div>
-
-        <div class="readout-bar" id="phasor-readouts">
-            <div class="readout-item">&#969;/&#969;<sub>0</sub> = <span class="val" id="ratio-val">1.00</span></div>
-            <div class="readout-item">|denominator| = <span class="val" id="mag-val">1.41</span></div>
-            <div class="readout-item">&#8736; = <span class="val" id="angle-val">45.0°</span></div>
-            <div class="readout-item">|H| = <span class="val" id="gain-val">70.7</span></div>
-            <div class="readout-item">|H| = <span class="val" id="gain-db-val">37.0 dB</span></div>
-        </div>
-
-        <p>Increasing &#969; changes both the magnitude and angle:</p>
-        <ul>
-            <li><strong>The phasor gets longer.</strong> Its magnitude is &#8730;(1 + (&#969;/&#969;<sub>0</sub>)&#178;).
-                Since this is in the denominator of H, the gain drops.</li>
-            <li><strong>The phasor tilts upward.</strong> The angle is arctan(&#969;/&#969;<sub>0</sub>).
-                This angle becomes the phase lag of the output signal.</li>
-            <li><strong>At &#969; = &#969;<sub>0</sub></strong>, the imaginary part equals the real part (both = 1),
-                so the magnitude is &#8730;2 &#8776; 1.414. The gain is A<sub>v</sub>/&#8730;2, which is exactly <strong>&#8722;3 dB</strong> below the mid-band gain.</li>
-        </ul>
-
-        <div class="eq-block">
-            |H(j&#969;)| = A<sub>v</sub> / &#8730;(1 + (&#969;/&#969;<sub>0</sub>)&#178;)
-        </div>
-
-        <h3 style="font-size: 16px; color: var(--text); margin: 32px 0 16px;">What the angle means: phase lag</h3>
-
-        <p>Dividing by a complex number with angle &#952; rotates the result by &#8722;&#952;.
-           So the angle of the denominator phasor becomes a <strong>phase lag</strong> on the
-           output signal. Physically, the capacitor can't charge instantaneously through the
-           resistor. At low frequencies it has plenty of time to track the input, so the output
-           stays in phase. At higher frequencies the input changes faster than the RC circuit
-           can follow, so the output falls behind.</p>
-
-        <div class="eq-line">
-            <span>&#8736;H(j&#969;) = &#8722;arctan(&#969;/&#969;<sub>0</sub>)</span>
-        </div>
-
-        <ul>
-            <li><strong>&#969; &#8810; &#969;<sub>0</sub></strong>: the angle is near 0&#176;, output tracks the input with almost no delay.</li>
-            <li><strong>&#969; = &#969;<sub>0</sub></strong>: the angle is &#8722;45&#176;, the output lags the input by one-eighth of a cycle.</li>
-            <li><strong>&#969; &#8811; &#969;<sub>0</sub></strong>: the angle approaches &#8722;90&#176;. The capacitor dominates and the output voltage lags the input by up to 90&#176;.</li>
-        </ul>
-
-        <p>The time-domain plot shows the yellow input and green output. Above
-           &#969;<sub>0</sub>, the output amplitude decreases and its phase lag increases.</p>
-
-        <div class="canvas-container canvas-medium">
-            <canvas id="phase-canvas"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>Test &#969;</label>
-                <input type="range" id="freq-slider-2" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="freq-val-2">100 krad/s</span>
-            </div>
-        </div>
-
-        <div class="readout-bar">
-            <div class="readout-item">|H| = <span class="val" id="phase-gain-pct">70.7</span></div>
-            <div class="readout-item">|H|/A<sub>v</sub> = <span class="val" id="phase-gain-ratio">70.7%</span></div>
-            <div class="readout-item">Phase lag: <span class="val" id="phase-lag-val">&#8722;45.0°</span></div>
-        </div>
-
-        <div class="callout">
-            <strong>Why &#8722;3 dB matters:</strong> &#8722;3 dB is the half-power point. The output power
-            (proportional to V&#178;) is exactly half of its mid-band value. This defines the
-            <em>bandwidth</em> of the amplifier: the frequency range where the gain stays within
-            3 dB of its maximum. At this same frequency, the phase lag is exactly &#8722;45&#176;.
-        </div>
-    </details>
-
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 3: THE BODE PLOT -->
-    <!-- ════════════════════════════════════════════════ -->
-    <details class="section" id="sec-bode" open>
-        <summary>
-            <span class="section-number">Part 03</span>
-            <h2>Building the Bode Magnitude Plot</h2>
-        </summary>
-
-        <p>Part 02 gives the transfer-function magnitude:</p>
-
-        <div class="eq-line">
-            <span>|H(j&#969;)| =</span>
-            <span class="frac frac-lg">
-                <span class="num">A<sub>v</sub></span>
-                <span class="den">&#8730;(1 + (&#969;/&#969;<sub>0</sub>)&#178;)</span>
-            </span>
-        </div>
-
-        <p>A linear gain-frequency plot is impractical when both variables span several
-           orders of magnitude. Logarithmic gain and frequency scales compress these ranges:</p>
-
-        <ol class="derivation">
-            <li>
-                <strong>Convert gain to decibels (dB).</strong> The decibel is a logarithmic unit
-                that compresses large ratios into manageable numbers:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>|H|<sub>dB</sub> = 20 log<sub>10</sub> |H|</span>
+                <div class="plot-box phasor">
+                    <div class="label">complex plane · <b>denominator $D = 1 + j(\omega/\omega_0)$</b></div>
+                    <svg class="bode" id="plot-phasor"></svg>
                 </div>
-                <span class="step-note">A gain of 100 becomes 40 dB. A gain of 1000 becomes 60 dB.
-                A gain of 1 (unity) is 0 dB. Halving the voltage is &#8722;6 dB.</span>
-            </li>
-
-            <li>
-                <strong>Use a logarithmic frequency axis.</strong> Instead of spacing frequencies
-                linearly (0, 100, 200, 300...), we space them by powers of 10, called <em>decades</em>:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span class="dim">...</span>
-                    <span>10&#185;</span>
-                    <span class="dim">&nbsp;&#8594;&nbsp;</span>
-                    <span>10&#178;</span>
-                    <span class="dim">&nbsp;&#8594;&nbsp;</span>
-                    <span>10&#179;</span>
-                    <span class="dim">&nbsp;&#8594;&nbsp;</span>
-                    <span>10&#8308;</span>
-                    <span class="dim">&nbsp;&#8594;&nbsp;</span>
-                    <span>10&#8309;</span>
-                    <span class="dim">...</span>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-re)"></span>real part, 1</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-im)"></span>imaginary part, $\omega/\omega_0$</span>
+                    <span><span class="sw" style="background:var(--c-phasor)"></span>phasor $D$</span>
+                    <span><span class="sw" style="background:var(--c-test)"></span>angle $\theta$</span>
                 </div>
-                <span class="step-note">Each step is a 10&#215; increase. This means 1 Hz and 1 MHz can
-                appear on the same axis with equal visual weight.</span>
-            </li>
-
-            <li>
-                <strong>Substitute into the magnitude equation</strong> to get the dB form:
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>|H|<sub>dB</sub> = 20 log<sub>10</sub> A<sub>v</sub>
-                    &#8722; 20 log<sub>10</sub> &#8730;(1 + (&#969;/&#969;<sub>0</sub>)&#178;)</span>
-                </div>
-                <span class="step-note">The fraction splits into a subtraction in log-space.
-                The first term is the mid-band gain (constant). The second term is the
-                loss due to the RC filter (grows with frequency).</span>
-            </li>
-
-            <li>
-                <strong>Simplify using the half-power rule:</strong>
-                <div class="eq-line" style="margin: 10px 0 4px;">
-                    <span>= 20 log<sub>10</sub> A<sub>v</sub>
-                    &#8722; 10 log<sub>10</sub>(1 + (&#969;/&#969;<sub>0</sub>)&#178;)</span>
-                </div>
-                <span class="step-note">The 20&#183;log of a square root becomes 10&#183;log, since
-                log(&#8730;x) = &#189;&#183;log(x). This is the equation we plot below.</span>
-            </li>
-        </ol>
-
-        <p>The result is a curve that is flat at low frequencies, then bends into a straight
-           downward slope at high frequencies. This is the <strong>Bode magnitude plot</strong>:</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="bode-canvas"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>R</label>
-                <input type="range" id="r-slider-2" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="r-val-2">10.0 kΩ</span>
-            </div>
-            <div class="control-group">
-                <label>C</label>
-                <input type="range" id="c-slider-2" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="c-val-2">1.00 nF</span>
-            </div>
-            <div class="control-group">
-                <label>A<sub>v</sub></label>
-                <input type="range" id="av-slider-2" min="0" max="1" step="0.001" value="0.667">
-                <span class="control-value" id="av-val-2">100</span>
-            </div>
-        </div>
-
-        <div class="readout-bar">
-            <div class="readout-item">&#969;<sub>0</sub> = <span class="val" id="omega0-val-2">100 krad/s</span></div>
-            <div class="readout-item">Regime: <span class="val" id="regime-label">—</span></div>
-            <div class="readout-item">Gain at &#969;: <span class="val" id="bode-gain-val">—</span></div>
-            <div class="readout-item">Gain: <span class="val" id="bode-db-val">—</span></div>
-        </div>
-
-        <h3 style="font-size: 16px; color: var(--text); margin: 32px 0 16px;">Reading the three regimes</h3>
-
-        <p>The shape of the curve comes directly from the equation. In each regime,
-           one part of the denominator dominates:</p>
-
-        <div style="margin: 20px 0;">
-            <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;">
-                <span class="regime-tag passband" style="flex-shrink:0;">Passband</span>
-                <div style="font-size: 13px; color: var(--text-dim); line-height: 1.7;">
-                    <strong style="color:#fff;">&#969; &#8810; &#969;<sub>0</sub></strong>: The ratio
-                    &#969;/&#969;<sub>0</sub> is tiny, so (&#969;/&#969;<sub>0</sub>)&#178; &#8776; 0 and
-                    the denominator &#8776; 1. The gain is just A<sub>v</sub>, giving a flat horizontal line.
-                    <div class="eq-line" style="margin: 8px 0 4px; font-size: 12px; padding: 8px 12px;">
-                        |H|<sub>dB</sub> &#8776; 20 log<sub>10</sub> A<sub>v</sub>
-                        <span class="dim">&nbsp;&nbsp;(constant)</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;">
-                <span class="regime-tag cutoff" style="flex-shrink:0;">&#8722;3 dB</span>
-                <div style="font-size: 13px; color: var(--text-dim); line-height: 1.7;">
-                    <strong style="color:#fff;">&#969; = &#969;<sub>0</sub></strong>: The ratio is
-                    exactly 1, so the denominator is &#8730;(1 + 1) = &#8730;2. The gain drops to
-                    A<sub>v</sub>/&#8730;2, which in dB is:
-                    <div class="eq-line" style="margin: 8px 0 4px; font-size: 12px; padding: 8px 12px;">
-                        20 log<sub>10</sub>(1/&#8730;2) = <span class="yellow">&#8722;3.01 dB</span>
-                        <span class="dim">&nbsp;&nbsp;below mid-band</span>
-                    </div>
-                    This is the <strong style="color:#fff;">half-power point</strong>: the output
-                    power (proportional to V&#178;) is exactly half of its maximum.
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;">
-                <span class="regime-tag rolloff" style="flex-shrink:0;">Rolloff</span>
-                <div style="font-size: 13px; color: var(--text-dim); line-height: 1.7;">
-                    <strong style="color:#fff;">&#969; &#8811; &#969;<sub>0</sub></strong>: The ratio
-                    dominates. (&#969;/&#969;<sub>0</sub>)&#178; &#8811; 1, so the "1" is negligible
-                    and the denominator &#8776; &#969;/&#969;<sub>0</sub>. The gain simplifies to:
-                    <div class="eq-line" style="margin: 8px 0 4px; font-size: 12px; padding: 8px 12px;">
-                        |H|<sub>dB</sub> &#8776; 20 log<sub>10</sub> A<sub>v</sub> &#8722; 20 log<sub>10</sub>(&#969;/&#969;<sub>0</sub>)
-                    </div>
-                    Every 10&#215; increase in &#969; adds 20 to the log term, so the gain drops by
-                    <strong style="color:#fff;">20 dB per decade</strong>, which appears as a straight line on the
-                    log-log plot. This constant slope is characteristic of a single-pole system.
+                <div class="readout">
+                    <div class="item"><span class="k">test $f$</span><span class="v" data-out="testhz"></span></div>
+                    <div class="item"><span class="k">$\omega/\omega_0$</span><span class="v" data-out="ratio"></span></div>
+                    <div class="item"><span class="k">$|D|$</span><span class="v" data-out="mag"></span></div>
+                    <div class="item"><span class="k">$\theta$</span><span class="v" data-out="angle"></span></div>
+                    <div class="item"><span class="k">$|H|$</span><span class="v" data-out="gain"></span></div>
+                    <div class="item"><span class="k">$|H|$</span><span class="v" data-out="gaindb"></span></div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="callout">
-            <strong>Reading the plot:</strong> The green dashed line marks &#969;<sub>0</sub>.
-            Frequencies below this line lie in the passband. The yellow marker identifies the
-            selected test frequency and its gain.
-        </div>
+    <!-- ================= 03 · PHASE LAG ================= -->
+    <section class="scene" id="sec-phase">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>phase lag</span></div>
+            <h2>What the angle means in the time domain</h2>
 
-        <div class="callout warn">
-            <strong>Note:</strong> the &#8722;20 dB/decade slope only holds for a <em>single-pole</em> system
-            (one RC pair). Real amplifiers often have multiple poles. Each additional pole adds another
-            &#8722;20 dB/decade to the rolloff: two poles give &#8722;40 dB/decade,
-            three give &#8722;60 dB/decade, and so on.
-        </div>
-    </details>
+            <p class="lead">Dividing by a complex number of angle $\theta$ rotates the result by $-\theta$. The angle of
+                the denominator phasor therefore appears as a phase lag of the output:</p>
 
-    <!-- ════════════════════════════════════════════════ -->
-    <!-- SECTION 4: GAIN-BANDWIDTH PRODUCT -->
-    <!-- ════════════════════════════════════════════════ -->
-    <details class="section" id="sec-gbp" open>
-        <summary>
-            <span class="section-number">Part 04</span>
-            <h2>Gain-Bandwidth Product</h2>
-        </summary>
+            <div class="eq-block">$$\angle H(j\omega) = -\arctan(\omega/\omega_0)$$</div>
 
-        <p>Parts 01 to 03 treated gain A<sub>v</sub> and cutoff frequency
-           &#969;<sub>0</sub> as independent. In a real amplifier, the gain-bandwidth
-           product links them.</p>
+            <p>The capacitor cannot charge instantaneously through the resistor. At low frequency it has time to follow
+                the input, so the output stays in phase. At higher frequency the input changes faster than the RC
+                network can follow, and the output falls behind.</p>
 
-        <h3 style="font-size: 16px; color: var(--text); margin: 28px 0 14px;">Open-loop vs closed-loop</h3>
+            <ul class="bullets">
+                <li><strong>$\omega \ll \omega_0$</strong>: the angle is close to $0^\circ$ and the output follows the
+                    input with almost no delay.</li>
+                <li><strong>$\omega = \omega_0$</strong>: the angle is $-45^\circ$, a lag of one-eighth of a
+                    cycle.</li>
+                <li><strong>$\omega \gg \omega_0$</strong>: the angle approaches $-90^\circ$ as the capacitor
+                    dominates.</li>
+            </ul>
 
-        <p>An op-amp on its own (no external components) has a very high <strong>open-loop gain</strong>
-           A<sub>OL</sub>, typically 100,000 or more. But this gain is poorly controlled, temperature-dependent,
-           and varies widely between devices. It is not usable directly.</p>
+            <p>The plot shows a unit-amplitude input and the output divided by $A_v$. Above $\omega_0$ the output
+                amplitude decreases and its lag increases.</p>
 
-        <div class="canvas-container" style="height: 260px;">
-            <canvas id="opamp-open-canvas"></canvas>
-        </div>
-
-        <p>A <strong>feedback network</strong>, usually two resistors, connects the output
-           to the inverting input. This is
-           <strong>negative feedback</strong>. The resistor ratio sets the
-           <strong>closed-loop gain</strong> A<sub>CL</sub>:</p>
-
-        <div class="canvas-container" style="height: 300px;">
-            <canvas id="opamp-feedback-canvas"></canvas>
-        </div>
-
-        <div class="eq-line">
-            <span>A<sub>CL</sub> = &#8722;</span>
-            <span class="frac frac-lg">
-                <span class="num">R<sub>2</sub></span>
-                <span class="den">R<sub>in</sub></span>
-            </span>
-        </div>
-
-        <p>The closed-loop gain depends only on the external resistors, not on the op-amp's
-           internal gain (as long as A<sub>OL</sub> is much larger than A<sub>CL</sub>).
-           This is what makes op-amp circuits reliable.</p>
-
-        <h3 style="font-size: 16px; color: var(--text); margin: 28px 0 14px;">The tradeoff: gain vs bandwidth</h3>
-
-        <p>Here is the catch. The op-amp has internal parasitic capacitance (from its transistors)
-           that creates a single dominant pole, just like the RC model in Part 01. This gives the
-           open-loop response a fixed <strong>gain-bandwidth product</strong> (GBP):</p>
-
-        <div class="eq-block" style="font-size: 16px; padding: 16px 24px;">
-            GBP = (1 + R<sub>2</sub>/R<sub>in</sub>) &#215; &#969;<sub>0</sub> = constant
-        </div>
-
-        <p>The bandwidth is set by the <strong>noise gain</strong> 1 + R<sub>2</sub>/R<sub>in</sub>, not by
-           A<sub>CL</sub> directly. For a non-inverting amplifier the noise gain equals A<sub>CL</sub>; for the
-           inverting amplifier above it equals |A<sub>CL</sub>| + 1. The A<sub>v</sub> used in the plot below
-           denotes the noise gain, so &#969;<sub>0</sub> = GBP / A<sub>v</sub>.</p>
-
-        <p>Reducing the gain from A<sub>OL</sub> to A<sub>CL</sub> through feedback
-           increases the bandwidth by the same factor. The device therefore exchanges
-           closed-loop gain for bandwidth.</p>
-
-        <ul>
-            <li><strong>High gain (A<sub>CL</sub> = 1000)</strong>: strong amplification, but
-                &#969;<sub>0</sub> is low. The amplifier can only handle slow signals.</li>
-            <li><strong>Low gain (A<sub>CL</sub> = 10)</strong>: modest amplification, but
-                &#969;<sub>0</sub> is 100&#215; higher. The amplifier responds to much faster signals.</li>
-            <li><strong>Unity noise gain (voltage follower, A<sub>CL</sub> = 1)</strong>: no amplification, but
-                &#969;<sub>0</sub> equals the GBP itself. This is the maximum bandwidth
-                the amplifier can achieve, which is why datasheets call it the
-                "unity-gain bandwidth". An inverting amplifier with |A<sub>CL</sub>| = 1 has a noise
-                gain of 2 and therefore &#969;<sub>0</sub> = GBP/2.</li>
-        </ul>
-
-        <h3 style="font-size: 16px; color: var(--text); margin: 28px 0 14px;">Seeing the tradeoff</h3>
-
-        <p>The plot below overlays the Bode magnitude curves for several closed-loop gains,
-           all from the same amplifier (same GBP). The dashed line is the open-loop envelope.
-           Increasing A<sub>CL</sub> shifts the curve up but pushes &#969;<sub>0</sub> to the left:</p>
-
-        <div class="canvas-container canvas-tall">
-            <canvas id="gbp-canvas"></canvas>
-        </div>
-
-        <div class="controls-row">
-            <div class="control-group">
-                <label>GBP</label>
-                <input type="range" id="gbp-slider" min="0" max="1" step="0.001" value="0.5">
-                <span class="control-value" id="gbp-val">10.0 MHz</span>
-            </div>
-            <div class="control-group">
-                <label>A<sub>v</sub></label>
-                <input type="range" id="av-slider-3" min="0" max="1" step="0.001" value="0.667">
-                <span class="control-value" id="av-val-3">100</span>
+            <div class="callout">
+                $-3\,\text{dB}$ is the half-power point: the output power, proportional to $V^2$, is half its mid-band
+                value. It defines the bandwidth of the amplifier, the frequency range over which the gain stays within
+                $3\,\text{dB}$ of its maximum. At the same frequency the phase lag is $45^\circ$.
             </div>
         </div>
 
-        <div class="readout-bar">
-            <div class="readout-item">GBP = <span class="val" id="gbp-readout">10.0 MHz</span></div>
-            <div class="readout-item">A<sub>v</sub> = <span class="val" id="gbp-av-val">100</span></div>
-            <div class="readout-item">&#969;<sub>0</sub> = <span class="val" id="gbp-f0-val">100 krad/s</span></div>
-            <div class="readout-item">BW = <span class="val" id="gbp-bw-val">100 krad/s</span></div>
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">test $\omega$</span>
+                        <input type="range" data-param="testFreq" data-log min="0" max="9" step="0.009">
+                        <span class="val" data-param="testFreq"></span>
+                    </span>
+                </div>
+                <div class="plot-box phase">
+                    <div class="label">time domain · <b>input and scaled output at the test frequency</b></div>
+                    <svg class="bode" id="plot-phase"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw dash" style="border-top-color:var(--c-in)"></span>$v_\text{in}$, amplitude 1</span>
+                    <span><span class="sw" style="background:var(--c-out)"></span>$v_\text{out}/A_v$</span>
+                    <span><span class="sw" style="background:var(--c-test)"></span>lag between peaks</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$|H|$</span><span class="v" data-out="gain"></span></div>
+                    <div class="item"><span class="k">$|H|/A_v$</span><span class="v" data-out="gainratio"></span></div>
+                    <div class="item"><span class="k">phase</span><span class="v" data-out="lag"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 04 · BODE ================= -->
+    <section class="scene" id="sec-bode">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>bode magnitude</span></div>
+            <h2>Building the Bode magnitude plot</h2>
+
+            <p class="lead">A linear plot of gain against frequency is impractical when both span several orders of
+                magnitude. Logarithmic scales on both axes compress these ranges.</p>
+
+            <p>Gain is expressed in decibels, $|H|_\text{dB} = 20\log_{10}|H|$: a gain of 100 is $40\,\text{dB}$, 1000
+                is $60\,\text{dB}$, unity is $0\,\text{dB}$, and halving the voltage is $-6\,\text{dB}$. Frequency is
+                spaced in decades, so each axis division is a factor of 10 and 1 Hz and 1 MHz appear on the same axis
+                with equal weight. In logarithmic form the quotient becomes a difference, and
+                $20\log_{10}\sqrt{x} = 10\log_{10}x$:</p>
+
+            <div class="eq-block">$$|H|_\text{dB} = 20\log_{10}A_v - 10\log_{10}\!\left(1 + (\omega/\omega_0)^2\right)$$</div>
+
+            <p>The first term is the constant mid-band gain; the second is the loss in the RC network, which grows with
+                frequency. In each regime one part of the denominator dominates:</p>
+
+            <ul class="bullets">
+                <li><strong>passband, $\omega \ll \omega_0$</strong>: $(\omega/\omega_0)^2 \approx 0$, so
+                    $|H|_\text{dB} \approx 20\log_{10}A_v$, a horizontal line.</li>
+                <li><strong>$-3\,\text{dB}$ point, $\omega = \omega_0$</strong>: the denominator is $\sqrt{2}$ and the
+                    gain is $20\log_{10}(1/\sqrt{2}) = -3.01\,\text{dB}$ below mid-band, the half-power point.</li>
+                <li><strong>roll-off, $\omega \gg \omega_0$</strong>: the 1 is negligible and
+                    $|H|_\text{dB} \approx 20\log_{10}A_v - 20\log_{10}(\omega/\omega_0)$. Each tenfold increase in
+                    $\omega$ lowers the gain by $20\,\text{dB}$, a straight line of slope $-20\,\text{dB/decade}$
+                    characteristic of a single-pole system.</li>
+            </ul>
+
+            <div class="callout">
+                The $-20\,\text{dB/decade}$ slope holds only for a single-pole system with one RC pair. Real amplifiers
+                often have several poles, and each additional pole adds a further $-20\,\text{dB/decade}$: two poles
+                give $-40\,\text{dB/decade}$, three give $-60\,\text{dB/decade}$.
+            </div>
         </div>
 
-        <div class="callout">
-            <strong>Reading the plot:</strong> All curves converge at the unity-gain bandwidth,
-            which equals the GBP. No feedback configuration can produce gain above the open-loop
-            response.
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$R$</span>
+                        <input type="range" data-param="R" data-log min="2" max="5" step="0.003">
+                        <span class="val" data-param="R"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$C$</span>
+                        <input type="range" data-param="C" data-log min="-12" max="-7" step="0.005">
+                        <span class="val" data-param="C"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$A_v$</span>
+                        <input type="range" data-param="Av" data-log min="0" max="3" step="0.003">
+                        <span class="val" data-param="Av"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">test $\omega$</span>
+                        <input type="range" data-param="testFreq" data-log min="0" max="9" step="0.009">
+                        <span class="val" data-param="testFreq"></span>
+                    </span>
+                </div>
+                <div class="plot-box bode">
+                    <div class="label">bode magnitude · <b>$|H(j\omega)|$ of the single-pole model</b></div>
+                    <svg class="bode" id="plot-bode"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-out)"></span>$|H(j\omega)|$</span>
+                    <span><span class="sw dash"></span>asymptotes</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-guide)"></span>$\omega_0$</span>
+                    <span><span class="sw dot" style="background:var(--c-out)"></span>$-3\,\text{dB}$ point</span>
+                    <span><span class="sw dot" style="background:var(--c-test)"></span>test frequency</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$\omega_0$</span><span class="v" data-out="w0"></span></div>
+                    <div class="item"><span class="k">regime</span><span class="v" data-out="regime"></span></div>
+                    <div class="item"><span class="k">$|H|$ at test $\omega$</span><span class="v" data-out="gain"></span></div>
+                    <div class="item"><span class="k">$|H|_\text{dB}$</span><span class="v" data-out="gaindb"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 05 · FEEDBACK ================= -->
+    <section class="scene" id="sec-feedback">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>open and closed loop</span></div>
+            <h2>Setting the gain with negative feedback</h2>
+
+            <p class="lead">Sections 01 to 04 treat the gain $A_v$ and the cutoff frequency $\omega_0$ as independent.
+                In an op-amp circuit they are linked by the gain-bandwidth product.</p>
+
+            <p>An op-amp without external components has a very high open-loop gain $A_\text{OL}$, typically
+                $10^5$ or more:</p>
+
+            <div class="eq-block">$$v_\text{out} = A_\text{OL}\,(v_+ - v_-)$$</div>
+
+            <p>This gain is poorly controlled, depends on temperature and varies widely between devices, so it is not
+                used directly. A feedback network, usually two resistors, connects the output to the inverting input.
+                This is negative feedback, and the resistor ratio sets the closed-loop gain:</p>
+
+            <div class="eq-block">$$A_{CL} = -\frac{R_2}{R_\text{in}}$$</div>
+
+            <p>The closed-loop gain depends only on the external resistors, provided $A_\text{OL} \gg |A_{CL}|$. This
+                independence from the device gain is what makes op-amp circuits predictable.</p>
+
+            <div class="callout">
+                Feedback exchanges the large, poorly defined open-loop gain for a smaller gain that is set by
+                resistor values and, as section 06 shows, for a wider bandwidth.
+            </div>
         </div>
 
-        <div class="callout warn">
-            <strong>Practical example:</strong> a typical general-purpose op-amp (e.g. LM741)
-            has a GBP of about 6.28 Mrad/s (1 MHz). At a gain of 100, &#969;<sub>0</sub> is only
-            62.8 krad/s (10 kHz). At a gain of 10, it extends to 628 krad/s (100 kHz).
-            Audio applications (20 Hz to 20 kHz) at a gain of 50 need a GBP of at least
-            6.28 Mrad/s.
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="seg">
+                        <button class="seg-btn" data-param="loop" data-value="open">open loop</button>
+                        <button class="seg-btn" data-param="loop" data-value="closed">inverting, feedback</button>
+                    </span>
+                </div>
+                <div class="plot-box circuit">
+                    <div class="label" id="opamp-label">circuit</div>
+                    <svg class="bode" id="plot-opamp"></svg>
+                </div>
+            </div>
         </div>
-    </details>
-
-</div>
-
-<script>
-// ── State ──────────────────────────────────────────────
-let R = 10000;
-let C = 1e-9;
-let Av = 100;
-let testFreq = 1e5;
-
-function omega0() { return 1 / (R * C); }
-function gainAt(w) { return Av / Math.sqrt(1 + (w / omega0()) ** 2); }
-function gainDb(w) { return 20 * Math.log10(gainAt(w)); }
-
-// ── Log-scale helpers ──────────────────────────────────
-function logMap(t, min, max) { return min * Math.pow(max / min, t); }
-function logUnmap(val, min, max) { return Math.log(val / min) / Math.log(max / min); }
-
-const R_MIN = 100, R_MAX = 100000;
-const C_MIN = 1e-12, C_MAX = 100e-9;
-const AV_MIN = 1, AV_MAX = 1000;
-const FREQ_MIN = 1, FREQ_MAX = 1e9;
-
-// ── Formatting ─────────────────────────────────────────
-function fmtR(v) {
-    if (v >= 1e6) return (v/1e6).toPrecision(3) + ' M\u2126';
-    if (v >= 1e3) return (v/1e3).toPrecision(3) + ' k\u2126';
-    return v.toPrecision(3) + ' \u2126';
-}
-function fmtC(v) {
-    if (v >= 1e-6) return (v*1e6).toPrecision(3) + ' \u00B5F';
-    if (v >= 1e-9) return (v*1e9).toPrecision(3) + ' nF';
-    return (v*1e12).toPrecision(3) + ' pF';
-}
-function fmtFreq(v) {
-    if (v >= 1e9) return (v/1e9).toPrecision(3) + ' Grad/s';
-    if (v >= 1e6) return (v/1e6).toPrecision(3) + ' Mrad/s';
-    if (v >= 1e3) return (v/1e3).toPrecision(3) + ' krad/s';
-    return v.toPrecision(3) + ' rad/s';
-}
-function fmtHz(w) {
-    const hz = w / (2 * Math.PI);
-    if (hz >= 1e9) return (hz/1e9).toPrecision(3) + ' GHz';
-    if (hz >= 1e6) return (hz/1e6).toPrecision(3) + ' MHz';
-    if (hz >= 1e3) return (hz/1e3).toPrecision(3) + ' kHz';
-    return hz.toPrecision(3) + ' Hz';
-}
-
-// ── Canvas helper ──────────────────────────────────────
-function sizeCanvas(canvas) {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { w: rect.width, h: rect.height, ctx };
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 1: Circuit diagram
-// ════════════════════════════════════════════════════════
-function drawCircuit() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('circuit-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const midY = H * 0.38;
-    const gndY = H * 0.70;
-    const pad = 50;
-
-    // Key x positions
-    const xSrc  = pad + 30;
-    const xAmp  = W * 0.25;
-    const xR1   = W * 0.42;
-    const xR2   = W * 0.60;
-    const xOut  = W * 0.70;
-    const xEnd  = W - pad - 30;
-
-    // ── Wires ──
-    ctx.strokeStyle = T.overlay25;
-    ctx.lineWidth = 1.5;
-
-    // Source → amp
-    ctx.beginPath(); ctx.moveTo(xSrc, midY); ctx.lineTo(xAmp - 24, midY); ctx.stroke();
-    // Amp → resistor
-    ctx.beginPath(); ctx.moveTo(xAmp + 24, midY); ctx.lineTo(xR1, midY); ctx.stroke();
-    // Resistor → end
-    ctx.beginPath(); ctx.moveTo(xR2, midY); ctx.lineTo(xEnd, midY); ctx.stroke();
-
-    // Output node → capacitor top plate
-    const capY = gndY - 16;
-    const capGap = 7;
-    ctx.beginPath(); ctx.moveTo(xOut, midY); ctx.lineTo(xOut, capY - capGap / 2); ctx.stroke();
-    // Capacitor bottom plate → ground
-    const gndTop = gndY + 8;
-    ctx.beginPath(); ctx.moveTo(xOut, capY + capGap / 2); ctx.lineTo(xOut, gndTop); ctx.stroke();
-
-    // ── Ground ──
-    ctx.strokeStyle = T.overlay40;
-    ctx.beginPath(); ctx.moveTo(xOut - 12, gndTop); ctx.lineTo(xOut + 12, gndTop); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(xOut - 7, gndTop + 5); ctx.lineTo(xOut + 7, gndTop + 5); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(xOut - 3, gndTop + 10); ctx.lineTo(xOut + 3, gndTop + 10); ctx.stroke();
-
-    // ── Input source (circle + sine) ──
-    const srcCx = xSrc - 16;
-    ctx.strokeStyle = T.overlay40;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(srcCx, midY, 14, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = T.yellow;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    for (let i = 0; i <= 10; i++) {
-        const t = (i / 10) * Math.PI * 2;
-        const px = srcCx - 8 + (i / 10) * 16;
-        const py = midY - Math.sin(t) * 5;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    ctx.fillStyle = T.yellow;
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('V\u1D62\u2099', srcCx, midY - 22);
-
-    // ── Amplifier triangle ──
-    ctx.beginPath();
-    ctx.moveTo(xAmp - 24, midY - 22);
-    ctx.lineTo(xAmp + 24, midY);
-    ctx.lineTo(xAmp - 24, midY + 22);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(106,170,142,0.12)';
-    ctx.fill();
-    ctx.strokeStyle = '#6aaa8e';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.fillStyle = '#6aaa8e';
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('A\u1D65', xAmp - 4, midY + 5);
-
-    // ── Resistor (zig-zag) ──
-    ctx.strokeStyle = T.overlay60;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(xR1, midY);
-    const rLen = xR2 - xR1;
-    const zags = 6;
-    const zagW = rLen / zags;
-    const zagA = 9;
-    for (let i = 0; i < zags; i++) {
-        const x0 = xR1 + i * zagW;
-        ctx.lineTo(x0 + zagW * 0.25, midY - zagA);
-        ctx.lineTo(x0 + zagW * 0.75, midY + zagA);
-        ctx.lineTo(x0 + zagW, midY);
-    }
-    ctx.stroke();
-    ctx.fillStyle = T.overlay60;
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('R', (xR1 + xR2) / 2, midY - zagA - 8);
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.fillStyle = T.overlay35;
-    ctx.fillText(fmtR(R), (xR1 + xR2) / 2, midY + zagA + 18);
-
-    // ── Capacitor ──
-    const capW = 20;
-    ctx.strokeStyle = T.overlay60;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(xOut - capW/2, capY - capGap/2); ctx.lineTo(xOut + capW/2, capY - capGap/2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(xOut - capW/2, capY + capGap/2); ctx.lineTo(xOut + capW/2, capY + capGap/2); ctx.stroke();
-    ctx.fillStyle = T.overlay60;
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'left';
-    ctx.fillText('C', xOut + capW/2 + 6, capY + 5);
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.fillStyle = T.overlay35;
-    ctx.fillText(fmtC(C), xOut + capW/2 + 6, capY + 19);
-
-    // ── Output label + dot ──
-    ctx.fillStyle = '#6aaa8e';
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('V\u2092\u1D64\u209C', xEnd, midY - 14);
-    ctx.beginPath(); ctx.arc(xOut, midY, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // ── Impedance annotation ──
-    ctx.fillStyle = T.overlay20;
-    ctx.font = "11px 'Inter', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.fillText('Z\u1D9C = 1/(j\u03C9C)', xOut + 60, capY + 5);
-
-    // ── Signal flow arrows on wires ──
-    ctx.fillStyle = T.gridStrong;
-    const arrowSize = 5;
-    drawArrow(ctx, (xSrc + xAmp) / 2 - 10, midY, arrowSize, 0);
-    drawArrow(ctx, (xAmp + 24 + xR1) / 2, midY, arrowSize, 0);
-    drawArrow(ctx, (xR2 + xOut) / 2, midY, arrowSize, 0);
-
-    // ── Small waveform below Vin ──
-    const w0 = omega0();
-    const ratio = testFreq / w0;
-    const gf = 1 / Math.sqrt(1 + ratio * ratio);
-    const phase = -Math.atan(ratio);
-    const wt = animTime * 3;  // slow, constant speed
-
-    const miniW = 44;
-    const miniAmp = 12;
-
-    // Input mini-wave below Vin label
-    const inCx = srcCx;
-    const inCy = midY + 34;
-    ctx.strokeStyle = T.yellowA(0.6);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= miniW; i++) {
-        const t = (i / miniW) * Math.PI * 2;
-        const px = inCx - miniW / 2 + i;
-        const py = inCy - Math.sin(t + wt) * miniAmp;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-
-    // ── Small waveform below Vout ──
-    const outCx = xEnd;
-    const outCy = midY + 34;
-    ctx.strokeStyle = 'rgba(106,170,142,0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= miniW; i++) {
-        const t = (i / miniW) * Math.PI * 2;
-        const px = outCx - miniW / 2 + i;
-        const py = outCy - Math.sin(t + wt + phase) * miniAmp * gf;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-
-    // Gain label below output wave
-    ctx.fillStyle = 'rgba(106,170,142,0.5)';
-    ctx.font = "9px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText((gf * 100).toFixed(0) + '%', outCx, outCy + miniAmp + 12);
-}
-
-// Small rightward arrow helper
-function drawArrow(ctx, x, y, size, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.moveTo(size, 0);
-    ctx.lineTo(-size, -size * 0.7);
-    ctx.lineTo(-size, size * 0.7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 2: Complex plane / phasor
-// ════════════════════════════════════════════════════════
-function drawPhasor() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('phasor-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const ratio = testFreq / omega0();
-    const mag = Math.sqrt(1 + ratio * ratio);
-    const angle = Math.atan(ratio);
-
-    // Square region
-    const size = Math.min(W, H);
-    const cx = W * 0.4;
-    const cy = H * 0.55;
-    const axisLen = size * 0.35;
-
-    // Scale to fit phasor
-    const maxExtent = Math.max(mag, 1.8);
-    const scale = axisLen / maxExtent;
-
-    // ── Axes ──
-    ctx.strokeStyle = T.gridMed;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cx - axisLen * 0.3, cy); ctx.lineTo(cx + axisLen + 20, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, cy + axisLen * 0.3); ctx.lineTo(cx, cy - axisLen - 20); ctx.stroke();
-
-    // Axis labels
-    ctx.fillStyle = T.overlay30;
-    ctx.font = "11px 'Inter', sans-serif";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText('Real', cx + axisLen + 6, cy + 1);
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText('Imaginary', cx, cy - axisLen - 24);
-
-    // ── Tick marks ──
-    ctx.fillStyle = T.overlay20;
-    ctx.font = "10px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    // Real tick at 1
-    const oneX = cx + 1 * scale;
-    ctx.beginPath(); ctx.moveTo(oneX, cy - 3); ctx.lineTo(oneX, cy + 3); ctx.stroke();
-    ctx.fillText('1', oneX, cy + 6);
-
-    // Imaginary ticks — choose step so labels don't overlap
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    const minTickPx = 28;
-    let tickStep = 1;
-    if (scale < minTickPx) {
-        tickStep = Math.ceil(minTickPx / scale);
-    }
-    for (let v = tickStep; v <= Math.ceil(maxExtent); v += tickStep) {
-        const iy = cy - v * scale;
-        if (iy > cy - axisLen - 10) {
-            ctx.beginPath(); ctx.moveTo(cx - 3, iy); ctx.lineTo(cx + 3, iy); ctx.stroke();
-            ctx.fillText(v + '', cx - 6, iy);
-        }
-    }
-
-    // ── Unit circle reference ──
-    ctx.strokeStyle = T.gridFine;
-    ctx.beginPath(); ctx.arc(cx, cy, scale, 0, Math.PI * 2); ctx.stroke();
-
-    // ── Real component "1" ──
-    ctx.strokeStyle = T.overlay35;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 3]);
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(oneX, cy); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // ── Imaginary component ──
-    const tipX = oneX;
-    const tipY = cy - ratio * scale;
-
-    if (ratio > 0.02) {
-        ctx.strokeStyle = 'rgba(255,200,100,0.6)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 3]);
-        ctx.beginPath(); ctx.moveTo(oneX, cy); ctx.lineTo(tipX, tipY); ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Label
-        ctx.fillStyle = T.yellow;
-        ctx.font = "12px 'JetBrains Mono', monospace";
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        const labelY = Math.max(tipY, cy - ratio * scale * 0.5);
-        ctx.fillText('j\u00B7' + ratio.toPrecision(3), tipX + 10, (cy + tipY) / 2);
-    }
-
-    // ── Main phasor ──
-    ctx.strokeStyle = '#6aaa8e';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(tipX, tipY); ctx.stroke();
-
-    // Arrowhead
-    const aLen = 10;
-    const pAngle = Math.atan2(cy - tipY, tipX - cx);
-    ctx.fillStyle = '#6aaa8e';
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(tipX - aLen * Math.cos(pAngle - 0.3), tipY + aLen * Math.sin(pAngle - 0.3));
-    ctx.lineTo(tipX - aLen * Math.cos(pAngle + 0.3), tipY + aLen * Math.sin(pAngle + 0.3));
-    ctx.closePath(); ctx.fill();
-
-    // Phasor tip dot
-    ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#6aaa8e'; ctx.fill();
-
-    // Origin dot
-    ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // ── Magnitude label on phasor ──
-    const midPx = (cx + tipX) / 2;
-    const midPy = (cy + tipY) / 2;
-    ctx.fillStyle = '#6aaa8e';
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-    ctx.fillText('|1 + j\u03C9/\u03C9\u2080| = ' + mag.toPrecision(4), midPx - 8, midPy - 6);
-
-    // ── Angle arc ──
-    if (ratio > 0.05) {
-        const arcR = Math.min(scale * 0.35, 40);
-        ctx.strokeStyle = 'rgba(255,200,100,0.5)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(cx, cy, arcR, -angle, 0); ctx.stroke();
-
-        const angleDeg = (angle * 180 / Math.PI).toFixed(1);
-        const la = -angle / 2;
-        ctx.fillStyle = 'rgba(255,200,100,0.7)';
-        ctx.font = "11px 'JetBrains Mono', monospace";
-        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(angleDeg + '\u00B0', cx + arcR * Math.cos(la) + 6, cy + arcR * Math.sin(la));
-    }
-
-    // ── Right-side annotations ──
-    const annX = W * 0.72;
-    let annY = H * 0.15;
-    const lineH = 22;
-
-    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay50;
-    ctx.fillText('Denominator phasor:', annX, annY);
-    annY += lineH;
-
-    ctx.font = "14px 'JetBrains Mono', monospace";
-    ctx.fillStyle = '#6aaa8e';
-    ctx.fillText('1 + j(\u03C9/\u03C9\u2080)', annX, annY);
-    annY += lineH * 1.5;
-
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay40;
-    ctx.fillText('Real part:', annX, annY);
-    annY += lineH * 0.8;
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = T.text;
-    ctx.fillText('1', annX + 8, annY);
-    annY += lineH * 1.2;
-
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = 'rgba(255,200,100,0.6)';
-    ctx.fillText('Imaginary part:', annX, annY);
-    annY += lineH * 0.8;
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = T.yellow;
-    ctx.fillText('\u03C9/\u03C9\u2080 = ' + ratio.toPrecision(3), annX + 8, annY);
-    annY += lineH * 1.2;
-
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = 'rgba(106,170,142,0.7)';
-    ctx.fillText('Magnitude:', annX, annY);
-    annY += lineH * 0.8;
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = '#6aaa8e';
-    ctx.fillText('\u221A(1 + ' + (ratio*ratio).toPrecision(3) + ') = ' + mag.toPrecision(4), annX + 8, annY);
-    annY += lineH * 1.5;
-
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay50;
-    ctx.fillText('Therefore:', annX, annY);
-    annY += lineH * 0.8;
-    ctx.font = "14px 'JetBrains Mono', monospace";
-    const gainLin = Av / mag;
-    const gainDbVal = 20 * Math.log10(gainLin);
-    ctx.fillStyle = T.text;
-    ctx.fillText('|H| = ' + Av.toPrecision(3) + ' / ' + mag.toPrecision(3), annX + 8, annY);
-    annY += lineH;
-    ctx.fillText('    = ' + gainLin.toPrecision(4), annX + 8, annY);
-    annY += lineH;
-    ctx.fillStyle = T.overlay50;
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.fillText('    = ' + gainDbVal.toFixed(1) + ' dB', annX + 8, annY);
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 2b: Input vs Output sine wave comparison
-// ════════════════════════════════════════════════════════
-function drawPhase() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('phase-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const w0 = omega0();
-    const ratio = testFreq / w0;
-    const gf = 1 / Math.sqrt(1 + ratio * ratio);  // gain relative to Av
-    const phaseLag = -Math.atan(ratio);
-    const phaseDeg = phaseLag * 180 / Math.PI;
-
-    const pad = { left: 50, right: 20, top: 30, bottom: 24 };
-    const plotW = W - pad.left - pad.right;
-    const plotH = H - pad.top - pad.bottom;
-    const midY = pad.top + plotH / 2;
-    const maxAmp = plotH * 0.42;
-
-    // Scale: Av maps to maxAmp (mid-band output fills the plot)
-    // Input amplitude is 1, so input pixel height = maxAmp / Av
-    const inAmp = maxAmp / Av;
-    // Output amplitude = Av * gf * (maxAmp / Av) = gf * maxAmp
-    const outAmp = gf * maxAmp;
-
-    const wt = animTime * 3;
-    const cycles = 2.5;
-
-    // ── Center line ──
-    ctx.strokeStyle = T.gridLight;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(pad.left, midY); ctx.lineTo(W - pad.right, midY); ctx.stroke();
-
-    // ── Y-axis scale labels ──
-    ctx.fillStyle = T.overlay20;
-    ctx.font = "9px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    // Show +Av and -Av on the axis
-    ctx.fillText('+A\u1D65', pad.left - 6, midY - maxAmp);
-    ctx.fillText('0', pad.left - 6, midY);
-    ctx.fillText('\u2212A\u1D65', pad.left - 6, midY + maxAmp);
-    // Faint lines at +/- Av
-    ctx.strokeStyle = T.gridFine;
-    ctx.beginPath(); ctx.moveTo(pad.left, midY - maxAmp); ctx.lineTo(W - pad.right, midY - maxAmp); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pad.left, midY + maxAmp); ctx.lineTo(W - pad.right, midY + maxAmp); ctx.stroke();
-
-    // ── Input sine (yellow, small) ──
-    ctx.strokeStyle = T.yellowA(0.6);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let i = 0; i <= plotW; i++) {
-        const t = (i / plotW) * Math.PI * 2 * cycles;
-        const px = pad.left + i;
-        const py = midY - Math.sin(t + wt) * Math.max(inAmp, 2);
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-
-    // ── Output sine (green, amplified + lagged) ──
-    ctx.strokeStyle = 'rgba(106,170,142,0.9)';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    for (let i = 0; i <= plotW; i++) {
-        const t = (i / plotW) * Math.PI * 2 * cycles;
-        const px = pad.left + i;
-        const py = midY - Math.sin(t + wt + phaseLag) * outAmp;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-
-    // ── Phase lag bracket annotation ──
-    const peakT = Math.PI / 2 - (wt % (Math.PI * 2));
-    const normT = ((peakT % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-    const peakFrac = normT / (Math.PI * 2 * cycles);
-
-    if (peakFrac > 0.05 && peakFrac < 0.85 && Math.abs(phaseDeg) > 2) {
-        const inPeakX = pad.left + peakFrac * plotW;
-        const outPeakFrac = (normT - phaseLag) / (Math.PI * 2 * cycles);
-
-        if (outPeakFrac > 0 && outPeakFrac < 1) {
-            const outPeakX = pad.left + outPeakFrac * plotW;
-            const bracketY = midY - maxAmp - 12;
-
-            // Vertical dashed lines from peaks up to bracket
-            ctx.strokeStyle = T.overlay25;
-            ctx.lineWidth = 1;
-            ctx.setLineDash([3, 2]);
-            ctx.beginPath(); ctx.moveTo(inPeakX, midY - Math.max(inAmp, 2)); ctx.lineTo(inPeakX, bracketY); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(outPeakX, midY - outAmp); ctx.lineTo(outPeakX, bracketY); ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Horizontal bracket
-            ctx.strokeStyle = 'rgba(255,200,100,0.6)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(inPeakX, bracketY + 4); ctx.lineTo(outPeakX, bracketY + 4); ctx.stroke();
-
-            // Arrowhead
-            const dir = outPeakX > inPeakX ? 1 : -1;
-            ctx.beginPath();
-            ctx.moveTo(outPeakX, bracketY + 4);
-            ctx.lineTo(outPeakX - dir * 5, bracketY);
-            ctx.lineTo(outPeakX - dir * 5, bracketY + 8);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(255,200,100,0.6)';
-            ctx.fill();
-
-            // Phase label
-            ctx.fillStyle = 'rgba(255,200,100,0.8)';
-            ctx.font = "11px 'JetBrains Mono', monospace";
-            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-            ctx.fillText('lag: ' + phaseDeg.toFixed(1) + '\u00B0', (inPeakX + outPeakX) / 2, bracketY - 2);
-        }
-    }
-
-    // ── Legend ──
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-
-    ctx.strokeStyle = T.yellowA(0.6);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(pad.left + 10, pad.top - 20); ctx.lineTo(pad.left + 30, pad.top - 20); ctx.stroke();
-    ctx.fillStyle = T.yellowA(0.7);
-    ctx.fillText('Input (amplitude = 1)', pad.left + 34, pad.top - 25);
-
-    ctx.strokeStyle = 'rgba(106,170,142,0.9)';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.moveTo(pad.left + 220, pad.top - 20); ctx.lineTo(pad.left + 240, pad.top - 20); ctx.stroke();
-    ctx.fillStyle = 'rgba(106,170,142,0.9)';
-    const absGain = Av * gf;
-    ctx.fillText('Output (amplitude = ' + absGain.toPrecision(3) + ')', pad.left + 244, pad.top - 25);
-
-    // ── Time axis ──
-    ctx.fillStyle = T.overlay25;
-    ctx.font = "10px 'Inter', sans-serif";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('Time', pad.left + plotW / 2, H - 10);
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 3: Bode magnitude plot
-// ════════════════════════════════════════════════════════
-function drawBode() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('bode-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const pad = { top: 35, right: 35, bottom: 50, left: 65 };
-    const plotW = W - pad.left - pad.right;
-    const plotH = H - pad.top - pad.bottom;
-
-    const w0 = omega0();
-    // Fixed frequency axis spanning the full slider range
-    const logMin = Math.log10(FREQ_MIN);  // 0
-    const logMax = Math.log10(FREQ_MAX);  // 9
-
-    const avDb = 20 * Math.log10(Av);
-    const dbMax = 70;
-    const dbMin = -30;
-
-    function xPx(f) { return pad.left + (Math.log10(f) - logMin) / (logMax - logMin) * plotW; }
-    function yPx(db) { return pad.top + (dbMax - db) / (dbMax - dbMin) * plotH; }
-
-    // ── Grid ──
-    ctx.strokeStyle = T.gridLight;
-    ctx.lineWidth = 1;
-    for (let d = Math.ceil(logMin); d <= Math.floor(logMax); d++) {
-        const x = xPx(Math.pow(10, d));
-        ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + plotH); ctx.stroke();
-    }
-    for (let db = dbMin; db <= dbMax; db += 10) {
-        const y = yPx(db);
-        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + plotW, y); ctx.stroke();
-    }
-
-    // ── Mid-band gain line ──
-    ctx.setLineDash([6, 4]);
-    ctx.strokeStyle = T.overlay25;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(pad.left, yPx(avDb)); ctx.lineTo(pad.left + plotW, yPx(avDb)); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = T.overlay40;
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-    ctx.fillText('Mid-band: ' + avDb.toFixed(1) + ' dB', pad.left + plotW - 4, yPx(avDb) - 4);
-
-    // ── omega_0 vertical ──
-    const xW0 = xPx(w0);
-    ctx.setLineDash([6, 4]);
-    ctx.strokeStyle = 'rgba(106,170,142,0.5)';
-    ctx.beginPath(); ctx.moveTo(xW0, pad.top); ctx.lineTo(xW0, pad.top + plotH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#6aaa8e';
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('\u03C9\u2080', xW0, pad.top + plotH + 4);
-
-    // ── -20 dB/decade asymptote ──
-    ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = T.gridMed;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(xW0, yPx(avDb));
-    const asymEnd = Math.pow(10, logMax);
-    ctx.lineTo(xPx(asymEnd), yPx(avDb - 20 * (logMax - Math.log10(w0))));
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Slope label
-    ctx.fillStyle = T.overlay25;
-    ctx.font = "10px 'Inter', sans-serif";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-    const slopeLabelX = xPx(Math.pow(10, Math.log10(w0) + 1.5));
-    const slopeLabelY = yPx(avDb - 30);
-    ctx.fillText('\u221220 dB/dec', slopeLabelX + 4, slopeLabelY - 4);
-
-    // ── Clip to plot area ──
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(pad.left, pad.top, plotW, plotH);
-    ctx.clip();
-
-    // ── Main curve ──
-    ctx.strokeStyle = '#6aaa8e';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    const steps = 500;
-    for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const w = Math.pow(10, logMin + t * (logMax - logMin));
-        const db = gainDb(w);
-        const x = xPx(w);
-        const y = yPx(db);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // ── -3dB point ──
-    const db3 = avDb - 3;
-    ctx.beginPath(); ctx.arc(xW0, yPx(db3), 6, 0, Math.PI * 2);
-    ctx.fillStyle = '#6aaa8e'; ctx.fill();
-    ctx.fillStyle = T.overlay70;
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText('\u22123 dB', xW0 + 10, yPx(db3));
-
-    // ── Test frequency marker ──
-    const testDb = gainDb(testFreq);
-    const tx = xPx(Math.max(Math.pow(10, logMin), Math.min(Math.pow(10, logMax), testFreq)));
-    const ty = yPx(testDb);
-
-    // Vertical dashed to x-axis
-    ctx.setLineDash([2, 2]);
-    ctx.strokeStyle = 'rgba(255,200,100,0.3)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx, pad.top + plotH); ctx.stroke();
-    // Horizontal dashed to y-axis
-    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(pad.left, ty); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Marker dot
-    ctx.beginPath(); ctx.arc(tx, ty, 7, 0, Math.PI * 2);
-    ctx.fillStyle = T.yellow; ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
-
-    // Gain label at marker
-    ctx.fillStyle = T.yellow;
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = tx > pad.left + plotW / 2 ? 'right' : 'left';
-    const lx = tx > pad.left + plotW / 2 ? -12 : 12;
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(testDb.toFixed(1) + ' dB', tx + lx, ty - 10);
-
-    // ── End clip ──
-    ctx.restore();
-
-    // ── Axis labels ──
-    ctx.fillStyle = T.overlay40;
-    ctx.font = "10px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    for (let d = Math.ceil(logMin); d <= Math.floor(logMax); d++) {
-        ctx.fillText('10' + superscript(d), xPx(Math.pow(10, d)), pad.top + plotH + 4);
-    }
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    for (let db = dbMin; db <= dbMax; db += 10) {
-        ctx.fillText(db + '', pad.left - 6, yPx(db));
-    }
-
-    // Axis titles
-    ctx.fillStyle = T.overlay30;
-    ctx.font = "11px 'Inter', sans-serif";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('Frequency \u03C9 (rad/s)', pad.left + plotW / 2, H - 8);
-
-    ctx.save();
-    ctx.translate(14, pad.top + plotH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('|H(j\u03C9)| (dB)', 0, 0);
-    ctx.restore();
-}
-
-function superscript(n) {
-    const sup = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
-    return String(n).split('').map(c => sup[c] || c).join('');
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 4: Op-amp circuit diagrams
-// ════════════════════════════════════════════════════════
-function drawOpampOpen() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('opamp-open-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const cx = W * 0.45;
-    const cy = H * 0.5;
-    const lineColor = T.overlay50;
-
-    // Op-amp triangle
-    const tw = 60, th = 70;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - tw/2, cy - th/2);
-    ctx.lineTo(cx + tw/2, cy);
-    ctx.lineTo(cx - tw/2, cy + th/2);
-    ctx.closePath();
-    ctx.stroke();
-
-    // + and - labels
-    ctx.font = "14px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay50;
-    ctx.textAlign = 'center';
-    ctx.fillText('+', cx - tw/2 + 14, cy + th/4 + 5);
-    ctx.fillText('\u2212', cx - tw/2 + 14, cy - th/4 + 5);
-
-    // Input wires
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(cx - tw/2 - 80, cy - th/4); ctx.lineTo(cx - tw/2, cy - th/4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx - tw/2 - 80, cy + th/4); ctx.lineTo(cx - tw/2, cy + th/4); ctx.stroke();
-
-    // Output wire
-    ctx.beginPath(); ctx.moveTo(cx + tw/2, cy); ctx.lineTo(cx + tw/2 + 80, cy); ctx.stroke();
-
-    // Labels: Vin to + (bottom), GND to - (top)
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'right';
-    ctx.fillStyle = T.overlay30;
-    ctx.fillText('GND', cx - tw/2 - 86, cy - th/4 + 4);
-    ctx.fillStyle = T.yellow;
-    ctx.fillText('V\u1D62\u2099', cx - tw/2 - 86, cy + th/4 + 4);
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#6aaa8e';
-    ctx.fillText('V\u2092\u1D64\u209C', cx + tw/2 + 86, cy + 4);
-
-    // Gain label inside
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = '#6aaa8e';
-    ctx.textAlign = 'center';
-    ctx.fillText('A\u2092\u2097', cx - 4, cy + 4);
-
-    // Annotation
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay40;
-    ctx.textAlign = 'center';
-    ctx.fillText('Open-loop: V\u2092\u1D64\u209C = A\u2092\u2097 \u00D7 V\u1D62\u2099', cx, H - 16);
-    ctx.fillStyle = T.overlay25;
-    ctx.fillText('A\u2092\u2097 \u2248 100,000+    (poorly controlled, not directly usable)', cx, H - 2);
-}
-
-function drawOpampFeedback() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('opamp-feedback-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const cx = W * 0.45;
-    const cy = H * 0.45;
-    const lineColor = T.overlay50;
-
-    // Op-amp triangle
-    const tw = 60, th = 70;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx - tw/2, cy - th/2);
-    ctx.lineTo(cx + tw/2, cy);
-    ctx.lineTo(cx - tw/2, cy + th/2);
-    ctx.closePath();
-    ctx.stroke();
-
-    // + and - labels
-    ctx.font = "14px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay50;
-    ctx.textAlign = 'center';
-    ctx.fillText('+', cx - tw/2 + 14, cy + th/4 + 5);
-    ctx.fillText('\u2212', cx - tw/2 + 14, cy - th/4 + 5);
-
-    // Gain label
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = '#6aaa8e';
-    ctx.textAlign = 'center';
-    ctx.fillText('A\u2092\u2097', cx - 4, cy + 4);
-
-    // ── Input resistor Rin ──
-    const rinStartX = cx - tw/2 - 100;
-    const rinEndX = cx - tw/2;
-    const rinY = cy - th/4;
-
-    // Wire to Rin
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath(); ctx.moveTo(rinStartX - 30, rinY); ctx.lineTo(rinStartX, rinY); ctx.stroke();
-
-    // Zig-zag resistor
-    ctx.strokeStyle = T.overlay60;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(rinStartX, rinY);
-    const rLen = rinEndX - rinStartX;
-    const zags = 5, zagW = rLen / zags, zagA = 7;
-    for (let i = 0; i < zags; i++) {
-        const x0 = rinStartX + i * zagW;
-        ctx.lineTo(x0 + zagW * 0.25, rinY - zagA);
-        ctx.lineTo(x0 + zagW * 0.75, rinY + zagA);
-        ctx.lineTo(x0 + zagW, rinY);
-    }
-    ctx.stroke();
-
-    // Rin label
-    ctx.fillStyle = T.textLight;
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('R\u1D62\u2099', (rinStartX + rinEndX) / 2, rinY - zagA - 8);
-
-    // ── + input to GND ──
-    const plusY = cy + th/4;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx - tw/2, plusY); ctx.lineTo(cx - tw/2 - 20, plusY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx - tw/2 - 20, plusY); ctx.lineTo(cx - tw/2 - 20, plusY + 20); ctx.stroke();
-    // Ground symbol
-    const gx = cx - tw/2 - 20, gy = plusY + 20;
-    ctx.strokeStyle = T.overlay40;
-    ctx.beginPath(); ctx.moveTo(gx - 8, gy); ctx.lineTo(gx + 8, gy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(gx - 5, gy + 4); ctx.lineTo(gx + 5, gy + 4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(gx - 2, gy + 8); ctx.lineTo(gx + 2, gy + 8); ctx.stroke();
-
-    // ── Output wire ──
-    const outX = cx + tw/2 + 100;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx + tw/2, cy); ctx.lineTo(outX, cy); ctx.stroke();
-
-    // Junction dot where feedback taps off
-    const juncX = cx + tw/2 + 40;
-    ctx.beginPath(); ctx.arc(juncX, cy, 3, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // ── Feedback resistor Rf (arching over the top) ──
-    const fbY = cy - th/2 - 30;  // feedback wire height
-    const fbStartX = cx - tw/2;  // connects to - input node
-    const fbEndX = juncX;
-
-    // Wire up from - input junction
-    const minusJuncX = cx - tw/2;
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    // Vertical from - input up to feedback height
-    ctx.beginPath(); ctx.moveTo(minusJuncX, rinY); ctx.lineTo(minusJuncX, fbY); ctx.stroke();
-    // Horizontal along feedback path to Rf start
-    const rfStartX = minusJuncX + 10;
-    const rfEndX = fbEndX - 10;
-    ctx.beginPath(); ctx.moveTo(minusJuncX, fbY); ctx.lineTo(rfStartX, fbY); ctx.stroke();
-
-    // Zig-zag Rf
-    ctx.strokeStyle = T.overlay60;
-    ctx.beginPath(); ctx.moveTo(rfStartX, fbY);
-    const rfLen = rfEndX - rfStartX;
-    const rfZags = 6, rfZagW = rfLen / rfZags, rfZagA = 7;
-    for (let i = 0; i < rfZags; i++) {
-        const x0 = rfStartX + i * rfZagW;
-        ctx.lineTo(x0 + rfZagW * 0.25, fbY - rfZagA);
-        ctx.lineTo(x0 + rfZagW * 0.75, fbY + rfZagA);
-        ctx.lineTo(x0 + rfZagW, fbY);
-    }
-    ctx.stroke();
-
-    // Rf label
-    ctx.fillStyle = T.yellow;
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center';
-    ctx.fillText('R\u2082 (feedback)', (rfStartX + rfEndX) / 2, fbY - rfZagA - 8);
-
-    // Wire from Rf end down to output junction
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(rfEndX, fbY); ctx.lineTo(fbEndX, fbY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(fbEndX, fbY); ctx.lineTo(fbEndX, cy); ctx.stroke();
-
-    // ── Labels ──
-    ctx.font = "12px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'right';
-    ctx.fillStyle = T.yellow;
-    ctx.fillText('V\u1D62\u2099', rinStartX - 36, rinY + 4);
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#6aaa8e';
-    ctx.fillText('V\u2092\u1D64\u209C', outX + 6, cy + 4);
-
-    // ── Closed-loop gain equation ──
-    ctx.font = "12px 'Inter', sans-serif";
-    ctx.fillStyle = T.overlay40;
-    ctx.textAlign = 'center';
-    ctx.fillText('Closed-loop: A_CL = \u2212R\u2082 / R\u1D62\u2099', cx, H - 28);
-    ctx.fillStyle = T.overlay25;
-    ctx.fillText('Feedback trades open-loop gain for predictability and bandwidth', cx, H - 12);
-
-    // ── Feedback arrow annotation ──
-    ctx.strokeStyle = 'rgba(255,200,100,0.3)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 3]);
-    const arrowMidX = (rfStartX + rfEndX) / 2;
-    ctx.beginPath(); ctx.moveTo(arrowMidX + 40, fbY + rfZagA + 6); ctx.lineTo(arrowMidX - 40, fbY + rfZagA + 6); ctx.stroke();
-    ctx.setLineDash([]);
-    // Arrowhead pointing left (feedback direction)
-    ctx.fillStyle = 'rgba(255,200,100,0.3)';
-    ctx.beginPath();
-    ctx.moveTo(arrowMidX - 40, fbY + rfZagA + 6);
-    ctx.lineTo(arrowMidX - 34, fbY + rfZagA + 2);
-    ctx.lineTo(arrowMidX - 34, fbY + rfZagA + 10);
-    ctx.closePath(); ctx.fill();
-}
-
-// ════════════════════════════════════════════════════════
-// SECTION 4: Gain-Bandwidth Product plot
-// ════════════════════════════════════════════════════════
-let GBP = 10e6 * 2 * Math.PI;  // rad/s, default ~62.8 Mrad/s (10 MHz)
-const GBP_MIN = 100e3 * 2 * Math.PI, GBP_MAX = 1e9 * 2 * Math.PI;  // rad/s
-
-function drawGBP() {
-    const { w: W, h: H, ctx } = sizeCanvas(document.getElementById('gbp-canvas'));
-    ctx.clearRect(0, 0, W, H);
-
-    const pad = { top: 35, right: 35, bottom: 50, left: 65 };
-    const plotW = W - pad.left - pad.right;
-    const plotH = H - pad.top - pad.bottom;
-
-    // Fixed axes: 1 rad/s to 10^12 rad/s, gain -20 to 80 dB
-    const logMin = 0;   // 10^0 = 1 rad/s
-    const logMax = 12;  // 10^12 rad/s
-    const dbMax = 80;
-    const dbMin = -20;
-
-    function xPx(f) { return pad.left + (Math.log10(f) - logMin) / (logMax - logMin) * plotW; }
-    function yPx(db) { return pad.top + (dbMax - db) / (dbMax - dbMin) * plotH; }
-
-    // Grid
-    ctx.strokeStyle = T.gridLight;
-    ctx.lineWidth = 1;
-    for (let d = Math.ceil(logMin); d <= Math.floor(logMax); d++) {
-        const x = xPx(Math.pow(10, d));
-        ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + plotH); ctx.stroke();
-    }
-    for (let db = dbMin; db <= dbMax; db += 10) {
-        const y = yPx(db);
-        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + plotW, y); ctx.stroke();
-    }
-
-    // Clip
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(pad.left, pad.top, plotW, plotH);
-    ctx.clip();
-
-    // GBP vertical line at unity-gain frequency
-    const gbpX = xPx(GBP);
-    ctx.setLineDash([6, 4]);
-    ctx.strokeStyle = T.gridStrong;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(gbpX, pad.top); ctx.lineTo(gbpX, pad.top + plotH); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Draw Bode curves at different gains
-    const gains = [1, 10, 100, 1000];
-    const colors = [
-        T.yellowA(0.5),     // Av=1, yellow
-        T.yellowA(0.7),     // Av=10
-        'rgba(106,170,142,0.7)',    // Av=100, green
-        'rgba(106,170,142,0.9)',    // Av=1000
-    ];
-    const lineWidths = [1.5, 1.5, 2, 2.5];
-
-    const steps = 500;
-    for (let g = 0; g < gains.length; g++) {
-        const av = gains[g];
-        const w0 = GBP / av;  // cutoff frequency for this gain (rad/s)
-        const avDb = 20 * Math.log10(av);
-
-        ctx.strokeStyle = colors[g];
-        ctx.lineWidth = lineWidths[g];
-        ctx.beginPath();
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
-            const w = Math.pow(10, logMin + t * (logMax - logMin));
-            const db = 20 * Math.log10(av / Math.sqrt(1 + (w / w0) ** 2));
-            const x = xPx(w);
-            const y = yPx(db);
-            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        // Label at the left edge
-        ctx.fillStyle = colors[g];
-        ctx.font = "11px 'JetBrains Mono', monospace";
-        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-        const labelY = yPx(avDb);
-        if (labelY > pad.top + 5 && labelY < pad.top + plotH - 5) {
-            ctx.fillText('A\u1D65=' + av, pad.left - 6, labelY);
-        }
-
-        // -3dB dot
-        ctx.beginPath(); ctx.arc(xPx(w0), yPx(avDb - 3), 4, 0, Math.PI * 2);
-        ctx.fillStyle = colors[g]; ctx.fill();
-    }
-
-    // Highlight the current Av from the main controls
-    const curW0 = GBP / Av;
-    const curAvDb = 20 * Math.log10(Av);
-    ctx.strokeStyle = T.text;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const w = Math.pow(10, logMin + t * (logMax - logMin));
-        const db = 20 * Math.log10(Av / Math.sqrt(1 + (w / curW0) ** 2));
-        const x = xPx(w);
-        const y = yPx(db);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Current Av label
-    ctx.fillStyle = T.text;
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-    const curLabelY = yPx(curAvDb);
-    if (curLabelY > pad.top + 5 && curLabelY < pad.top + plotH - 5) {
-        ctx.fillText('A\u1D65=' + Av.toPrecision(3) + ' (current)', pad.left + 6, curLabelY - 4);
-    }
-
-    // Current -3dB dot
-    ctx.beginPath(); ctx.arc(xPx(curW0), yPx(curAvDb - 3), 6, 0, Math.PI * 2);
-    ctx.fillStyle = T.text; ctx.fill();
-
-    // Open-loop envelope line (the -20dB/dec slope from GBP)
-    ctx.setLineDash([4, 3]);
-    ctx.strokeStyle = T.overlay20;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const w = Math.pow(10, logMin + t * (logMax - logMin));
-        const db = 20 * Math.log10(GBP / w);
-        const x = xPx(w);
-        const y = yPx(db);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.restore();
-
-    // GBP label at the convergence point
-    ctx.fillStyle = T.overlay50;
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('GBP = ' + fmtFreq(GBP), gbpX, pad.top + plotH + 4);
-
-    // Axis tick labels
-    ctx.fillStyle = T.overlay40;
-    ctx.font = "10px 'JetBrains Mono', monospace";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    for (let d = Math.ceil(logMin); d <= Math.floor(logMax); d++) {
-        if (Math.abs(xPx(Math.pow(10, d)) - gbpX) > 30) {
-            ctx.fillText('10' + superscript(d), xPx(Math.pow(10, d)), pad.top + plotH + 4);
-        }
-    }
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    for (let db = dbMin; db <= dbMax; db += 20) {
-        ctx.fillText(db + '', pad.left - 6, yPx(db));
-    }
-
-    // Axis titles
-    ctx.fillStyle = T.overlay30;
-    ctx.font = "11px 'Inter', sans-serif";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('Frequency \u03C9 (rad/s)', pad.left + plotW / 2, H - 8);
-
-    ctx.save();
-    ctx.translate(14, pad.top + plotH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Gain (dB)', 0, 0);
-    ctx.restore();
-}
-
-// ════════════════════════════════════════════════════════
-// Readouts + wiring
-// ════════════════════════════════════════════════════════
-function updateReadouts() {
-    const w0 = omega0();
-    const ratio = testFreq / w0;
-    const gain = gainAt(testFreq);
-    const db = gainDb(testFreq);
-    const mag = Math.sqrt(1 + ratio * ratio);
-    const angle = Math.atan(ratio) * 180 / Math.PI;
-
-    // Section 1 readouts
-    document.getElementById('r-val').textContent = fmtR(R);
-    document.getElementById('c-val').textContent = fmtC(C);
-    document.getElementById('av-val').textContent = Av.toPrecision(3);
-    document.getElementById('omega0-val').textContent = fmtFreq(w0);
-    document.getElementById('f0-val').textContent = fmtHz(w0);
-    document.getElementById('av-db-val').textContent = (20 * Math.log10(Av)).toFixed(1) + ' dB';
-
-    // Section 3 duplicate slider readouts
-    document.getElementById('r-val-2').textContent = fmtR(R);
-    document.getElementById('c-val-2').textContent = fmtC(C);
-    document.getElementById('av-val-2').textContent = Av.toPrecision(3);
-    document.getElementById('omega0-val-2').textContent = fmtFreq(w0);
-
-    // Section 2 readouts
-    document.getElementById('freq-val').textContent = fmtFreq(testFreq);
-    document.getElementById('freq-hz-val').textContent = fmtHz(testFreq);
-    document.getElementById('ratio-val').textContent = ratio.toPrecision(3);
-    document.getElementById('mag-val').textContent = mag.toPrecision(4);
-    document.getElementById('angle-val').textContent = angle.toFixed(1) + '\u00B0';
-    document.getElementById('gain-val').textContent = gain.toPrecision(4);
-    document.getElementById('gain-db-val').textContent = db.toFixed(1) + ' dB';
-
-    // Phase lag readout
-    document.getElementById('phase-lag-val').textContent = '\u2212' + angle.toFixed(1) + '\u00B0';
-    document.getElementById('phase-gain-pct').textContent = gain.toPrecision(3);
-    document.getElementById('phase-gain-ratio').textContent = (gain / Av * 100).toFixed(1) + '%';
-    document.getElementById('freq-val-2').textContent = fmtFreq(testFreq);
-
-    // Section 3 readouts
-    document.getElementById('bode-gain-val').textContent = gain.toPrecision(4);
-    document.getElementById('bode-db-val').textContent = db.toFixed(1) + ' dB';
-
-    // Regime label
-    const regimeEl = document.getElementById('regime-label');
-    if (ratio < 0.1) {
-        regimeEl.textContent = 'Passband';
-        regimeEl.style.color = 'var(--accent)';
-    } else if (ratio > 10) {
-        regimeEl.textContent = 'Rolloff (\u221220 dB/dec)';
-        regimeEl.style.color = 'var(--red)';
-    } else {
-        regimeEl.textContent = 'Transition region';
-        regimeEl.style.color = 'var(--yellow)';
-    }
-
-    // Section 4 readouts (GBP)
-    document.getElementById('gbp-val').textContent = fmtFreq(GBP);
-    document.getElementById('gbp-readout').textContent = fmtFreq(GBP);
-    document.getElementById('gbp-av-val').textContent = Av.toPrecision(3);
-    document.getElementById('av-val-3').textContent = Av.toPrecision(3);
-    const gbpW0 = GBP / Av;
-    document.getElementById('gbp-f0-val').textContent = fmtFreq(gbpW0);
-    document.getElementById('gbp-bw-val').textContent = fmtFreq(gbpW0);
-}
-
-// ════════════════════════════════════════════════════════
-// Init + animate
-// ════════════════════════════════════════════════════════
-function init() {
-    const rSlider = document.getElementById('r-slider');
-    const cSlider = document.getElementById('c-slider');
-    const avSlider = document.getElementById('av-slider');
-    const freqSlider = document.getElementById('freq-slider');
-
-    const rSlider2 = document.getElementById('r-slider-2');
-    const cSlider2 = document.getElementById('c-slider-2');
-    const avSlider2 = document.getElementById('av-slider-2');
-    const freqSlider2 = document.getElementById('freq-slider-2');
-
-    // All freq sliders that need syncing
-    const allFreqSliders = [freqSlider, freqSlider2];
-
-    function syncFromPrimary() {
-        R = logMap(parseFloat(rSlider.value), R_MIN, R_MAX);
-        C = logMap(parseFloat(cSlider.value), C_MIN, C_MAX);
-        Av = logMap(parseFloat(avSlider.value), AV_MIN, AV_MAX);
-        testFreq = logMap(parseFloat(freqSlider.value), FREQ_MIN, FREQ_MAX);
-        rSlider2.value = rSlider.value;
-        cSlider2.value = cSlider.value;
-        avSlider2.value = avSlider.value;
-        freqSlider2.value = freqSlider.value;
-        updateReadouts();
-    }
-
-    function syncFromSecondary() {
-        R = logMap(parseFloat(rSlider2.value), R_MIN, R_MAX);
-        C = logMap(parseFloat(cSlider2.value), C_MIN, C_MAX);
-        Av = logMap(parseFloat(avSlider2.value), AV_MIN, AV_MAX);
-        rSlider.value = rSlider2.value;
-        cSlider.value = cSlider2.value;
-        avSlider.value = avSlider2.value;
-        updateReadouts();
-    }
-
-    function syncFreqFromSecondary() {
-        testFreq = logMap(parseFloat(freqSlider2.value), FREQ_MIN, FREQ_MAX);
-        freqSlider.value = freqSlider2.value;
-        updateReadouts();
-    }
-
-    rSlider.addEventListener('input', syncFromPrimary);
-    cSlider.addEventListener('input', syncFromPrimary);
-    avSlider.addEventListener('input', syncFromPrimary);
-    freqSlider.addEventListener('input', syncFromPrimary);
-
-    rSlider2.addEventListener('input', syncFromSecondary);
-    cSlider2.addEventListener('input', syncFromSecondary);
-    avSlider2.addEventListener('input', syncFromSecondary);
-    freqSlider2.addEventListener('input', syncFreqFromSecondary);
-
-    function setSliders() {
-        const rv = logUnmap(R, R_MIN, R_MAX);
-        const cv = logUnmap(C, C_MIN, C_MAX);
-        const av = logUnmap(Av, AV_MIN, AV_MAX);
-        const fv = logUnmap(testFreq, FREQ_MIN, FREQ_MAX);
-        rSlider.value = rv;  rSlider2.value = rv;
-        cSlider.value = cv;  cSlider2.value = cv;
-        avSlider.value = av; avSlider2.value = av; avSlider3.value = av;
-        freqSlider.value = fv; freqSlider2.value = fv;
-        updateReadouts();
-    }
-
-    document.getElementById('preset-audio').addEventListener('click', () => {
-        R = 10000; C = 10e-9; Av = 100; testFreq = omega0();
-        setSliders();
-    });
-    document.getElementById('preset-rf').addEventListener('click', () => {
-        R = 500; C = 5e-12; Av = 20; testFreq = omega0();
-        setSliders();
-    });
-
-    // GBP sliders
-    const gbpSlider = document.getElementById('gbp-slider');
-    const avSlider3 = document.getElementById('av-slider-3');
-
-    gbpSlider.addEventListener('input', () => {
-        GBP = logMap(parseFloat(gbpSlider.value), GBP_MIN, GBP_MAX);
-        updateReadouts();
-    });
-
-    avSlider3.addEventListener('input', () => {
-        Av = logMap(parseFloat(avSlider3.value), AV_MIN, AV_MAX);
-        avSlider.value = avSlider3.value;
-        avSlider2.value = avSlider3.value;
-        updateReadouts();
-    });
-
-    // Keep avSlider3 in sync when other Av sliders change
-    rSlider.addEventListener('input', () => { avSlider3.value = avSlider.value; });
-    cSlider.addEventListener('input', () => { avSlider3.value = avSlider.value; });
-    avSlider.addEventListener('input', () => { avSlider3.value = avSlider.value; });
-    avSlider2.addEventListener('input', () => { avSlider3.value = avSlider2.value; });
-
-    updateReadouts();
-    requestAnimationFrame(animate);
-}
-
-let animTime = 0;
-let lastTime = 0;
-function animate(now) {
-    const dt = (now - lastTime) / 1000;
-    lastTime = now;
-    if (dt > 0 && dt < 0.1) animTime += dt;
-
-    drawCircuit();
-    drawOpampOpen();
-    drawOpampFeedback();
-    drawPhasor();
-    drawPhase();
-    drawBode();
-    drawGBP();
-    requestAnimationFrame(animate);
-}
-
-document.addEventListener('DOMContentLoaded', init);
-
-window.addEventListener('themechange', function() { updateReadouts(); });
-</script>
-
+    </section>
+
+    <!-- ================= 06 · GBP ================= -->
+    <section class="scene" id="sec-gbp">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>gain-bandwidth product</span></div>
+            <h2>The trade between gain and bandwidth</h2>
+
+            <p class="lead">Internal parasitic capacitance in the op-amp creates a single dominant pole, as in the RC
+                model of section 01. The open-loop response therefore has a fixed gain-bandwidth product:</p>
+
+            <div class="eq-block">$$\text{GBP} = \left(1 + \frac{R_2}{R_\text{in}}\right)\omega_0 = \text{constant}$$</div>
+
+            <p>The bandwidth is set by the noise gain $1 + R_2/R_\text{in}$, not by $A_{CL}$ directly. For a
+                non-inverting amplifier the noise gain equals $A_{CL}$; for the inverting amplifier of section 05 it
+                equals $|A_{CL}| + 1$. In the plot, $A_v$ denotes the noise gain, so $\omega_0 = \text{GBP}/A_v$.
+                Reducing the gain from $A_\text{OL}$ to $A_v$ by feedback increases the bandwidth by the same
+                factor.</p>
+
+            <ul class="bullets">
+                <li><strong>High gain, $A_v = 1000$</strong>: large amplification but low $\omega_0$, so only slow
+                    signals are amplified fully.</li>
+                <li><strong>Low gain, $A_v = 10$</strong>: modest amplification, with $\omega_0$ a factor of 100
+                    higher.</li>
+                <li><strong>Unity noise gain, the voltage follower</strong>: no amplification, and $\omega_0$ equals the
+                    GBP. This is the largest bandwidth the device can reach, which is why datasheets call it the
+                    unity-gain bandwidth. An inverting amplifier with $|A_{CL}| = 1$ has a noise gain of 2 and so
+                    $\omega_0 = \text{GBP}/2$.</li>
+            </ul>
+
+            <p>All closed-loop curves meet the open-loop envelope $\text{GBP}/\omega$ and cross unity gain at
+                $\omega = \text{GBP}$. No feedback configuration produces gain above the open-loop response. Raising
+                $A_v$ shifts the curve up and moves $\omega_0$ to the left.</p>
+
+            <div class="callout">
+                A general-purpose op-amp such as the LM741 has a GBP of about $6.28\,\text{Mrad/s}$, or $1\,\text{MHz}$.
+                At a gain of 100, $\omega_0$ is only $62.8\,\text{krad/s}$, or $10\,\text{kHz}$; at a gain of 10 it
+                extends to $628\,\text{krad/s}$, or $100\,\text{kHz}$. An audio amplifier covering 20 Hz to 20 kHz at a
+                gain of 50 needs a GBP of at least $6.28\,\text{Mrad/s}$.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">GBP</span>
+                        <input type="range" data-param="GBP" data-log min="5.798" max="9.798" step="0.004">
+                        <span class="val" data-param="GBP"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$A_v$</span>
+                        <input type="range" data-param="Av" data-log min="0" max="3" step="0.003">
+                        <span class="val" data-param="Av"></span>
+                    </span>
+                </div>
+                <div class="plot-box bode">
+                    <div class="label">closed-loop response · <b>fixed GBP, several noise gains</b></div>
+                    <svg class="bode" id="plot-gbp"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-cur)"></span>present $A_v$</span>
+                    <span><span class="sw" style="background:var(--c-g1)"></span>$A_v = 1$</span>
+                    <span><span class="sw" style="background:var(--c-g2)"></span>$10$</span>
+                    <span><span class="sw" style="background:var(--c-g3)"></span>$100$</span>
+                    <span><span class="sw" style="background:var(--c-g4)"></span>$1000$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-env)"></span>open-loop envelope $\text{GBP}/\omega$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-guide)"></span>$\omega = \text{GBP}$</span>
+                    <span>dots: $-3\,\text{dB}$ points</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">GBP</span><span class="v" data-out="gbp"></span></div>
+                    <div class="item"><span class="k">GBP</span><span class="v" data-out="gbphz"></span></div>
+                    <div class="item"><span class="k">$A_v$</span><span class="v" data-out="av"></span></div>
+                    <div class="item"><span class="k">$\omega_0 = $ BW</span><span class="v" data-out="gbpw0"></span></div>
+                    <div class="item"><span class="k">$f_0$</span><span class="v" data-out="gbpf0"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>BMEN90033 · The University of Melbourne</footer>
+
+    <script defer src="../components/katex_label.js"></script>
+    <script defer src="../components/plot_helpers.js"></script>
+    <script defer src="amplifier_bandwidth_JS/model.js"></script>
+    <script defer src="amplifier_bandwidth_JS/frame.js"></script>
+    <script defer src="amplifier_bandwidth_JS/controls.js"></script>
+    <script defer src="amplifier_bandwidth_JS/readout.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_circuit.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_phasor.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_phase.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_bode.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_opamp.js"></script>
+    <script defer src="amplifier_bandwidth_JS/plot_gbp.js"></script>
 </body>
+
 </html>
