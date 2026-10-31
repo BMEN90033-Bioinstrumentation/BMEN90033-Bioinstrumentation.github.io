@@ -856,7 +856,7 @@
                         <div class="toggle-switch" id="compressionToggle"></div>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Fine structure</span>
+                        <span class="toggle-label">Fine structure (sign carrier)</span>
                         <div class="toggle-switch" id="fineStructureToggle"></div>
                     </div>
                 </div>
@@ -1137,7 +1137,7 @@
             item.className = 'electrode-legend-item';
             item.innerHTML = `
                 <span class="elec-dot" style="background:${channelColors[i]}"></span>
-                <span>E${i+1} ${channelLabels[i]}</span>
+                <span>E${activeChannelCount - i} ${channelLabels[i]}</span>
                 <div class="electrode-bar"><div class="electrode-bar-fill" id="ebar${i}" style="background:${channelColors[i]}"></div></div>
             `;
             electrodeLegend.appendChild(item);
@@ -1395,12 +1395,11 @@
         // Carrier modes:
         //   Sine carrier     — clean tonal vocoder (default)
         //   Noise carrier    — band-limited noise, more realistic CI percept
-        //   Fine structure   — uses the original bandpass signal's instantaneous
-        //                      waveform as the carrier, preserving temporal fine
-        //                      structure (TFS). This retains pitch, timbre and
-        //                      speaker identity cues that are lost with simple
-        //                      carriers. Newer CI strategies (FSP, FS4) partially
-        //                      do this for low-frequency channels.
+        //   Fine structure:  uses sign(bandpass signal) as the carrier
+        //                      (infinite clipping). This keeps the zero-crossing
+        //                      timing of the temporal fine structure (TFS) but not
+        //                      a Hilbert-normalised waveform. Newer CI strategies
+        //                      (FSP, FS4) convey TFS timing on low-frequency channels.
         //
         // Log compression maps acoustic dynamic range (~60 dB) into the
         // narrower electrical dynamic range (~20 dB) of a real implant.
@@ -1411,16 +1410,14 @@
             const env = channelEnvelopes[ch];
             const bp = channelBandpass[ch];
 
-            // Fine structure carrier: normalize the bandpass signal to
-            // unit amplitude so only the envelope controls loudness.
+            // Fine structure carrier: bp / |bp| = sign(bp), a unit-amplitude
+            // zero-crossing carrier, so only the envelope controls loudness.
             let fsBuf;
             if (useFineStructure) {
                 fsBuf = new Float32Array(len);
                 for (let i = 0; i < len; i++) {
-                    // Instantaneous amplitude from the rectified signal
+                    // |bp| sample-by-sample (not a Hilbert envelope), floored to avoid division by zero
                     const inst = channelRectified[ch][i];
-                    // Divide out the amplitude to get the unit-amplitude
-                    // fine structure (with a small floor to avoid division by zero)
                     fsBuf[i] = inst > 1e-6 ? bp[i] / inst : 0;
                 }
             }
@@ -1654,10 +1651,11 @@
             const playBtn = document.createElement('button');
             playBtn.className = 'ch-play-btn';
             playBtn.textContent = '\u25B6';
-            playBtn.title = `Play electrode ${ch+1} (${channelLabels[ch]})`;
+            // Cochlear Nucleus numbering: E1 is basal (highest frequency), apical electrode has the largest number
+            playBtn.title = `Play electrode ${activeChannelCount - ch} (${channelLabels[ch]})`;
             playBtn.dataset.ch = ch;
             playBtn.addEventListener('click', () => playChannel(ch, playBtn));
-            label.innerHTML = `<span class="ch-num" style="color:${channelColors[ch]}">E${ch+1}</span><span class="ch-freq">${channelLabels[ch]}</span>`;
+            label.innerHTML = `<span class="ch-num" style="color:${channelColors[ch]}">E${activeChannelCount - ch}</span><span class="ch-freq">${channelLabels[ch]}</span>`;
             label.appendChild(playBtn);
             row.appendChild(label);
             channelPlayBtns.push(playBtn);

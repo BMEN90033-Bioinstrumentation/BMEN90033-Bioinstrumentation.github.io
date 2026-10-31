@@ -522,7 +522,7 @@
         ctx.fillStyle = T.text;
         ctx.fillText('Collector (C)', r.collector.x + r.collector.w / 2, labelY);
         ctx.font = '11px "JetBrains Mono"';
-        const cDoping = isNPN ? 'N  Phosphorus' : 'P  Boron';
+        const cDoping = isNPN ? 'N\u207B  Phosphorus' : 'P\u207B  Boron';
         ctx.fillStyle = isNPN ? '#e06050' : '#5080d0';
         ctx.fillText(cDoping, r.collector.x + r.collector.w / 2, labelY + 14);
 
@@ -581,7 +581,7 @@
             const arrowMidY = wireBottom + (wireEnd - wireBottom) * 0.4;
 
             // NPN: conventional current INTO collector, OUT of emitter, INTO base
-            // PNP: conventional current INTO emitter, OUT of collector, INTO base
+            // PNP: conventional current INTO emitter, OUT of collector, OUT of base
             // (conventional current is opposite to electron flow)
 
             // Emitter arrow
@@ -596,8 +596,9 @@
             ctx.textAlign = 'right';
             ctx.fillText('I\u1d04', cCx - arrowOffset - 5, arrowMidY + 4);
 
-            // Base arrow (always into base — down)
-            drawArrow(ctx, bCx + arrowOffset, arrowMidY - 10, bCx + arrowOffset, arrowMidY + 10);
+            // Base arrow
+            const bArrowDir = isNPN ? -1 : 1;  // NPN: up (in), PNP: down (out)
+            drawArrow(ctx, bCx + arrowOffset, arrowMidY - bArrowDir * 10, bCx + arrowOffset, arrowMidY + bArrowDir * 10);
             ctx.textAlign = 'left';
             ctx.fillText('I\u0299', bCx + arrowOffset + 5, arrowMidY + 4);
         }
@@ -647,8 +648,8 @@
         const wireBot = ch - 8;
 
         // Spawn wire electrons
-        // NPN: electrons flow UP into emitter, UP out of base (small), DOWN out of collector
-        // PNP: electrons flow DOWN into collector, DOWN out of base (small), UP out of emitter
+        // NPN: electrons flow UP into emitter, DOWN out of base (small), DOWN out of collector
+        // PNP: electrons flow DOWN into collector, UP into base (small), UP out of emitter
         // (electrons flow opposite to conventional current)
 
         // Emitter wire electrons
@@ -673,8 +674,8 @@
         if (Math.random() < rate * 0.03) {
             wireElectrons.push({
                 x: bCx + (Math.random() - 0.5) * 2,
-                y: wireBot,
-                vy: -0.4 - rate * 0.2,
+                y: isNPN ? wireTop : wireBot,
+                vy: isNPN ? 0.4 + rate * 0.2 : -0.4 - rate * 0.2,
                 wire: 'base', wireX: bCx, wireTop, wireBot
             });
         }
@@ -787,11 +788,11 @@
         const beJunc = emitterFrac;
         const bcJunc = emitterFrac + baseFrac;
 
-        const logMin = 10, logMax = 18;
+        const logMin = 0, logMax = 20;
 
         // For linear scale, we map real values 0 to 10^maxLinLog
         // Use the highest doping level as the top of the linear scale
-        const maxLinLog = 17.5;  // 10^17.5 as max for linear axis
+        const maxLinLog = Math.log10(2e19);  // 2×10^19 as max for linear axis
 
         function yForVal(logVal) {
             if (isLog) {
@@ -854,7 +855,7 @@
         ctx.font = '10px "JetBrains Mono"';
         ctx.textAlign = 'right';
         if (isLog) {
-            for (let logV = logMin; logV <= logMax; logV += 2) {
+            for (let logV = logMin; logV <= logMax; logV += 4) {
                 const y = yForVal(logV);
                 ctx.fillText('10' + superscript(logV), margin.left - 5, y + 3);
                 ctx.strokeStyle = T.overlay05;
@@ -868,8 +869,7 @@
                 const val = frac * maxReal;
                 let label;
                 if (val === 0) label = '0';
-                else if (val >= 1e15) label = (val / 1e15).toFixed(1) + '\u00d710' + superscript(15);
-                else if (val >= 1e12) label = (val / 1e12).toFixed(1) + '\u00d710' + superscript(12);
+                else if (val >= 1e18) label = (val / 1e19).toFixed(1) + '\u00d710' + superscript(19);
                 else label = val.toExponential(0);
                 ctx.fillStyle = T.overlay40;
                 ctx.fillText(label, margin.left - 5, y + 3);
@@ -897,8 +897,10 @@
         ctx.restore();
 
         // Carrier concentration curves
-        const eMaj = 17, bMaj = 15, cMaj = 16;
-        const eMin = 13, bMinEq = 13, cMin = 12;
+        // Doping N_E = 1e19 > N_B = 1e17 > N_C = 1e15 cm^-3; minority from n·p = n_i², n_i = 1.5e10
+        const eMaj = 19, bMaj = 17, cMaj = 15;
+        const LOG_NI2 = Math.log10(1.5e10 * 1.5e10);
+        const eMin = LOG_NI2 - eMaj, bMinEq = LOG_NI2 - bMaj, cMin = LOG_NI2 - cMaj;
         const injectionBoost = baseCurrent / 100;
 
         // n(x) — electron concentration
@@ -906,10 +908,11 @@
         ctx.strokeStyle = T.yellow;
         ctx.lineWidth = 2;
         const nEmitter = isNPN ? eMaj : eMin;
-        const nBase0 = isNPN ? Math.min(bMinEq + injectionBoost * 4, eMaj - 0.5) : bMaj;
+        // Injected minority density n_p0·exp(V_BE/V_T) stays below N_B (low injection)
+        const nBase0 = isNPN ? Math.min(bMinEq + injectionBoost * 12, bMaj - 1) : bMaj;
         // BC junction injection increases smoothly as saturation approaches
         const satBlendConc = Math.max(0, Math.min(1, (baseCurrent - 50) / 40));
-        const nBaseEnd = isNPN ? (bMinEq + satBlendConc * injectionBoost * 3) : bMaj;
+        const nBaseEnd = isNPN ? (bMinEq + satBlendConc * injectionBoost * 10) : bMaj;
         const nCollector = isNPN ? cMaj : cMin;
 
         const steps = 300;
@@ -943,8 +946,8 @@
         ctx.strokeStyle = '#ff66aa';
         ctx.lineWidth = 2;
         const pEmitter = isNPN ? eMin : eMaj;
-        const pBase0 = isNPN ? bMaj : Math.min(bMinEq + injectionBoost * 4, eMaj - 0.5);
-        const pBaseEnd = isNPN ? bMaj : (bMinEq + satBlendConc * injectionBoost * 3);
+        const pBase0 = isNPN ? bMaj : Math.min(bMinEq + injectionBoost * 12, bMaj - 1);
+        const pBaseEnd = isNPN ? bMaj : (bMinEq + satBlendConc * injectionBoost * 10);
         const pCollector = isNPN ? cMin : cMaj;
 
         function getLogP(frac) {
@@ -1185,7 +1188,7 @@
         const baseDopant = isNPN ? 'Boron' : 'Phosphorus';
         const emitterType = isNPN ? 'N\u207a' : 'P\u207a';
         const baseType = isNPN ? 'P' : 'N';
-        const collectorType = isNPN ? 'N' : 'P';
+        const collectorType = isNPN ? 'N\u207b' : 'P\u207b';
 
         let html = '';
 
@@ -1193,7 +1196,7 @@
         const minorityNote = `
             <div class="physics-note" style="margin-top:0.6rem;">
                 <strong>Minority carriers in the ${isNPN ? 'N' : 'P'}-type regions.</strong>
-                Thermal generation produces a small minority-carrier population even in a doped semiconductor. At room temperature, silicon has an intrinsic carrier concentration n<sub>i</sub> &approx; 1.5 &times; 10<sup>10</sup> cm<sup>&minus;3</sup>. At equilibrium, the <em>mass-action law</em> gives n &middot; p = n<sub>i</sub><sup>2</sup>. In the ${emitterType} emitter doped at ~10<sup>17</sup> cm<sup>&minus;3</sup>, the minority ${minority} concentration is therefore approximately 10<sup>3</sup> cm<sup>&minus;3</sup>, small but non-zero. The linear scale shows this difference relative to the majority-carrier concentration.
+                Thermal generation produces a small minority-carrier population even in a doped semiconductor. At room temperature, silicon has an intrinsic carrier concentration n<sub>i</sub> &approx; 1.5 &times; 10<sup>10</sup> cm<sup>&minus;3</sup>. At equilibrium, the <em>mass-action law</em> gives n &middot; p = n<sub>i</sub><sup>2</sup>. In the ${emitterType} emitter doped at ~10<sup>19</sup> cm<sup>&minus;3</sup>, the minority ${minority} concentration is therefore approximately 20 cm<sup>&minus;3</sup>, small but non-zero. The plot uses N<sub>E</sub> = 10<sup>19</sup>, N<sub>B</sub> = 10<sup>17</sup> and N<sub>C</sub> = 10<sup>15</sup> cm<sup>&minus;3</sup>. The linear scale shows this difference relative to the majority-carrier concentration.
             </div>
         `;
 

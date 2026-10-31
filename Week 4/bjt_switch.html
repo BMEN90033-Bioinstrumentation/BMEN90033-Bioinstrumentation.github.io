@@ -807,7 +807,7 @@ function drawCircuit(state) {
     ctx.font = `400 ${s(9)}px 'JetBrains Mono', monospace`;
     ctx.fillStyle = T.textFaint;
     ctx.textAlign = 'center';
-    ctx.fillText('V_BE = ' + vbe.toFixed(1) + ' V', ibWireX - s(10), baseY + s(24));
+    ctx.fillText((isNPN ? 'V_BE = ' : 'V_EB = ') + vbe.toFixed(1) + ' V', ibWireX - s(10), baseY + s(24));
 
     ctx.restore(); // end pan/zoom transform
 }
@@ -1147,7 +1147,7 @@ function drawTimePlots() {
 
     // Find max current for Y-axis scaling
     const maxIcTheory = vcc / rLoad;  // Maximum possible collector current
-    let maxI = maxIcTheory * 1.15;
+    let maxI = Math.max(maxIcTheory, ...dataBuf.ie) * 1.15;  // I_E = I_C + I_B can exceed V_CC/R_L
     if (maxI === 0) maxI = 0.001;
 
     // Map functions
@@ -1297,9 +1297,10 @@ function drawIVCurve(state) {
     }
 
     // ─── I_B curves (family of curves) ───
-    // Fixed curves based on circuit's max possible I_B (Vcc-driven, not slider-driven)
+    // Curves span the largest I_B the actual input can drive
     const ibValues = [];
-    const ibMaxPossible = vcc > VBE_ON ? (vcc - VBE_ON) / rBase : 0;
+    const driveMax = bjt === 'NPN' ? vInPk : vcc - (waveform === 'dc' ? vInPk : 0);  // max V_in (NPN) or V_CC - min V_in (PNP)
+    const ibMaxPossible = driveMax > VBE_ON ? (driveMax - VBE_ON) / rBase : 0;
     for (let n = 1; n <= 5; n++) {
         const ib = ibMaxPossible * n / 5;
         if (ib > 0) ibValues.push(ib);

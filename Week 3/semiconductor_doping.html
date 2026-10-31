@@ -148,6 +148,7 @@
       <label>Dopant fraction <input type="range" id="dopantSlider" min="0" max="90" step="1" value="4">
         <span id="dopantCountValue">4%</span>
       </label>
+      <div style="font-size:10px; opacity:0.7; margin:-2px 0 6px;">Exaggerated for visibility. Real doping is 10<sup>14</sup>&ndash;10<sup>19</sup> cm<sup>&minus;3</sup>, about 2&times;10<sup>&minus;9</sup> to 2&times;10<sup>&minus;4</sup> of Si atoms.</div>
       <label>Voltage bias <input type="range" id="voltageSlider" min="0" max="100" step="1" value="0">
         <span id="voltageValue">0.0 V</span>
       </label>
@@ -762,7 +763,7 @@
         diagCtx.beginPath(); diagCtx.moveTo(left + 10, donorY); diagCtx.lineTo(right - 10, donorY); diagCtx.stroke();
         diagCtx.setLineDash([]);
         diagCtx.fillStyle = '#ee5555'; diagCtx.font = '9px sans-serif'; diagCtx.textAlign = 'center';
-        diagCtx.fillText('Donor level (P)', cx, donorY - 5);
+        diagCtx.fillText('Donor level (P), not to scale', cx, donorY - 5);
         diagCtx.strokeStyle = T.yellowA(0.5); diagCtx.lineWidth = 1; diagCtx.setLineDash([2, 2]);
         for (let a = 0; a < 3; a++) {
           const ax = cx - 20 + a * 20;
@@ -782,7 +783,7 @@
         diagCtx.beginPath(); diagCtx.moveTo(left + 10, acceptorY); diagCtx.lineTo(right - 10, acceptorY); diagCtx.stroke();
         diagCtx.setLineDash([]);
         diagCtx.fillStyle = '#5588dd'; diagCtx.font = '9px sans-serif'; diagCtx.textAlign = 'center';
-        diagCtx.fillText('Acceptor level (B)', cx, acceptorY + 12);
+        diagCtx.fillText('Acceptor level (B), not to scale', cx, acceptorY + 12);
         diagCtx.strokeStyle = 'rgba(255,102,170,0.5)'; diagCtx.lineWidth = 1; diagCtx.setLineDash([2, 2]);
         for (let a = 0; a < 3; a++) {
           const ax = cx - 20 + a * 20;
@@ -1248,13 +1249,14 @@
         document.getElementById('materialName').style.color = '#ee5555';
         document.getElementById('dopantVal').textContent = 'Phosphorus (Group V)';
         document.getElementById('carrierVal').textContent = 'Electrons (majority)';
-        document.getElementById('condVal').textContent = voltage > 10 ? 'High' : 'Moderate';
+        // σ = q(nμn + pμp) is set by doping, not by the applied voltage
+        document.getElementById('condVal').textContent = dopantFraction >= 10 ? 'High' : 'Moderate';
       } else {
         document.getElementById('materialName').textContent = 'P-type Silicon (Si:B)';
         document.getElementById('materialName').style.color = '#5588dd';
         document.getElementById('dopantVal').textContent = 'Boron (Group III)';
         document.getElementById('carrierVal').textContent = 'Holes (majority)';
-        document.getElementById('condVal').textContent = voltage > 10 ? 'High' : 'Moderate';
+        document.getElementById('condVal').textContent = dopantFraction >= 10 ? 'High' : 'Moderate';
       }
 
       drawBandDiagram();
@@ -1276,8 +1278,8 @@
       else document.getElementById('btnPtype').classList.add('active');
       const desc = {
         pure: 'Pure silicon forms a diamond cubic lattice. Each Si atom forms 4 tetrahedral covalent bonds with its neighbours, sharing a pair of electrons per bond. All valence electrons are locked in bonds at low temperature. Raise temperature to see thermal excitation.',
-        ntype: 'Phosphorus (Group V) replaces Si atoms. Its 5th valence electron orbits the dopant loosely. At room temperature it detaches and hops bond-to-bond through the 3D lattice. Apply voltage: electrons are attracted toward the red (+) plate. The battery pushes new electrons out of the blue (\u2212) plate, sustaining current.',
-        ptype: 'Boron (Group III) has only 3 valence electrons, leaving one incomplete bond (a hole). Under voltage, the battery supplies electrons from the blue (\u2212) plate to fill nearby holes. The red (+) plate removes electrons and creates new holes. The resulting hole current moves from red (+) toward blue (\u2212).',
+        ntype: 'Phosphorus (Group V) replaces Si atoms. Its 5th valence electron orbits the dopant loosely. At room temperature it detaches and hops bond-to-bond through the 3D lattice. Apply voltage: electrons are attracted toward the red (+) plate. The battery pushes new electrons out of the blue (\u2212) plate, sustaining current. The donor level lies about 0.045 eV below the conduction band (about 4% of Eg); the diagram exaggerates this spacing.',
+        ptype: 'Boron (Group III) has only 3 valence electrons, leaving one incomplete bond (a hole). Under voltage, the battery supplies electrons from the blue (\u2212) plate to fill nearby holes. The red (+) plate removes electrons and creates new holes. The resulting hole current moves from red (+) toward blue (\u2212). The animation draws holes as vacancies hopping between bonds near boron sites; physically the hole is a mobile carrier that drifts toward the negative plate, while the B\u207B ion stays fixed. The acceptor level lies about 0.045 eV above the valence band; the diagram exaggerates this spacing.',
       };
       document.getElementById('descText').textContent = desc[mode];
       const titles = { pure: 'Band Diagram: Pure Silicon', ntype: 'Band Diagram: N-type (P)', ptype: 'Band Diagram: P-type (B)' };

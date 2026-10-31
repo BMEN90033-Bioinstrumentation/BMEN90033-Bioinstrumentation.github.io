@@ -435,7 +435,7 @@
       },
       {
         title: 'Step 4: Spectral response and material',
-        html: `A photodiode detects photons with energy above the material's <strong>bandgap</strong>. This condition sets a <strong>cutoff wavelength</strong>; longer wavelengths pass through without generating carriers:<br><br>• <strong>GaP</strong>: UV/blue only (λ<sub>c</sub> ≈ 550 nm, E<sub>g</sub> = 2.26 eV)<br>• <strong>Silicon</strong>: visible and near-IR (λ<sub>c</sub> ≈ 1100 nm, E<sub>g</sub> = 1.12 eV)<br>• <strong>InGaAs</strong>: near-IR telecommunications band (λ<sub>c</sub> ≈ 1700 nm, E<sub>g</sub> = 0.75 eV)<br><br>The material selector changes the spectral window and responsivity R (A/W).<br><br><span class="key-equation">λ<sub>cutoff</sub> = hc / E<sub>g</sub> ≈ 1240 / E<sub>g</sub>(eV) nm</span>`
+        html: `A photodiode detects photons with energy above the material's <strong>bandgap</strong>. This condition sets a <strong>cutoff wavelength</strong>; longer wavelengths pass through without generating carriers:<br><br>• <strong>GaP</strong>: UV to green (λ<sub>c</sub> ≈ 550 nm, E<sub>g</sub> = 2.26 eV)<br>• <strong>Silicon</strong>: visible and near-IR (λ<sub>c</sub> ≈ 1100 nm, E<sub>g</sub> = 1.12 eV)<br>• <strong>InGaAs</strong>: near-IR telecommunications band (λ<sub>c</sub> ≈ 1700 nm, E<sub>g</sub> = 0.75 eV)<br><br>The material selector changes the spectral window and responsivity R (A/W).<br><br><span class="key-equation">λ<sub>cutoff</sub> = hc / E<sub>g</sub> ≈ 1240 / E<sub>g</sub>(eV) nm</span>`
       }
     ];
 
@@ -483,10 +483,9 @@
     }
 
     function getDepletionHalf() {
-      const baseDepl = W * 0.08;
-      // Reverse bias widens depletion region
-      const biasExtra = reverseVoltage * W * 0.008;
-      return Math.min(baseDepl + biasExtra, W * 0.22);
+      const baseDepl = W * 0.05;
+      // Reverse bias widens the depletion region: W = W0·√(1 + V_R/V_bi), V_bi ≈ 0.7 V
+      return Math.min(baseDepl * Math.sqrt(1 + reverseVoltage / 0.7), W * 0.22);
     }
 
     // ─── Drawing helpers ───
@@ -850,9 +849,10 @@
       const pCbY = by + 32;
       const pVbY = pCbY + bandgap;
 
-      // Reverse bias: N-side bands drop FURTHER (opposite of forward bias)
-      const biasDrop = reverseVoltage * 1.2;
-      const drop = Math.min(30 + biasDrop, 50);
+      // Reverse bias: N-side bands drop further. Built-in drop qV_bi ≈ 0.65 Eg keeps
+      // E_F inside the gap; the bias term is schematic (not to the same scale)
+      const builtInDrop = 16;
+      const drop = builtInDrop + reverseVoltage * 0.8;
 
       const nCbY = pCbY + drop;
       const nVbY = nCbY + bandgap;
@@ -879,14 +879,19 @@
       ctx.lineTo(bx + bw - 10, nVbY);
       ctx.stroke();
 
-      // Fermi level (dashed)
-      const fermiY = pCbY + bandgap * 0.5 + drop * 0.5;
+      // Fermi level (dashed): flat at zero bias; under reverse bias the quasi-Fermi
+      // levels split, with E_Fp (P side) above E_Fn (N side)
+      const efOff = (bandgap - builtInDrop) / 2;
+      const fermiY = pVbY - efOff;
+      const fermiNY = nCbY + efOff;
       ctx.strokeStyle = T.gridStrong;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(bx + 10, fermiY);
-      ctx.lineTo(bx + bw - 10, fermiY);
+      ctx.lineTo(midX, fermiY);
+      ctx.moveTo(midX, fermiNY);
+      ctx.lineTo(bx + bw - 10, fermiNY);
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -961,11 +966,16 @@
       const currentMag = lightIntensity / 100;
       const alpha = 0.3 + currentMag * 0.4;
 
+      // Photons are drawn at the material's peak-response wavelength (E > Eg, absorbed).
+      // I_ph = R·P with R = ηqλ/hc = η·λ[nm]/1240 A/W, η = 0.8, P = 0-100 µW
+      const mat = MATERIALS[currentMaterial];
+      const lam = mat.peakWavelength;
+      const R = lam <= mat.cutoffWavelength ? 0.8 * lam / 1240 : 0;
       ctx.font = '500 11px JetBrains Mono';
       ctx.textAlign = 'right';
       ctx.fillStyle = `rgba(0, 255, 136, ${alpha})`;
-      const currentUA = (currentMag * 50).toFixed(1);
-      ctx.fillText(`I_ph ≈ ${currentUA} µA`, W - 16, H - 10);
+      const currentUA = (R * currentMag * 100).toFixed(1);
+      ctx.fillText(`I_ph ≈ ${currentUA} µA (R = ${R.toFixed(2)} A/W at ${lam} nm)`, W - 60, H - 10);
     }
 
     // ─── Physics Update ───

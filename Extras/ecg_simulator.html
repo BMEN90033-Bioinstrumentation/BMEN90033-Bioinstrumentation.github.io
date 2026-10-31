@@ -457,7 +457,7 @@
                     <h4>// Why is Lead I smaller than Lead II?</h4>
                     <p>The two bipolar limb leads sit at different orientations on Einthoven's triangle: Lead I along the horizontal axis at $0^{\circ}$ (LA − RA), Lead II along the LL − RA axis at $+60^{\circ}$. Each lead records the projection of the mean cardiac vector onto its own axis, so the recorded amplitude scales as $\cos(\theta - \theta_{\text{lead}})$, where $\theta$ is the mean QRS axis.</p>
                     <p>In a normally oriented adult heart, $\theta$ sits near $+60^{\circ}$, aligning the QRS vector with the Lead II axis. Lead II therefore sees the full magnitude ($\cos 0^{\circ} = 1.0$), while Lead I sees only the horizontal component ($\cos 60^{\circ} = 0.5$). This simulator uses $\theta \approx 60^{\circ}$ as its default, giving a Lead I R wave roughly half the Lead II R wave.</p>
-                    <p>The relationship reverses only when the axis rotates leftward past $+30^{\circ}$, a condition known clinically as left axis deviation, seen for example with left anterior fascicular block or certain inferior infarcts.</p>
+                    <p>The two projections are equal at $+30^{\circ}$, and Lead I exceeds Lead II only when the axis lies below $+30^{\circ}$. An axis between $-30^{\circ}$ and $+30^{\circ}$ is still within the normal range ($-30^{\circ}$ to $+90^{\circ}$). Left axis deviation is an axis more negative than $-30^{\circ}$, seen for example with left anterior fascicular block or inferior myocardial infarction.</p>
                 </div>
             </div>
 
@@ -588,7 +588,9 @@
         };
 
         // PQRST Gaussian model parameters (McSharry-style)
-        // theta in radians relative to R peak, a = amplitude, b = width.
+        // theta in radians relative to R peak at RR = 1 s, a = amplitude, b = width.
+        // P, Q, R, S keep fixed durations (QRS width is rate independent); the T wave
+        // (qt: true) position and width scale with sqrt(RR), following Bazett.
         // Lead II uses the canonical morphology. Lead I is generated from the
         // same template with amplitudes scaled by a frontal-plane projection
         // assuming a normal QRS axis near +60 degrees, which gives a Lead I
@@ -598,14 +600,14 @@
             { th: -0.17, a: -0.10, b: 0.10 },  // Q
             { th:  0.00, a:  1.00, b: 0.10 },  // R
             { th:  0.17, a: -0.25, b: 0.10 },  // S
-            { th:  1.19, a:  0.35, b: 0.40 },  // T
+            { th:  1.57, a:  0.35, b: 0.40, qt: true },  // T (pi/2, as in ECGSYN)
         ];
         const wavesI = [
             { th: -1.09, a:  0.07, b: 0.25 },  // P
             { th: -0.17, a: -0.04, b: 0.10 },  // Q
             { th:  0.00, a:  0.55, b: 0.10 },  // R
             { th:  0.17, a: -0.12, b: 0.10 },  // S
-            { th:  1.19, a:  0.25, b: 0.40 },  // T
+            { th:  1.57, a:  0.25, b: 0.40, qt: true },  // T
         ];
         const LEAD_WAVES = { I: wavesI, II: wavesII };
 
@@ -639,10 +641,13 @@
                     if (dtb < -0.6) break;
                     if (dtb > 0.8) continue;
                     const localRR = (b + 1 < beats.length ? beats[b + 1] - beats[b] : meanRR);
-                    const phase = 2 * Math.PI * dtb / Math.max(localRR, 0.3);
+                    const qtScale = Math.sqrt(Math.max(localRR, 0.3));  // Bazett: QT ∝ sqrt(RR)
+                    const phase = 2 * Math.PI * dtb;                      // radians at RR = 1 s
                     for (let w = 0; w < waves.length; w++) {
-                        const dth = phase - waves[w].th;
-                        sum += waves[w].a * Math.exp(-(dth * dth) / (2 * waves[w].b * waves[w].b));
+                        const k = waves[w].qt ? qtScale : 1;
+                        const dth = phase - waves[w].th * k;
+                        const bw = waves[w].b * k;
+                        sum += waves[w].a * Math.exp(-(dth * dth) / (2 * bw * bw));
                     }
                 }
                 clean[i] = sum * state.amp;
@@ -705,9 +710,10 @@
                 const hAmp = state.plh;
                 for (let i = 0; i < N; i++) {
                     const tt = i * dt;
+                    // Harmonics at or above Nyquist are omitted, as an anti-aliasing filter would remove them
                     let s = Math.sin(2 * Math.PI * f0 * tt + ph);
-                    s += hAmp * 0.4 * Math.sin(2 * Math.PI * 3 * f0 * tt + ph * 1.3);
-                    s += hAmp * 0.2 * Math.sin(2 * Math.PI * 5 * f0 * tt + ph * 0.7);
+                    if (3 * f0 < fs / 2) s += hAmp * 0.4 * Math.sin(2 * Math.PI * 3 * f0 * tt + ph * 1.3);
+                    if (5 * f0 < fs / 2) s += hAmp * 0.2 * Math.sin(2 * Math.PI * 5 * f0 * tt + ph * 0.7);
                     noise[i] += state.pl * s;
                 }
             }

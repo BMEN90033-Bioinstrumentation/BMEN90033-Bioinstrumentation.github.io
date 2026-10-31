@@ -493,6 +493,7 @@
     // Conductivity values in S/m (approximate physiological values)
     const TISSUE_DEFS = [
       { name: 'Heart (source)', sigma: 0.6, radius: 3, color: '#ff6644', defaultOn: true, category: 'organ' },
+      { name: 'Brain (source)', sigma: 0.33, radius: 3, color: '#e088bb', defaultOn: false, category: 'organ' },
       { name: 'Blood', sigma: 0.7, radius: 5, color: '#cc3333', defaultOn: true, category: 'fluid' },
       { name: 'Lung', sigma: 0.04, radius: 8, color: '#6688aa', defaultOn: true, category: 'organ' },
       { name: 'Muscle', sigma: 0.4, radius: 11, color: '#cc5555', defaultOn: true, category: 'tissue' },
@@ -868,20 +869,20 @@
     // It contains higher-order multipole components (quadrupole l=2,
     // octupole l=3, etc.) that carry high spatial-frequency information.
     //
-    // The volume conductor acts as a SPATIAL LOW-PASS FILTER:
-    // each concentric tissue shell has an l-dependent transfer coefficient
+    // The volume conductor acts as a SPATIAL LOW-PASS FILTER. Each
+    // harmonic l is scaled by a transfer coefficient obtained from the
+    // concentric-sphere boundary conditions (see computeTransferCoeff).
+    // For a single boundary, source medium σ_in inside, σ_out outside:
     //
-    //   T_l = (2l+1)·σ_out / [ (l+1)·σ_in + l·σ_out ]
+    //   T_l = (2l+1)·σ_in / [ l·σ_in + (l+1)·σ_out ]
     //
-    // For a resistive shell (σ_out << σ_in), T_l decreases with l, so
-    // higher spatial harmonics are attenuated MORE than the dipole (l=1).
+    // With several shells the coefficients for l ≥ 2 fall below that of
+    // the dipole (l = 1), and the multipole potential also decays as
+    // 1/r^(l+1), so higher spatial harmonics are attenuated more.
     //
-    // Additionally, the multipole potential decays as 1/r^(l+1), so higher
-    // terms also suffer greater geometric attenuation through thick shells.
-    // We model this with the factor (r_inner/r_outer)^(2l+1).
-    //
-    // Result: the recorded surface signal is a smoothed, attenuated version
-    // of the true source — high spatial frequencies are selectively removed.
+    // Volume conduction is quasi-static (Plonsey & Heppner 1967): below
+    // about 1 kHz tissue is effectively resistive, so the medium scales the
+    // signal spatially but applies no temporal filtering.
 
     let sourceComplexity = 0.4; // 0 = pure dipole, 1 = strong higher harmonics
 
@@ -934,7 +935,7 @@
       const sinTheta = Math.sqrt(Math.max(0, 1 - cosTheta * cosTheta));
       let thetaHat;
       if (sinTheta > 1e-6) {
-        thetaHat = dipoleDir.clone().sub(rHat.clone().multiplyScalar(cosTheta)).divideScalar(sinTheta);
+        thetaHat = rHat.clone().multiplyScalar(cosTheta).sub(dipoleDir).divideScalar(sinTheta);
       } else {
         thetaHat = new THREE.Vector3(0, 1, 0);
         if (Math.abs(dipoleDir.dot(thetaHat)) > 0.9) thetaHat.set(1, 0, 0);
@@ -976,47 +977,42 @@
         .add(thetaHat.clone().multiplyScalar(strength * Etheta));
     }
 
-    // --- l-dependent transfer coefficient through tissue stack ---
+    // --- l-dependent transfer through concentric tissue shells ---
     //
-    // Per boundary (Rush & Driscoll 1968, concentric sphere model):
-    //
-    //   Conductivity:  T_l = (2l+1)·σ_out / [(l+1)·σ_in + l·σ_out]
-    //   Geometric:     G_l = (r_in/r_out)^(2l+1)
-    //   Shell factor:  S_l = 1 / [1 - l·(σ_in-σ_out)/((l+1)σ_in+lσ_out) · G_l]
-    //
-    //   Combined:  T_l × S_l  per boundary
-    //
-    // Key: T_l DECREASES with l for σ_out << σ_in (spatial LPF),
-    // and G_l causes exponentially more suppression for higher l
-    // through thick shells.
+    // Exact concentric-sphere solution (cf. Rush & Driscoll 1968) for a
+    // multipole of order l at the origin. The innermost layer holds the
+    // source; the outermost enabled layer is treated as extending to infinity.
+    // In shell k:  Φ_k = [A_k r^l + B_k r^-(l+1)] P_l(cosθ),  with B_1 = 1
+    // (homogeneous source-medium term) and A_N = 0. Φ and σ ∂Φ/∂r are
+    // continuous at every boundary. For a single boundary this reduces to
+    //   B_2 = (2l+1)·σ_in / [l·σ_in + (l+1)·σ_out].
+    // Returns multipliers on the homogeneous potential term (pot) and on the
+    // homogeneous radial field term (er) at radius r.
     function computeTransferCoeff(l, rFromOrigin) {
       const activeLayers = tissueLayers.filter(lay => lay.enabled);
       activeLayers.sort((a, b) => a.radius - b.radius);
+      if (activeLayers.length < 2) return { pot: 1, er: 1 };
 
-      let T = 1.0;
+      // (A, B) in each shell, linear in the unknown A_1: u for A_1 = 1, v for B_1 = 1
+      const u = [[1, 0]], v = [[0, 1]];
       for (let i = 0; i < activeLayers.length - 1; i++) {
-        const inner = activeLayers[i];
-        const outer = activeLayers[i + 1];
-
-        if (rFromOrigin > inner.radius) {
-          const sIn = inner.sigma;
-          const sOut = outer.sigma;
-
-          // Conductivity transfer (l-dependent)
-          const denom = (l + 1) * sIn + l * sOut;
-          const Tl = ((2 * l + 1) * sOut) / denom;
-
-          // Geometric shell factor
-          const G = Math.pow(inner.radius / outer.radius, 2 * l + 1);
-
-          // Shell correction from concentric sphere solution
-          const correction = (l * (sIn - sOut)) / denom;
-          const shellFactor = 1.0 / Math.max(0.01, 1.0 - correction * G);
-
-          T *= Tl * shellFactor;
-        }
+        const R = activeLayers[i].radius, Rp = Math.pow(R, 2 * l + 1);
+        const s1 = activeLayers[i].sigma, s2 = activeLayers[i + 1].sigma;
+        const step = ([A, B]) => {
+          const x1 = A * Rp, S = x1 + B;
+          const B2 = (s2 * l * S - s1 * (l * x1 - (l + 1) * B)) / ((2 * l + 1) * s2);
+          return [(S - B2) / Rp, B2];
+        };
+        u.push(step(u[i]));
+        v.push(step(v[i]));
       }
-      return Math.max(1e-10, Math.min(10, T));
+      const N = activeLayers.length - 1;
+      const A1 = -v[N][0] / u[N][0];
+      let k = 0;
+      while (k < N && rFromOrigin > activeLayers[k].radius) k++;
+      const A = A1 * u[k][0] + v[k][0], B = A1 * u[k][1] + v[k][1];
+      const a = A * Math.pow(rFromOrigin, 2 * l + 1);
+      return { pot: a + B, er: B - l * a / (l + 1) };
     }
 
     // --- Volume-conductor modified potential (l-dependent filtering) ---
@@ -1032,8 +1028,7 @@
         const w = multipoleWeight(l);
         if (Math.abs(w) < 1e-9) continue;
         const baseTerm = w * legendreP(l, cosTheta) / Math.pow(dist, l + 1);
-        const Tl = computeTransferCoeff(l, rFromOrigin);
-        pot += baseTerm * Tl;
+        pot += baseTerm * computeTransferCoeff(l, rFromOrigin).pot;
       }
       return strength * pot;
     }
@@ -1051,8 +1046,8 @@
         const w = multipoleWeight(l);
         if (Math.abs(w) < 1e-9) continue;
         const Tl = computeTransferCoeff(l, rFromOrigin);
-        Er += w * Tl * (l + 1) * legendreP(l, cosTheta) / Math.pow(dist, l + 2);
-        Etheta += w * Tl * sinTheta * legendrePprime(l, cosTheta) / Math.pow(dist, l + 2);
+        Er += w * Tl.er * (l + 1) * legendreP(l, cosTheta) / Math.pow(dist, l + 2);
+        Etheta += w * Tl.pot * sinTheta * legendrePprime(l, cosTheta) / Math.pow(dist, l + 2);
       }
       return rHat.clone().multiplyScalar(strength * Er)
         .add(thetaHat.clone().multiplyScalar(strength * Etheta));
@@ -1192,7 +1187,7 @@
         sigCtx.fillText(`V(${a.label}) − V(${b.label})`, 4, H - 20);
       }
 
-      // Attenuation ratio + LPF cutoff display
+      // Attenuation ratio display
       if (electrodes.length >= 2) {
         const lastTrue = trueSignalHistory[trueSignalHistory.length - 1];
         const lastRec = recordedSignalHistory[recordedSignalHistory.length - 1];
@@ -1203,14 +1198,7 @@
           const scaleLabel = recordedScaleFactor !== 1.0 ? `  (display: ${(ratio * recordedScaleFactor).toFixed(3)}x)` : '';
           sigCtx.fillText(`atten: ${ratio.toFixed(3)}x${scaleLabel}`, 4, 28);
         }
-        const tau = computeEffectiveTau();
-        if (tau > 1e-6) {
-          const fc = 1 / (2 * Math.PI * tau);
-          sigCtx.fillText(`LPF f_c: ${fc.toFixed(0)} Hz  τ: ${(tau * 1000).toFixed(1)} ms`, 4, 40);
-        } else {
-          sigCtx.fillStyle = T.textGray;
-          sigCtx.fillText('LPF: off (no layers)', 4, 40);
-        }
+        sigCtx.fillText('quasi-static: no temporal filtering', 4, 40);
       }
 
       sigCtx.restore();
@@ -1304,7 +1292,7 @@
 
       const dir = new THREE.Vector3(
         Math.cos(azimuth) * Math.cos(elevation),
-        -Math.sin(elevation),
+        Math.sin(elevation),       // +y is superior; negative elevation is inferior
         Math.sin(azimuth) * Math.cos(elevation)
       );
       if (dir.length() > 0.01) dir.normalize();
@@ -1327,7 +1315,8 @@
     // We model a dominant alpha rhythm with contributions from other
     // bands, creating a realistic "resting-state" EEG appearance.
     // The dipole oscillates in direction (cortical orientation) and
-    // the composite signal shows the characteristic 1/f spectral shape.
+    // band amplitudes are chosen to give a dominant alpha peak; they do not
+    // follow a 1/f spectrum.
 
     const EEG_BANDS = [
       { freq: 2.5, amp: 0.20, phase: 0.0, label: 'delta' },
@@ -1458,53 +1447,6 @@
     });
 
     // =============================================
-    // TEMPORAL LOW-PASS FILTER (volume conductor RC effect)
-    // =============================================
-    //
-    // Tissue layers are not purely resistive — they have capacitive
-    // properties (cell membranes, tissue interfaces). Each resistive
-    // barrier acts as an RC low-pass filter on the temporal signal:
-    //
-    //   τ_eff = Σ (thickness_i / σ_i)  ×  C_tissue
-    //
-    // More resistive layers → larger τ → lower cutoff frequency →
-    // the high-frequency components of the signal are smoothed out.
-    //
-    // This is why ECG through the torso loses sharp QRS detail, and
-    // why EEG through the skull loses fast beta/gamma oscillations.
-    //
-    // Implementation: first-order IIR filter per sample
-    //   y[n] = α·x[n] + (1-α)·y[n-1]
-    //   α = dt / (dt + τ)
-
-    let filteredRecA = 0;  // filter state for electrode A
-    let filteredRecB = 0;  // filter state for electrode B
-
-    function computeEffectiveTau() {
-      const activeLayers = tissueLayers.filter(l => l.enabled);
-      activeLayers.sort((a, b) => a.radius - b.radius);
-
-      let resistanceSum = 0;
-      for (let i = 0; i < activeLayers.length - 1; i++) {
-        const inner = activeLayers[i];
-        const outer = activeLayers[i + 1];
-        const thickness = outer.radius - inner.radius;
-        // Each layer's contribution: thickness / conductivity
-        // Low-σ layers (skin, skull, fat) dominate the sum
-        resistanceSum += thickness / outer.sigma;
-      }
-
-      // Scale to a physiologically reasonable time constant range.
-      // Typical tissue capacitance ~1e-4 F/m² gives τ in the ms range
-      // for realistic layer stacks.
-      //   No layers:    τ ≈ 0       → no filtering
-      //   ECG torso:    τ ≈ 5-15 ms → smooths sharp QRS peaks slightly
-      //   EEG + skull:  τ ≈ 15-40 ms → removes fast beta/gamma
-      const C_tissue = 3e-4;  // effective capacitance scaling factor
-      return resistanceSum * C_tissue;
-    }
-
-    // =============================================
     // ANIMATION LOOP
     // =============================================
     const clock = new THREE.Clock();
@@ -1608,7 +1550,7 @@
         arrow.setColor(new THREE.Color(col.r * 1.0, col.g * 0.5, col.b * 0.7));
       }
 
-      // Update signal traces with temporal LPF
+      // Update signal traces (quasi-static: no temporal filtering)
       if (electrodes.length >= 2) {
         const eA = electrodes[0].pos;
         const eB = electrodes[1].pos;
@@ -1620,24 +1562,11 @@
         trueSignalHistory.push(truePotA - truePotB);
         if (trueSignalHistory.length > SIGNAL_LEN) trueSignalHistory.shift();
 
-        // Recorded signal — spatially filtered (l-dependent transfer) THEN
-        // temporally filtered (RC low-pass from tissue layers)
+        // Recorded signal: spatially filtered (l-dependent transfer) only
         const rawRecA = volumeConductorPotential(dipolePos, dipoleDir, eA, effectiveStrength) * 80;
         const rawRecB = volumeConductorPotential(dipolePos, dipoleDir, eB, effectiveStrength) * 80;
 
-        // Apply temporal LPF:  y[n] = α·x[n] + (1-α)·y[n-1]
-        const tau = computeEffectiveTau();
-        if (tau > 1e-6 && dt > 0) {
-          const alpha = dt / (dt + tau);
-          filteredRecA = alpha * rawRecA + (1 - alpha) * filteredRecA;
-          filteredRecB = alpha * rawRecB + (1 - alpha) * filteredRecB;
-        } else {
-          // No filtering (no layers or τ ≈ 0)
-          filteredRecA = rawRecA;
-          filteredRecB = rawRecB;
-        }
-
-        recordedSignalHistory.push(filteredRecA - filteredRecB);
+        recordedSignalHistory.push(rawRecA - rawRecB);
         if (recordedSignalHistory.length > SIGNAL_LEN) recordedSignalHistory.shift();
       }
 
@@ -1664,7 +1593,6 @@
       sourceComplexity = parseFloat(e.target.value);
       trueSignalHistory.fill(0);
       recordedSignalHistory.fill(0);
-      filteredRecA = 0; filteredRecB = 0;
     });
 
     document.getElementById('densitySlider').addEventListener('input', e => {
@@ -1709,7 +1637,6 @@
       addElectrode(new THREE.Vector3(-14, 0, 0), 'B');
       trueSignalHistory.fill(0);
       recordedSignalHistory.fill(0);
-      filteredRecA = 0; filteredRecB = 0;
     });
 
     document.getElementById('animateDipole').addEventListener('click', () => {
@@ -1724,7 +1651,6 @@
       document.getElementById('animateDipole').textContent = animatingDipole ? 'Stop Animation' : 'Animate Dipole';
       trueSignalHistory.fill(0);
       recordedSignalHistory.fill(0);
-      filteredRecA = 0; filteredRecB = 0;
     });
 
     document.getElementById('playPauseBtn').addEventListener('click', () => {
@@ -1775,14 +1701,13 @@
       animTime = 0;
       trueSignalHistory.fill(0);
       recordedSignalHistory.fill(0);
-      filteredRecA = 0; filteredRecB = 0;
       document.getElementById('signalTitle').innerHTML = 'ECG: True vs Recorded (V<sub>A</sub> − V<sub>B</sub>)';
       document.getElementById('animateDipole').textContent = 'Animate Dipole';
     });
 
     // EEG preset: CSF + skull + scalp + brain oscillation signal
     document.getElementById('presetEegBtn').addEventListener('click', () => {
-      const eegLayers = ['Heart (source)', 'CSF (brain)', 'Skull', 'Scalp', 'Skin'];
+      const eegLayers = ['Brain (source)', 'CSF (brain)', 'Skull', 'Scalp'];
       tissueLayers.forEach(l => {
         l.enabled = eegLayers.includes(l.name);
         if (l.mesh) l.mesh.visible = l.enabled;
@@ -1794,7 +1719,6 @@
       animTime = 0;
       trueSignalHistory.fill(0);
       recordedSignalHistory.fill(0);
-      filteredRecA = 0; filteredRecB = 0;
       document.getElementById('signalTitle').innerHTML = 'EEG: True vs Recorded (V<sub>A</sub> − V<sub>B</sub>)';
       document.getElementById('animateDipole').textContent = 'Animate Dipole';
     });

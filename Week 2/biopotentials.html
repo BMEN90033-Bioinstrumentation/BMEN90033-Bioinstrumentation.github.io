@@ -227,8 +227,8 @@
                 <div class="canvas-overlay">
                     <div><span class="legend-dot" style="background:var(--primary-color)"></span>Vm</div>
                     <div><span class="legend-dot" style="background:#f59e0b"></span>Stimulus</div>
-                    <div><span class="legend-dot" style="background:#ffd700"></span>INa</div>
-                    <div><span class="legend-dot" style="background:#3b82f6"></span>IK</div>
+                    <div><span class="legend-dot" style="background:#ffd700"></span>Na&#8314; influx</div>
+                    <div><span class="legend-dot" style="background:#3b82f6"></span>K&#8314; efflux</div>
                 </div>
             </div>
 
@@ -265,12 +265,12 @@
 
             <div class="metric-card">
                 <div class="metric-label">Na+ Conductance</div>
-                <div class="metric-value" id="gNaDisp">0.0 mS</div>
+                <div class="metric-value" id="gNaDisp">0.0 mS/cm²</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-label">K+ Conductance</div>
-                <div class="metric-value" id="gKDisp">0.0 mS</div>
+                <div class="metric-value" id="gKDisp">0.0 mS/cm²</div>
             </div>
 
             <div class="metric-card">
@@ -287,6 +287,8 @@
                 <div class="metric-label">Flux (Na in/out, K out/in)</div>
                 <div class="metric-value" id="fluxDisp">Na: --/-- | K: --/--</div>
             </div>
+
+            <p class="metric-label" style="margin:0; line-height:1.4;">Particle counts are scaled for visibility. A single action potential changes bulk concentrations negligibly; E<sub>Na</sub> and E<sub>K</sub> are held fixed.</p>
         </div>
     </div>
 
@@ -1274,8 +1276,8 @@
 
             // Core metrics
             document.getElementById('vmDisp').innerText = HH.V.toFixed(1) + " mV";
-            document.getElementById('gNaDisp').innerText = (HH.g_Na * Math.pow(HH.m, 3) * HH.h).toFixed(1) + " mS";
-            document.getElementById('gKDisp').innerText = (HH.g_K * Math.pow(HH.n, 4)).toFixed(1) + " mS";
+            document.getElementById('gNaDisp').innerText = (HH.g_Na * Math.pow(HH.m, 3) * HH.h).toFixed(1) + " mS/cm²";
+            document.getElementById('gKDisp').innerText = (HH.g_K * Math.pow(HH.n, 4)).toFixed(1) + " mS/cm²";
 
             requestAnimationFrame(loop);
         }

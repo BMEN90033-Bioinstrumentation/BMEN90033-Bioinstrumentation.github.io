@@ -354,6 +354,7 @@
     const THRESHOLD_CURRENT = 40;   // mA — lasing threshold
     const CAVITY_LENGTH_NM = 300;   // μm typical
     const FACET_REFLECTIVITY = 0.32; // ~32% for cleaved GaAs (n≈3.5)
+    const REAR_FACET_REFLECTIVITY = 0.95; // HR-coated rear facet
     const WAVELENGTH = 870;          // nm (GaAs)
 
     // ─── State ───
@@ -397,7 +398,7 @@
       },
       {
         title: 'Step 3: Population inversion',
-        html: `At low current, most recombination is <strong>spontaneous</strong>, so the junction behaves as an LED. As current increases, the electron quasi-Fermi level (E<sub>Fc</sub>) rises while the hole quasi-Fermi level (E<sub>Fv</sub>) falls.<br><br>The condition <strong>E<sub>Fc</sub> − E<sub>Fv</sub> > E<sub>g</sub></strong> produces <strong>population inversion</strong> across a range of photon energies. This Bernard-Duraffourg condition permits net stimulated-emission gain. The band diagram shows the quasi-Fermi-level separation near the threshold current (~${THRESHOLD_CURRENT} mA).<br><br><span class="key-equation">E<sub>Fc</sub> − E<sub>Fv</sub> > E<sub>g</sub>  (Bernard-Duraffourg)</span>`
+        html: `At low current, most recombination is <strong>spontaneous</strong>, so the junction behaves as an LED. As current increases, the electron quasi-Fermi level (E<sub>Fc</sub>) rises while the hole quasi-Fermi level (E<sub>Fv</sub>) falls.<br><br>The condition <strong>E<sub>Fc</sub> − E<sub>Fv</sub> > E<sub>g</sub></strong> produces <strong>population inversion</strong> across a range of photon energies. This Bernard-Duraffourg condition permits net stimulated-emission gain. The separation reaches E<sub>g</sub> at the transparency current, slightly below threshold (~${THRESHOLD_CURRENT} mA); above threshold it is clamped.<br><br><span class="key-equation">E<sub>Fc</sub> − E<sub>Fv</sub> > E<sub>g</sub>  (Bernard-Duraffourg)</span>`
       },
       {
         title: 'Step 4: Stimulated emission and optical gain',
@@ -405,7 +406,7 @@
       },
       {
         title: 'Step 5: The Fabry-Pérot optical cavity',
-        html: `The cleaved crystal facets of the semiconductor (refractive index n ≈ 3.5) work as <strong>~32% reflectors</strong>, forming a <strong>Fabry-Pérot resonator</strong>. Photons bounce back and forth between these mirrors, passing through the gain medium multiple times.<br><br>Lasing starts when the <strong>round-trip gain matches the round-trip loss</strong> (mirror loss + internal absorption + scattering):<br><br><span class="key-equation">Γ · g<sub>th</sub> = α<sub>i</sub> + (1/2L) · ln(1/R₁R₂)</span><br><br>where Γ is the optical confinement factor, α<sub>i</sub> is internal loss, L is cavity length (~300 μm), and R₁, R₂ are facet reflectivities (~0.32). Only modes that satisfy the resonance condition 2nL = mλ are supported.`
+        html: `The cleaved crystal facets of the semiconductor (refractive index n ≈ 3.5) work as <strong>~32% reflectors</strong>, forming a <strong>Fabry-Pérot resonator</strong>. Photons bounce back and forth between these mirrors, passing through the gain medium multiple times.<br><br>Lasing starts when the <strong>round-trip gain matches the round-trip loss</strong> (mirror loss + internal absorption + scattering):<br><br><span class="key-equation">Γ · g<sub>th</sub> = α<sub>i</sub> + (1/2L) · ln(1/R₁R₂)</span><br><br>where Γ is the optical confinement factor, α<sub>i</sub> is internal loss, L is cavity length (~300 μm), and R₁, R₂ are facet reflectivities: about 0.32 for an uncoated cleaved facet. The rear facet is commonly HR-coated (R₁ ≈ 0.95) so that most light exits through the front facet. Only modes that satisfy the resonance condition 2nL = mλ are supported.`
       },
       {
         title: 'Step 6: Coherent output above threshold',
@@ -620,7 +621,7 @@
       const mirrorTop = active.top - 10;
       const mirrorBottom = active.bottom + 10;
 
-      // Left mirror (fully reflective representation)
+      // Left mirror: rear facet, HR-coated (R1 ≈ 95%)
       ctx.fillStyle = T.overlay25;
       ctx.fillRect(active.left - mirrorWidth - 20, mirrorTop, mirrorWidth, mirrorBottom - mirrorTop);
       ctx.strokeStyle = T.overlay40;
@@ -650,9 +651,9 @@
       ctx.font = '500 9px JetBrains Mono';
       ctx.fillStyle = T.overlay35;
       ctx.textAlign = 'center';
-      ctx.fillText('R₁ ≈ 32%', active.left - mirrorWidth / 2 - 20, mirrorTop - 8);
+      ctx.fillText('R₁ ≈ 95%', active.left - mirrorWidth / 2 - 20, mirrorTop - 8);
       ctx.fillText('R₂ ≈ 32%', active.right + mirrorWidth / 2 + 20, mirrorTop - 8);
-      ctx.fillText('(cleaved facet)', active.left - mirrorWidth / 2 - 20, mirrorTop - 20);
+      ctx.fillText('(HR-coated facet)', active.left - mirrorWidth / 2 - 20, mirrorTop - 20);
       ctx.fillText('(output coupler)', active.right + mirrorWidth / 2 + 20, mirrorTop - 20);
     }
 
@@ -802,7 +803,10 @@
 
       // Quasi-Fermi levels (steps 2+)
       if (currentStep >= 2 && injectionCurrent > 5) {
-        const fermiSplit = Math.min(injectionCurrent / 100, 1) * 30;
+        // Separation reaches Eg at transparency (I_tr = 0.8·I_th) and is clamped above
+        // threshold, where stimulated emission pins the carrier density
+        const I_TR = 0.8 * THRESHOLD_CURRENT;
+        const fermiSplit = 20 * Math.min(injectionCurrent, THRESHOLD_CURRENT) / I_TR;
         const eFcY = cbBase + bendAmount / 2 + 8 - fermiSplit * 0.4;
         const eFvY = vbBase + bendAmount / 2 - 8 + fermiSplit * 0.4;
 
@@ -831,8 +835,8 @@
         ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
         ctx.fillText('E_Fv', bx + bw - 5, eFvY + 10);
 
-        // Population inversion indicator
-        if (isAboveThreshold()) {
+        // Population inversion indicator: shown only when E_Fc - E_Fv > Eg in the drawing
+        if (eFvY - eFcY > vbBase - cbBase) {
           ctx.font = '600 8px JetBrains Mono';
           ctx.fillStyle = 'rgba(255, 200, 50, 0.7)';
           ctx.textAlign = 'center';
@@ -1203,7 +1207,7 @@
 
           // Reflect off mirrors
           if (p.x <= mirrorLeft && p.vx < 0) {
-            if (Math.random() < FACET_REFLECTIVITY) {
+            if (Math.random() < REAR_FACET_REFLECTIVITY) {
               p.vx *= -1;
               p.x = mirrorLeft + 2;
               p.bounces++;

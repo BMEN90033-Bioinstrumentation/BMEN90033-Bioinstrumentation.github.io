@@ -274,10 +274,10 @@
       </div>
       <div class="section-label" style="margin-top:10px">Dipole</div>
       <div class="legend">
-        <div class="dot" style="background:#ff8888"></div> + (depolarised ahead)
+        <div class="dot" style="background:#ff8888"></div> + (resting tissue ahead)
       </div>
       <div class="legend">
-        <div class="dot" style="background:#8888ff"></div> &minus; (resting behind)
+        <div class="dot" style="background:#8888ff"></div> &minus; (depolarised tissue behind)
       </div>
       <div class="legend">
         <div class="dot" style="background:#ffaa44"></div> Intracellular current
@@ -298,7 +298,7 @@
       <div class="val-row">
         <span class="val" style="color:#ffc832" id="speedRatio">Ratio: —</span>
       </div>
-      <div class="label">Conduction velocity comparison</div>
+      <div class="label">Typical physiological values; animation speeds are schematic.<br>Myelin thickness changes only the drawing.</div>
     </div>
 
     <div id="signal-panel">
@@ -980,7 +980,6 @@
           if (!myelJumping) {
             // Dwelling at current node
             myelNodeTimer += dt * simSpeed;
-            const totalTransitTime = INTERNODE_DIST / myelSpeed;
             if (myelNodeTimer >= DWELL_TIME / simSpeed) {
               // Start jump
               myelJumping = true;
@@ -989,7 +988,6 @@
             myelDisplayX = nodePositions[myelCurrentNode];
           } else {
             // Jumping to next node
-            const totalTransitTime = INTERNODE_DIST / myelSpeed;
             myelJumpProgress += dt / Math.max(JUMP_DURATION / simSpeed, 0.01);
             if (myelJumpProgress >= 1) {
               myelJumpProgress = 1;
@@ -1029,8 +1027,8 @@
         // Record signals
         const myelDist = RECORD_X - myelWavefrontX;
         const unmyelDist = RECORD_X - unmyelWavefrontX;
-        signalMyel.push(apShape(-myelDist));
-        signalUnmyel.push(apShape(-unmyelDist));
+        signalMyel.push(apShape(myelDist));
+        signalUnmyel.push(apShape(unmyelDist));
         if (signalMyel.length > SIGNAL_LEN) signalMyel.shift();
         if (signalUnmyel.length > SIGNAL_LEN) signalUnmyel.shift();
       }
@@ -1042,8 +1040,12 @@
       const unmyelInTissue = unmyelWavefrontX >= -HALF_LEN && unmyelWavefrontX <= HALF_LEN + 2;
 
       // Depolarised region
-      unmyelDepol.position.x = unmyelClampedX;
-      unmyelDepol.visible = unmyelInTissue;
+      // Depolarised region lies behind the front, clipped to the axon
+      const depL = Math.max(-HALF_LEN, unmyelClampedX - DEPOL_WIDTH_UNMYEL);
+      const depLen = unmyelClampedX - depL;
+      unmyelDepol.scale.x = Math.max(depLen, 0.01) / DEPOL_WIDTH_UNMYEL;
+      unmyelDepol.position.x = depL + depLen / 2;
+      unmyelDepol.visible = unmyelInTissue && depLen > 0.05;
 
       // Dipole group at wavefront
       unmyelDipoleGroup.position.set(unmyelClampedX, UNMYEL_Y, 0);
@@ -1216,11 +1218,11 @@
       // ============================================================
       //  READOUT
       // ============================================================
-      const effectiveMyelSpeed = (UNMYEL_BASE_SPEED * MYEL_SPEED_MULTIPLIER).toFixed(1);
-      const effectiveUnmyelSpeed = UNMYEL_BASE_SPEED.toFixed(1);
-      document.getElementById('myelSpeed').textContent = `Myelinated: ~${effectiveMyelSpeed} m/s`;
-      document.getElementById('unmyelSpeed').textContent = `Unmyelinated: ~${effectiveUnmyelSpeed} m/s`;
-      document.getElementById('speedRatio').textContent = `Ratio: ${MYEL_SPEED_MULTIPLIER}\u00D7 faster`;
+      // Animated myelinated speed is set by node dwell + jump timing, not MYEL_SPEED_MULTIPLIER
+      const animRatio = INTERNODE_DIST / (DWELL_TIME + JUMP_DURATION) / UNMYEL_BASE_SPEED;
+      document.getElementById('myelSpeed').textContent = 'Myelinated (A fibres): 5\u2013120 m/s';
+      document.getElementById('unmyelSpeed').textContent = 'Unmyelinated (C fibres): 0.5\u20132 m/s';
+      document.getElementById('speedRatio').textContent = `Animation ratio: ${animRatio.toFixed(1)}\u00D7`;
 
       drawSignal();
       renderer.render(scene, camera);

@@ -133,10 +133,9 @@
       <div class="legend"><div class="dot" style="background:#ff8844"></div> Conduction band shell</div>
       <div class="legend"><div class="dot" style="background:#ffcc44"></div> Free electrons (delocalised)</div>
       <p id="descText">Each atom has a valence shell (blue sphere) and a conduction
-        shell (orange sphere). The gap between them is the band gap.
-        As temperature rises, the conduction shell contracts. When it
-        overlaps the valence shell, electrons can move
-        between neighbouring atoms.</p>
+        shell (orange sphere). The separation between them represents the band gap.
+        In a semiconductor the gap narrows only slightly as temperature rises; conductivity
+        rises because more electrons are thermally excited across it.</p>
     </div>
 
     <div id="band-panel" class="panel">
@@ -222,7 +221,7 @@
         valenceRadius: 2.8,
         // Conduction band radius: starts far out, shrinks slightly with temp
         conductionRadiusBase: 5.5,   // at T=0
-        conductionRadiusMin: 4.5,    // at T=max — barely shrinks, gap stays huge
+        conductionRadiusMin: 5.3,    // at T=max: gap narrows by under 10%
         freeElectronCurve: t => (t > 0.9 ? Math.floor((t - 0.9) * 20) : 0),
         conductivityLabel: t => t > 0.9 ? 'Negligible' : 'None',
         desc: 'The conduction shell is far from the valence shell (~9 eV gap). Even at high temperature it barely contracts, so electrons cannot reach it. No current flows.',
@@ -236,7 +235,7 @@
         valenceElectrons: 4,
         valenceRadius: 2.8,
         conductionRadiusBase: 4.5,
-        conductionRadiusMin: 2.8,    // at max temp shrinks to touch valence shell
+        conductionRadiusMin: 4.08,   // Varshni: Si Eg 1.17 eV (0 K) to 0.88 eV (1000 K); gap never closes
         freeElectronCurve: t => Math.floor(t * t * 12),
         conductivityLabel: t => {
           if (t < 0.15) return 'Very Low';
@@ -244,21 +243,21 @@
           if (t < 0.7) return 'Moderate';
           return 'High';
         },
-        desc: 'The conduction shell starts slightly beyond the valence shell (~1.1 eV gap). As temperature rises, thermal energy shrinks the effective gap. Electrons then enter the conduction shell and travel between atoms.',
+        desc: 'The conduction shell lies slightly beyond the valence shell (Si: 1.17 eV at 0 K, 1.12 eV at 300 K). The gap narrows only slightly with temperature and never closes. Conductivity rises because the number of electrons thermally excited across the gap grows as n\u1D62 \u221D T^(3/2) exp(\u2212Eg/2kT); each leaves a hole in the valence band.',
       },
       conductor: {
         label: 'Conductor (Cu)',
-        bandGapEV: '0 eV (overlap)',
+        bandGapEV: 'none (partly filled 4s band)',
         color: 0x5090e0, colorCSS: '#5090e0',
         nucleusColor: 0xffaa44,
         innerShellElectrons: 6,
         valenceElectrons: 1,
         valenceRadius: 2.8,
-        conductionRadiusBase: 2.8,   // already overlaps at any temperature
+        conductionRadiusBase: 2.8,   // drawn touching: partly filled band, no gap
         conductionRadiusMin: 2.8,
         freeElectronCurve: () => 6,
         conductivityLabel: () => 'Very High',
-        desc: 'The conduction shell overlaps the valence shell at all temperatures (0 eV gap). The outermost electron is therefore free to drift between atoms, producing the electron sea of a metal.',
+        desc: 'The shells are drawn touching to represent a partly filled band. Copper\'s 4s band is half occupied, so empty states lie immediately above the occupied ones and no gap must be crossed. The outermost electron drifts between atoms, forming the electron sea of a metal.',
       },
     };
 
@@ -644,13 +643,17 @@
         bandCtx.fillText('E_g', bx + 7, (cbBotPx + vbTopPx) / 2 + 3);
       }
 
-      // Electrons in valence band
+      // Electrons in valence band; each excited electron leaves a hole (open circle)
       const numFree = cfg.freeElectronCurve(tempNorm);
+      const numHoles = cbBotPx < vbTopPx - 4 ? Math.min(numFree, 10) : 0;
       bandCtx.fillStyle = 'rgba(68,136,255,0.8)';
-      for (let d = 0; d < 8; d++) {
+      bandCtx.strokeStyle = 'rgba(68,136,255,0.8)';
+      bandCtx.lineWidth = 1;
+      for (let d = 0; d < 15; d++) {
         const ex = left + 15 + (d % 5) * (bandW - 30) / 4;
         const ey = vbTopPx + 10 + Math.floor(d / 5) * 12;
-        bandCtx.beginPath(); bandCtx.arc(ex, ey, 3, 0, Math.PI * 2); bandCtx.fill();
+        bandCtx.beginPath(); bandCtx.arc(ex, ey, 3, 0, Math.PI * 2);
+        if (d < numHoles) bandCtx.stroke(); else bandCtx.fill();
       }
 
       // Free electrons in conduction band
@@ -694,7 +697,7 @@
       bandCtx.fillStyle = '#ff8844';
       bandCtx.fillText('Conduction Band', cx, topY + 10);
 
-      const tempK = Math.round(200 + temperature * 15);
+      const tempK = Math.round(temperature * 10);
       bandCtx.fillStyle = T.yellow2;
       bandCtx.font = 'bold 10px sans-serif';
       bandCtx.textAlign = 'left';
@@ -858,7 +861,7 @@
       }
 
       // ── UI ──
-      const tempK2 = Math.round(200 + temperature * 15);
+      const tempK2 = Math.round(temperature * 10);
       document.getElementById('materialName').textContent = cfg.label;
       document.getElementById('materialName').style.color = cfg.colorCSS;
       document.getElementById('bandGapVal').textContent = cfg.bandGapEV;
@@ -888,7 +891,7 @@
 
     document.getElementById('tempSlider').addEventListener('input', e => {
       temperature = parseFloat(e.target.value);
-      document.getElementById('tempValue').textContent = Math.round(200 + temperature * 15) + ' K';
+      document.getElementById('tempValue').textContent = Math.round(temperature * 10) + ' K';
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {

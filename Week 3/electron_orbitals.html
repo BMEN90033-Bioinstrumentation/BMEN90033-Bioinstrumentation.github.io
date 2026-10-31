@@ -232,8 +232,8 @@
       <h2>Quantum Numbers</h2>
       <div class="stat-row"><span>n (principal)</span><span class="stat-val" id="readout-n">1</span></div>
       <div class="stat-row"><span>l (angular)</span><span class="stat-val" id="readout-l">0</span></div>
-      <div class="stat-row"><span>m (magnetic)</span><span class="stat-val" id="readout-m">0</span></div>
-      <div class="stat-row"><span>Energy</span><span class="stat-val" id="readout-energy">-13.6 eV</span></div>
+      <div class="stat-row"><span>m (real-harmonic index)</span><span class="stat-val" id="readout-m">0</span></div>
+      <div class="stat-row"><span>Energy (hydrogenic estimate)</span><span class="stat-val" id="readout-energy">-13.6 eV</span></div>
       <div class="stat-row"><span>Z<sub>eff</sub></span><span class="stat-val" id="readout-zeff">1.00</span></div>
     </div>
 
@@ -355,8 +355,8 @@ const ORBITAL_DEFS = {
   '3dz2':  { n: 3, l: 2, m: 0,  label: '3d_z\u00B2',  color: '#ff66aa' },
   '3dxz':  { n: 3, l: 2, m: 1,  label: '3d_xz',  color: '#66ffaa' },
   '3dyz':  { n: 3, l: 2, m: -1, label: '3d_yz',  color: '#aa66ff' },
-  '3dxy':  { n: 3, l: 2, m: 2,  label: '3d_xy',  color: '#ffaa66' },
-  '3dx2y2':{ n: 3, l: 2, m: -2, label: '3d_x\u00B2-y\u00B2', color: '#66aaff' },
+  '3dxy':  { n: 3, l: 2, m: -2,  label: '3d_xy',  color: '#ffaa66' },
+  '3dx2y2':{ n: 3, l: 2, m: 2, label: '3d_x\u00B2-y\u00B2', color: '#66aaff' },
   '4s':    { n: 4, l: 0, m: 0,  label: '4s',   color: '#33ffcc' },
   '4px':   { n: 4, l: 1, m: 1,  label: '4p_x', color: '#ff5599' },
   '4py':   { n: 4, l: 1, m: -1, label: '4p_y', color: '#55aaff' },
@@ -364,8 +364,8 @@ const ORBITAL_DEFS = {
   '4dz2':  { n: 4, l: 2, m: 0,  label: '4d_z\u00B2',  color: '#ff77bb' },
   '4dxz':  { n: 4, l: 2, m: 1,  label: '4d_xz',  color: '#77ffbb' },
   '4dyz':  { n: 4, l: 2, m: -1, label: '4d_yz',  color: '#bb77ff' },
-  '4dxy':  { n: 4, l: 2, m: 2,  label: '4d_xy',  color: '#ffbb77' },
-  '4dx2y2':{ n: 4, l: 2, m: -2, label: '4d_x\u00B2-y\u00B2', color: '#77bbff' },
+  '4dxy':  { n: 4, l: 2, m: -2,  label: '4d_xy',  color: '#ffbb77' },
+  '4dx2y2':{ n: 4, l: 2, m: 2, label: '4d_x\u00B2-y\u00B2', color: '#77bbff' },
   '4f0':   { n: 4, l: 3, m: 0,  label: '4f_0',  color: '#ff99cc' },
   '4f1':   { n: 4, l: 3, m: 1,  label: '4f_1',  color: '#99ccff' },
   '4fm1':  { n: 4, l: 3, m: -1, label: '4f_{-1}', color: '#cc99ff' },
@@ -380,14 +380,15 @@ const ORBITAL_DEFS = {
   '5dz2':  { n: 5, l: 2, m: 0,  label: '5d_z\u00B2',  color: '#ff88cc' },
   '5dxz':  { n: 5, l: 2, m: 1,  label: '5d_xz',  color: '#88ffcc' },
   '5dyz':  { n: 5, l: 2, m: -1, label: '5d_yz',  color: '#cc88ff' },
-  '5dxy':  { n: 5, l: 2, m: 2,  label: '5d_xy',  color: '#ffcc88' },
-  '5dx2y2':{ n: 5, l: 2, m: -2, label: '5d_x\u00B2-y\u00B2', color: '#88ccff' },
+  '5dxy':  { n: 5, l: 2, m: -2,  label: '5d_xy',  color: '#ffcc88' },
+  '5dx2y2':{ n: 5, l: 2, m: 2, label: '5d_x\u00B2-y\u00B2', color: '#88ccff' },
   '6s':    { n: 6, l: 0, m: 0,  label: '6s',   color: '#55ffee' },
+  '6pz':   { n: 6, l: 1, m: 0,  label: '6p_z', color: '#ee66ff' },
 };
 
 const ELEMENT_ZEFF = {
   carbon:  { '1s': 5.7, '2s': 3.25, '2p': 3.25 },
-  silicon: { '1s': 13.6, '2s': 9.95, '2p': 9.95, '3s': 4.29, '3p': 4.29 },
+  silicon: { '1s': 13.6, '2s': 9.95, '2p': 9.95, '3s': 4.90, '3p': 4.29 },
   gold:    { '1s': 77.5, '2s': 69.8, '2p': 69.8, '3s': 48.0, '3p': 48.0, '3d': 38.0,
              '4s': 28.0, '4p': 28.0, '4d': 18.0, '4f': 10.0, '5s': 8.0, '5p': 8.0, '5d': 4.2, '6s': 2.2 }
 };
@@ -416,11 +417,11 @@ const ELEMENTS = {
       { key: '2px', electrons: 2, Zeff: 9.95 },
       { key: '2py', electrons: 2, Zeff: 9.95 },
       { key: '2pz', electrons: 2, Zeff: 9.95 },
-      { key: '3s',  electrons: 2, Zeff: 4.29 },
+      { key: '3s',  electrons: 2, Zeff: 4.90 },
       { key: '3px', electrons: 1, Zeff: 4.29 },
       { key: '3py', electrons: 1, Zeff: 4.29 },
     ],
-    excitationSequence: ['3py', '3pz', '3dz2', '4s', '4pz']
+    excitationSequence: ['3py', '4s', '4pz', '3dz2']
   },
   gold: {
     name: 'Gold (Au)', symbol: 'Au', Z: 79,
@@ -466,7 +467,7 @@ const ELEMENTS = {
       { key: '5dx2y2',electrons: 2, Zeff: 4.2 },
       { key: '6s',    electrons: 1, Zeff: 2.2 },
     ],
-    excitationSequence: ['6s', '5dz2', '5dxz']
+    excitationSequence: ['6s', '6pz']  // 5d is full (5d10), so the 6s electron is promoted to 6p
   }
 };
 
@@ -1052,10 +1053,11 @@ function createFlowArrows(orbKey, Zeff) {
 
   const group = new THREE.Group();
 
-  if (m === 0) {
-    // No azimuthal flow for m=0 states — probability current is zero
-    return group;
-  }
+  // Every orbital on this page is real (cos/sin mφ combinations), so
+  // j = (ħ/m_e) Im(ψ*∇ψ) = 0. No arrows are drawn. A circulating current
+  // exists only for complex states ψ ∝ e^{imφ}.
+  // Arrow-building code below is unused while all orbitals are real; it applies only to complex e^{im phi} states.
+  if (true) return group;
 
   // For m ≠ 0, probability current circulates around z-axis
   // j_φ ∝ m ℏ / (m_e r sinθ) × |ψ|²
@@ -1596,11 +1598,8 @@ function updateWavefunctionPanel() {
   drawRadialPlot(def.n, def.l, Zeff);
 
   // Update flow description
-  if (state.showFlow && def.m !== 0) {
-    const dir = def.m > 0 ? 'counter-clockwise' : 'clockwise';
-    flowDesc.textContent = `Probability current flows ${dir} around z-axis (m = ${def.m})`;
-  } else if (state.showFlow && def.m === 0) {
-    flowDesc.textContent = 'No azimuthal flow for m = 0 (standing wave)';
+  if (state.showFlow) {
+    flowDesc.textContent = 'Real orbitals carry zero probability current (j = 0 for real \u03C8). A circulating current requires a complex state \u03C8 \u221D e^{im\u03C6}.';
   } else {
     flowDesc.textContent = '';
   }

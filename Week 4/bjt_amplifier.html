@@ -566,6 +566,32 @@ function waveValue(t) {
 //
 // ═══════════════════════════════════════════════════════════════
 
+// ─── Shockley V_BE solver shared by every readout and plot ───
+// Solves V_source = (I_S·exp(V_BE/V_T) / β) · R_B + V_BE by Newton's method.
+// Starting just above the root keeps the iteration monotone.
+function solveVBE(vSource) {
+    if (vSource <= 0) return 0;
+    let vbe = Math.min(vSource, VBE_ON + 0.1);
+    for (let iter = 0; iter < 30; iter++) {
+        const ib = IS * Math.exp(vbe / VT) / hfe;
+        const f = vSource - ib * rb - vbe;
+        const fp = -(ib / VT) * rb - 1;
+        vbe -= f / fp;
+        if (Math.abs(f) < 1e-9) break;
+    }
+    return Math.max(0, vbe);
+}
+
+// Operating point for a given base-loop source voltage (no Early effect)
+function operatingPoint(vSource) {
+    const vbe = solveVBE(vSource);
+    const ib = Math.max(0, (vSource - vbe) / rb);
+    const icSat = (vcc - VCE_SAT) / rc;
+    const sat = hfe * ib > icSat;
+    const ic = sat ? icSat : hfe * ib;
+    return { vbe, ib, ic, vce: sat ? VCE_SAT : vcc - ic * rc };
+}
+
 function computeDCBias() {
     let ibq, icq, vceq, region;
 
@@ -575,8 +601,8 @@ function computeDCBias() {
         vceq = vcc;
         region = 'cutoff';
     } else {
-        // Base current from KVL
-        ibq = (vbb - VBE_ON) / rb;
+        // Base current from KVL with the Shockley V_BE (same Q-point as every plot)
+        ibq = operatingPoint(vbb).ib;
         const icActive = hfe * ibq;
         const icSat = (vcc - VCE_SAT) / rc;
 
@@ -1162,19 +1188,7 @@ function drawTimePlot() {
     // Solves: V_source = (I_S·exp(V_BE/V_T) / β) · R_B + V_BE
     // for any total source voltage (V_BB + v_in).
     // Uses Newton's method with Q-point as initial guess for speed.
-    function solveVBE(vSource) {
-        if (vSource <= 0) return 0;
-        let vbe = Math.min(vSource, VBE_Q + 0.1);  // warm start near Q-point
-        for (let iter = 0; iter < 10; iter++) {
-            const ic = IS * Math.exp(vbe / VT);
-            const ib = ic / hfe;
-            const f = vSource - ib * rb - vbe;
-            const fp = -(ib / VT) * rb - 1;
-            vbe -= f / fp;
-            if (Math.abs(f) < 1e-9) break;
-        }
-        return Math.max(0, vbe);
-    }
+    // (uses the shared top-level solveVBE)
 
     // ─── Layout ───
     const pad = { l: 52, r: 14, t: 16, b: 16 };
@@ -1702,7 +1716,7 @@ function drawIVPlot(bias, vinAC) {
             if (vce < VCE_SAT) {
                 ic = ic_act * (vce / VCE_SAT);
             } else {
-                ic = ic_act * (1 + vce / 100); // Early effect V_A ≈ 100V
+                ic = ic_act; // Early effect neglected, as in the bias and gain calculations
             }
             const x = mapX(vce);
             const y = mapY(Math.min(ic, icMax));
@@ -1769,24 +1783,9 @@ function drawIVPlot(bias, vinAC) {
     drawSub(ctx, 'slope = −1/R', 'C', mapX(0) + 5, mapY(icAtVce0) - 5);
 
     // ─── Q-point ───
-    // Find the true intersection of the load line and I_BQ curve (with Early effect V_A=100)
-    // Load line: I_C = (V_CC - V_CE) / R_C
-    // I_B curve: I_C = β·I_BQ·(1 + V_CE/V_A)
-    // Solve: (V_CC - V_CE)/R_C = β·I_BQ·(1 + V_CE/100)
-    //   V_CC - V_CE = R_C·β·I_BQ + R_C·β·I_BQ·V_CE/100
-    //   V_CC - R_C·β·I_BQ = V_CE·(1 + R_C·β·I_BQ/100)
-    //   V_CE = (V_CC - R_C·β·I_BQ) / (1 + R_C·β·I_BQ/100)
+    // Q-point: load line ∩ I_BQ curve, from the shared Shockley bias solution
     if (bias.region === 'active' || bias.region === 'saturation') {
-        let qVce, qIc;
-        if (bias.region === 'active' && bias.ibq > 0) {
-            const bIb = hfe * bias.ibq;
-            qVce = (vcc - rc * bIb) / (1 + rc * bIb / 100);
-            qVce = Math.max(VCE_SAT, qVce);
-            qIc = (vcc - qVce) / rc;  // from load line, guaranteed to be on it
-        } else {
-            qVce = bias.vceq;
-            qIc = bias.icq;
-        }
+        const qVce = bias.vceq, qIc = bias.icq;
         const qx = mapX(qVce);
         const qy = mapY(qIc);
 
@@ -1816,7 +1815,7 @@ function drawIVPlot(bias, vinAC) {
         const ss = computeSmallSignal(bias);
         if (ss.av !== 0 && vinPk_mV > 0) {
             const dvce = Math.min(Math.abs(ss.av * vinPk_mV / 1000), vcc / 2);
-            // Endpoints along the load line from Q-point (using Early-effect corrected Q)
+            // Endpoints along the load line from Q-point
             const vce1 = Math.max(VCE_SAT, qVce - dvce);
             const vce2 = Math.min(vcc, qVce + dvce);
             const ic1 = (vcc - vce1) / rc;  // from load line equation
@@ -1831,30 +1830,10 @@ function drawIVPlot(bias, vinAC) {
             ctx.globalAlpha = 1;
 
             // Sliding dot on the load line at instantaneous operating point
-            // Uses load line / I_B curve intersection with Early effect (V_A=100V)
-            // so it is consistent with the Q-point and I_B curves drawn on this plot
+            // Same Shockley operating point as the header readouts and the Q-point
             if (vinAC !== undefined) {
-                const vbe_now = vbb + vinAC;
-                let ic_now, vce_now;
-                if (vbe_now < VBE_ON) {
-                    ic_now = 0; vce_now = vcc;  // cutoff
-                } else {
-                    const ib_now = (vbe_now - VBE_ON) / rb;
-                    const bIb_now = hfe * ib_now;
-                    const icSat = (vcc - VCE_SAT) / rc;
-                    if (bIb_now > icSat) {
-                        // Saturation: V_CE pinned at V_CE(sat)
-                        ic_now = icSat; vce_now = VCE_SAT;
-                    } else {
-                        // Active: find load line / I_B curve intersection
-                        // Load line: IC = (VCC - VCE)/RC
-                        // I_B curve: IC = β·IB·(1 + VCE/V_A), V_A = 100V
-                        // Solve: VCE = (VCC - RC·β·IB) / (1 + RC·β·IB/100)
-                        vce_now = (vcc - rc * bIb_now) / (1 + rc * bIb_now / 100);
-                        vce_now = Math.max(VCE_SAT, vce_now);
-                        ic_now = (vcc - vce_now) / rc;  // from load line
-                    }
-                }
+                const op = operatingPoint(vbb + vinAC);
+                const ic_now = op.ic, vce_now = op.vce;
                 const dotX = mapX(vce_now);
                 const dotY = mapY(Math.max(0, Math.min(icMax, ic_now)));
                 ctx.fillStyle = T.text;
@@ -2090,25 +2069,10 @@ function animate(timestamp) {
         }
 
         // ─── Compute instantaneous values ───
-        const vbe_source = vbb + vinAC;  // total source voltage in base loop
-        let ib_inst, ic_inst, vce_inst, vbe_actual;
-        if (vbe_source < VBE_ON) {
-            // Cutoff: no current, VBE = source voltage (no drop across RB)
-            ib_inst = 0; ic_inst = 0; vce_inst = vcc;
-            vbe_actual = vbe_source;
-        } else {
-            ib_inst = (vbe_source - VBE_ON) / rb;
-            ic_inst = hfe * ib_inst;
-            const icSat = (vcc - VCE_SAT) / rc;
-            if (ic_inst > icSat) { ic_inst = icSat; vce_inst = VCE_SAT; }
-            else { vce_inst = vcc - ic_inst * rc; }
-            // Actual VBE from KVL: VBE = V_source - IB·RB
-            // In constant-VBE model this is 0.7V, but show the Shockley
-            // value for consistency with the transfer characteristic:
-            // VBE = VT · ln(IC / IS) where IS = ICQ · exp(-VBE_ON/VT)
-            const vbe_ac = vinAC * ss.vbe_fraction;
-            vbe_actual = VBE_ON + vbe_ac;
-        }
+        // Shockley operating point: small-signal gain of this response is
+        // -β·R_C/(R_B + r_π), matching the displayed A_v
+        const op = operatingPoint(vbb + vinAC);
+        const ib_inst = op.ib, ic_inst = op.ic, vce_inst = op.vce, vbe_actual = op.vbe;
 
         // ─── Update header readouts (instantaneous) ───
         document.getElementById('ro-ib').textContent  = formatCurrentmA(ib_inst);

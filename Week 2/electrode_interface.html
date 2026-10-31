@@ -285,7 +285,7 @@
 
     <div id="voltage-readout">
       <div class="val" id="halfCellVal">E = +0.222 V</div>
-      <div class="label">Ag/AgCl half-cell potential (vs SHE)</div>
+      <div class="label">Ag/AgCl half-cell potential vs SHE (standard value, a<sub>Cl⁻</sub> = 1)</div>
     </div>
 
     <div id="mode-indicator">
@@ -299,11 +299,12 @@
       </div>
       <h3>At the Interface</h3>
       <p>
-        <strong style="color:#aaa">Reduction (← ):</strong> AgCl gains an electron,
+        <strong style="color:#aaa">Reduction (→):</strong> AgCl gains an electron,
         releasing Cl⁻ into the electrolyte and depositing Ag.<br><br>
-        <strong style="color:#aaa">Oxidation (→ ):</strong> Cl⁻ from electrolyte combines
+        <strong style="color:#aaa">Oxidation (←):</strong> Cl⁻ from electrolyte combines
         with Ag, forming AgCl and releasing an electron into the wire.<br><br>
-        <strong style="color:#aaa">E° = +0.222 V</strong> vs Standard Hydrogen Electrode.
+        <strong style="color:#aaa">E° = +0.222 V</strong> vs Standard Hydrogen Electrode at unit Cl⁻ activity.
+        In body fluid (a<sub>Cl⁻</sub> ≈ 0.08) the Nernst equation gives E ≈ +0.29 V.
         This stable potential makes Ag/AgCl ideal for biopotential recording.
       </p>
     </div>
@@ -761,28 +762,29 @@
 
       const arrowColor = 0xff44aa;
 
-      if (mode === 'reduce') {
-        // Conventional current flows INTO electrode (electrons flow out of wire)
-        // Wire: right to left
+      if (mode === 'oxidize') {
+        // Oxidation: electrons leave the electrode toward the amplifier, so
+        // conventional current in the wire flows from amplifier into electrode (-x)
         currentArrow = new THREE.ArrowHelper(
           new THREE.Vector3(-1, 0, 0),
           new THREE.Vector3(ELECTRODE_X + 12, ELECTRODE_H / 2 + WIRE_HEIGHT + 1.5, 0),
           10, arrowColor, 1.5, 0.8
         );
-        // Ion current in electrolyte: left to right (Cl- moves right)
+        // Cl- moves toward the electrode (-x), so ionic current flows +x
         ionCurrentArrow = new THREE.ArrowHelper(
           new THREE.Vector3(1, 0, 0),
           new THREE.Vector3(INTERFACE_X + 2, -ELECTROLYTE_H / 2 - 1.5, 0),
           8, arrowColor, 1.5, 0.8
         );
       } else {
-        // Conventional current flows OUT of electrode
+        // Reduction: electrons enter the electrode from the wire, so
+        // conventional current flows out of the electrode toward the amplifier (+x)
         currentArrow = new THREE.ArrowHelper(
           new THREE.Vector3(1, 0, 0),
           new THREE.Vector3(ELECTRODE_X + 2, ELECTRODE_H / 2 + WIRE_HEIGHT + 1.5, 0),
           10, arrowColor, 1.5, 0.8
         );
-        // Ion current in electrolyte: right to left (Cl- moves left)
+        // Cl- released into the electrolyte moves +x, so ionic current flows -x
         ionCurrentArrow = new THREE.ArrowHelper(
           new THREE.Vector3(-1, 0, 0),
           new THREE.Vector3(INTERFACE_X + 10, -ELECTROLYTE_H / 2 - 1.5, 0),
@@ -1017,7 +1019,8 @@
 
         // Voltage readout
         const E = 0.222;
-        const deltaE = mode === 'reduce' ? 0.01 * Math.sin(time * 2) : mode === 'oxidize' ? -0.01 * Math.sin(time * 2) : 0;
+        // Overpotential follows the current: cathodic (reduction) shifts E negative, anodic positive
+        const deltaE = mode === 'equil' ? 0 : -0.02 * currentVal;
         document.getElementById('halfCellVal').textContent = `E = +${(E + deltaE).toFixed(3)} V`;
       }
 

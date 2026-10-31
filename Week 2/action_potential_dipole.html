@@ -271,7 +271,10 @@
         <div class="dot" style="background:#e08050"></div> Electrode B (&minus;)
       </div>
       <p>Arrows show the extracellular field (viridis colourmap) from both dipoles.
-        Orange arrows show intracellular current between wavefronts. The plot shows
+        Orange arrows show intracellular axial current, which flows only near the
+        wavefronts: forward (+x) behind the depolarisation front and backward (&minus;x)
+        ahead of the repolarisation front. The uniformly depolarised plateau between them
+        carries no axial current. The plot shows
         V<sub>A</sub> &minus; V<sub>B</sub> over time.</p>
     </div>
     <div id="voltage-readout">
@@ -510,6 +513,7 @@
     // --- Intracellular current arrows ---
     let intraArrows = [];
     const INTRA_COLOR = 0xffaa44;
+    const XPOS = new THREE.Vector3(1, 0, 0), XNEG = new THREE.Vector3(-1, 0, 0);
 
     function buildIntraArrows() {
       intraArrows.forEach(a => scene.remove(a));
@@ -889,9 +893,14 @@
       // --- Intracellular current arrows ---
       for (const arrow of intraArrows) {
         const ax = arrow.userData.baseX;
-        // Visible only between repolarisation and depolarisation fronts
-        if (depLen > 0.1 && ax > depLeftEdge + 0.5 && ax < depRightEdge - 0.5) {
+        // Axial current flows only near the fronts: +x behind the depolarisation
+        // front, -x ahead of the repolarisation front; none in the uniform plateau.
+        const inDep = ax > depLeftEdge + 0.5 && ax < depRightEdge - 0.5;
+        const nearDepol = depolInsideTissue && ax > depolX - 4.5;
+        const nearRepol = repolInsideTissue && ax < repolX + 4.5;
+        if (depLen > 0.1 && inDep && (nearDepol || nearRepol)) {
           arrow.visible = true;
+          arrow.setDirection(nearDepol ? XPOS : XNEG);
         } else {
           arrow.visible = false;
         }

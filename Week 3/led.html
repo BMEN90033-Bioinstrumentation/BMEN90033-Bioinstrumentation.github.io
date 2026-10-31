@@ -832,7 +832,7 @@
       // Built-in potential drop: N-side bands are lower than P-side
       // Under forward bias, the drop decreases (bands flatten)
       const biasRatio = Math.min(appliedVoltage / mat.threshold, 1);
-      const maxDrop = 30;  // max pixel drop at zero bias
+      const maxDrop = 16;  // max pixel drop at zero bias: qV0 ≈ 0.65 Eg, so E_F stays in the gap
       const drop = exceeded ? 1 : maxDrop * (1 - biasRatio);
 
       const nCbY = pCbY + drop;        // N-side conduction band (lower energy)
@@ -870,14 +870,19 @@
       ctx.lineTo(bx + bw - 10, nVbY);
       ctx.stroke();
 
-      // Fermi level (dashed)
-      const fermiY = pCbY + bandgap * 0.5 + drop * 0.5;
+      // Fermi level (dashed): flat at equilibrium; under forward bias the
+      // quasi-Fermi levels split by qV (E_Fn on the N side above E_Fp on the P side)
+      const efOff = (bandgap - maxDrop) / 2;
+      const fermiY = pVbY - efOff;           // P-side (quasi-)Fermi level
+      const fermiNY = nCbY + efOff;          // N-side (quasi-)Fermi level
       ctx.strokeStyle = T.gridStrong;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(bx + 10, fermiY);
-      ctx.lineTo(bx + bw - 10, fermiY);
+      ctx.lineTo(midX, fermiY);
+      ctx.moveTo(midX, fermiNY);
+      ctx.lineTo(bx + bw - 10, fermiNY);
       ctx.stroke();
       ctx.setLineDash([]);
 

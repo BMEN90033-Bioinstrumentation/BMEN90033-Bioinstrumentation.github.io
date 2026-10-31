@@ -2823,6 +2823,10 @@
                         } else if (comp.type === 'isource') {
                             var dir = n1 === Number(num) ? '+' : '-';
                             eqTerms.push(dir + 'I_source');
+                        } else if (comp.type === 'vsource') {
+                            // MNA branch current I_Vk flows from n1 through the source to n2
+                            var vk = components.filter(function(cc) { return cc.type === 'vsource'; }).indexOf(comp) + 1;
+                            eqTerms.push((n1 === Number(num) ? '' : '-') + 'I_V' + vk);
                         }
                     });
                     if (eqTerms.length > 0) {
@@ -2925,8 +2929,10 @@
                     html += '<canvas id="node-diagram-6-' + num + '" class="node-diagram-canvas" width="400" height="300"></canvas>';
                 });
 
-                html += '<p>Voltage across, current through, and power dissipated by each component:</p>';
-                html += '<table class="walk-table"><tr><th>Component</th><th>Voltage Across</th><th>Current Through</th><th>Power</th></tr>';
+                // Phasors are taken as peak amplitudes: S = ½·V·I* (AC), S = V·I (DC)
+                var pFactor = omega === 0 ? 1 : 0.5;
+                html += '<p>Voltage across, current through, and power absorbed by each component (passive sign convention; negative values are delivered). Source values are treated as peak phasor amplitudes, so the complex power is S = ' + (omega === 0 ? 'V\u00B7I' : '\u00BD\u00B7V\u00B7I*') + ', with average power P = Re(S) and reactive power Q = Im(S).</p>';
+                html += '<table class="walk-table"><tr><th>Component</th><th>Voltage Across</th><th>Current Through</th><th>Complex Power S</th></tr>';
 
                 var vsIdx = 0;
                 components.forEach(function(comp) {
@@ -2962,13 +2968,13 @@
                         current = [baseVal, 0];
                     }
 
-                    // Power = V * I* (conjugate)
-                    var power = cMul(vAcross, cConj(current));
+                    // Complex power S = ½·V·I* for peak phasors (V·I at DC)
+                    var power = cMul([pFactor, 0], cMul(vAcross, cConj(current)));
 
                     html += '<tr><td>' + comp.type + ' (id=' + comp.id + ')</td>';
                     html += '<td>' + cStr(vAcross) + ' V<br><span style="color:var(--text-dim);font-size:11px">' + cPolar(vAcross) + '</span></td>';
                     html += '<td>' + cStr(current) + ' A<br><span style="color:var(--text-dim);font-size:11px">' + cPolar(current) + '</span></td>';
-                    html += '<td>' + cStr(power) + ' W<br><span style="color:var(--text-dim);font-size:11px">' + cPolar(power) + '</span></td>';
+                    html += '<td>' + cStr(power) + ' VA<br><span style="color:var(--text-dim);font-size:11px">P = ' + power[0].toPrecision(4) + ' W, Q = ' + power[1].toPrecision(4) + ' VAR</span></td>';
                     html += '</tr>';
                 });
 

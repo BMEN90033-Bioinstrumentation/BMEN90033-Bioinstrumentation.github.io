@@ -127,6 +127,7 @@
       <p id="descText">When P-type and N-type semiconductors are brought together, majority carriers
         from each side diffuse across the junction. Electrons and holes near the boundary
         recombine, exposing fixed ions and creating a carrier-free depletion region...</p>
+      <p style="color:#777; font-size:10px; margin-top:4px;">Schematic: holes are drawn as fixed vacancies, and thermal generation shows only the electron. In a real crystal holes are mobile and each generation event creates an electron-hole pair.</p>
       <p style="color:#555; font-size:10px; margin-top:4px;">Drag to rotate · Scroll to zoom</p>
     </div>
 
@@ -251,8 +252,7 @@
 
     function currentMagnitude(V) {
       if (V <= V_BREAKDOWN) return 1e-3;
-      const I = I0 * (Math.exp(q_kT * V) - 1);
-      return Math.min(Math.abs(I), 1e-3);
+      return Math.abs(I0 * (Math.exp(q_kT * V) - 1));
     }
 
     function junctionState(V) {
@@ -314,7 +314,7 @@
         const pct = (progress * 100).toFixed(0);
         biasReadout.textContent = '0.00 V';
         v0Readout.textContent = (V0 * progress).toFixed(2) + ' V';
-        depletionReadout.textContent = (2 * formationDepletionWidth() / W0).toFixed(2) + ' W\u2080';
+        depletionReadout.textContent = (formationDepletionWidth() / W0).toFixed(2) + ' W\u2080';
         currentReadout.textContent = '~0 A';
         let phaseText = 'Diffusion';
         if (progress > 0.5) phaseText = 'E-field building';
@@ -328,11 +328,13 @@
       biasReadout.textContent = V.toFixed(2) + ' V';
       v0Readout.textContent = V0.toFixed(2) + ' V';
       const W = depletionHalfWidth(V);
-      depletionReadout.textContent = (2 * W / W0).toFixed(2) + ' W\u2080';
+      depletionReadout.textContent = (W / W0).toFixed(2) + ' W\u2080';  // W0 = equilibrium width
       const I = currentMagnitude(V);
-      if (I < 1e-9) currentReadout.textContent = '~0 A';
-      else if (I < 1e-6) currentReadout.textContent = (I * 1e6).toFixed(1) + ' \u00B5A';
-      else currentReadout.textContent = (I * 1e3).toFixed(2) + ' mA';
+      if (I >= 1) currentReadout.textContent = '> 1 A';
+      else if (I >= 1e-3) currentReadout.textContent = (I * 1e3).toFixed(2) + ' mA';
+      else if (I >= 1e-6) currentReadout.textContent = (I * 1e6).toFixed(2) + ' \u00B5A';
+      else if (I >= 1e-9) currentReadout.textContent = (I * 1e9).toFixed(2) + ' nA';
+      else currentReadout.textContent = (I * 1e12).toFixed(2) + ' pA';
 
       const state = junctionState(V);
       stateReadout.textContent = state;
@@ -355,9 +357,9 @@
       } else if (state === 'Forward Bias') {
         descText.textContent = 'Forward bias has overcome the built-in potential barrier. Electrons from the N-side conduction band cross into the P-side where they recombine with holes. Current flows through the junction.';
       } else if (state === 'Reverse Bias') {
-        descText.textContent = 'Reverse bias: the positive terminal removes free electrons from the N-side, while the negative terminal supplies electrons to the P-side. The resulting space charge widens the depletion region and limits reverse current.';
+        descText.textContent = 'Reverse bias: a brief transient removes majority carriers from the edges of the depletion region, which widens. The steady reverse current is only the saturation current I\u2080, carried by minority carriers generated near the junction. The animation exaggerates carrier loss; the neutral regions of a real diode stay populated.';
       } else {
-        descText.textContent = 'Avalanche breakdown: the strong electric field accelerates carriers until impact ionisation creates additional electron-hole pairs. Carrier multiplication then produces a large reverse current.';
+        descText.textContent = 'Avalanche breakdown: the strong electric field accelerates carriers until impact ionisation creates additional electron-hole pairs. Carrier multiplication then produces a large reverse current. The breakdown voltage is scaled to ' + V_BREAKDOWN.toFixed(1) + ' V for display; real Si diodes break down between about 5 V (Zener) and over 1000 V.';
       }
     }
 
@@ -1451,8 +1453,8 @@
           e.vx -= driftX * dt;
         }
 
-        // In reverse bias, ALL electrons are attracted toward the positive
-        // terminal (right side). N-side electrons get pulled out quickly.
+        // Schematic: in reverse bias the animation pulls electrons toward the
+        // positive terminal. Physically only depletion-edge charge moves.
         if (isReverse || isBreakdown) {
           const fieldStrength = isBreakdown ? 15 + Math.abs(biasVoltage) * 5 : 8 + Math.abs(biasVoltage) * 4;
           e.vx += fieldStrength * dt;
@@ -1572,13 +1574,13 @@
         const z = (Math.random() - 0.5) * extent;
         // Thermally generated electron sweeps to N-side
         spawnElectron(Math.abs(x) + 0.5, y, z);
-        // Holes are permanent lattice features — not created by thermal generation
+        // Schematic simplification: the paired hole is not drawn
       }
     }
 
     function replenishCarriers() {
       if (paused) return;
-      // Under reverse bias electrons are being pulled out — don't replenish
+      // Schematic: no replenishment under reverse bias (animation simplification)
       if (!formationPhase && biasVoltage < -0.01) return;
       const extent = LATTICE_N * A;
       const W = depletionHalfWidth(biasVoltage);
@@ -1591,14 +1593,14 @@
         const z = (Math.random() - 0.5) * extent;
         spawnElectron(x, y, z);
       }
-      // Holes are permanent lattice features — not replenished
+      // Schematic simplification: holes are not replenished
     }
 
     // ═══════════════════════════════════════
     //  AVALANCHE BREAKDOWN
     // ═══════════════════════════════════════
-    // The intense E-field ionises atoms in the depletion zone and N-type
-    // region, ripping electrons free. Each freed electron leaves a hole
+    // The intense E-field in the depletion zone drives impact ionisation,
+    // freeing electrons. Each freed electron leaves a hole
     // behind and gets swept out through the N-side wire. Electrons from
     // the negative wire terminal enter the P-side, hop to fill holes.
     // When a hole is filled a new ionisation event creates another hole
@@ -1623,11 +1625,9 @@
         avalancheTimer -= 1;
 
         // ── Ionisation: E-field rips electron off lattice atom ──
-        // Occurs spontaneously everywhere — depletion zone, N-type, and P-type
-        // The intense field accelerates carriers to energies that knock
-        // valence electrons free wherever they are in the crystal
+        // Impact ionisation occurs only where the field is high: the depletion region
         let ripX, ripY, ripZ;
-        ripX = (Math.random() - 0.5) * 2 * extent; // anywhere across the junction
+        ripX = (Math.random() - 0.5) * 2 * W;
         ripY = (Math.random() - 0.5) * extent;
         ripZ = (Math.random() - 0.5) * extent;
 
@@ -1709,15 +1709,19 @@
       } else {
         barrier = Math.max(0, Math.min(3, (V0 - V) / V0));
       }
-      const bandBend = Math.min(plotH * 0.4, plotH * 0.35 * barrier);
+      // qV0 / Eg = 0.7 / 1.12 for Si; E_F sits (1 - qV0/Eg)/2 from the band edge on
+      // each side so that it is flat at equilibrium and E_Fn - E_Fp = qV under bias
+      const EG_EV = 1.12;
+      const bandBend = Eg * (V0 / EG_EV) * barrier;
+      const efOffset = Eg * (1 - V0 / EG_EV) / 2;
 
       const EcP = pad + plotH * 0.25;
       const EvP = EcP + Eg;
-      const EfP = EvP - Eg * 0.15;
+      const EfP = EvP - efOffset;
 
       const EcN = EcP + bandBend;
       const EvN = EcN + Eg;
-      const EfN = EcN + Eg * 0.15;
+      const EfN = EcN + efOffset;
 
       // Conduction band (Ec)
       bandCtx.strokeStyle = '#4fc3f7';
@@ -1742,8 +1746,8 @@
 
       // Fermi level(s)
       bandCtx.lineWidth = 1;
-      if (V > 0.01) {
-        // Forward bias: quasi-Fermi levels split
+      if (Math.abs(V) > 0.01 && !formationPhase) {
+        // Bias: quasi-Fermi levels split by q|V| (E_Fn above E_Fp in forward, below in reverse)
         bandCtx.setLineDash([3, 4]);
         bandCtx.strokeStyle = '#4fc3f7';
         bandCtx.beginPath();
