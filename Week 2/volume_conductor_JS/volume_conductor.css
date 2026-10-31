@@ -1,0 +1,101 @@
+/* volume_conductor.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. Colours used by the Three.js scene are
+   plain hex so THREE.Color can parse them. */
+
+:root {
+    --c-true:    #4488ff;   /* homogeneous ("true") field and signal */
+    --c-rec:     #ff4488;   /* volume-conductor ("recorded") field and signal */
+    --c-dipole:  #ff6644;
+    --c-plus:    #ff8888;
+    --c-minus:   #8888ff;
+    --c-arrow:   #ffffff;   /* dipole moment arrow */
+    --c-grid-a:  #2a2a2a;
+    --c-grid-b:  #1c1c1c;
+    --c-ref:     rgba(255, 255, 255, 0.55);
+
+    --c-t-heart:  #ff6644;
+    --c-t-brain:  #e088bb;
+    --c-t-blood:  #cc3333;
+    --c-t-lung:   #6688aa;
+    --c-t-muscle: #cc5555;
+    --c-t-fat:    #ddaa44;
+    --c-t-bone:   #ccccaa;
+    --c-t-skin:   #ddbb99;
+    --c-t-gel:    #44aadd;
+    --c-t-csf:    #66ccee;
+    --c-t-skull:  #aaaaaa;
+    --c-t-scalp:  #cc9977;
+
+    --c-el0: #50e080; --c-el1: #e08050; --c-el2: #5080e0; --c-el3: #e0e050; --c-el4: #e050e0;
+    --c-el5: #50e0e0; --c-el6: #e07070; --c-el7: #70e070; --c-el8: #7070e0; --c-el9: #e0a050;
+
+    --hero-a: var(--c-true);
+    --hero-b: var(--c-rec);
+}
+
+[data-theme="light"] {
+    --c-true:    #1d4ed8;
+    --c-rec:     #be185d;
+    --c-dipole:  #dc4a26;
+    --c-plus:    #c02626;
+    --c-minus:   #2639c0;
+    --c-arrow:   #1a1a1e;
+    --c-grid-a:  #c4c4cc;
+    --c-grid-b:  #dcdce2;
+    --c-ref:     rgba(0, 0, 0, 0.5);
+
+    --c-t-heart:  #dc4a26;
+    --c-t-brain:  #b0508a;
+    --c-t-blood:  #a61e1e;
+    --c-t-lung:   #3d5f86;
+    --c-t-muscle: #a83a3a;
+    --c-t-fat:    #b07d10;
+    --c-t-bone:   #8a8a60;
+    --c-t-skin:   #a8784a;
+    --c-t-gel:    #1f7fae;
+    --c-t-csf:    #1f93b8;
+    --c-t-skull:  #6e6e6e;
+    --c-t-scalp:  #9a6440;
+
+    --c-el0: #1f9a4a; --c-el1: #b85a2a; --c-el2: #2a50b8; --c-el3: #8a8a10; --c-el4: #a02aa0;
+    --c-el5: #1a8a8a; --c-el6: #b03a3a; --c-el7: #3a903a; --c-el8: #3a3ab0; --c-el9: #a8701a;
+}
+
+.plot-box.scene3d { aspect-ratio: 1.2 / 1; }
+.plot-box.sigma   { aspect-ratio: 1.6 / 1; }
+.plot-box.bars    { aspect-ratio: 1.6 / 1; }
+.plot-box.trace   { aspect-ratio: 1.7 / 1; }
+
+/* CSS2D labels in the 3D scene. */
+.s3-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;
+    white-space: nowrap; pointer-events: none;
+}
+
+/* Tissue-layer chips: a swatch, the name and the conductivity. */
+.layer-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.layer-btn { text-transform: none; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 6px; }
+.layer-btn .sw { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.layer-btn .sig { color: var(--muted); }
+.layer-btn .sig .katex { font-size: 12px !important; }
+.layer-btn:not(.active) { opacity: 0.55; }
+
+/* Electrode list beneath the 3D scene. */
+.el-list .item { flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.el-list .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.el-list .item.sel .v { color: var(--accent); }
+.el-list button.rm {
+    font-family: inherit; font-size: 10px; color: var(--muted); background: none; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px;
+}
+.el-list button.rm:hover { color: var(--fg); border-color: var(--border-hover); }
+
+.legend .sw.dash { border-top-color: var(--c-ref); }
+
+/* Label and hint over the 3D scene sit on a panel so dense geometry behind
+   them does not reduce their legibility. */
+.plot-box.scene3d .label,
+.plot-box.scene3d .hint {
+    width: fit-content; padding: 3px 8px; border-radius: 4px;
+    background: var(--bg-panel);
+}

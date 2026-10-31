@@ -1,0 +1,45 @@
+/* action_potential_dipole.html · page palette and plot sizes. Layout comes
+   from ../components/lecture_page.css. */
+
+:root {
+    --c-depol:  #e05050;   /* depolarised region */
+    --c-depol-band: rgba(224, 80, 80, 0.14);
+    --c-dipole: #ffffff;   /* depolarisation dipole */
+    --c-repol:  #5090e0;   /* repolarisation dipole */
+    --c-intra:  #ffaa44;   /* intracellular current */
+    --c-ea:     #50e080;   /* electrode A */
+    --c-eb:     #e08050;   /* electrode B */
+    --c-diff:   #eef0f5;   /* V_A - V_B */
+    --c-plus:   #ff8888;
+    --c-minus:  #8888ff;
+    --c-tissue: #ffffff;
+    --c-grid3d: #222222;
+    --c-grid3d-2: #181818;
+    --viridis: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
+    --hero-a: var(--c-depol);
+    --hero-b: var(--c-repol);
+}
+
+[data-theme="light"] {
+    --c-depol:  #c62828;
+    --c-depol-band: rgba(198, 40, 40, 0.10);
+    --c-dipole: #1a1a1e;
+    --c-repol:  #1d4ed8;
+    --c-intra:  #c2410c;
+    --c-ea:     #15803d;
+    --c-eb:     #b45309;
+    --c-diff:   #1a1a1e;
+    --c-plus:   #c62828;
+    --c-minus:  #3730a3;
+    --c-tissue: #1a1a1e;
+    --c-grid3d: #c4c4ca;
+    --c-grid3d-2: #dadade;
+}
+
+.plot-box.scene3d { aspect-ratio: 1.35 / 1; }
+.plot-box.profile { aspect-ratio: 1.6 / 1; }
+.plot-box.signals { aspect-ratio: 1.45 / 1; }
+
+.legend .sw.ring { height: 10px; width: 10px; border-radius: 50%; }
+.legend .sw.grad { background: var(--viridis); height: 8px; }
+.legend .sw.dash { border-top-color: var(--c-repol); }

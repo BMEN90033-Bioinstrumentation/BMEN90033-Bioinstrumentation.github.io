@@ -1,0 +1,70 @@
+/* electrode_interface.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. Species colours are plain hex so the
+   Three.js scene can read them with THREE.Color. */
+
+:root {
+    --c-ag:      #c0c0c0;   /* silver metal */
+    --c-agcl:    #8060a0;   /* silver chloride layer */
+    --c-agcl-em: #301840;   /* AgCl emissive tint */
+    --c-cl:      #50c8ff;   /* chloride ions */
+    --c-na:      #ff6644;   /* sodium ions */
+    --c-k:       #50e080;   /* potassium ions */
+    --c-e:       #9dd9ee;   /* electrons */
+    --c-i:       #ff44aa;   /* conventional current */
+    --c-reduce:  #50c8ff;   /* interface glow, reduction */
+    --c-oxidise: #ff6644;   /* interface glow, oxidation */
+    --c-equil:   #6cc3e0;   /* interface glow, equilibrium */
+    --c-body:    #1a3050;   /* electrolyte volume */
+    --c-edge:    #ffffff;   /* electrolyte outline */
+    --c-wire:    #888888;   /* lead wire */
+    --c-amp:     #333333;   /* amplifier disc */
+    --c-grid-a:  #2a2a2a;   /* floor grid, centre lines */
+    --c-grid-b:  #1c1c1c;   /* floor grid */
+    --c-nernst:  #50c8ff;
+    --c-ref:     rgba(255, 255, 255, 0.55);
+    --hero-a: var(--c-cl);
+    --hero-b: var(--c-agcl);
+}
+
+[data-theme="light"] {
+    --c-ag:      #8a8a92;
+    --c-agcl:    #7048a0;
+    --c-agcl-em: #1a0a28;
+    --c-cl:      #0284c7;
+    --c-na:      #dc4a26;
+    --c-k:       #1f9a4a;
+    --c-e:       #0d6c88;
+    --c-i:       #c0267a;
+    --c-reduce:  #0284c7;
+    --c-oxidise: #dc4a26;
+    --c-equil:   #0d6c88;
+    --c-body:    #5a7fb0;
+    --c-edge:    #000000;
+    --c-wire:    #555555;
+    --c-amp:     #d8d8de;
+    --c-grid-a:  #c4c4cc;
+    --c-grid-b:  #dcdce2;
+    --c-nernst:  #0369a1;
+    --c-ref:     rgba(0, 0, 0, 0.5);
+    --hero-a: #0284c7;
+    --hero-b: #7048a0;
+}
+
+.plot-box.scene3d { aspect-ratio: 1.25 / 1; }
+.plot-box.trace   { aspect-ratio: 1.8 / 1; }
+.plot-box.nernst  { aspect-ratio: 1.45 / 1; }
+
+/* CSS2D labels in the 3D scene. */
+.s3-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.06em;
+    color: var(--fg); white-space: nowrap; pointer-events: none;
+}
+.s3-label .katex { font-size: 15px !important; }
+
+.readout .item .v .katex { font-size: 15px !important; }
+.legend .dot {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+    vertical-align: middle; margin-right: 6px;
+}
+.legend .sw.dash { border-top-color: var(--c-ref); }
