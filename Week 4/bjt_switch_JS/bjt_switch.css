@@ -1,0 +1,38 @@
+/* bjt_switch.html · page palette and plot sizes. Layout comes from
+   ../components/lecture_page.css. */
+
+:root {
+    --c-ib:   #ffcf5c;   /* base current */
+    --c-ic:   #58a6ff;   /* collector current */
+    --c-ie:   #ff7a6b;   /* emitter current */
+    --c-vce:  #7be089;   /* collector-emitter voltage */
+    --c-vin:  #c8a8ff;   /* drive voltage */
+    --c-pd:   #ff8ad0;   /* dissipation */
+    --c-load: rgba(255, 255, 255, 0.55);
+    --c-sat-band: rgba(255, 207, 92, 0.14);
+    --c-cut-band: rgba(255, 92, 122, 0.14);
+    --c-warn: #ff5c7a;
+    --hero-a: var(--c-ic);
+    --hero-b: var(--c-ib);
+}
+
+[data-theme="light"] {
+    --c-ib:   #b88200;
+    --c-ic:   #1d4ed8;
+    --c-ie:   #c2410c;
+    --c-vce:  #2f8f3f;
+    --c-vin:  #7c3aed;
+    --c-pd:   #be185d;
+    --c-load: rgba(0, 0, 0, 0.5);
+    --c-sat-band: rgba(184, 130, 0, 0.12);
+    --c-cut-band: rgba(220, 38, 38, 0.10);
+    --c-warn: #dc2626;
+}
+
+.plot-box.circuit  { aspect-ratio: 1.6 / 1; }
+.plot-box.iv       { aspect-ratio: 1.45 / 1; }
+.plot-box.pair     { aspect-ratio: 1.2 / 1; }
+.plot-box.power    { aspect-ratio: 1.6 / 1; }
+
+.readout .item .v.warn { color: var(--c-warn); }
+.legend .sw.dash { border-top-color: var(--c-load); }
