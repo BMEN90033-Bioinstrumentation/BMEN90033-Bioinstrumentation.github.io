@@ -43,13 +43,18 @@
         });
 
         var sigma = pct / 100;
+        var fcDev = [];
         for (var k = 0; k < samples; k++) {
             var dR1 = sigma * 0.5 * seeded(k * 4 + 1);
             var dR2 = sigma * 0.5 * seeded(k * 4 + 2);
             var dC1 = sigma * seeded(k * 4 + 3);
             var dC2 = sigma * seeded(k * 4 + 4);
             var fcK = fcNominal / Math.sqrt((1 + dR1) * (1 + dR2) * (1 + dC1) * (1 + dC2));
-            var qK = qNom * Math.sqrt((1 + dR1) * (1 + dC1) / ((1 + dR2) * (1 + dC2)));
+            // Unity-gain Sallen-Key, equal nominal R, C2 to ground:
+            // Q = sqrt(R1 R2 C1 C2) / (C2 (R1 + R2)), so Q/Qnom below.
+            var qK = qNom * 2 * Math.sqrt((1 + dR1) * (1 + dR2) * (1 + dC1) * (1 + dC2)) /
+                ((1 + dC2) * (2 + dR1 + dR2));
+            fcDev.push(fcK / fcNominal - 1);
             var t = trace(fcK, qK);
             window.WCGW.drawLine(P, t, function (d) { return d.f; }, function (d) { return d.magDb; }, 'distort thin', P.y);
         }
@@ -61,10 +66,10 @@
         P.g.append('text').attr('x', P.x(fcNominal) + 6).attr('y', 14).attr('fill', P.colors.mark)
             .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('f_c nominal = 100 Hz');
 
-        var dfc = 0.5 * Math.sqrt(2 * sigma * sigma + 2 * sigma * sigma);
+        var dfc = d3.deviation(fcDev);
         window.WCGW.legend(P.svg, [
             { key: 'clean', label: 'nominal' },
-            { key: 'distort', label: 'tolerance ensemble (σ f_c ≈ ' + (dfc * 100).toFixed(1) + '%)' }
+            { key: 'distort', label: 'R ±' + (pct / 2).toFixed(2) + '%, C ±' + pct.toFixed(1) + '% (σ f_c = ' + (dfc * 100).toFixed(1) + '%)' }
         ], P.margin.left + 12, P.margin.top + 18);
     }
 

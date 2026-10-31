@@ -128,10 +128,10 @@
             { width: 80, height: 22, size: 11, pill: true });
     }
 
-    function phaseDomainFor(N) { return [-90 * N - 30, 10]; }
+    function phaseDomainFor(N) { return [-90 * N - 30, 100]; }  // zeros lift the phase to about +76°
     function phaseTicksFor(N) {
         var ticks = [];
-        for (var v = 0; v >= -90 * N; v -= 90) ticks.push(v);
+        for (var v = 90; v >= -90 * N; v -= 90) ticks.push(v);
         return ticks;
     }
 

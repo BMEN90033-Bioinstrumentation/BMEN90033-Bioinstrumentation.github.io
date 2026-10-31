@@ -90,7 +90,7 @@
             xDomain: [0, fMax],
             yDomain: [0, 1.05],
             xTitle: 'f \\, [\\mathrm{Hz}]',
-            yTitle: '|H(f)|',
+            yTitle: '|H(f)|^2',
             xTicks: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
             yTicks: [0, 0.25, 0.5, 0.707, 1.0],
             margin: { top: 80, right: 36, bottom: 50, left: 60 }
@@ -101,7 +101,7 @@
         var pts = [];
         for (var k = 0; k <= 400; k++) {
             var f = (k / 400) * fMax;
-            pts.push({ f: f, m: S.magHPF(f, state.fc) });
+            pts.push({ f: f, m: Math.pow(S.magHPF(f, state.fc), 2) });  // forward-backward: |H|^2
         }
         H.g.append('path').datum(pts)
             .attr('class', 'trace filtered')

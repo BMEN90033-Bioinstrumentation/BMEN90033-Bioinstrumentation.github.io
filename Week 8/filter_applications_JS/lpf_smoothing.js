@@ -82,7 +82,7 @@
             xDomain: [0, fMax],
             yDomain: [0, 1.05],
             xTitle: 'f \\, [\\mathrm{Hz}]',
-            yTitle: '|H(f)|',
+            yTitle: '|H(f)|^2',
             xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
             yTicks: [0, 0.25, 0.5, 0.707, 1.0],
             margin: { top: 80, right: 36, bottom: 50, left: 60 }
@@ -94,7 +94,7 @@
         var pts = [];
         for (var k = 0; k <= 400; k++) {
             var f = (k / 400) * fMax;
-            pts.push({ f: f, m: S.magLPF(f, state.fc) });
+            pts.push({ f: f, m: Math.pow(S.magLPF(f, state.fc), 2) });  // forward-backward: |H|^2
         }
         var line = d3.line()
             .x(function (d) { return x(d.f); })
@@ -103,11 +103,11 @@
             .attr('class', 'trace filtered')
             .attr('d', line);
 
-        // -3 dB horizontal marker
+        // -6 dB horizontal marker (|H|^2 = 0.5 at f_c)
         H.g.append('line')
             .attr('class', 'marker-line')
             .attr('x1', 0).attr('x2', H.innerW)
-            .attr('y1', y(0.7071)).attr('y2', y(0.7071))
+            .attr('y1', y(0.5)).attr('y2', y(0.5))
             .attr('opacity', 0.5);
 
         // Vertical markers for signal energy (low) and noise (broadband)

@@ -3,7 +3,7 @@
 //   · the passive two-stage RC cascade (with loading)
 //   · Bessel    (Q = 1/sqrt(3) ≈ 0.577)
 //   · Butterworth (Q = 1/sqrt(2) ≈ 0.707)
-//   · Chebyshev-like peaking (Q = 2)
+//   · Peaking (Q = 2, about 6.3 dB above unity)
 // All curves share natural frequency ω0 = 1 rad/s for direct comparison.
 (function () {
     var T = window.T;
@@ -290,7 +290,7 @@
             H.gPhase.append('path').datum(cheby).attr('class', 'trace cheby').attr('d', linePhase);
             refTraces.push({ name: 'Bessel  Q=0.58', cssClass: 'bessel', pts: bessel });
             refTraces.push({ name: 'Butter  Q=0.71', cssClass: 'butter', pts: butter });
-            refTraces.push({ name: 'Cheby   Q=2.00', cssClass: 'cheby',  pts: cheby  });
+            refTraces.push({ name: 'Peaking Q=2.00', cssClass: 'cheby',  pts: cheby  });
         }
 
         // Passive cascade reference.
@@ -367,7 +367,7 @@
         if (state.showRefs) {
             entries.push({ c: 'bessel', label: 'Bessel  Q = 0.58' });
             entries.push({ c: 'butter', label: 'Butterworth  Q = 0.71' });
-            entries.push({ c: 'cheby',  label: 'Chebyshev  Q = 2.00' });
+            entries.push({ c: 'cheby',  label: 'Peaking  Q = 2.00' });
         }
         var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
         entries.forEach(function (e, idx) {

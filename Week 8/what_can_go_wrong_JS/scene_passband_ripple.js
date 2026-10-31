@@ -19,39 +19,59 @@
         return 1 / Math.sqrt(1 + Math.pow(r, 2 * order));
     }
 
+    // Normalised (ωc = 1) pole sets. Phase = −Σ arg(jr − p_k); every pole is
+    // in the LHP, so each atan2 term is continuous in r and needs no unwrap.
+    function butterPoles() {
+        return d3.range(1, order + 1).map(function (k) {
+            var a = Math.PI * (2 * k + order - 1) / (2 * order);
+            return { re: Math.cos(a), im: Math.sin(a) };
+        });
+    }
+    function chebPoles(rippleDb) {
+        var eps = Math.sqrt(Math.pow(10, rippleDb / 10) - 1);
+        var mu = Math.asinh(1 / eps) / order;
+        return d3.range(1, order + 1).map(function (k) {
+            var th = (2 * k - 1) * Math.PI / (2 * order);
+            return { re: -Math.sinh(mu) * Math.sin(th), im: Math.cosh(mu) * Math.cos(th) };
+        });
+    }
+    function poleSetPhase(poles, r) {
+        return -poles.reduce(function (s, p) { return s + Math.atan2(r - p.im, -p.re); }, 0) * 180 / Math.PI;
+    }
+
     function trace(rippleDb, wc) {
+        var poles = chebPoles(rippleDb);
         return d3.range(0, 180).map(function (i) {
             var w = Math.pow(10, 0 + 3 * i / 179);
-            var r = w / wc;
             var mag = chebMagnitude(w, wc, rippleDb);
-            return { w: w, magDb: 20 * Math.log10(mag + 1e-9), phase: -order * Math.atan(r) * 180 / Math.PI };
+            return { w: w, magDb: 20 * Math.log10(mag + 1e-9), phase: poleSetPhase(poles, w / wc) };
         });
     }
 
     function butterTrace(wc) {
+        var poles = butterPoles();
         return d3.range(0, 180).map(function (i) {
             var w = Math.pow(10, 0 + 3 * i / 179);
-            var r = w / wc;
             var mag = butterMagnitude(w, wc);
-            return { w: w, magDb: 20 * Math.log10(mag + 1e-9), phase: -order * Math.atan(r) * 180 / Math.PI };
+            return { w: w, magDb: 20 * Math.log10(mag + 1e-9), phase: poleSetPhase(poles, w / wc) };
         });
     }
 
     function signal(rippleDb, wc) {
+        // Component frequencies in rad/s, all below the lowest cutoff setting (45 rad/s).
         var components = [
-            { f: 5, a: 0.30, phi: 0.0 },
-            { f: 14, a: 0.22, phi: 0.7 },
-            { f: 28, a: 0.16, phi: 1.4 },
-            { f: 45, a: 0.12, phi: 2.1 }
+            { w: 8, a: 0.30, phi: 0.0 },
+            { w: 20, a: 0.22, phi: 0.7 },
+            { w: 32, a: 0.16, phi: 1.4 },
+            { w: 42, a: 0.12, phi: 2.1 }
         ];
         return window.WCGW.linspace(0, 1.2, 420).map(function (t) {
             var base = window.WCGW.ecg(t, { st: 0.03 }) * 0.45;
             var y = base;
             var yc = base;
             components.forEach(function (c) {
-                var w = 2 * Math.PI * c.f;
-                y += c.a * Math.sin(2 * Math.PI * c.f * t + c.phi);
-                yc += c.a * chebMagnitude(w, wc, rippleDb) * Math.sin(2 * Math.PI * c.f * t + c.phi);
+                y += c.a * Math.sin(c.w * t + c.phi);
+                yc += c.a * chebMagnitude(c.w, wc, rippleDb) * Math.sin(c.w * t + c.phi);
             });
             return { t: t, clean: y, cheby: yc };
         });

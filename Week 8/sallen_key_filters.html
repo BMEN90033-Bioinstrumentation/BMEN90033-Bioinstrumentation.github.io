@@ -86,8 +86,8 @@
             <div class="eq-block">$$s \;=\; -\,\frac{\omega_0}{2Q}
                 \;\pm\; j\,\omega_0\sqrt{\,1 - \frac{1}{4Q^{2}}\,}.$$</div>
 
-            <p>The pair lies on a circle of radius $\omega_0$ for every $Q$; the angle off the negative
-                real axis is set by $Q$. Three regimes follow:</p>
+            <p>For $Q \ge 1/2$ the pair lies on a circle of radius $\omega_0$, and the angle off the negative
+                real axis is set by $Q$. For $Q < 1/2$ the poles are real and distinct, with product $\omega_0^{2}$. Three regimes follow:</p>
 
             <ul class="bullets">
                 <li><b>Q &lt; 1/2 · overdamped.</b> Both poles are real and lie on the negative real
@@ -325,7 +325,7 @@
 
             <p class="lead">With $R_1 = R_2 = R$ and $\omega_0 = 1\,\text{rad/s}$ fixed, the
                 capacitors satisfy $C_1 C_2 = 1/(R^{2}\omega_0^{2})$. Sweeping the ratio $C_1/C_2$
-                moves the pole pair along a vertical line in the s-plane, varying $Q$ without
+                moves the pole pair along the circle $|s| = \omega_0$ in the s-plane, varying $Q$ without
                 changing $\omega_0$.</p>
 
             <p>The plot shows the Sallen-Key response (amber) against three reference responses:</p>
@@ -334,12 +334,12 @@
                 <li><b>Passive 2-stage RC</b> (red). The loaded baseline from section 02. Equivalent
                     $Q = 1/3$ at $\omega_0 = 1\,\text{rad/s}$; the response sags well before the
                     cutoff and rolls off softly.</li>
-                <li><b>Bessel</b> ($Q = 0.577$, green). Maximally flat group delay, no time-domain
-                    overshoot. Used where waveform shape must be preserved, e.g. in ECG and EMG
+                <li><b>Bessel</b> ($Q = 0.577$, green). Maximally flat group delay, negligible step-response
+                    overshoot (about 0.4%). Used where waveform shape must be preserved, e.g. in ECG and EMG
                     front-ends.</li>
                 <li><b>Butterworth</b> ($Q = 1/\sqrt{2} \approx 0.707$, blue). Maximally flat
                     magnitude. Standard choice for anti-alias and reconstruction filtering.</li>
-                <li><b>Chebyshev / peaking</b> ($Q > 1$, purple). A peak above unity at the corner,
+                <li><b>Peaking</b> ($Q = 2$, purple). A peak of about $6.3\,\text{dB}$ above unity near the corner,
                     in exchange for a sharper transition into the stopband.</li>
             </ul>
 

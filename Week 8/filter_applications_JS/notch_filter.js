@@ -79,7 +79,7 @@
             xDomain: [0, fMax],
             yDomain: [0, 1.1],
             xTitle: 'f \\, [\\mathrm{Hz}]',
-            yTitle: '|H(f)|',
+            yTitle: '|H(f)|^2',
             xTicks: [0, 25, 50, 75, 100, 125, 150, 175, 200],
             yTicks: [0, 0.25, 0.5, 0.75, 1.0],
             margin: { top: 80, right: 36, bottom: 50, left: 60 }
@@ -91,7 +91,7 @@
         var pts = [];
         for (var k = 0; k <= 800; k++) {
             var f = (k / 800) * fMax;
-            pts.push({ f: f, m: S.magBiquad(f, c, fs) });
+            pts.push({ f: f, m: Math.pow(S.magBiquad(f, c, fs), 2) });  // forward-backward: |H|^2
         }
         H.g.append('path').datum(pts)
             .attr('class', 'trace filtered')

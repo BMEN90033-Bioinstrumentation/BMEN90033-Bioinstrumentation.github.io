@@ -101,12 +101,13 @@
                 <li><strong>Chebyshev Type II.</strong> Monotone passband, equiripple in the stopband. Zeros on the
                     imaginary axis. Poles are the reciprocals of a Chebyshev Type I prototype.</li>
                 <li><strong>Elliptic (Cauer).</strong> Equiripple in both bands. Zeros on the imaginary axis. Poles
-                    inside a Chebyshev Type I ellipse.</li>
+                    near, but not on, a Chebyshev Type I ellipse.</li>
             </ul>
 
             <div class="callout">
-                The plot to the right shows the magnitude response of each family at $N = 4$, all with the same
-                normalised edge marker. Read the geometry from right to left: more constraint on the magnitude shape
+                The plot to the right shows the magnitude response of each family at $N = 4$. The marker at
+                $\omega = 1$ is the passband edge for Butterworth, Chebyshev Type I and elliptic, and the stopband edge
+                for Chebyshev Type II. Read the geometry from right to left: more constraint on the magnitude shape
                 pushes the poles into more specific locations. Butterworth is the most relaxed, elliptic the most
                 constrained.
             </div>
@@ -150,13 +151,10 @@
 
             <h3>The geometric reason for the circle</h3>
 
-            <p>The condition $|H(j\omega)|^2 = 1/(1 + (\omega/\omega_c)^{2N})$ depends only on the magnitude
-                $|s| = \omega$ along the imaginary axis. Any rotation of the pole pattern about the origin leaves the
-                product $|s_k - j\omega|$ unchanged when summed in pairs across the conjugate symmetric set, so the
-                only constraint is on the radius. Equal spacing distributes the $N$ poles to keep the magnitude
-                response symmetric about $\omega_c$, and the unit-radius circle is what places every pole at the same
-                distance from the origin. That equidistance is what makes every pole contribute equally to the
-                rolloff, giving the smoothest possible passband edge.</p>
+            <p>The denominator $1 + (s/j\omega_c)^{2N}$ depends on $s$ only through $s^{2N}$, so its roots satisfy
+                $(s/j\omega_c)^{2N} = -1$. Every root therefore has $|s| = \omega_c$, and adjacent roots are
+                separated by an angle $\pi/N$. The circle of radius $\omega_c$ follows directly from the magnitude
+                condition depending on $\omega$ only through the single power $\omega^{2N}$.</p>
 
             <div class="callout">
                 A pole closer to the imaginary axis produces a sharper resonance at its imaginary frequency. With every
@@ -240,8 +238,8 @@
 
             <div class="callout">
                 Larger ripple means smaller $\mu$, a flatter ellipse, and poles even closer to the imaginary axis.
-                For the same order, a Chebyshev Type I rolls off faster than a Butterworth in direct proportion to how
-                much passband ripple is tolerated. The trade is geometric: ellipse aspect ratio sets passband ripple;
+                For the same order, a Chebyshev Type I rolls off faster than a Butterworth, and the transition
+                steepens as the tolerated passband ripple increases. The trade is geometric: ellipse aspect ratio sets passband ripple;
                 Butterworth is the zero-ripple limit after renormalisation.
             </div>
         </div>
@@ -319,10 +317,11 @@
 
             <div class="eq-block">$$s_{k,\,\text{II}} = \frac{1}{s_{k,\,\text{I}}^*}\bigg|_{\text{LHP}}.$$</div>
 
-            <p>Geometrically, the Chebyshev I ellipse is reflected through the unit circle. Poles that were close to
-                the imaginary axis in the Type I prototype move outward toward $|s| \to \infty$, and poles that were
-                close to the real axis move inward toward the imaginary axis. The Type II pole pattern is the
-                "inversion" of the Type I ellipse, which is why this filter is sometimes called the inverse Chebyshev.
+            <p>Geometrically, each Type I pole is inverted in the unit circle: its angle from the negative real axis,
+                and hence its $Q$, is preserved, while its distance from the origin changes from $|s|$ to $1/|s|$.
+                Type I poles with $|s| > 1$ move inward and those with $|s| < 1$ move outward. The Type II pole
+                pattern is the inversion of the Type I ellipse, which is why this filter is also called the inverse
+                Chebyshev.
             </p>
 
             <h3>The geometric reason for the placement</h3>
@@ -405,19 +404,22 @@
             <ul class="bullets">
                 <li>Zeros on the imaginary axis at the poles of the elliptic rational function $R_N$. These produce
                     notches in the stopband, just as in Chebyshev Type II.</li>
-                <li>Poles in the left half plane, sitting <em>inside</em> the Chebyshev Type I ellipse for the same
-                    ripple. The elliptic poles cluster more tightly near the imaginary axis at the passband edge,
-                    which sharpens the corner.</li>
+                <li>Poles in the left half plane, near but not on the Chebyshev Type I ellipse for the same ripple,
+                    with no simple closed-form locus. The pole pair nearest the passband edge lies just inside the
+                    ellipse and closer to the imaginary axis, which sharpens the corner; lower-frequency poles lie
+                    outside it.</li>
             </ul>
 
             <p>The closed form involves Jacobi elliptic functions:</p>
 
-            <div class="eq-block">$$\omega_{z,r} = \frac{1}{\kappa \, \mathrm{sn}\!\left(\dfrac{(2r - 1) K(\kappa^2)}{N},\, \kappa^2\right)},
+            <div class="eq-block">$$\omega_{z,r} = \frac{1}{\kappa \, \mathrm{cd}\!\left(\dfrac{(2r - 1) K(\kappa^2)}{N},\, \kappa^2\right)},
                 \qquad r = 1, \ldots, \lfloor N/2 \rfloor,$$</div>
 
-            <p>where $\mathrm{sn}$ is the Jacobi sine and $K$ the complete elliptic integral, both evaluated at
-                modulus $\kappa = 1/\xi$. The pole locations come from a related elliptic transcendental equation
-                involving a second modulus tied to $\varepsilon$.</p>
+            <p>where $\mathrm{cd} = \mathrm{cn}/\mathrm{dn}$ is a Jacobi elliptic function and $K$ the complete
+                elliptic integral, both evaluated at modulus $\kappa = 1/\xi$. The pole locations come from a related
+                elliptic transcendental equation involving a second modulus tied to $\varepsilon$. The plots use
+                $0.5\,\text{dB}$ passband ripple and $\xi = 1.6$; with these fixed, the stopband attenuation is set
+                by the order: $9.6$, $24.1$, $39.2$ and $54.3\,\text{dB}$ for $N = 2$ to $5$.</p>
 
             <h3>The geometric reason for the placement</h3>
 
@@ -488,7 +490,7 @@
 
             <p>The s-plane plot below overlays the pole and zero patterns. Read the geometry: the Butterworth poles
                 sit on a circle, the Chebyshev I poles on a horizontally compressed ellipse, the Chebyshev II poles on
-                the reciprocal ellipse with zeros on the imaginary axis, and the elliptic poles inside a Chebyshev I
+                the reciprocal ellipse with zeros on the imaginary axis, and the elliptic poles near a Chebyshev I
                 ellipse with zeros also on the imaginary axis. Each step toward sharper transition pulls the
                 low-frequency poles closer to the imaginary axis and, for Type II and elliptic, adds zeros that punch
                 notches into the stopband.</p>

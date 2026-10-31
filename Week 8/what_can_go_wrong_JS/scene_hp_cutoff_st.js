@@ -12,7 +12,11 @@
             return { t: p.t, y: p.y + 0.12 * Math.sin(2 * Math.PI * 0.22 * p.t) };
         });
         var vals = clean.map(function (p) { return p.y; });
-        var filtered = window.WCGW.filterValues(vals, window.WCGW.biquadHighpass(fc, 0.707, fs), vals[0]);
+        // First-order high-pass s/(s + ωc), bilinear transform prewarped at fc.
+        var wc = 2 * Math.PI * fc, K = wc / Math.tan(Math.PI * fc / fs);
+        var b0 = K / (K + wc);
+        var hp1 = { b0: b0, b1: -b0, b2: 0, a1: (wc - K) / (K + wc), a2: 0 };
+        var filtered = window.WCGW.filterValues(vals, hp1, vals[0]);
         var out = clean.map(function (p, i) { return { t: p.t, clean: p.y, y: filtered[i] }; });
         var P = window.WCGW.setupPlot('#plot-hp-st', {
             xDomain: [0, 5],

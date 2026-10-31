@@ -108,7 +108,7 @@
             { width: 120, height: 22, size: 11, pill: true });
     }
 
-    function phaseDomainFor(N) { return [-90 * N - 30, 10]; }
+    function phaseDomainFor(N) { return [-90 * N - 30, 60]; }  // zeros lift the phase above 0°
     function phaseTicksFor(N) {
         var ticks = [];
         for (var v = 0; v >= -90 * N; v -= 90) ticks.push(v);

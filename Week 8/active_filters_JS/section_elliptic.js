@@ -24,7 +24,7 @@
         var N = state.N;
 
         // Square window. Pole pairs sit close to the unit circle; the
-        // lowest zero is at about jω = 1.7 to 2.9 depending on N; higher
+        // lowest zero is at about jω = 1.66 to 2.14 depending on N; higher
         // zeros (when N ≥ 4) can sit above ω = 3.5 and are flagged with
         // a small arrow outside the visible window.
         var SP = window.AFPlots.setupSPlane({
@@ -133,7 +133,7 @@
             { width: 80, height: 22, size: 11, pill: true });
     }
 
-    function phaseDomainFor(N) { return [-90 * N - 30, 10]; }
+    function phaseDomainFor(N) { return [-90 * N - 30, 60]; }  // zeros lift the phase above 0°
     function phaseTicksFor(N) {
         var ticks = [];
         for (var v = 0; v >= -90 * N; v -= 90) ticks.push(v);

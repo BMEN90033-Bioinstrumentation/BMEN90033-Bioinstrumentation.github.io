@@ -1250,9 +1250,11 @@
                 angles minus the sum of pole angles modulo $360°$.</p>
 
             <div class="callout">
-                As $\omega$ approaches the imaginary part of a pole, the vector angle contributed by that pole sweeps
-                through $90°$, producing a corresponding step in $\angle H(j\omega)$. Integrated from $\omega = 0$ to
-                $\omega = \infty$, each pole contributes a net phase of $-90°$ and each zero contributes $+90°$.
+                As $\omega$ passes the imaginary part of a pole close to the $j\omega$ axis, the angle of that pole's
+                vector swings from about $-90°$ to $+90°$, producing a step of nearly $-180°$ in $\angle H(j\omega)$.
+                From $\omega = 0$ to $\omega = \infty$, a pole at $\sigma \pm j\omega_p$ changes its angle by
+                $90° \pm \arctan(\omega_p/|\sigma|)$, so a conjugate pair contributes $-180°$ in total, or $-90°$ per
+                pole on average. Each left-half-plane zero contributes $+90°$ on average in the same way.
             </div>
         </div>
 

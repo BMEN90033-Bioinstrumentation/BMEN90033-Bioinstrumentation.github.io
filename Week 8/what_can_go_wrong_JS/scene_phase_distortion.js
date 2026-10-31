@@ -2,8 +2,10 @@
     var slider, readout;
     var fs = 500;
     var duration = 2.4;
-    var butterQ = [0.5412, 1.3065];
-    var besselQ = [0.522, 0.806];
+    // Second-order sections as [Q, ω0/ωc]. Bessel values are for the
+    // 4th-order prototype normalised to −3 dB at ωc (scipy bessel, norm='mag').
+    var butterQ = [[0.5412, 1], [1.3065, 1]];
+    var besselQ = [[0.5219, 1.4302], [0.8055, 1.6034]];
 
     function analogSection(w, wc, q) {
         var r = w / wc;
@@ -16,7 +18,7 @@
     function response(w, wc, qs) {
         var h = { re: 1, im: 0 };
         qs.forEach(function (q) {
-            var s = analogSection(w, wc, q);
+            var s = analogSection(w, wc * q[1], q[0]);
             h = { re: h.re * s.re - h.im * s.im, im: h.re * s.im + h.im * s.re };
         });
         return h;
@@ -36,7 +38,7 @@
     function filteredEcg(fcHz, qs) {
         var clean = window.WCGW.ecgSeries(duration, fs, { st: 0.10 });
         var values = clean.map(function (p) { return p.y; });
-        var sections = qs.map(function (q) { return window.WCGW.biquadLowpass(fcHz, q, fs); });
+        var sections = qs.map(function (q) { return window.WCGW.biquadLowpass(fcHz * q[1], q[0], fs); });
         var y = window.WCGW.cascadeFilterValues(values, sections, values[0]);
         return clean.map(function (p, i) { return { t: p.t, clean: p.y, y: y[i] }; });
     }

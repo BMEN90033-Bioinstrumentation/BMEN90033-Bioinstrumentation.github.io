@@ -73,7 +73,8 @@
                 pure time shift; non-constant $\tau_g$ shifts components by different amounts and reshapes the waveform.</p>
             <p>A fourth-order Butterworth low-pass filter is maximally flat in magnitude, yet $\tau_g(\omega)$ rises near
                 cutoff. Faster ECG features (the QRS complex) are delayed differently from slower ones (the T wave), so
-                inter-beat intervals and ST timing are corrupted. The Bessel response is designed to maximise the flatness
+                QRS and T-wave morphology and ST-segment timing are distorted; inter-beat intervals are preserved because
+                every beat is delayed by the same amount. The Bessel response is designed to maximise the flatness
                 of $\tau_g(\omega)$ at the expense of a softer roll-off.</p>
             <div class="fix-callout"><strong>Remedy.</strong> Use a Bessel response or a linear-phase FIR filter when
                 morphology and timing must be preserved. Reserve Butterworth for applications in which only the magnitude
@@ -132,7 +133,7 @@
             <p>The fractional overshoot of the step response is
                 $$M_p = \exp\!\left(-\frac{\pi\zeta}{\sqrt{1-\zeta^2}}\right),$$
                 so a sharper transition is paid for in time-domain ringing. For reference, $Q = 0.707$ (Butterworth) gives
-                a maximally flat magnitude with $\approx 4\%$ overshoot, and $Q \approx 0.58$ (Bessel) gives no overshoot.
+                a maximally flat magnitude with $\approx 4\%$ overshoot, and $Q \approx 0.58$ (Bessel) gives negligible overshoot (about $0.4\%$).
                 Above $Q \approx 1$, oscillatory tails appear on QRS edges that are not present in the source.</p>
             <div class="fix-callout"><strong>Remedy.</strong> Where transient fidelity matters, restrict each second-order
                 section to $Q \le 0.707$, or adopt a Bessel cascade for which $\zeta \ge 1/\sqrt{2}$ throughout.</div>
@@ -381,7 +382,10 @@
                 roll-off at $f_{cl}$.</p>
             <p>For a biopotential front end with $G = 100$ driving an intentional low-pass at $f_c = 100\,\mathrm{Hz}$,
                 a $1\,\mathrm{MHz}$ op-amp gives $f_{cl} = 10\,\mathrm{kHz}$, and the realised passband is flat.
-                A $0.1\,\mathrm{MHz}$ op-amp gives $f_{cl} = 1\,\mathrm{kHz}$ and noticeably attenuates the upper passband.</p>
+                A $0.1\,\mathrm{MHz}$ op-amp gives $f_{cl} = 1\,\mathrm{kHz}$: the magnitude at $f_c$ falls by only
+                $0.04\,\mathrm{dB}$, but the extra pole adds about $6^\circ$ of phase lag at $f_c$ and steepens the
+                stopband roll-off. Passband attenuation becomes significant as $f_{cl}$ approaches $f_c$; at $G = 500$,
+                $f_{cl} = 200\,\mathrm{Hz}$ and the loss at $100\,\mathrm{Hz}$ is about $1\,\mathrm{dB}$.</p>
             <div class="fix-callout"><strong>Remedy.</strong> Specify $\mathrm{GBW} \ge 100 G f_c$ as a working margin,
                 distribute high gain across two stages so each stage runs at lower $G$, and verify the realised response
                 rather than relying on the schematic.</div>
@@ -501,9 +505,10 @@
                 a common-mode input $V_{cm}$ into a differential signal of magnitude
                 $$V_{d,\text{cm}}(\omega) = V_{cm}\!\left| \frac{1}{1 + j\omega \tau_1} - \frac{1}{1 + j\omega \tau_2} \right|.$$
                 The filter's contribution to the system common-mode rejection ratio is therefore
-                $\mathrm{CMRR}_F(\omega) = |H_{\text{diff}}|/|H_{cm \to d}|$, which falls with frequency as the mismatch
+                $\mathrm{CMRR}_F(\omega) = |H_{\text{diff}}|/|H_{cm \to d}|$, with $H_i = 1/(1 + j\omega\tau_i)$ and $H_{\text{diff}} = (H_1 + H_2)/2$, which falls with frequency as the mismatch
                 term grows.</p>
-            <p>A 1% RC mismatch limits $\mathrm{CMRR}_F$ to roughly $40\,\mathrm{dB}$ at the corner, which is well below
+            <p>A 1% RC mismatch limits $\mathrm{CMRR}_F$ to about $43\,\mathrm{dB}$ at the corner and $40\,\mathrm{dB}$
+                ($\tau/\delta\tau$) well above it, which is well below
                 the $80\text{–}120\,\mathrm{dB}$ specified for an instrumentation amplifier alone.</p>
             <div class="fix-callout"><strong>Remedy.</strong> Place differential filtering after the instrumentation
                 amplifier so the CMRR is set by matched components, use precision resistor networks and matched capacitor

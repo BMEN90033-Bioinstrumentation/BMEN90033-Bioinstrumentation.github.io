@@ -19,7 +19,7 @@
         var h2 = H(w, tau2);
         var sr = h1.re + h2.re;
         var si = h1.im + h2.im;
-        return Math.sqrt(sr * sr + si * si);
+        return Math.sqrt(sr * sr + si * si) / 2;  // A_d = (H1 + H2)/2 for inputs ±v_d/2
     }
 
     function draw() {
@@ -66,8 +66,8 @@
             return Math.abs(d.f - 50) < Math.abs(trace[acc].f - 50) ? i : acc;
         }, 0);
         var cmrr50 = trace[idx50].db;
-        var floorDb = 20 * Math.log10(2 / (d + 1e-9));
-        var info = 'CMRR_F at 50 Hz = ' + cmrr50.toFixed(1) + ' dB    ·    DC limit ≈ ' + floorDb.toFixed(1) + ' dB';
+        var floorDb = 20 * Math.log10(1 / (d + 1e-9));
+        var info = 'CMRR_F at 50 Hz = ' + cmrr50.toFixed(1) + ' dB    ·    high-frequency floor ≈ ' + floorDb.toFixed(1) + ' dB';
         P.g.append('text').attr('x', 14).attr('y', P.innerH - 10).attr('fill', P.colors.fg)
             .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text(info);
 
