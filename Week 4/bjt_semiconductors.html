@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMEN90033: Fundamental BJT Operation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        :root {
+            --bg-deep: #1a1a1e;
+            --bg-panel: #222226;
+            --bg-card: #2a2a2f;
+            --border: rgba(255,255,255,0.08);
+            --accent: var(--site-accent);
+            --text: #ffffff;
+            --text-dim: #a0a0a0;
+            --text-muted: #606060;
+            --col-ntype: #e06050;
+            --col-ptype: #5080d0;
+            --col-electron: #ffcc44;
+            --col-hole: #ff66aa;
+            --col-donor-ion: #ff8866;
+            --col-acceptor-ion: #66aaff;
+            --col-depletion: rgba(255,255,255,0.08);
+        }
+
+        [data-theme="light"] {
+            --bg-deep: #f5f5f7;
+            --bg-panel: #ffffff;
+            --bg-card: #eeeef0;
+            --border: rgba(0,0,0,0.1);
+            --border-hover: rgba(0,0,0,0.2);
+            --accent: var(--site-accent);
+            --accent-dim: #357a60;
+            --text: #1a1a1e;
+            --text-dim: #555555;
+            --text-muted: #888888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 0.55rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-left .back-btn { position: static; top: auto; right: auto; }
+
+        h1 { font-size: 0.85rem; font-weight: 600; letter-spacing: -0.01em; }
+        .header-sub { font-size: 0.65rem; color: var(--text-dim); margin-top: 1px; }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 42px);
+            gap: 0;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 0.4rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            flex-shrink: 0;
+        }
+        .panel-header strong { color: var(--text); font-weight: 500; font-size: 0.75rem; }
+
+        .panel-body {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+        .panel-body canvas { display: block; width: 100%; height: 100%; }
+
+        /* Controls panel */
+        .controls-panel {
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .ctrl-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 0.45rem 0.55rem;
+        }
+
+        .ctrl-title {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ctrl-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.3rem;
+        }
+        .ctrl-row:last-child { margin-bottom: 0; }
+
+        .ctrl-row label {
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            min-width: 55px;
+            flex-shrink: 0;
+        }
+
+        .ctrl-row input[type=range] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,0.18);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        .ctrl-row input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .ctrl-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text);
+            min-width: 56px;
+            width: 72px;
+            text-align: right;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 3px;
+            padding: 2px 6px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .ctrl-val:focus {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 3px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 500;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+        .toggle-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+        .toggle-btn.active {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.18);
+            color: var(--text);
+        }
+
+        /* Explanation panel */
+        #explanation-panel h3 {
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text);
+        }
+        #explanation-panel p {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            line-height: 1.65;
+            margin-bottom: 0.5rem;
+        }
+        #explanation-panel .physics-note {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            border-left: 2px solid var(--border);
+            padding-left: 8px;
+            margin-top: 0.3rem;
+        }
+        [data-theme="light"] .toggle-btn { background: rgba(0,0,0,0.04); }
+        [data-theme="light"] .toggle-btn:hover { background: rgba(0,0,0,0.08); color: #1a1a1e; }
+        [data-theme="light"] .toggle-btn.active { background: rgba(0,0,0,0.10); border-color: rgba(0,0,0,0.18); color: #1a1a1e; }
+        [data-theme="light"] .ctrl-val { color: #1a1a1e; background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
+        [data-theme="light"] .ctrl-val:focus { border-color: rgba(0,0,0,0.3); background: rgba(0,0,0,0.06); }
+        [data-theme="light"] .ctrl-row input[type=range] { background: rgba(0,0,0,0.15); }
+        [data-theme="light"] .ctrl-row input[type=range]::-webkit-slider-thumb { background: #1a1a1e; }
+    </style>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="../theme.js"></script>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <a class="back-btn" href="../index.html">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+            </svg>
+            Back
+        </a>
+        <div>
+            <h1>BJT Semiconductors: Fundamental Operation</h1>
+            <div class="header-sub">BMEN90033 · Week 4</div>
+        </div>
+    </div>
+</header>
+
+<div class="main-layout">
+    <!-- Top-left: Cross-section -->
+    <div class="panel">
+        <div class="panel-header"><strong>Transistor Cross-Section</strong><span id="type-label">NPN</span></div>
+        <div class="panel-body"><canvas id="cross-section-canvas"></canvas></div>
+    </div>
+    <!-- Top-right: Carrier concentration -->
+    <div class="panel">
+        <div class="panel-header"><strong>Carrier Concentration</strong><span style="display:flex;align-items:center;gap:6px;"><span id="scale-label">Log scale</span><button class="toggle-btn active" id="btn-log" onclick="setScale('log')" style="padding:2px 8px;font-size:0.6rem;">Log</button><button class="toggle-btn" id="btn-linear" onclick="setScale('linear')" style="padding:2px 8px;font-size:0.6rem;">Linear</button></span></div>
+        <div class="panel-body"><canvas id="concentration-canvas"></canvas></div>
+    </div>
+    <!-- Bottom-left: Controls -->
+    <div class="panel controls-panel" id="controls-panel">
+
+        <!-- Transistor Type -->
+        <div class="ctrl-section">
+            <div class="ctrl-title">Transistor Type</div>
+            <div class="btn-group">
+                <button class="toggle-btn active" id="btn-npn" onclick="setType('NPN')">NPN</button>
+                <button class="toggle-btn" id="btn-pnp" onclick="setType('PNP')">PNP</button>
+            </div>
+        </div>
+
+        <!-- Base Current -->
+        <div class="ctrl-section">
+            <div class="ctrl-title">Base Current</div>
+            <div class="ctrl-row">
+                <label>I<sub>B</sub></label>
+                <input type="range" id="ib-slider" min="0" max="100" value="0"
+                       oninput="setBaseCurrent(this.value)">
+                <span class="ctrl-val" id="ib-display">0 &micro;A</span>
+            </div>
+            <div style="text-align:center;margin-top:4px;">
+                <span id="operating-region" style="display:inline-block;padding:2px 8px;border-radius:3px;
+                      font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:500;
+                      background:var(--col-cutoff,rgba(200,200,200,0.06));color:var(--text-dim);">
+                    CUTOFF
+                </span>
+            </div>
+        </div>
+
+        <!-- Animation -->
+        <div class="ctrl-section">
+            <div class="ctrl-title">Animation</div>
+            <div class="btn-group">
+                <button class="toggle-btn active" id="btn-play" onclick="toggleAnimation(true)">Play</button>
+                <button class="toggle-btn" id="btn-pause" onclick="toggleAnimation(false)">Pause</button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="ctrl-section">
+            <div class="ctrl-title">Legend</div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:0.68rem;">
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--col-electron)"></div> Electron
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <div style="width:8px;height:8px;border-radius:50%;border:1.5px solid var(--col-hole);background:transparent"></div> Hole
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <span style="font-weight:700;font-size:10px;color:var(--col-donor-ion);width:8px;text-align:center">+</span> Donor ion (fixed)
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <span style="font-weight:700;font-size:10px;color:var(--col-acceptor-ion);width:8px;text-align:center">&minus;</span> Acceptor ion (fixed)
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <div style="width:8px;height:8px;background:var(--col-ntype);border-radius:2px;opacity:0.5"></div> N-type region
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <div style="width:8px;height:8px;background:var(--col-ptype);border-radius:2px;opacity:0.5"></div> P-type region
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;color:var(--text-dim)">
+                    <div style="width:8px;height:8px;background:var(--col-depletion);border:1px dashed rgba(255,255,255,0.2);border-radius:2px"></div> Depletion region
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- Bottom-right: Explanation -->
+    <div class="panel">
+        <div class="panel-header"><strong>Explanation</strong><span id="region-label">Cutoff</span></div>
+        <div class="panel-body" style="padding:0.75rem;overflow-y:auto;" id="explanation-panel">
+        </div>
+    </div>
+</div>
+
+<script>
+    // === State ===
+    let transistorType = 'NPN';
+    let baseCurrent = 0;
+    let animating = true;
+    let concScale = 'log';  // 'log' or 'linear'
+
+    function setScale(scale) {
+        concScale = scale;
+        document.getElementById('btn-log').classList.toggle('active', scale === 'log');
+        document.getElementById('btn-linear').classList.toggle('active', scale === 'linear');
+        document.getElementById('scale-label').textContent = scale === 'log' ? 'Log scale' : 'Linear scale';
+        drawConcentration();
+        needsRedraw = true;
+    }
+
+    function setType(type) {
+        transistorType = type;
+        document.getElementById('btn-npn').classList.toggle('active', type === 'NPN');
+        document.getElementById('btn-pnp').classList.toggle('active', type === 'PNP');
+        document.getElementById('type-label').textContent = type;
+        updateAll();
+        initParticles();
+    }
+
+    function setBaseCurrent(val) {
+        baseCurrent = parseInt(val);
+        const microAmps = Math.round(baseCurrent * 2);
+        document.getElementById('ib-display').innerHTML = microAmps + ' &micro;A';
+        const regionEl = document.getElementById('operating-region');
+        if (baseCurrent === 0) {
+            regionEl.textContent = 'CUTOFF';
+            regionEl.style.background = 'rgba(200,200,200,0.06)';
+            regionEl.style.color = 'var(--text-dim)';
+        } else if (baseCurrent < 15) {
+            regionEl.textContent = 'SUB-THRESHOLD';
+            regionEl.style.background = 'rgba(160,160,200,0.08)';
+            regionEl.style.color = '#8888bb';
+        } else if (baseCurrent < 55) {
+            regionEl.textContent = 'ACTIVE';
+            regionEl.style.background = 'rgba(90,154,186,0.10)';
+            regionEl.style.color = '#5a9aba';
+        } else if (baseCurrent < 80) {
+            regionEl.textContent = 'APPROACHING SAT.';
+            regionEl.style.background = 'rgba(180,160,80,0.10)';
+            regionEl.style.color = '#b0a050';
+        } else {
+            regionEl.textContent = 'SATURATION';
+            regionEl.style.background = 'rgba(255,180,60,0.12)';
+            regionEl.style.color = '#cca855';
+        }
+        updateAll();
+    }
+
+    function toggleAnimation(play) {
+        animating = play;
+        document.getElementById('btn-play').classList.toggle('active', play);
+        document.getElementById('btn-pause').classList.toggle('active', !play);
+    }
+
+    function updateAll() {
+        updateExplanation();
+        drawCrossSection();
+        drawConcentration();
+        needsRedraw = true;
+    }
+
+    // === Cross-Section Canvas ===
+    const csCanvas = document.getElementById('cross-section-canvas');
+    const csCtx = csCanvas.getContext('2d');
+
+    function resizeCanvases() {
+        [csCanvas, document.getElementById('concentration-canvas')].forEach(c => {
+            const rect = c.parentElement.getBoundingClientRect();
+            c.width = rect.width * devicePixelRatio;
+            c.height = rect.height * devicePixelRatio;
+            c.style.width = rect.width + 'px';
+            c.style.height = rect.height + 'px';
+        });
+    }
+    window.addEventListener('resize', () => { resizeCanvases(); initParticles(); drawCrossSection(); drawConcentration(); needsRedraw = true; });
+
+    function getRegions(w, h) {
+        const margin = w * 0.08;
+        const top = h * 0.12;
+        const bottom = h * 0.78;
+        const regionW = w - 2 * margin;
+        const emitterW = regionW * 0.35;
+        const baseW = regionW * 0.12;
+        const collectorW = regionW * 0.35;
+        const eX = margin;
+        const bX = eX + emitterW;
+        const cX = bX + baseW;
+
+        const maxDepl = Math.min(emitterW, collectorW) * 0.15;
+        const beFrac = baseCurrent === 0 ? 1.0 : Math.max(0.15, 1.0 - baseCurrent / 100);
+        // BC depletion: widens under reverse bias, then smoothly narrows as saturation approaches
+        // Use smooth blend: satBlend goes from 0 to 1 over the range 50-90
+        const satBlend = Math.max(0, Math.min(1, (baseCurrent - 50) / 40));
+        const bcWiden = 1.0 + baseCurrent / 200;       // reverse bias widening
+        const bcNarrow = 0.3 + (1.0 - satBlend) * 0.7; // forward bias narrowing
+        const bcFrac = baseCurrent === 0 ? 1.0 : ((1 - satBlend) * bcWiden + satBlend * bcNarrow);
+        const beDepl = maxDepl * beFrac;
+        const bcDepl = maxDepl * bcFrac;
+
+        return {
+            margin, top, bottom,
+            emitter: { x: eX, w: emitterW },
+            base: { x: bX, w: baseW },
+            collector: { x: cX, w: collectorW },
+            totalW: emitterW + baseW + collectorW,
+            beDepl, bcDepl, maxDepl,
+            height: bottom - top
+        };
+    }
+
+    function drawCrossSection() {
+        const w = csCanvas.width;
+        const h = csCanvas.height;
+        const ctx = csCtx;
+        const dpr = devicePixelRatio;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const cw = w / dpr, ch = h / dpr;
+
+        ctx.clearRect(0, 0, cw, ch);
+
+        const isNPN = transistorType === 'NPN';
+        const r = getRegions(cw, ch);
+        const regionH = r.height;
+
+        // Draw three regions with background colors
+        ctx.fillStyle = isNPN ? 'rgba(224,96,80,0.15)' : 'rgba(80,128,208,0.15)';
+        ctx.fillRect(r.emitter.x, r.top, r.emitter.w, regionH);
+        ctx.fillStyle = isNPN ? 'rgba(80,128,208,0.15)' : 'rgba(224,96,80,0.15)';
+        ctx.fillRect(r.base.x, r.top, r.base.w, regionH);
+        ctx.fillStyle = isNPN ? 'rgba(224,96,80,0.12)' : 'rgba(80,128,208,0.12)';
+        ctx.fillRect(r.collector.x, r.top, r.collector.w, regionH);
+
+        // Region borders
+        ctx.strokeStyle = T.gridStrong;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(r.emitter.x, r.top, r.emitter.w, regionH);
+        ctx.strokeRect(r.base.x, r.top, r.base.w, regionH);
+        ctx.strokeRect(r.collector.x, r.top, r.collector.w, regionH);
+
+        // Depletion regions
+        ctx.fillStyle = T.gridLight;
+        ctx.fillRect(r.base.x - r.beDepl, r.top, r.beDepl * 2, regionH);
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = T.overlay20;
+        ctx.strokeRect(r.base.x - r.beDepl, r.top, r.beDepl * 2, regionH);
+        const bcX = r.base.x + r.base.w;
+        ctx.fillStyle = T.gridLight;
+        ctx.fillRect(bcX - r.bcDepl, r.top, r.bcDepl * 2, regionH);
+        ctx.strokeRect(bcX - r.bcDepl, r.top, r.bcDepl * 2, regionH);
+        ctx.setLineDash([]);
+
+        // Fixed ions in depletion regions
+        drawFixedIons(ctx, r, isNPN);
+
+        // Labels
+        ctx.font = '600 13px "Inter"';
+        ctx.textAlign = 'center';
+        const labelY = r.top - 20;
+
+        ctx.fillStyle = T.text;
+        ctx.fillText('Emitter (E)', r.emitter.x + r.emitter.w / 2, labelY);
+        ctx.font = '11px "JetBrains Mono"';
+        const eDoping = isNPN ? 'N\u207A  Phosphorus' : 'P\u207A  Boron';
+        ctx.fillStyle = isNPN ? '#e06050' : '#5080d0';
+        ctx.fillText(eDoping, r.emitter.x + r.emitter.w / 2, labelY + 14);
+
+        ctx.font = '600 13px "Inter"';
+        ctx.fillStyle = T.text;
+        ctx.fillText('Base (B)', r.base.x + r.base.w / 2, labelY);
+        ctx.font = '11px "JetBrains Mono"';
+        const bDoping = isNPN ? 'P  Boron' : 'N  Phosphorus';
+        ctx.fillStyle = isNPN ? '#5080d0' : '#e06050';
+        ctx.fillText(bDoping, r.base.x + r.base.w / 2, labelY + 14);
+
+        ctx.font = '600 13px "Inter"';
+        ctx.fillStyle = T.text;
+        ctx.fillText('Collector (C)', r.collector.x + r.collector.w / 2, labelY);
+        ctx.font = '11px "JetBrains Mono"';
+        const cDoping = isNPN ? 'N  Phosphorus' : 'P  Boron';
+        ctx.fillStyle = isNPN ? '#e06050' : '#5080d0';
+        ctx.fillText(cDoping, r.collector.x + r.collector.w / 2, labelY + 14);
+
+        // Terminal wires
+        drawWires(ctx, r, cw, ch, isNPN);
+    }
+
+    function drawWires(ctx, r, cw, ch, isNPN) {
+        const regionH = r.height;
+        const wireBottom = r.top + regionH;
+        const wireEnd = ch - 8;  // near bottom of canvas
+        const wireColor = T.overlay35;
+
+        const eCx = r.emitter.x + r.emitter.w / 2;
+        const bCx = r.base.x + r.base.w / 2;
+        const cCx = r.collector.x + r.collector.w / 2;
+
+        // Draw wires as lines from region bottom down to canvas bottom
+        ctx.strokeStyle = wireColor;
+        ctx.lineWidth = 2;
+
+        // Emitter wire — straight down
+        ctx.beginPath();
+        ctx.moveTo(eCx, wireBottom);
+        ctx.lineTo(eCx, wireEnd);
+        ctx.stroke();
+
+        // Base wire — straight down
+        ctx.beginPath();
+        ctx.moveTo(bCx, wireBottom);
+        ctx.lineTo(bCx, wireEnd);
+        ctx.stroke();
+
+        // Collector wire — straight down
+        ctx.beginPath();
+        ctx.moveTo(cCx, wireBottom);
+        ctx.lineTo(cCx, wireEnd);
+        ctx.stroke();
+
+        // Terminal labels
+        ctx.fillStyle = T.text;
+        ctx.font = '600 11px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText('E', eCx - 10, wireEnd - 4);
+        ctx.fillText('B', bCx - 10, wireEnd - 4);
+        ctx.fillText('C', cCx + 10, wireEnd - 4);
+
+        // Conventional current direction arrows alongside wires (when I_B > 0)
+        if (baseCurrent >= 15) {
+            ctx.strokeStyle = T.overlay50;
+            ctx.fillStyle = T.overlay50;
+            ctx.lineWidth = 1;
+            ctx.font = '500 9px "JetBrains Mono"';
+
+            const arrowOffset = 14;
+            const arrowMidY = wireBottom + (wireEnd - wireBottom) * 0.4;
+
+            // NPN: conventional current INTO collector, OUT of emitter, INTO base
+            // PNP: conventional current INTO emitter, OUT of collector, INTO base
+            // (conventional current is opposite to electron flow)
+
+            // Emitter arrow
+            const eArrowDir = isNPN ? 1 : -1;  // NPN: down (out), PNP: up (in)
+            drawArrow(ctx, eCx + arrowOffset, arrowMidY - eArrowDir * 10, eCx + arrowOffset, arrowMidY + eArrowDir * 10);
+            ctx.textAlign = 'left';
+            ctx.fillText('I\u1d07', eCx + arrowOffset + 5, arrowMidY + 4);
+
+            // Collector arrow
+            const cArrowDir = isNPN ? -1 : 1;  // NPN: up (in), PNP: down (out)
+            drawArrow(ctx, cCx - arrowOffset, arrowMidY - cArrowDir * 10, cCx - arrowOffset, arrowMidY + cArrowDir * 10);
+            ctx.textAlign = 'right';
+            ctx.fillText('I\u1d04', cCx - arrowOffset - 5, arrowMidY + 4);
+
+            // Base arrow (always into base — down)
+            drawArrow(ctx, bCx + arrowOffset, arrowMidY - 10, bCx + arrowOffset, arrowMidY + 10);
+            ctx.textAlign = 'left';
+            ctx.fillText('I\u0299', bCx + arrowOffset + 5, arrowMidY + 4);
+        }
+
+        // Store wire geometry for wire electron animation
+        r.wires = {
+            emitter: { x: eCx, top: wireBottom, bottom: wireEnd },
+            base: { x: bCx, top: wireBottom, bottom: wireEnd },
+            collector: { x: cCx, top: wireBottom, bottom: wireEnd }
+        };
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2) {
+        const headLen = 6;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // === Wire Electron System ===
+    let wireElectrons = [];
+
+    function updateWireElectrons() {
+        if (!animating || baseCurrent < 15) {
+            wireElectrons = [];
+            return;
+        }
+
+        const cw = csCanvas.width / devicePixelRatio;
+        const ch = csCanvas.height / devicePixelRatio;
+        const r = getRegions(cw, ch);
+        const isNPN = transistorType === 'NPN';
+        const rate = (baseCurrent - 15) / 85;  // 0 to 1 over active+saturation range
+
+        const eCx = r.emitter.x + r.emitter.w / 2;
+        const bCx = r.base.x + r.base.w / 2;
+        const cCx = r.collector.x + r.collector.w / 2;
+        const wireTop = r.top + r.height;
+        const wireBot = ch - 8;
+
+        // Spawn wire electrons
+        // NPN: electrons flow UP into emitter, UP out of base (small), DOWN out of collector
+        // PNP: electrons flow DOWN into collector, DOWN out of base (small), UP out of emitter
+        // (electrons flow opposite to conventional current)
+
+        // Emitter wire electrons
+        if (Math.random() < rate * 0.15) {
+            wireElectrons.push({
+                x: eCx + (Math.random() - 0.5) * 2,
+                y: isNPN ? wireBot : wireTop,
+                vy: isNPN ? -0.6 - rate * 0.4 : 0.6 + rate * 0.4,
+                wire: 'emitter', wireX: eCx, wireTop, wireBot
+            });
+        }
+        // Collector wire electrons (larger flow — most carriers are collected)
+        if (Math.random() < rate * 0.14) {
+            wireElectrons.push({
+                x: cCx + (Math.random() - 0.5) * 2,
+                y: isNPN ? wireTop : wireBot,
+                vy: isNPN ? 0.6 + rate * 0.4 : -0.6 - rate * 0.4,
+                wire: 'collector', wireX: cCx, wireTop, wireBot
+            });
+        }
+        // Base wire electrons (small flow — recombination current)
+        if (Math.random() < rate * 0.03) {
+            wireElectrons.push({
+                x: bCx + (Math.random() - 0.5) * 2,
+                y: wireBot,
+                vy: -0.4 - rate * 0.2,
+                wire: 'base', wireX: bCx, wireTop, wireBot
+            });
+        }
+
+        // Update positions and remove out-of-bounds
+        for (let i = wireElectrons.length - 1; i >= 0; i--) {
+            const e = wireElectrons[i];
+            e.y += e.vy;
+            // Small horizontal jitter
+            e.x = e.wireX + (Math.random() - 0.5) * 1.5;
+            if (e.y < e.wireTop - 3 || e.y > e.wireBot + 3) {
+                wireElectrons.splice(i, 1);
+            }
+        }
+
+        // Cap
+        if (wireElectrons.length > 60) {
+            wireElectrons.splice(0, wireElectrons.length - 60);
+        }
+    }
+
+    function drawWireElectrons(ctx) {
+        ctx.fillStyle = T.yellow;
+        for (const e of wireElectrons) {
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function drawFixedIons(ctx, r, isNPN) {
+        const regionH = r.height;
+        ctx.font = 'bold 10px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const beJunction = r.base.x;
+        const spacing = 12;
+        const rows = Math.floor(regionH / spacing);
+        // Emitter side of BE depletion
+        for (let row = 0; row < rows; row++) {
+            const y = r.top + spacing / 2 + row * spacing;
+            const cols = Math.max(1, Math.floor(r.beDepl / spacing));
+            for (let col = 0; col < cols; col++) {
+                const x = beJunction - r.beDepl + spacing / 2 + col * spacing;
+                if (x >= r.emitter.x && x < beJunction) {
+                    ctx.fillStyle = isNPN ? '#ff8866' : '#66aaff';
+                    ctx.fillText(isNPN ? '+' : '\u2212', x, y);
+                }
+            }
+        }
+        // Base side of BE depletion
+        for (let row = 0; row < rows; row++) {
+            const y = r.top + spacing / 2 + row * spacing;
+            const cols = Math.max(1, Math.floor(r.beDepl / spacing));
+            for (let col = 0; col < cols; col++) {
+                const x = beJunction + spacing / 2 + col * spacing;
+                if (x > beJunction && x < beJunction + r.beDepl) {
+                    ctx.fillStyle = isNPN ? '#66aaff' : '#ff8866';
+                    ctx.fillText(isNPN ? '\u2212' : '+', x, y);
+                }
+            }
+        }
+
+        const bcJunction = r.base.x + r.base.w;
+        // Base side of BC depletion
+        for (let row = 0; row < rows; row++) {
+            const y = r.top + spacing / 2 + row * spacing;
+            const cols = Math.max(1, Math.floor(r.bcDepl / spacing));
+            for (let col = 0; col < cols; col++) {
+                const x = bcJunction - r.bcDepl + spacing / 2 + col * spacing;
+                if (x >= r.base.x && x < bcJunction) {
+                    ctx.fillStyle = isNPN ? '#66aaff' : '#ff8866';
+                    ctx.fillText(isNPN ? '\u2212' : '+', x, y);
+                }
+            }
+        }
+        // Collector side of BC depletion
+        for (let row = 0; row < rows; row++) {
+            const y = r.top + spacing / 2 + row * spacing;
+            const cols = Math.max(1, Math.floor(r.bcDepl / spacing));
+            for (let col = 0; col < cols; col++) {
+                const x = bcJunction + spacing / 2 + col * spacing;
+                if (x > bcJunction && x < bcJunction + r.bcDepl) {
+                    ctx.fillStyle = isNPN ? '#ff8866' : '#66aaff';
+                    ctx.fillText(isNPN ? '+' : '\u2212', x, y);
+                }
+            }
+        }
+    }
+
+    function drawConcentration() {
+        const canvas = document.getElementById('concentration-canvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const cw = canvas.width / dpr;
+        const ch = canvas.height / dpr;
+        ctx.clearRect(0, 0, cw, ch);
+
+        const isNPN = transistorType === 'NPN';
+        const isLog = concScale === 'log';
+        const margin = { top: 30, bottom: 40, left: isLog ? 55 : 72, right: 20 };
+        const plotW = cw - margin.left - margin.right;
+        const plotH = ch - margin.top - margin.bottom;
+
+        const emitterFrac = 0.42;
+        const baseFrac = 0.15;
+        const collectorFrac = 0.43;
+        const beJunc = emitterFrac;
+        const bcJunc = emitterFrac + baseFrac;
+
+        const logMin = 10, logMax = 18;
+
+        // For linear scale, we map real values 0 to 10^maxLinLog
+        // Use the highest doping level as the top of the linear scale
+        const maxLinLog = 17.5;  // 10^17.5 as max for linear axis
+
+        function yForVal(logVal) {
+            if (isLog) {
+                return margin.top + plotH * (1 - (logVal - logMin) / (logMax - logMin));
+            } else {
+                // Convert log value to real, then map linearly
+                const realVal = Math.pow(10, logVal);
+                const maxReal = Math.pow(10, maxLinLog);
+                const frac = realVal / maxReal;
+                return margin.top + plotH * (1 - Math.min(1, frac));
+            }
+        }
+        function xForFrac(frac) {
+            return margin.left + frac * plotW;
+        }
+
+        // Background region shading
+        ctx.globalAlpha = 0.05;
+        ctx.fillStyle = isNPN ? '#e06050' : '#5080d0';
+        ctx.fillRect(xForFrac(0), margin.top, xForFrac(emitterFrac) - xForFrac(0), plotH);
+        ctx.fillStyle = isNPN ? '#5080d0' : '#e06050';
+        ctx.fillRect(xForFrac(beJunc), margin.top, xForFrac(bcJunc) - xForFrac(beJunc), plotH);
+        ctx.fillStyle = isNPN ? '#e06050' : '#5080d0';
+        ctx.fillRect(xForFrac(bcJunc), margin.top, xForFrac(1) - xForFrac(bcJunc), plotH);
+        ctx.globalAlpha = 1;
+
+        // Junction lines
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = T.overlay20;
+        ctx.lineWidth = 1;
+        [beJunc, bcJunc].forEach(frac => {
+            ctx.beginPath();
+            ctx.moveTo(xForFrac(frac), margin.top);
+            ctx.lineTo(xForFrac(frac), margin.top + plotH);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // Depletion region shading (grey bands matching cross-section)
+        const beFracDepl = baseCurrent === 0 ? 0.04 : Math.max(0.006, 0.04 * (1 - baseCurrent / 100));
+        const satBlendPlot = Math.max(0, Math.min(1, (baseCurrent - 50) / 40));
+        const bcDeplWiden = 0.04 * (1 + baseCurrent / 200);
+        const bcDeplNarrow = 0.012 + (1 - satBlendPlot) * 0.028;
+        const bcFracDepl = baseCurrent === 0 ? 0.04 : ((1 - satBlendPlot) * bcDeplWiden + satBlendPlot * bcDeplNarrow);
+        ctx.fillStyle = T.grid;
+        ctx.fillRect(xForFrac(beJunc - beFracDepl), margin.top, xForFrac(beFracDepl * 2) - xForFrac(0), plotH);
+        ctx.fillRect(xForFrac(bcJunc - bcFracDepl), margin.top, xForFrac(bcFracDepl * 2) - xForFrac(0), plotH);
+
+        // Axes
+        ctx.strokeStyle = T.overlay30;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, margin.top + plotH);
+        ctx.lineTo(margin.left + plotW, margin.top + plotH);
+        ctx.stroke();
+
+        // Y-axis labels
+        ctx.fillStyle = T.overlay40;
+        ctx.font = '10px "JetBrains Mono"';
+        ctx.textAlign = 'right';
+        if (isLog) {
+            for (let logV = logMin; logV <= logMax; logV += 2) {
+                const y = yForVal(logV);
+                ctx.fillText('10' + superscript(logV), margin.left - 5, y + 3);
+                ctx.strokeStyle = T.overlay05;
+                ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + plotW, y); ctx.stroke();
+            }
+        } else {
+            // Linear scale: show 0, 25%, 50%, 75%, 100% of max
+            const maxReal = Math.pow(10, maxLinLog);
+            for (let frac = 0; frac <= 1; frac += 0.25) {
+                const y = margin.top + plotH * (1 - frac);
+                const val = frac * maxReal;
+                let label;
+                if (val === 0) label = '0';
+                else if (val >= 1e15) label = (val / 1e15).toFixed(1) + '\u00d710' + superscript(15);
+                else if (val >= 1e12) label = (val / 1e12).toFixed(1) + '\u00d710' + superscript(12);
+                else label = val.toExponential(0);
+                ctx.fillStyle = T.overlay40;
+                ctx.fillText(label, margin.left - 5, y + 3);
+                ctx.strokeStyle = T.overlay05;
+                ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(margin.left + plotW, y); ctx.stroke();
+            }
+        }
+
+        // X-axis labels
+        ctx.textAlign = 'center';
+        ctx.fillStyle = T.overlay50;
+        ctx.font = '11px "Inter"';
+        ctx.fillText('Emitter', xForFrac(emitterFrac / 2), margin.top + plotH + 20);
+        ctx.fillText('Base', xForFrac(beJunc + baseFrac / 2), margin.top + plotH + 20);
+        ctx.fillText('Collector', xForFrac(bcJunc + collectorFrac / 2), margin.top + plotH + 20);
+
+        // Y-axis title
+        ctx.save();
+        ctx.translate(12, margin.top + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.font = '11px "Inter"';
+        ctx.fillStyle = T.overlay50;
+        ctx.fillText('Concentration (cm\u207B\u00B3)' + (isLog ? ': log' : ': linear'), 0, 0);
+        ctx.restore();
+
+        // Carrier concentration curves
+        const eMaj = 17, bMaj = 15, cMaj = 16;
+        const eMin = 13, bMinEq = 13, cMin = 12;
+        const injectionBoost = baseCurrent / 100;
+
+        // n(x) — electron concentration
+        ctx.beginPath();
+        ctx.strokeStyle = T.yellow;
+        ctx.lineWidth = 2;
+        const nEmitter = isNPN ? eMaj : eMin;
+        const nBase0 = isNPN ? Math.min(bMinEq + injectionBoost * 4, eMaj - 0.5) : bMaj;
+        // BC junction injection increases smoothly as saturation approaches
+        const satBlendConc = Math.max(0, Math.min(1, (baseCurrent - 50) / 40));
+        const nBaseEnd = isNPN ? (bMinEq + satBlendConc * injectionBoost * 3) : bMaj;
+        const nCollector = isNPN ? cMaj : cMin;
+
+        const steps = 300;
+        function getLogN(frac) {
+            if (frac < beJunc - 0.005) return nEmitter;
+            if (frac < beJunc + 0.005) {
+                const t = (frac - (beJunc - 0.005)) / 0.01;
+                return nEmitter + (nBase0 - nEmitter) * t;
+            }
+            if (frac < bcJunc - 0.005) {
+                const baseFracLocal = (frac - beJunc - 0.005) / (baseFrac - 0.01);
+                return nBase0 + (nBaseEnd - nBase0) * Math.min(1, Math.max(0, baseFracLocal));
+            }
+            if (frac < bcJunc + 0.005) {
+                const t = (frac - (bcJunc - 0.005)) / 0.01;
+                return nBaseEnd + (nCollector - nBaseEnd) * t;
+            }
+            return nCollector;
+        }
+        for (let i = 0; i <= steps; i++) {
+            const frac = i / steps;
+            const logN = getLogN(frac);
+            const x = xForFrac(frac);
+            const y = yForVal(logN);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // p(x) — hole concentration
+        ctx.beginPath();
+        ctx.strokeStyle = '#ff66aa';
+        ctx.lineWidth = 2;
+        const pEmitter = isNPN ? eMin : eMaj;
+        const pBase0 = isNPN ? bMaj : Math.min(bMinEq + injectionBoost * 4, eMaj - 0.5);
+        const pBaseEnd = isNPN ? bMaj : (bMinEq + satBlendConc * injectionBoost * 3);
+        const pCollector = isNPN ? cMin : cMaj;
+
+        function getLogP(frac) {
+            if (frac < beJunc - 0.005) return pEmitter;
+            if (frac < beJunc + 0.005) {
+                const t = (frac - (beJunc - 0.005)) / 0.01;
+                return pEmitter + (pBase0 - pEmitter) * t;
+            }
+            if (frac < bcJunc - 0.005) {
+                const baseFracLocal = (frac - beJunc - 0.005) / (baseFrac - 0.01);
+                return pBase0 + (pBaseEnd - pBase0) * Math.min(1, Math.max(0, baseFracLocal));
+            }
+            if (frac < bcJunc + 0.005) {
+                const t = (frac - (bcJunc - 0.005)) / 0.01;
+                return pBaseEnd + (pCollector - pBaseEnd) * t;
+            }
+            return pCollector;
+        }
+        for (let i = 0; i <= steps; i++) {
+            const frac = i / steps;
+            const logP = getLogP(frac);
+            const x = xForFrac(frac);
+            const y = yForVal(logP);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Curve labels
+        ctx.font = '600 11px "JetBrains Mono"';
+        ctx.fillStyle = T.yellow;
+        ctx.textAlign = 'right';
+        ctx.fillText('n(x)', margin.left + plotW - 5, yForVal(nCollector) - 6);
+        ctx.fillStyle = '#ff66aa';
+        ctx.fillText('p(x)', margin.left + plotW - 5, yForVal(pCollector) + 14);
+    }
+
+    function superscript(n) {
+        const sup = { '0': '\u2070', '1': '\u00B9', '2': '\u00B2', '3': '\u00B3', '4': '\u2074',
+                      '5': '\u2075', '6': '\u2076', '7': '\u2077', '8': '\u2078', '9': '\u2079' };
+        return String(n).split('').map(c => sup[c] || c).join('');
+    }
+
+    // === Particle System ===
+    let particles = [];
+    const MAX_PARTICLES = 200;
+
+    function initParticles() {
+        particles = [];
+        const isNPN = transistorType === 'NPN';
+        const cw = csCanvas.width / devicePixelRatio;
+        const ch = csCanvas.height / devicePixelRatio;
+        const r = getRegions(cw, ch);
+
+        const emitterCarrierCount = 30;
+        for (let i = 0; i < emitterCarrierCount; i++) {
+            particles.push({
+                x: r.emitter.x + Math.random() * r.emitter.w,
+                y: r.top + Math.random() * r.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                type: isNPN ? 'electron' : 'hole',
+                region: 'emitter',
+                life: 1
+            });
+        }
+
+        const baseCarrierCount = 8;
+        for (let i = 0; i < baseCarrierCount; i++) {
+            particles.push({
+                x: r.base.x + Math.random() * r.base.w,
+                y: r.top + Math.random() * r.height,
+                vx: (Math.random() - 0.5) * 0.2,
+                vy: (Math.random() - 0.5) * 0.2,
+                type: isNPN ? 'hole' : 'electron',
+                region: 'base',
+                life: 1
+            });
+        }
+
+        const collectorCarrierCount = 20;
+        for (let i = 0; i < collectorCarrierCount; i++) {
+            particles.push({
+                x: r.collector.x + Math.random() * r.collector.w,
+                y: r.top + Math.random() * r.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                type: isNPN ? 'electron' : 'hole',
+                region: 'collector',
+                life: 1
+            });
+        }
+    }
+
+    function updateParticles() {
+        if (!animating) return;
+
+        const isNPN = transistorType === 'NPN';
+        const cw = csCanvas.width / devicePixelRatio;
+        const ch = csCanvas.height / devicePixelRatio;
+        const r = getRegions(cw, ch);
+        const injectionRate = baseCurrent / 100;
+
+        // Sub-threshold: exponentially small injection (V_BE < ~0.6V)
+        // Active: strong injection proportional to I_B
+        const effectiveRate = baseCurrent < 15 ? injectionRate * 0.02 : injectionRate * 0.3;
+        if (baseCurrent > 0 && Math.random() < effectiveRate) {
+            const carrierType = isNPN ? 'electron' : 'hole';
+            particles.push({
+                x: r.base.x + 2,
+                y: r.top + Math.random() * r.height,
+                vx: 0.4 + injectionRate * 0.6,
+                vy: (Math.random() - 0.5) * 0.2,
+                type: carrierType,
+                region: 'injected',
+                life: 1
+            });
+        }
+
+        // Collector-side injection ramps in smoothly as BC junction approaches forward bias
+        const satBlendPart = Math.max(0, Math.min(1, (baseCurrent - 50) / 40));
+        if (satBlendPart > 0 && Math.random() < satBlendPart * 0.15) {
+            const carrierType = isNPN ? 'electron' : 'hole';
+            particles.push({
+                x: r.base.x + r.base.w - 2,
+                y: r.top + Math.random() * r.height,
+                vx: -0.3,
+                vy: (Math.random() - 0.5) * 0.2,
+                type: carrierType,
+                region: 'injected',
+                life: 1
+            });
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+
+            if (p.region !== 'injected') {
+                p.vx += (Math.random() - 0.5) * 0.1;
+                p.vy += (Math.random() - 0.5) * 0.1;
+                p.vx *= 0.95;
+                p.vy *= 0.95;
+            }
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.y < r.top + 2 || p.y > r.top + r.height - 2) {
+                p.vy *= -1;
+                p.y = Math.max(r.top + 2, Math.min(r.top + r.height - 2, p.y));
+            }
+
+            if (p.region === 'emitter') {
+                if (p.x < r.emitter.x + 2) { p.x = r.emitter.x + 2; p.vx = Math.abs(p.vx); }
+                if (p.x > r.emitter.x + r.emitter.w - r.beDepl) { p.x = r.emitter.x + r.emitter.w - r.beDepl; p.vx = -Math.abs(p.vx); }
+            } else if (p.region === 'base') {
+                if (p.x < r.base.x + r.beDepl) { p.x = r.base.x + r.beDepl; p.vx = Math.abs(p.vx); }
+                if (p.x > r.base.x + r.base.w - r.bcDepl) { p.x = r.base.x + r.base.w - r.bcDepl; p.vx = -Math.abs(p.vx); }
+            } else if (p.region === 'collector') {
+                if (p.x > r.collector.x + r.collector.w - 2) { p.x = r.collector.x + r.collector.w - 2; p.vx = -Math.abs(p.vx); }
+                if (p.x < r.collector.x + r.bcDepl) { p.x = r.collector.x + r.bcDepl; p.vx = Math.abs(p.vx); }
+            } else if (p.region === 'injected') {
+                if (p.x > r.base.x && p.x < r.base.x + r.base.w) {
+                    if (Math.random() < 0.003) {
+                        p.life = 0;
+                    }
+                }
+                if (p.x > r.base.x + r.base.w) {
+                    p.vx = Math.max(p.vx, 0.5);
+                    if (p.x > r.collector.x + r.collector.w) {
+                        p.life = 0;
+                    }
+                }
+                if (p.vx < 0 && p.x < r.base.x) {
+                    p.life = 0;
+                }
+            }
+
+            if (p.life <= 0) {
+                particles.splice(i, 1);
+            }
+        }
+
+        if (particles.length > MAX_PARTICLES) {
+            // Remove excess injected particles first to preserve majority carriers
+            let excess = particles.length - MAX_PARTICLES;
+            for (let i = particles.length - 1; i >= 0 && excess > 0; i--) {
+                if (particles[i].region === 'injected') {
+                    particles.splice(i, 1);
+                    excess--;
+                }
+            }
+        }
+    }
+
+    function drawParticles(ctx) {
+        for (const p of particles) {
+            if (p.type === 'electron') {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = T.yellow;
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ff66aa';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+    }
+
+    // === Animation Loop ===
+    let needsRedraw = true;
+
+    function animate() {
+        if (animating || needsRedraw) {
+            updateParticles();
+            updateWireElectrons();
+            drawCrossSection();
+
+            const dpr = devicePixelRatio;
+            csCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            drawParticles(csCtx);
+            drawWireElectrons(csCtx);
+            needsRedraw = false;
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    function updateExplanation() {
+        const panel = document.getElementById('explanation-panel');
+        const regionLabel = document.getElementById('region-label');
+        const isNPN = transistorType === 'NPN';
+        const majority = isNPN ? 'electrons' : 'holes';
+        const minority = isNPN ? 'holes' : 'electrons';
+        const emitterDopant = isNPN ? 'Phosphorus' : 'Boron';
+        const baseDopant = isNPN ? 'Boron' : 'Phosphorus';
+        const emitterType = isNPN ? 'N\u207a' : 'P\u207a';
+        const baseType = isNPN ? 'P' : 'N';
+        const collectorType = isNPN ? 'N' : 'P';
+
+        let html = '';
+
+        // Minority carrier explanation — shown in all states
+        const minorityNote = `
+            <div class="physics-note" style="margin-top:0.6rem;">
+                <strong>Minority carriers in the ${isNPN ? 'N' : 'P'}-type regions.</strong>
+                Thermal generation produces a small minority-carrier population even in a doped semiconductor. At room temperature, silicon has an intrinsic carrier concentration n<sub>i</sub> &approx; 1.5 &times; 10<sup>10</sup> cm<sup>&minus;3</sup>. At equilibrium, the <em>mass-action law</em> gives n &middot; p = n<sub>i</sub><sup>2</sup>. In the ${emitterType} emitter doped at ~10<sup>17</sup> cm<sup>&minus;3</sup>, the minority ${minority} concentration is therefore approximately 10<sup>3</sup> cm<sup>&minus;3</sup>, small but non-zero. The linear scale shows this difference relative to the majority-carrier concentration.
+            </div>
+        `;
+
+        if (baseCurrent === 0) {
+            regionLabel.textContent = 'Cutoff';
+            html = `
+                <h3>Cutoff: Transistor off</h3>
+                <p>No base current is applied. The base-emitter junction is unbiased, so no minority carriers are injected into the base. Both depletion regions are at their thermal equilibrium width.</p>
+                <p>The ${emitterType} emitter (${emitterDopant}-doped) contains abundant majority ${majority}, but they cannot cross the base-emitter depletion region. No collector current flows.</p>
+                <p>The ${baseType} base (${baseDopant}-doped, lightly doped and thin) and the ${collectorType} collector sit at equilibrium. Fixed donor and acceptor ions in each depletion region create a built-in electric field that opposes carrier diffusion.</p>
+                <div class="physics-note"><strong>Mechanism:</strong> At thermal equilibrium, carrier diffusion is balanced by drift in the built-in electric field of each depletion region.</div>
+                ${minorityNote}
+            `;
+        } else if (baseCurrent < 15) {
+            regionLabel.textContent = 'Sub-threshold';
+            html = `
+                <h3>Subthreshold: Below V<sub>BE(on)</sub></h3>
+                <p>A small voltage is applied to the base-emitter junction, but it is below the turn-on voltage (\u22480.6\u20130.7 V for silicon). The BE depletion region narrows slightly, but the remaining barrier is still too high for significant carrier injection.</p>
+                <p>Only a tiny, exponentially small leakage current flows. The few ${majority} that have enough thermal energy to surmount the reduced barrier are immediately swept across, but their number is negligible compared to the active region.</p>
+                <p>The collector current remains small even though V<sub>BE</sub> > 0. This is the <em>subthreshold</em> regime.</p>
+                <div class="physics-note"><strong>Mechanism:</strong> The current follows the Shockley relation I \u221d exp(V<sub>BE</sub>/V<sub>T</sub>) \u2212 1. Conduction therefore rises exponentially rather than at a sharp threshold.</div>
+            `;
+        } else if (baseCurrent < 55) {
+            regionLabel.textContent = 'Active';
+            html = `
+                <h3>Forward active: Transistor action</h3>
+                <p>A small forward bias is applied to the base-emitter junction, narrowing its depletion region. Majority ${majority} from the heavily-doped ${emitterType} emitter are injected into the thin, lightly-doped ${baseType} base as <em>minority carriers</em>.</p>
+                <p>Because the base is very thin, most injected ${majority} diffuse across it before they can recombine with the base's majority ${minority}. They reach the base-collector depletion region, where the strong electric field sweeps them into the collector.</p>
+                <p>The small fraction of ${majority} that <em>do</em> recombine in the base is what constitutes the base current I<sub>B</sub>. This gives rise to current gain: I<sub>C</sub>/I<sub>B</sub> &approx; &beta; (typically 50&ndash;300).</p>
+                <div class="physics-note"><strong>Mechanism:</strong> Carriers cross the base by <em>diffusion</em> and enter the collector by <em>drift</em> in the base-collector electric field. The thin, lightly doped base limits recombination.</div>
+            `;
+        } else if (baseCurrent < 80) {
+            regionLabel.textContent = 'Approaching Sat.';
+            html = `
+                <h3>Approaching Saturation</h3>
+                <p>As I<sub>B</sub> increases further, V<sub>CE</sub> decreases and the base-collector junction moves from reverse bias toward forward bias. The BC depletion region is narrowing.</p>
+                <p>The collector current still increases with I<sub>B</sub>, but the gain begins to decrease. The carrier-concentration plot shows minority carriers accumulating at the collector side of the base because the BC junction no longer extracts all injected carriers efficiently.</p>
+                <p>This is a <em>gradual transition</em>, not a sharp boundary. The transistor smoothly moves from linear amplification toward the saturated state as the BC junction bias shifts from reverse to forward.</p>
+                <div class="physics-note"><strong>Mechanism:</strong> Saturation begins as V<sub>BC</sub> becomes positive and the BC junction becomes forward biased. Increasing I<sub>C</sub> raises the collector-resistor voltage drop until V<sub>CE</sub> < V<sub>BE</sub>.</div>
+            `;
+        } else {
+            regionLabel.textContent = 'Saturation';
+            html = `
+                <h3>Saturation: Both junctions forward biased</h3>
+                <p>Both the base-emitter and base-collector junctions are now forward biased. Carriers are injected into the base from both the emitter <em>and</em> the collector sides.</p>
+                <p>The collector current no longer increases proportionally with base current because the transistor is <em>saturated</em>. V<sub>CE</sub> has dropped to a small value (V<sub>CE(sat)</sub> &approx; 0.2 V).</p>
+                <p>Excess minority ${majority} accumulate throughout the base region. This stored charge is visible in the carrier concentration plot as an elevated minority concentration across the entire base.</p>
+                <div class="physics-note"><strong>Mechanism:</strong> Excess charge stored in the base must be removed by recombination or reverse extraction before the transistor returns to cutoff. This delay is the <em>storage time</em> t<sub>s</sub>.</div>
+            `;
+        }
+
+        panel.innerHTML = html;
+    }
+
+    // Initialize
+    resizeCanvases();
+    initParticles();
+    drawConcentration();
+    updateExplanation();
+    animate();
+
+    // Theme change support
+    window.addEventListener('themechange', function() {
+        needsRedraw = true;
+        drawConcentration();
+    });
+</script>
+
+</body>
+</html>

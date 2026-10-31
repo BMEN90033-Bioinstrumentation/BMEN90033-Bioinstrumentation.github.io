@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide 15: Common-Mode Noise Rejection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+  <link rel="stylesheet" href="../../theme.css">
+  <link rel="stylesheet" href="slide.css">
+  <script src="../../theme.js"></script>
+  <script>
+    (function () {
+      var qp = new URLSearchParams(location.search);
+      var qt = qp.get('theme');
+      var ss = null;
+      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { }
+      var pick = (qt === 'dark' || qt === 'light') ? qt
+        : (ss === 'dark' || ss === 'light') ? ss
+          : null;
+      if (pick) document.documentElement.setAttribute('data-theme', pick);
+      window.addEventListener('themechange', function (e) {
+        try {
+          var t = e && e.detail && e.detail.theme;
+          if (t) sessionStorage.setItem('slideTheme', t);
+        } catch (err) { }
+      });
+      if (window.parent !== window) {
+        var style = document.createElement('style');
+        style.textContent = '#theme-toggle{display:none !important;}';
+        document.head.appendChild(style);
+      }
+    })();
+  </script>
+  <style>
+    .manim-stage {
+      position: relative;
+    }
+
+    #s1-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ── Overlay container ─────────────────────────────────────────────── */
+    .s1-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    /* Each child section fades in independently */
+    .s1-overlay .info-row,
+    .s1-overlay .fade-in {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .s1-overlay .info-row.visible,
+    .s1-overlay .fade-in.visible {
+      opacity: 1;
+    }
+
+    /* ── Info row: two blocks side-by-side above the traces ───────── */
+    .info-row {
+      position: absolute;
+      top: 22%;
+      left: 33%;
+      width: 66%;
+      display: flex;
+      gap: 8%;
+    }
+
+    .info-block {
+      flex: 0 1 38%;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--slide-text-dim);
+    }
+
+    .info-block .ib-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--slide-text);
+      margin-bottom: 8px;
+    }
+
+    .info-block .cm-color { color: var(--slide-yellow, #ffcc44); }
+    .info-block .dm-color { color: var(--slide-accent, #6aaa8e); }
+
+    /* ── CMRR panel: to the right of the traces ──────────────────── */
+    .cmrr-panel {
+      position: absolute;
+      top: 38%;
+      left: 77%;
+      width: 22%;
+    }
+
+    .cmrr-title {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--slide-text);
+      margin-bottom: 10px;
+    }
+
+    .cmrr-formula {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .cmrr-formula .katex {
+      font-size: 1.0em;
+    }
+
+    .cmrr-desc {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 11.5px;
+      line-height: 1.65;
+      color: var(--slide-text-dim);
+    }
+
+    .cmrr-desc .note {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--slide-text-muted);
+      margin-top: 6px;
+    }
+
+    .cmrr-explain {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--slide-text-dim);
+      margin-bottom: 14px;
+    }
+
+    /* ── CMRR slider ──────────────────────────────────────────────── */
+    .cmrr-slider-row {
+      margin-top: 14px;
+      pointer-events: auto;
+    }
+
+    .cmrr-slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 11px;
+      color: var(--slide-text-dim);
+      margin-bottom: 4px;
+    }
+
+    .cmrr-slider-label .cmrr-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slide-accent);
+    }
+
+    .cmrr-slider-row input[type=range] {
+      width: 100%;
+      height: 18px;
+      accent-color: var(--slide-accent);
+      cursor: pointer;
+    }
+
+    .cmrr-slider-row .range-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      color: var(--slide-text-muted);
+      margin-top: 1px;
+    }
+
+    /* ── Hum toggle button ─────────────────────────────────────────────── */
+    #hum-toggle {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--slide-border, rgba(255,255,255,0.12));
+      background: var(--slide-surface, rgba(16, 20, 28, 0.92));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      cursor: pointer;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slide-text-dim);
+      transition: opacity 0.6s ease, color 0.15s, border-color 0.15s;
+      user-select: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #hum-toggle.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #hum-toggle:hover {
+      color: var(--slide-text);
+      border-color: var(--slide-border-hover, rgba(255,255,255,0.25));
+    }
+
+    #hum-toggle .toggle-track {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--slide-accent);
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    #hum-toggle.off .toggle-track {
+      background: var(--slide-text-muted);
+    }
+
+    #hum-toggle .toggle-knob {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px;
+      left: 18px;
+      transition: left 0.2s;
+    }
+
+    #hum-toggle.off .toggle-knob {
+      left: 2px;
+    }
+  </style>
+</head>
+
+<body class="slide">
+  <header class="slide-header">
+    <span class="slide-num">15 / 19</span>
+  </header>
+
+  <div id="stage" class="manim-stage">
+    <div class="stage-fallback">Loading manim-web scene…</div>
+    <canvas id="s1-canvas" width="1280" height="720"></canvas>
+    <div id="hum-toggle">
+      <span class="toggle-track"><span class="toggle-knob"></span></span>
+      <span class="toggle-label">50 Hz Mains Hum</span>
+    </div>
+    <div id="s1-overlay" class="s1-overlay">
+      <!-- Two info blocks side-by-side above the traces -->
+      <div class="info-row">
+        <div class="info-block">
+          <div class="ib-title"><span class="cm-color">Common-mode</span> signal</div>
+          Voltage that appears <span class="cm-color">identically</span> on both inputs
+          (e.g. 50&thinsp;Hz mains hum). Because it's the same on
+          V&#8314; and V&#8315;, subtraction cancels it.
+        </div>
+        <div class="info-block">
+          <div class="ib-title"><span class="dm-color">Differential</span> signal</div>
+          The voltage <span class="dm-color">difference</span> between the two inputs
+          is the wanted signal (e.g. &sim;1&thinsp;mV ECG).
+          An instrumentation amp amplifies only this.
+        </div>
+      </div>
+      <!-- CMRR panel to the right of the traces -->
+      <div class="cmrr-panel">
+        <div class="fade-in" id="cmrr-s1">
+          <div class="cmrr-title">Common-Mode Rejection Ratio</div>
+          <div class="cmrr-explain">
+            The ratio of differential gain to common-mode gain.
+            Measures how well the amp rejects common-mode noise
+            relative to the wanted differential signal. Higher CMRR
+            = cleaner output.
+          </div>
+        </div>
+        <div class="fade-in" id="cmrr-s2">
+          <div class="cmrr-formula">
+            <div id="formula1"></div>
+            <div id="formula2"></div>
+          </div>
+        </div>
+        <div class="fade-in" id="cmrr-s3">
+          <div class="cmrr-desc">
+            <em>A</em><sub>d</sub> = differential gain<br>
+            <em>A</em><sub>cm</sub> = common-mode gain
+            <div class="note">Typical instrumentation amp:<br>80–120 dB CMRR</div>
+          </div>
+        </div>
+        <div class="fade-in" id="cmrr-s4">
+          <div class="cmrr-slider-row">
+            <div class="cmrr-slider-label">
+              <span>CMRR</span>
+              <span class="cmrr-val" id="cmrr-readout">80 dB</span>
+            </div>
+            <input type="range" id="cmrr-slider" min="20" max="120" step="1" value="80">
+            <div class="range-labels"><span>20 dB</span><span>120 dB</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+  <script type="module">
+    import {
+      Scene, Text, VGroup,
+      Write, FadeIn
+    } from 'https://esm.sh/manim-web@0.3.18';
+
+    // ── KaTeX formulas ───────────────────────────────────────────────────────
+    katex.render(
+      String.raw`\mathrm{CMRR} = \dfrac{A_d}{A_{cm}}`,
+      document.getElementById('formula1'),
+      { displayMode: true }
+    );
+    katex.render(
+      String.raw`\mathrm{CMRR}_{\mathrm{dB}} = 20\log_{10}\!\left(\dfrac{A_d}{A_{cm}}\right)`,
+      document.getElementById('formula2'),
+      { displayMode: true }
+    );
+
+    // ── Theme colors ─────────────────────────────────────────────────────────
+    const FONT_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/fonts/KaTeX_Main-Regular.ttf';
+    const IS_LIGHT = document.documentElement.getAttribute('data-theme') === 'light';
+    const BG      = IS_LIGHT ? '#f5f5f7' : '#0a0e14';
+    const FG      = IS_LIGHT ? '#1a1a1e' : '#e2e8f0';
+    const MUTED   = IS_LIGHT ? '#6a6a72' : '#8892a4';
+    const MUTED2  = IS_LIGHT ? '#b0b0b6' : '#505868';
+    const ACCENT  = IS_LIGHT ? '#3d8b6e' : '#6aaa8e';
+    const BLUE    = IS_LIGHT ? '#3a68c8' : '#5a8dee';
+    const CYAN    = IS_LIGHT ? '#3d8ea0' : '#58c0d8';
+    const RED     = IS_LIGHT ? '#c74034' : '#e06050';
+    const YELLOW  = IS_LIGHT ? '#b8860b' : '#ffcc44';
+    const MAG     = IS_LIGHT ? '#a050a0' : '#d070d0';
+    window.addEventListener('themechange', () => location.reload());
+
+    // ── Scene setup ──────────────────────────────────────────────────────────
+    const stage = document.getElementById('stage');
+    stage.querySelector('.stage-fallback')?.remove();
+    const scene = new Scene(stage, { width: 1280, height: 720, backgroundColor: BG });
+
+    const title = new Text({
+      text: 'Common-Mode Noise Rejection',
+      fontSize: 32, color: FG, fontUrl: FONT_URL
+    });
+    await title.loadGlyphs?.();
+    title.moveTo([0, 3.2, 0]);
+    if (typeof title.getLeft === 'function') {
+      title.shift([-6.2 - title.getLeft()[0], 0, 0]);
+    }
+
+    const subtitle = new Text({
+      text: 'ECG signal acquisition with 50 Hz mains interference',
+      fontSize: 18, color: MUTED, fontUrl: FONT_URL
+    });
+    await subtitle.loadGlyphs?.();
+    subtitle.moveTo([0, 2.7, 0]);
+    if (typeof subtitle.getLeft === 'function') {
+      subtitle.shift([-6.2 - subtitle.getLeft()[0], 0, 0]);
+    }
+
+    // ── Canvas animation ─────────────────────────────────────────────────────
+    const canvas = document.getElementById('s1-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.style.display = 'none';
+
+    // ── Realistic signal model ─────────────────────────────────────────────
+    //
+    //  Real ECG scenario:
+    //    - Heart produces ~1 mV differential signal between electrodes
+    //    - 50 Hz mains couples ~500 mV common-mode into both leads equally
+    //    - Raw electrode traces are dominated by 50 Hz — ECG is barely visible
+    //    - Instrumentation amp: gain Ad=1000, CMRR=80 dB (ratio 10,000)
+    //    - Output = Ad × Vdiff + (Ad/CMRR) × Vcm
+    //           = 1000 × 1mV + 0.1 × 500mV = 1V + 50mV residual
+    //
+    //  Display mapping:
+    //    - Traces 1 & 2 show raw electrode voltage (mV scale)
+    //    - Trace 3 shows instrumentation amp output (V scale)
+    //    - Each trace maps its voltage range to ±(TRACE_H/2 - margin) pixels
+    //
+    //  Time: we display ~4 seconds across the trace width.
+    //  At 50 Hz real mains, that's ~200 cycles in view — too dense to see
+    //  individual cycles, so we use 12 Hz visual frequency (labelled 50 Hz)
+    //  to keep cycles individually resolvable while showing the character
+    //  of high-frequency interference swamping a slow ECG.
+
+    const SAMPLE_RATE  = 200;    // samples per second (virtual)
+    const TRACE_LEN    = 500;    // pixels = samples in buffer
+    const TRACE_SPEED  = 2;      // samples advanced per animation frame
+    // At 60fps, 2 samples/frame = 120 samples/sec → ~820/120 ≈ 6.8s visible
+
+    // ECG parameters (voltage in mV)
+    const ECG_RATE     = 1.2;    // beats per second (72 BPM)
+    const ECG_PEAK_MV  = 1.0;    // R-wave peak ~1 mV
+
+    // 50 Hz mains hum (common-mode, voltage in mV)
+    const HUM_FREQ     = 12;     // visual Hz (represents 50 Hz, slowed for clarity)
+    const HUM_AMP_MV   = 500;    // 500 mV common-mode hum on each electrode
+
+    // Instrumentation amplifier
+    const AMP_GAIN     = 1000;   // differential gain Ad
+    let   cmrrDb       = 80;     // 80 dB CMRR (mutable — slider controls this)
+    let   cmrrRatio    = Math.pow(10, cmrrDb / 20);  // = 10,000
+    let   acm          = AMP_GAIN / cmrrRatio;        // = 0.1 (common-mode gain)
+
+    // Baseline wander (low-frequency drift from respiration/movement)
+    const WANDER_FREQ  = 0.15;   // Hz
+    const WANDER_MV    = 0.3;    // mV amplitude
+
+    // Pixel scaling per trace (mV → pixels)
+    // With hum ON:  raw traces ±600 mV → ±40 px,  output ±2500 mV → ±40 px
+    // With hum OFF: raw traces ±1.5 mV → ±40 px,  output ±2000 mV → ±40 px
+    const RAW_SCALE_HUM  = 40 / 600;
+    const RAW_SCALE_CLEAN = 40 / 1.5;
+    const OUT_SCALE_HUM  = 40 / 2500;
+    const OUT_SCALE_CLEAN = 40 / 2000;
+
+    // Mutable state for hum toggle
+    let humEnabled = true;
+
+    // Body geometry — shifted down, with room for vertical hum wave on far left
+    const BODY_OY = 210;
+    const BODY_CX = 240, BODY_CY = 260 + BODY_OY;
+    const ELEC1 = { x: 175, y: 210 + BODY_OY };
+    const ELEC2 = { x: 305, y: 210 + BODY_OY };
+    const ELEC_R = 8;
+    const HEAD_R = 46;   // large head
+
+    // Trace geometry — right side, shifted down to align with body
+    const TX = 460, TW = TRACE_LEN;
+    const TRACES = [
+      { label: 'Electrode 1 (V\u207A)',        yc: 340, color: BLUE,   isRaw: true },
+      { label: 'Electrode 2 (V\u207B)',        yc: 460, color: CYAN,   isRaw: true },
+      { label: 'Amp output (V\u207A \u2212 V\u207B) \u00D71000', yc: 580, color: ACCENT, isRaw: false }
+    ];
+    function traceScale(tr) {
+      if (tr.isRaw) return humEnabled ? RAW_SCALE_HUM : RAW_SCALE_CLEAN;
+      // Output scale adapts to CMRR so the waveform stays visible
+      // Peak output ≈ AMP_GAIN × ECG + acm × HUM
+      if (!humEnabled) return OUT_SCALE_CLEAN;
+      const peakOut = AMP_GAIN * ECG_PEAK_MV + acm * HUM_AMP_MV;
+      return 40 / (peakOut * 1.2);  // 1.2× headroom
+    }
+    function traceRange(tr) {
+      if (tr.isRaw) return humEnabled ? '\u00B1600 mV' : '\u00B11.5 mV';
+      if (!humEnabled) return '\u00B12.0 V';
+      const peakOut = AMP_GAIN * ECG_PEAK_MV + acm * HUM_AMP_MV;
+      const rangeV = peakOut * 1.2 / 1000;
+      return rangeV >= 1
+        ? '\u00B1' + rangeV.toFixed(1) + ' V'
+        : '\u00B1' + (rangeV * 1000).toFixed(0) + ' mV';
+    }
+    const TRACE_H = 100;
+
+    // Circular trace buffers (store values in mV)
+    const buffers = [
+      new Float32Array(TRACE_LEN),
+      new Float32Array(TRACE_LEN),
+      new Float32Array(TRACE_LEN)
+    ];
+    let writePtr = 0;
+    let sampleIndex = 0;
+
+    // ── Realistic PQRST morphology ───────────────────────────────────────────
+    // Based on real ECG timing at 72 BPM (cycle = 833 ms):
+    //   P wave:   onset ~0ms,  peak ~40ms,  dur ~80ms     (phase 0.00–0.10)
+    //   PR seg:   ~80–160ms                                (phase 0.10–0.19)
+    //   Q wave:   ~160–180ms                               (phase 0.19–0.22)
+    //   R wave:   ~180–210ms  (sharp peak)                 (phase 0.22–0.25)
+    //   S wave:   ~210–240ms                               (phase 0.25–0.29)
+    //   ST seg:   ~240–330ms                               (phase 0.29–0.40)
+    //   T wave:   ~330–450ms  (broad)                      (phase 0.40–0.54)
+    //   TP seg:   ~450–833ms  (isoelectric)                (phase 0.54–1.00)
+
+    function ecgPulse(phase) {
+      let v = 0;
+      // P wave (small, broad, positive)
+      v += 0.12 * Math.exp(-Math.pow((phase - 0.05) / 0.025, 2));
+      // Q wave (small negative deflection before R)
+      v -= 0.08 * Math.exp(-Math.pow((phase - 0.20) / 0.006, 2));
+      // R wave (tall, sharp peak)
+      v += 1.0  * Math.exp(-Math.pow((phase - 0.235) / 0.010, 2));
+      // S wave (negative deflection after R)
+      v -= 0.18 * Math.exp(-Math.pow((phase - 0.265) / 0.008, 2));
+      // ST segment slight elevation
+      v += 0.03 * Math.exp(-Math.pow((phase - 0.33) / 0.04, 2));
+      // T wave (broad, positive, asymmetric — sharper rise, slower fall)
+      const tPhase = phase - 0.44;
+      const tSigma = tPhase < 0 ? 0.035 : 0.050;
+      v += 0.22 * Math.exp(-Math.pow(tPhase / tSigma, 2));
+      // U wave (tiny, sometimes present)
+      v += 0.02 * Math.exp(-Math.pow((phase - 0.55) / 0.02, 2));
+      return v;
+    }
+
+    function advanceSamples() {
+      for (let i = 0; i < TRACE_SPEED; i++) {
+        const tSample = sampleIndex / SAMPLE_RATE;
+        const ecgPhase = (tSample * ECG_RATE) % 1.0;
+
+        // Differential ECG signal (what the heart produces between electrodes)
+        const ecgDiff = ecgPulse(ecgPhase) * ECG_PEAK_MV;  // ~1 mV peak
+
+        // Common-mode 50 Hz mains hum (identical on both electrodes)
+        const hum = humEnabled
+          ? HUM_AMP_MV * Math.sin(2 * Math.PI * HUM_FREQ * tSample)
+          : 0;
+
+        // Slow baseline wander from respiration
+        const wander = WANDER_MV * Math.sin(2 * Math.PI * WANDER_FREQ * tSample);
+
+        // Electrode 1 (V+): sees +½ of differential ECG + full common-mode + wander
+        const v1 = (ecgDiff / 2) + hum + wander;
+
+        // Electrode 2 (V-): sees -½ of differential ECG + full common-mode + wander
+        // (same hum, opposite ECG polarity — this is differential measurement)
+        const v2 = (-ecgDiff / 2) + hum + wander;
+
+        // Instrumentation amplifier output (mV):
+        //   Vout = Ad × (V+ - V-) + Acm × (V+ + V-)/2
+        //        = Ad × ecgDiff   + Acm × (hum + wander)
+        const vDiff = v1 - v2;                           // = ecgDiff
+        const vCM   = (v1 + v2) / 2;                     // = hum + wander
+        const vOut  = AMP_GAIN * vDiff + acm * vCM;       // in mV
+
+        buffers[0][writePtr] = v1;      // raw electrode 1 (mV)
+        buffers[1][writePtr] = v2;      // raw electrode 2 (mV)
+        buffers[2][writePtr] = vOut;     // amplifier output (mV)
+
+        writePtr = (writePtr + 1) % TRACE_LEN;
+        sampleIndex++;
+      }
+    }
+
+    function drawBody(c, t, baseA) {
+      const a = baseA != null ? baseA : 1;
+      const oy = BODY_OY;
+      const headY = 90 + oy;
+
+      // ── Head (large) ───────────────────────────────────────────────────
+      c.strokeStyle = MAG;
+      c.lineWidth = 2;
+      c.globalAlpha = a;
+      c.beginPath();
+      c.arc(BODY_CX, headY, HEAD_R, 0, Math.PI * 2);
+      c.stroke();
+      c.globalAlpha = 0.05 * a;
+      c.fillStyle = MAG;
+      c.fill();
+      c.globalAlpha = a;
+
+      // ── Neck ───────────────────────────────────────────────────────────
+      const neckTop = headY + HEAD_R;
+      const neckBot = neckTop + 12;
+      c.strokeStyle = MAG;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(BODY_CX - 12, neckTop);
+      c.lineTo(BODY_CX - 12, neckBot);
+      c.moveTo(BODY_CX + 12, neckTop);
+      c.lineTo(BODY_CX + 12, neckBot);
+      c.stroke();
+
+      // Key Y positions for torso
+      const shoulderY = neckBot + 30;
+      const torsoBot  = neckBot + 220;
+      const shoulderW = 110;  // half-width at shoulders
+
+      // ── Torso ──────────────────────────────────────────────────────────
+      c.beginPath();
+      c.moveTo(BODY_CX - 12, neckBot);
+      c.bezierCurveTo(
+        BODY_CX - 80, neckBot + 4,
+        BODY_CX - shoulderW, neckBot + 18,
+        BODY_CX - shoulderW, shoulderY
+      );
+      c.lineTo(BODY_CX - shoulderW + 12, torsoBot);
+      c.bezierCurveTo(
+        BODY_CX - shoulderW + 18, torsoBot + 18,
+        BODY_CX - 45, torsoBot + 24,
+        BODY_CX, torsoBot + 24
+      );
+      c.bezierCurveTo(
+        BODY_CX + 45, torsoBot + 24,
+        BODY_CX + shoulderW - 18, torsoBot + 18,
+        BODY_CX + shoulderW - 12, torsoBot
+      );
+      c.lineTo(BODY_CX + shoulderW, shoulderY);
+      c.bezierCurveTo(
+        BODY_CX + shoulderW, neckBot + 18,
+        BODY_CX + 80, neckBot + 4,
+        BODY_CX + 12, neckBot
+      );
+      c.closePath();
+      c.strokeStyle = MAG;
+      c.lineWidth = 2;
+      c.stroke();
+      c.globalAlpha = 0.05 * a;
+      c.fillStyle = MAG;
+      c.fill();
+      c.globalAlpha = a;
+
+      // ── Arms ───────────────────────────────────────────────────────────
+      // Left arm: from left shoulder, angled down and slightly outward
+      const lShX = BODY_CX - shoulderW;
+      const lShY = shoulderY;
+      c.strokeStyle = MAG;
+      c.lineWidth = 2;
+      // Upper arm
+      c.beginPath();
+      c.moveTo(lShX, lShY);
+      c.bezierCurveTo(lShX - 20, lShY + 40, lShX - 30, lShY + 80, lShX - 22, lShY + 120);
+      c.stroke();
+      // Forearm (angled inward slightly)
+      c.beginPath();
+      c.moveTo(lShX - 22, lShY + 120);
+      c.bezierCurveTo(lShX - 16, lShY + 150, lShX - 8, lShY + 175, lShX - 2, lShY + 195);
+      c.stroke();
+
+      // Right arm: mirror
+      const rShX = BODY_CX + shoulderW;
+      const rShY = shoulderY;
+      c.beginPath();
+      c.moveTo(rShX, rShY);
+      c.bezierCurveTo(rShX + 20, rShY + 40, rShX + 30, rShY + 80, rShX + 22, rShY + 120);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(rShX + 22, rShY + 120);
+      c.bezierCurveTo(rShX + 16, rShY + 150, rShX + 8, rShY + 175, rShX + 2, rShY + 195);
+      c.stroke();
+
+      // ── Heart icon (pulsing) ───────────────────────────────────────────
+      const heartScale = 1.0 + 0.12 * Math.sin(2 * Math.PI * 1.2 * t);
+      const hx = BODY_CX, hy = neckBot + 75;
+      c.save();
+      c.translate(hx, hy);
+      c.scale(heartScale, heartScale);
+      c.beginPath();
+      c.moveTo(0, 7);
+      c.bezierCurveTo(-14, -5, -22, -18, -13, -22);
+      c.bezierCurveTo(-6, -25, 0, -20, 0, -15);
+      c.bezierCurveTo(0, -20, 6, -25, 13, -22);
+      c.bezierCurveTo(22, -18, 14, -5, 0, 7);
+      c.closePath();
+      c.fillStyle = RED;
+      c.globalAlpha = (0.3 + 0.15 * Math.sin(2 * Math.PI * 1.2 * t)) * a;
+      c.fill();
+      c.globalAlpha = a;
+      c.restore();
+
+      // Heart label
+      c.font = '11px "IBM Plex Mono", monospace';
+      c.fillStyle = MUTED;
+      c.textAlign = 'left';
+      c.fillText('~1 mV', hx + 20, hy + 3);
+
+      // ── 50 Hz hum waves through body (horizontal, left→right) ─────────
+      if (humEnabled) {
+        // Waves span the full width of the body + arms
+        const waveLeft  = lShX - 35;
+        const waveRight = rShX + 35;
+        const waveW = waveRight - waveLeft;
+        const humYPositions = [
+          headY - 10,
+          neckBot + 20,
+          neckBot + 70,
+          neckBot + 120,
+          neckBot + 170,
+          torsoBot - 10
+        ];
+
+        c.strokeStyle = YELLOW;
+        c.lineWidth = 1.5;
+        c.globalAlpha = 0.22 * a;
+        for (const baseY of humYPositions) {
+          c.beginPath();
+          for (let i = 0; i <= 120; i++) {
+            const xNorm = i / 120;
+            const px = waveLeft + xNorm * waveW;
+            const py = baseY + 10 * Math.sin(2 * Math.PI * 2.5 * xNorm - 2 * Math.PI * 0.5 * t);
+            if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+          }
+          c.stroke();
+        }
+        c.globalAlpha = a;
+
+        // Hum label above the body
+        c.font = '500 12px "IBM Plex Sans", sans-serif';
+        c.fillStyle = YELLOW;
+        c.textAlign = 'center';
+        c.fillText('50 Hz mains hum', BODY_CX, headY - HEAD_R - 22);
+        c.font = '11px "IBM Plex Mono", monospace';
+        c.fillText('~500 mV common-mode', BODY_CX, headY - HEAD_R - 8);
+      }
+
+      // ── Electrodes ─────────────────────────────────────────────────────
+      c.fillStyle = BLUE;
+      c.beginPath();
+      c.arc(ELEC1.x, ELEC1.y, ELEC_R, 0, Math.PI * 2);
+      c.fill();
+
+      c.fillStyle = CYAN;
+      c.beginPath();
+      c.arc(ELEC2.x, ELEC2.y, ELEC_R, 0, Math.PI * 2);
+      c.fill();
+
+      // Electrode labels
+      c.font = '12px "IBM Plex Mono", monospace';
+      c.textAlign = 'right';
+      c.fillStyle = BLUE;
+      c.fillText('V\u207A', ELEC1.x - 14, ELEC1.y + 4);
+      c.textAlign = 'left';
+      c.fillStyle = CYAN;
+      c.fillText('V\u207B', ELEC2.x + 14, ELEC2.y + 4);
+
+      // ── Lead wires to traces (only when respective trace is visible) ──
+      c.setLineDash([4, 4]);
+      c.lineWidth = 1;
+
+      if (fadeAlpha.trace0 > 0) {
+        c.strokeStyle = BLUE;
+        c.globalAlpha = fadeAlpha.trace0 * a;
+        c.beginPath();
+        c.moveTo(ELEC1.x + ELEC_R, ELEC1.y);
+        c.lineTo(TX, TRACES[0].yc);
+        c.stroke();
+      }
+
+      if (fadeAlpha.trace1 > 0) {
+        c.strokeStyle = CYAN;
+        c.globalAlpha = fadeAlpha.trace1 * a;
+        c.beginPath();
+        c.moveTo(ELEC2.x + ELEC_R, ELEC2.y);
+        c.lineTo(TX, TRACES[1].yc);
+        c.stroke();
+      }
+
+      c.globalAlpha = a;
+      c.setLineDash([]);
+    }
+
+    function drawSingleTrace(c, ti) {
+      const tr = TRACES[ti];
+      const buf = buffers[ti];
+      const sc = traceScale(tr);
+      const yTop = tr.yc - TRACE_H / 2;
+
+      // Border
+      c.strokeStyle = MUTED2;
+      c.lineWidth = 1;
+      c.strokeRect(TX, yTop, TW, TRACE_H);
+
+      // Zero baseline
+      c.strokeStyle = MUTED2;
+      c.lineWidth = 0.5;
+      c.setLineDash([2, 4]);
+      c.beginPath();
+      c.moveTo(TX, tr.yc);
+      c.lineTo(TX + TW, tr.yc);
+      c.stroke();
+      c.setLineDash([]);
+
+      // Label (top-left)
+      c.font = '500 12px "IBM Plex Sans", sans-serif';
+      c.fillStyle = tr.color;
+      c.textAlign = 'left';
+      c.fillText(tr.label, TX + 8, yTop + 14);
+
+      // Voltage range label (top-right)
+      c.font = '10px "IBM Plex Mono", monospace';
+      c.fillStyle = MUTED;
+      c.textAlign = 'right';
+      c.fillText(traceRange(tr), TX + TW - 8, yTop + 14);
+
+      // Waveform
+      c.strokeStyle = tr.color;
+      c.lineWidth = 1.2;
+      c.beginPath();
+      let started = false;
+      for (let i = 0; i < TRACE_LEN; i++) {
+        const bufIdx = (writePtr + i) % TRACE_LEN;
+        const gap = TRACE_LEN - i;
+        if (gap < 14 && gap > 0) continue;
+        const px = TX + i;
+        const py = tr.yc - buf[bufIdx] * sc;
+        const clamped = Math.max(yTop + 2, Math.min(yTop + TRACE_H - 2, py));
+        if (!started) { c.moveTo(px, clamped); started = true; }
+        else c.lineTo(px, clamped);
+      }
+      c.stroke();
+    }
+
+    // ── Progressive reveal stages ──────────────────────────────────────
+    // 0 = nothing, 1 = body+hum, 2 = trace 1, 3 = trace 2, 4 = trace 3
+    let revealStage = 0;
+
+    // Canvas-level fade: each element tracks its own opacity (0→1)
+    const fadeAlpha = { body: 0, trace0: 0, trace1: 0, trace2: 0 };
+    const FADE_SPEED = 0.025;  // per frame (~0.4s at 60fps)
+
+    function stepFades() {
+      if (revealStage >= 1) fadeAlpha.body   = Math.min(1, fadeAlpha.body   + FADE_SPEED);
+      if (revealStage >= 2) fadeAlpha.trace0 = Math.min(1, fadeAlpha.trace0 + FADE_SPEED);
+      if (revealStage >= 3) fadeAlpha.trace1 = Math.min(1, fadeAlpha.trace1 + FADE_SPEED);
+      if (revealStage >= 4) fadeAlpha.trace2 = Math.min(1, fadeAlpha.trace2 + FADE_SPEED);
+    }
+
+    let animId = null;
+    let running = false;
+
+    function draw(time) {
+      const c = ctx;
+      c.clearRect(0, 0, 1280, 720);
+      const t = time / 1000;
+
+      advanceSamples();
+      stepFades();
+
+      if (fadeAlpha.body > 0) {
+        drawBody(c, t, fadeAlpha.body);
+      }
+
+      // Draw each trace individually with its own fade
+      const traceAlphas = [fadeAlpha.trace0, fadeAlpha.trace1, fadeAlpha.trace2];
+      for (let ti = 0; ti < 3; ti++) {
+        if (traceAlphas[ti] > 0) {
+          c.save();
+          c.globalAlpha = traceAlphas[ti];
+          drawSingleTrace(c, ti);
+          c.restore();
+        }
+      }
+
+      if (running) animId = requestAnimationFrame(draw);
+    }
+
+    function startAnimation() {
+      running = true;
+      canvas.style.display = '';
+      if (!animId) animId = requestAnimationFrame(draw);
+    }
+
+    // ── Hum toggle handler ─────────────────────────────────────────────────
+    const humToggle = document.getElementById('hum-toggle');
+    humToggle.addEventListener('click', () => {
+      humEnabled = !humEnabled;
+      humToggle.classList.toggle('off', !humEnabled);
+      // Clear buffers so the scale change is immediate — no stale data
+      for (const buf of buffers) buf.fill(0);
+    });
+
+    // ── CMRR slider handler ──────────────────────────────────────────────
+    const cmrrSlider  = document.getElementById('cmrr-slider');
+    const cmrrReadout = document.getElementById('cmrr-readout');
+    cmrrSlider.addEventListener('input', () => {
+      cmrrDb    = Number(cmrrSlider.value);
+      cmrrRatio = Math.pow(10, cmrrDb / 20);
+      acm       = AMP_GAIN / cmrrRatio;
+      cmrrReadout.textContent = cmrrDb + ' dB';
+      // Clear only the output buffer so the effect is visible immediately
+      buffers[2].fill(0);
+    });
+
+    // ── Auto-play sequence (staged reveal for lecture delivery) ─────────
+    const overlay = document.getElementById('s1-overlay');
+    const infoRow  = overlay.querySelector('.info-row');
+    const cmrrPanel = overlay.querySelector('.cmrr-panel');
+
+    // 1. Title writes in
+    await scene.play(new Write(title, { duration: 0.7 }));
+    await scene.wait(0.4);
+
+    // 2. Subtitle fades in below title
+    await scene.play(new FadeIn(subtitle, { duration: 0.5 }));
+    await scene.wait(1.0);
+
+    // 3. Common-mode & Differential signal text fades in
+    infoRow.classList.add('visible');
+    await scene.wait(2.5);
+
+    // 4. Body silhouette + hum waves fade in, start animation
+    startAnimation();
+    revealStage = 1;
+    await scene.wait(2.0);
+
+    // 5. Electrode 1 trace fades in
+    revealStage = 2;
+    await scene.wait(2.0);
+
+    // 6. Electrode 2 trace fades in
+    revealStage = 3;
+    await scene.wait(2.0);
+
+    // 7. Output trace fades in
+    revealStage = 4;
+    await scene.wait(2.5);
+
+    // 8. CMRR title + explanation
+    document.getElementById('cmrr-s1').classList.add('visible');
+    await scene.wait(2.0);
+
+    // 9. CMRR formulas
+    document.getElementById('cmrr-s2').classList.add('visible');
+    await scene.wait(2.0);
+
+    // 10. CMRR definitions (Ad, Acm, typical range)
+    document.getElementById('cmrr-s3').classList.add('visible');
+    await scene.wait(2.0);
+
+    // 11. CMRR slider
+    document.getElementById('cmrr-s4').classList.add('visible');
+    await scene.wait(1.0);
+
+    // 12. Hum toggle appears
+    humToggle.classList.add('visible');
+  </script>
+</body>
+
+</html>
