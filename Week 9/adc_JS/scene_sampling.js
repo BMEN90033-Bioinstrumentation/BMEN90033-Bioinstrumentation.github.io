@@ -134,14 +134,9 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
         // Apparent / aliased frequency for the reconstructed signal
-        var fApparent = state.fin;
-        if (state.fin > state.fs / 2) {
-            // Fold into [0, fs/2]
-            var r = state.fin / state.fs;
-            var frac = r - Math.floor(r);
-            if (frac > 0.5) frac = 1 - frac;
-            fApparent = frac * state.fs;
-        }
+        // Signed alias f_in - k*fs (k = nearest integer): sin(2*pi*fa*n*Ts) equals the samples exactly,
+        // so a negative fa gives the phase-inverted alias seen for fs/2 < f_in < fs.
+        var fApparent = state.fin - Math.round(state.fin / state.fs) * state.fs;
 
         // Zero-order hold reconstruction
         var Ts = 1 / state.fs;
@@ -199,7 +194,7 @@
             .attr('font-family', "'JetBrains Mono', monospace")
             .attr('font-size', 11)
             .attr('fill', 'var(--c-output2)')
-            .text('apparent f = ' + fApparent.toFixed(2) + ' Hz');
+            .text('apparent f = ' + Math.abs(fApparent).toFixed(2) + ' Hz' + (fApparent < 0 ? ' (inverted)' : ''));
     }
 
     function updateReadout() {

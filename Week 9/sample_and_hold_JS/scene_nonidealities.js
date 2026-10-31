@@ -115,7 +115,7 @@
             .attr('text-anchor', 'middle')
             .text('v_C');
 
-        rdDv.textContent = (dv * 1e3).toFixed(2) + ' mV';
+        rdDv.textContent = dv < 1e-3 ? (dv * 1e6).toFixed(1) + ' µV' : (dv * 1e3).toFixed(2) + ' mV';
     }
 
     // ─── Aperture-jitter panel ───

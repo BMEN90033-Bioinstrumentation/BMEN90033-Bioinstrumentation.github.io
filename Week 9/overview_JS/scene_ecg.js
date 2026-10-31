@@ -215,11 +215,16 @@
             head = (head + 1) % N;
         }
 
-        // Detected rate: count pulses inside last WINDOW
+        // Detected rate: 60 / mean R-R interval of the pulses inside the last WINDOW
         var since = state.t - WINDOW;
-        var count = 0;
-        for (var p = 0; p < pulses.length; p++) if (pulses[p] >= since) count++;
-        var det = count * (60 / WINDOW);
+        var count = 0, first = 0, last = 0;
+        for (var p = 0; p < pulses.length; p++) {
+            if (pulses[p] < since) continue;
+            if (count === 0) first = pulses[p];
+            last = pulses[p];
+            count++;
+        }
+        var det = count >= 2 ? 60 * (count - 1) / (last - first) : 0;
         rdDet.textContent = (count >= 2 ? Math.round(det) : '—') + ' bpm';
 
         drawTrace();

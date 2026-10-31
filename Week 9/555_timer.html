@@ -71,8 +71,9 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>internal architecture</span></div>
             <h2>Inside the 555</h2>
 
-            <p class="lead">The 555 owes its name to the three nominally-equal 5 k$\Omega$ resistors that form an internal
-                divider between $V_{CC}$ and ground. The divider taps fix two reference voltages,</p>
+            <p class="lead">Three nominally-equal 5 k$\Omega$ resistors form an internal divider between $V_{CC}$ and
+                ground. The name is often attributed to these resistors; its designer, Hans Camenzind, stated that
+                Signetics chose the part number for marketing reasons. The divider taps fix two reference voltages,</p>
 
             <div class="eq-block">$$V_{TH} = \tfrac{2}{3}V_{CC}, \qquad V_{TL} = \tfrac{1}{3}V_{CC}.$$</div>
 
@@ -345,7 +346,8 @@
                     <p>The bipolar NE555 is reliable up to about 500 kHz in astable mode; above this, comparator
                         propagation delay and switching transients dominate the measured period. CMOS variants reach a
                         few MHz. Long-period timing is bounded by capacitor leakage and comparator input bias current,
-                        which both shorten the effective time constant for very large $RC$.</p>
+                        which both divert charging current from the capacitor. This lengthens the period and, for very large $RC$,
+                can prevent $v_C$ from reaching $\tfrac{2}{3}V_{CC}$.</p>
                 </div>
                 <div class="card">
                     <div class="card-num">e</div>

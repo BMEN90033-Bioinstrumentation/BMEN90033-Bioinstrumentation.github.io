@@ -104,8 +104,8 @@
             <p>Positive feedback is destabilising in the linear region of an op-amp and is normally avoided. The
                 Schmitt trigger operates outside that region: the output is already at a rail before the feedback
                 takes effect. The fraction returned to the non-inverting input reinforces the existing saturation
-                rather than driving the output away from a quiescent point. The circuit has two stable states and
-                no third equilibrium for the feedback to destabilise.</p>
+                rather than driving the output away from a quiescent point. The circuit has two stable states; the
+                point $V_+ = V_-$ is an unstable equilibrium, so no stable third state exists.</p>
 
             <div class="callout">
                 The thresholds are state-dependent. While $v_\text{out} = +V_\text{sat}$, the comparator waits for
@@ -226,9 +226,10 @@
             </ul>
 
             <div class="callout">
-                The noise rejection is obtained without low-pass filtering. The frequency content of the input is
-                preserved at the moment of the genuine crossing, so the Schmitt trigger introduces no phase delay
-                in the front-end signal. The circuit is therefore preferred over additional filtering when the
+                The noise rejection is obtained without low-pass filtering, so the frequency content of the input
+                is preserved. Hysteresis does delay each transition until the input crosses the shifted threshold;
+                this offset is fixed by $\Delta V$ and the signal slope, rather than spread over the signal as a
+                filter phase lag. The circuit is therefore preferred over additional filtering when the
                 timing of the crossing carries the information of interest, as in R-wave detection.
             </div>
         </div>
@@ -286,8 +287,9 @@
                 hysteresis is set to exceed the peak-to-peak noise at the comparator input. The dominant noise
                 sources are EMG within the QRS passband, residual mains pickup that survives the instrumentation
                 amplifier, and electrode-skin half-cell drift. A common rule selects $\Delta V$ at approximately
-                half the expected R-wave amplitude. The detector then produces one edge per heartbeat with a
-                timing jitter set by the slope of the QRS at the reference, not by the noise excursion across it.</p>
+                half the expected R-wave amplitude. The detector then produces one edge per heartbeat. Hysteresis
+                removes the multiple transitions; the residual timing jitter is approximately
+                $\sigma_t \approx \sigma_n / (dv/dt)$, the noise amplitude divided by the QRS slope at the threshold.</p>
 
             <p>If $\Delta V$ is too large, the input must climb well past the nominal reference before transitioning.
                 This introduces a systematic delay and reduces sensitivity to low-amplitude beats. If $\Delta V$ is

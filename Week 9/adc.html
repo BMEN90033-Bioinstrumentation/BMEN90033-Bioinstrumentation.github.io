@@ -122,7 +122,7 @@
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>sampling</span></div>
             <h2>Discretization of <em class="input">continuous waveforms</em> to a discrete <em class="output">set of
-                    levels</em>.</h2>
+                    time instants</em>.</h2>
 
             <p class="lead">A sampling clock at rate $f_s$ defines the instants at which the converter inspects
                 its input. Voltages between successive clock edges are discarded. The output is a discrete-time
@@ -238,7 +238,7 @@
                 <div class="readout" id="q-readout">
                     <div class="item"><span class="k">levels</span><span class="v" id="q-levels">8</span></div>
                     <div class="item"><span class="k">LSB</span><span class="v" id="q-lsb">250 mV</span></div>
-                    <div class="item"><span class="k">SQNR</span><span class="v" id="q-sqnr">19.8 dB</span></div>
+                    <div class="item"><span class="k">SQNR (full-scale sine)</span><span class="v" id="q-sqnr">19.8 dB</span></div>
                 </div>
             </div>
         </div>
@@ -352,8 +352,9 @@
                 becomes the new bit, and the next cycle adjusts the capacitor pattern accordingly.</p>
 
             <p>The complete loop comprises one comparator, one DAC, $N$ clock cycles, and one register. Power,
-                area, and design complexity are all modest. SAR ADCs are therefore the dominant architecture in
-                biomedical front-ends, spanning from $8$-bit pulse oximeters to $24$-bit electroencephalographs.</p>
+                area, and design complexity are all modest. SAR ADCs are therefore widely used in biomedical
+                front-ends, from $8$-bit pulse oximeters upward. The $24$-bit converters in biopotential front-ends
+                for EEG (for example the ADS1299) are delta-sigma converters.</p>
         </div>
 
         <div>

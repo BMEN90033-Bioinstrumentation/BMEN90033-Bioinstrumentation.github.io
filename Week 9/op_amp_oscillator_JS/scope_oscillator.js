@@ -45,7 +45,8 @@
         //   Aβ ≤ 1: an initial perturbation A0 evolves under exp(σ t), giving
         //           visible exponential decay (or a constant trace at Aβ = 1).
         var omega0 = 1 / state.RC;
-        var sigma  = 0.5 * (state.loopGain - 1) * omega0;
+        // Wien bridge: p^2 + (3 - A) p + 1 = 0 (p = sRC), so sigma = (A - 3) w0 / 2 = 1.5 (A*beta - 1) w0
+        var sigma  = 1.5 * (state.loopGain - 1) * omega0;
         var e;
         if (sigma > 0) {
             var arg = state.seed * Math.exp(sigma * t);

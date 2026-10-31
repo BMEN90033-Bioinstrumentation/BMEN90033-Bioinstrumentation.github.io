@@ -69,7 +69,9 @@
         // which flips the output back. The diode then reclamps v_C at +Vd.
         var tau = state.rc;
         if (sysOut > 0) {
-            vc = +Vd;
+            // Recovery: v_C charges toward +Vsat with tau = RC until the diode clamps it at +Vd
+            vc += (Vsat - vc) * (dt / tau);
+            if (vc > Vd) vc = +Vd;
             if (trigVal < -0.5) {
                 sysOut = -Vsat;
             }
@@ -77,7 +79,6 @@
             vc += (-Vsat - vc) * (dt / tau);
             if (vc <= VTL) {
                 sysOut = +Vsat;
-                vc = +Vd;
             }
         }
 

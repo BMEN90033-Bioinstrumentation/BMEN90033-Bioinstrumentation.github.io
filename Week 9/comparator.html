@@ -134,7 +134,7 @@
         <div>
             <div class="plot-stack">
                 <div class="plot-box transfer-static">
-                    <div class="label">transfer characteristic · <b>open-loop op-amp, $A_\text{OL} = 10^5$</b></div>
+                    <div class="label">transfer characteristic · <b>open-loop op-amp, $A_\text{OL} = 10^5$</b> · linear region widened for visibility</div>
                     <svg class="bode" id="plot-openloop-transfer"></svg>
                 </div>
             </div>
@@ -153,8 +153,12 @@
             <p>For $v_\text{in}(t) = V_m \sin(\omega t)$, the output transitions occur at the times where
                 $v_\text{in}(t) = V_\text{ref}$, namely</p>
 
-            <div class="eq-block">$$t_k = \frac{1}{\omega}\arcsin\!\left(\frac{V_\text{ref}}{V_m}\right) + k\,T/2,
-                \qquad |V_\text{ref}| \le V_m.$$</div>
+            <div class="eq-block">$$t_{\uparrow,k} = \frac{\arcsin r}{\omega} + kT, \qquad
+                t_{\downarrow,k} = \frac{\pi - \arcsin r}{\omega} + kT, \qquad r = \frac{V_\text{ref}}{V_m},\;
+                |V_\text{ref}| \le V_m,$$</div>
+
+            <p>for the upward and downward crossings respectively. The output is high for the fraction
+                $D = (\pi - 2\arcsin r)/(2\pi)$ of each period.</p>
 
             <p>If $|V_\text{ref}| > V_m$, the input never reaches the threshold and the output remains at one rail.
                 Setting $V_\text{ref} = 0$ gives the zero-crossing detector, in which the output edges coincide with

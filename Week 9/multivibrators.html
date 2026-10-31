@@ -116,7 +116,10 @@
 
             <div class="eq-block">$$\beta = \frac{R_2}{R_1 + R_2},$$</div>
 
-            <p>sets two switching thresholds, $V_\text{TH} = +\beta V_\text{sat}$ and
+            <p>Here $R_1$ is the feedback resistor and $R_2$ runs from the non-inverting input to ground; the
+                Schmitt trigger page uses the opposite labelling, so its $\beta$ reads $R_1/(R_1+R_2)$.</p>
+
+            <p>The fraction $\beta$ sets two switching thresholds, $V_\text{TH} = +\beta V_\text{sat}$ and
                 $V_\text{TL} = -\beta V_\text{sat}$. While the inverting input lies between them, the output stays
                 at whichever rail it was last driven to. Both rails are stable; the feedback reinforces the current
                 state.</p>
@@ -260,8 +263,8 @@
 
             <p>When $v_C$ reaches $V_\text{TH} = +\beta V_\text{sat}$, the comparator flips the output to
                 $-V_\text{sat}$. The capacitor then charges from $+\beta V_\text{sat}$ toward $-V_\text{sat}$ until
-                it reaches $V_\text{TL} = -\beta V_\text{sat}$, at which point the output flips back. Solving for
-                the half-period gives</p>
+                it reaches $V_\text{TL} = -\beta V_\text{sat}$, at which point the output flips back. Each half-period
+                equals $RC\ln\!\big((1+\beta)/(1-\beta)\big)$, so the full period is</p>
 
             <div class="eq-block">$$T = 2\,R\,C \, \ln\!\left(\frac{1 + \beta}{1 - \beta}\right).$$</div>
 

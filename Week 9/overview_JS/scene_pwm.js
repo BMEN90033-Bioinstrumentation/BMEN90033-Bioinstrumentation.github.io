@@ -227,7 +227,7 @@
         gTitlesF.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-46) + ',' + (ihF / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('bulb power, V_cc units');
+            .text('bulb voltage, V_cc units');
 
         // 1/(2π·τ) corner reference
         var fc = 1 / (2 * Math.PI * TAU);
@@ -463,8 +463,8 @@
         rdD.textContent = state.duty.toFixed(0) + ' %';
         rdAvg.innerHTML = d.toFixed(2) + ' V<sub>cc</sub>';
         rdRipple.innerHTML = env.ripple.toFixed(2) + ' V<sub>cc</sub>';
-        // perceived flicker: visible when frequency below ~60 Hz AND ripple is appreciable
-        var visible = (state.freq < 60) && (env.ripple > 0.03);
+        // perceived flicker: visible when frequency below ~100 Hz (fusion threshold in the callout) AND ripple is appreciable
+        var visible = (state.freq < 100) && (env.ripple > 0.03);
         rdFlicker.textContent = visible ? 'visible' : 'imperceptible';
         rdFlicker.className = 'v ' + (visible ? 'warn' : 'on');
     }

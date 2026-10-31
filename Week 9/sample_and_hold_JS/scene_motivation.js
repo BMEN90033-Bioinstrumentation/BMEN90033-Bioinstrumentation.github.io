@@ -177,7 +177,7 @@
 
         // Update readout
         var target = state.shOn ? v0 : v1;
-        var targetCode = Math.round(target / V_REF * (1 << N_BITS));
+        var targetCode = Math.floor(target / V_REF * (1 << N_BITS));  // same truncating quantiser as runSar
         if (targetCode > (1 << N_BITS) - 1) targetCode = (1 << N_BITS) - 1;
         var err = sarRes.code - targetCode;
 

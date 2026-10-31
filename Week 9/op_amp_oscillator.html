@@ -260,8 +260,10 @@
                 point.</p>
 
             <div class="callout">
-                In practice $A$ is held close to $3$ by an automatic gain control element, often a thermistor or a
-                JFET in the $R_3$ branch, so the loop gain self-regulates to unity and the amplitude is set by the
+                In practice $A$ is held close to $3$ by an automatic gain control element: an NTC thermistor in the
+                $R_4$ (feedback) branch, or an element whose resistance rises with amplitude in the $R_3$ (ground)
+                branch, such as an incandescent lamp (as in Hewlett's HP200A) or a JFET operated as a
+                voltage-controlled resistor. The loop gain therefore self-regulates to unity and the amplitude is set by the
                 limiter rather than by the resistor ratio alone.
             </div>
         </div>
@@ -300,7 +302,7 @@
                 surviving sinusoid, so its amplitude grows exponentially.</p>
 
             <p>For loop gain slightly greater than unity the envelope grows as $e^{\sigma t}$ with
-                $\sigma = \tfrac{1}{2}(A\beta - 1)\,\omega_0$. The exponential growth continues until the amplifier
+                $\sigma = \tfrac{1}{2}(A - 3)\,\omega_0 = \tfrac{3}{2}(A\beta - 1)\,\omega_0$, where $\beta = \tfrac{1}{3}$ at $\omega_0$. The exponential growth continues until the amplifier
                 output approaches the supply rails or the gain-control element reduces $A$. Steady state is reached
                 when the average loop gain has been pulled down to exactly unity by amplitude-dependent saturation.</p>
 
@@ -328,7 +330,7 @@
                 <div class="toolbar">
                     <span class="slider-group">
                         <span class="lab">amp gain $A$</span>
-                        <input type="range" id="osc-loop" min="2.40" max="3.00" step="0.05" value="3.00">
+                        <input type="range" id="osc-loop" min="2.40" max="3.30" step="0.05" value="3.00">
                         <span class="val" id="osc-loop-val">3.00 · A&beta;=1.000 · threshold</span>
                     </span>
                     <span class="divider"></span>

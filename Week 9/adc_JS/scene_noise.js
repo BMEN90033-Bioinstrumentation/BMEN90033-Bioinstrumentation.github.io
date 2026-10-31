@@ -148,9 +148,10 @@
             .attr('text-anchor', 'middle')
             .text('voltage, normalised');
 
-        // Compute analog SNR (signal power = 0.5; noise power = 3 σ² for sum of three stages).
+        // Compute analog SNR (AC signal power of clean() = 7/30 after removing the 0.5 DC mean;
+        // noise power = 3 σ² for sum of three stages).
         var noisePow = 3 * state.sigma * state.sigma;
-        var snr = noisePow > 0 ? 10 * Math.log10(0.5 / noisePow) : 99;
+        var snr = noisePow > 0 ? 10 * Math.log10((7 / 30) / noisePow) : 99;
         rdSnr.textContent = snr.toFixed(1) + ' dB';
     }
 

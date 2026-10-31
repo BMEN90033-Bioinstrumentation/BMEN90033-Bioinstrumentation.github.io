@@ -92,7 +92,9 @@
                 The maximum input slew that a SAR can tolerate without a front-end S/H is roughly
                 $\mathrm{d}V/\mathrm{d}t < \tfrac{1}{2}\mathrm{LSB} / T_\mathrm{conv}$. For a 12-bit converter
                 running at $\,1\,\mathrm{MS\,s^{-1}}$ on a $1\,\mathrm{V}$ range, this is about
-                $0.12\,\mathrm{V\,ms^{-1}}$, which any signal of clinical interest exceeds easily.
+                $0.12\,\mathrm{V\,ms^{-1}}$. A QRS complex amplified to full scale reaches only about
+                $0.05\,\mathrm{V\,ms^{-1}}$, but multiplexed channels, fast transients, and higher-bandwidth signals
+                exceed this limit.
             </div>
         </div>
 
@@ -294,7 +296,7 @@
                 <div class="readout" id="sh-acq-readout">
                     <div class="item"><span class="k">τ</span><span class="v" id="sh-acq-tau">1.00 ns</span></div>
                     <div class="item"><span class="k">t<sub>acq</sub></span><span class="v" id="sh-acq-tacq">9.0 ns</span></div>
-                    <div class="item"><span class="k">max f<sub>s</sub></span><span class="v" id="sh-acq-fmax">37 MS/s</span></div>
+                    <div class="item"><span class="k">max f<sub>s</sub></span><span class="v" id="sh-acq-fmax">33.3 MS/s</span></div>
                 </div>
             </div>
         </div>
@@ -361,7 +363,7 @@
                     <svg id="plot-sh-nid-cj"></svg>
                 </div>
                 <div class="readout" id="sh-nid-readout">
-                    <div class="item"><span class="k">droop ΔV</span><span class="v" id="sh-nid-dv">0.40 mV</span></div>
+                    <div class="item"><span class="k">droop ΔV</span><span class="v" id="sh-nid-dv">8.0 µV</span></div>
                     <div class="item"><span class="k">σ<sub>V</sub></span><span class="v" id="sh-nid-sv">0.06 mV</span></div>
                     <div class="item"><span class="k">ΔV<sub>cj</sub></span><span class="v" id="sh-nid-cj">10 mV</span></div>
                 </div>
