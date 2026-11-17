@@ -12,8 +12,9 @@
 // so it speeds up after activity and restores the gradients.
 //
 // One shared clock advances the model four Euler steps per animation frame
-// and keeps the last 70 ms of every trace. Ion amounts are tracked here in
-// particle units (1 particle = 1000 ions) for a 1 um^2 patch.
+// and keeps the last 70 ms of every trace. Ion amounts are counted in single
+// ions for the patch drawn in section 01: 50 nm x 10 nm of membrane between
+// two fluid compartments 12.5 nm deep.
 (function () {
     // ── Nernst potentials ──
     var R = 8.314462618, F = 96485.33212, T_C = 6.3;
@@ -97,26 +98,25 @@
         HH.V0 = V0;
     })();
 
-    // Current density (uA/cm^2) to particles per HH step; positive = influx.
-    var fluxMap = {
-        patchArea_cm2: 1e-8,         // ~1 um^2 membrane patch
-        ionsPerParticle: 1000,       // each rendered particle represents this many ions
-        e_C: 1.602176634e-19
-    };
-    var SCALE = (1e-6 * fluxMap.patchArea_cm2 * HH.dt * 1e-3) / (fluxMap.e_C * fluxMap.ionsPerParticle);
+    // Patch geometry in nm, shared with the 3D scene (1 scene unit = 1 nm):
+    // membrane |x| <= 25 and -10 <= z <= 0, fluid from |y| = 2.5 to 15.
+    var box = { x: 25, depth: 10, yMem: 2.5, yMax: 15 };
+    var area_nm2 = 2 * box.x * box.depth;                        // 500 nm^2
+    var vol_nm3 = area_nm2 * (box.yMax - box.yMem);              // 6250 nm^3 per compartment
 
-    // Ion amounts in particle units: 2000 particles of each species, split
-    // between the compartments in proportion to the concentrations (equal
-    // compartment volumes in the scene).
-    var TOTAL = 2000;
-    var frac = { na: conc.na.out / (conc.na.out + conc.na.in), k: conc.k.out / (conc.k.out + conc.k.in) };
+    // Current density (uA/cm^2) to ions per HH step; positive = influx.
+    var e_C = 1.602176634e-19;
+    var SCALE = (1e-6 * area_nm2 * 1e-14 * HH.dt * 1e-3) / e_C;
+
+    // Ions in one compartment per mM (1 nm^3 = 1e-24 L): about 3.76.
+    var perMM = 6.02214076e23 * 1e-3 * vol_nm3 * 1e-24;
     var amount0 = {
-        na: { out: TOTAL * frac.na, in: TOTAL * (1 - frac.na) },
-        k: { out: TOTAL * frac.k, in: TOTAL * (1 - frac.k) }
+        na: { out: conc.na.out * perMM, in: conc.na.in * perMM },
+        k: { out: conc.k.out * perMM, in: conc.k.in * perMM }
     };
     var amount = { na: { out: amount0.na.out, in: amount0.na.in }, k: { out: amount0.k.out, in: amount0.k.in } };
-    // Transfers owed to the 3D scene, by route (passive: channel + leak).
-    var pending = { passive: { na: 0, k: 0 }, pump: { na: 0, k: 0 } };
+    // Transfers owed to the 3D scene, by route.
+    var pending = { chan: { na: 0, k: 0 }, leak: { na: 0, k: 0 }, pump: { na: 0, k: 0 } };
     function move(type, route, n) {
         amount[type].in += n; amount[type].out -= n;
         pending[route][type] += n;
@@ -141,17 +141,19 @@
         for (var i = 0; i < STEPS_PER_FRAME; i++) {
             HH.pumpRatio = amount.na.in / amount0.na.in;
             var st = HH.step();
-            var naPass = -(HH.INa + HH.ILNa) * SCALE;     // passive Na influx, particles
+            var naPass = -(HH.INa + HH.ILNa) * SCALE;     // passive Na influx, ions
             var kPass = -(HH.IK + HH.ILK) * SCALE;        // passive K influx (negative = efflux)
-            move('na', 'passive', naPass);
-            move('k', 'passive', kPass);
+            move('na', 'chan', -HH.INa * SCALE);
+            move('na', 'leak', -HH.ILNa * SCALE);
+            move('k', 'chan', -HH.IK * SCALE);
+            move('k', 'leak', -HH.ILK * SCALE);
             move('na', 'pump', -3 * HH.Ip * SCALE);       // 3 Na+ out per cycle
             move('k', 'pump', 2 * HH.Ip * SCALE);         // 2 K+ in per cycle
             push('V', st.V); push('stim', st.I_stim);
             push('m', HH.m); push('h', HH.h); push('n', HH.n);
             push('gNa', st.gNa); push('gK', st.gK);
-            push('naFlux', naPass / HH.dt);        // passive Na influx, particles/ms
-            push('kFlux', -kPass / HH.dt);         // passive K efflux, particles/ms
+            push('naFlux', naPass / HH.dt);        // passive Na influx, ions/ms
+            push('kFlux', -kPass / HH.dt);         // passive K efflux, ions/ms
         }
         for (var j = 0; j < ticks.length; j++) ticks[j]();
         requestAnimationFrame(loop);
@@ -167,7 +169,7 @@
 
     window.BIO = {
         HH: HH, p: p, buf: buf, N: N, STEPS_PER_FRAME: STEPS_PER_FRAME,
-        RT_F: RT_F, T_C: T_C, conc: conc, TOTAL: TOTAL, frac: frac,
+        RT_F: RT_F, T_C: T_C, conc: conc, box: box,
         amount: amount, amount0: amount0, pending: pending, SCALE: SCALE,
         // Concentration (mM) of a species in a compartment from its amount.
         concNow: function (type, side) { return amount[type][side] / amount0[type][side] * conc[type][side]; },

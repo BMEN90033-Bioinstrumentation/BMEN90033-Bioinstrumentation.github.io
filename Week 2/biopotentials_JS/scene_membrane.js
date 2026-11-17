@@ -1,427 +1,425 @@
-// Section 01 · Three.js membrane patch: lipid bilayer cross-section, a
-// voltage-gated Na+ channel (subunits follow m, inactivation ball follows h),
-// a K+ channel (subunits follow n), an illustrative Na+/K+ pump, and Na+ and
-// K+ particles. Particles cross at the rate set by the model (BIO.pending):
-// passive flux (channel and leak) at the channel of each ion, and pump flux
-// (3 Na+ out, 2 K+ in per cycle) through the pump. Ported from the original
-// simulator; colours come from the page CSS.
+// Section 01 · Three.js membrane patch drawn to scale, 1 scene unit = 1 nm.
+// The block is 50 nm wide and 10 nm deep and is sectioned at z = 0 through the
+// protein axes; the protein lobes in front of the section are drawn as ghosts.
+//
+//   Bilayer   phospholipids at 0.85 nm pitch, head groups 3.9 nm apart.
+//   Channels  four pore domains around a central pore with a selectivity
+//             filter at the outer end. The inner ends of the pore domains
+//             form the activation gate; the pore area follows the open
+//             fraction (m^3 for Na+, n^4 for K+). Four voltage sensors, each
+//             with an S4 helix that moves outward with its gating variable:
+//             m for three Na+ sensors, 1 - h for the fourth, n for K+. The
+//             Na+ inactivation particle docks at the inner mouth as h falls.
+//   Leak      one always-open pore per ion carries the leak current.
+//   Pump      Na+/K+-ATPase, two transmembrane halves that rock between the
+//             inward-open (E1) and outward-open (E2) states, with the
+//             cytoplasmic head and the beta-subunit ectodomain. One cycle
+//             runs for every 3 Na+ of pump flux owed by the model.
+//   Ions      every sphere is one ion; counts follow the concentrations
+//             (B.amount0). Ions cross as the model requires (B.pending).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { guardWheel } from '../../components/orbit_wheel_guard.js';
 
-const B = window.BIO, HH = B.HH;
+const B = window.BIO, HH = B.HH, BOX = B.box;
 const host = document.getElementById('bio-three');
-const css = (n) => window.CMP.cssVar(n);
-const col = (n) => new THREE.Color(css(n));
+const col = (n) => new THREE.Color(window.CMP.cssVar(n));
+const lerp = THREE.MathUtils.lerp, clamp = THREE.MathUtils.clamp;
+const rnd = (a) => (Math.random() - 0.5) * a;
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const solidMat = (v) => new THREE.MeshStandardMaterial({ color: col(v), roughness: 0.5 });
+// Lighter (k > 0) or darker (k < 0) shade of a material, to separate the domains of one protein.
+const shade = (m, k) => { const c = m.clone(); c.color.lerp(new THREE.Color(k > 0 ? 0xffffff : 0x000000), Math.abs(k)); return c; };
+const ghostOf = (m) => { const g = m.clone(); g.transparent = true; g.opacity = 0.3; g.depthWrite = false; return g; };
 
-const VIS = {
-    scene: null, camera: null, renderer: null, controls: null,
-    time: 0,
-    lastMoved: { naIn: 0, naOut: 0, kIn: 0, kOut: 0 },   // transports started this rendered frame
-    ions: { na: null, k: null },     // InstancedMeshes
-    ionData: { na: [], k: [] },
-    channels: { na: null, k: null, pump: null },
-    mats: {},
+// Protein axes along x [nm].
+const X = { leakNa: -20.5, na: -10.5, pump: 0, k: 10.5, leakK: 20.5 };
+// Lipid-free footprint of each protein: [x, radius].
+const FOOTPRINT = [[X.leakNa, 2.8], [X.na, 4.3], [X.pump, 3.5], [X.k, 4.3], [X.leakK, 2.8]];
+// Ion spheres are drawn at about twice the ionic radii (0.10 and 0.14 nm).
+const R_ION = { na: 0.2, k: 0.27 };
+// Random-walk noise per frame, in the ratio sqrt(D_K / D_Na) = 1.21.
+const NOISE = { na: 0.10, k: 0.12 };
 
-    bounds: { x: 25, yTop: 15, yBot: -15, z: 5 },
+// ───────── Scene, camera, renderers ─────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(window.T.sceneBg);
+scene.fog = new THREE.Fog(window.T.sceneBg, 44, 95);
 
-    // Ion transport / diffusion tuning (visual, not biophysical units)
-    fluxCfg: {
-        mouthY: 2.2,
-        captureRadius: 9.0,
-        attractRadius: 12.0,
-        maxPerFrame: 28,
-        poreSpeed: 0.10,
-        poreSpeedJitter: 0.06,
-        lateralWiggle: 0.9,
-        exitSpread: 4.0,
-        exitSpeed: 0.30,
-        brownian: 0.008,
-        damping: 0.995,
-        maxSpeed: 0.35
-    },
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
+camera.position.set(0, 5, 49);
 
-    channelX: { na: -10, k: 10, pump: 0 },
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+host.appendChild(renderer.domElement);
 
-    init: function () {
-        this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(window.T.sceneBg);
-        this.scene.fog = new THREE.FogExp2(window.T.sceneBg, 0.008);
+const labels = new CSS2DRenderer();
+labels.domElement.className = 'scene-labels';
+host.appendChild(labels.domElement);
 
-        this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-        this.camera.position.set(0, 5, 45);   // side view
-        this.camera.lookAt(0, 0, 0);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 0, -3);
+controls.minDistance = 12;
+controls.maxDistance = 95;
+// Keep the sectioned face towards the viewer.
+controls.minAzimuthAngle = -Math.PI / 3;
+controls.maxAzimuthAngle = Math.PI / 3;
+controls.minPolarAngle = Math.PI / 6;
+controls.maxPolarAngle = 5 * Math.PI / 6;
+guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        host.appendChild(this.renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+const key = new THREE.DirectionalLight(0xffffff, 2.2);
+key.position.set(8, 20, 24);
+scene.add(key);
 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enableDamping = true;
-        this.controls.target.set(0, 0, 0);
-        this.controls.minDistance = 15;
-        this.controls.maxDistance = 90;
-        guardWheel(this.controls, this.renderer.domElement, host.parentElement.querySelector('.hint'));
+function resize() {
+    const r = host.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    camera.aspect = r.width / r.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(r.width, r.height);
+    labels.setSize(r.width, r.height);
+}
+new ResizeObserver(resize).observe(host);
 
-        // All lights are white (the page background token) so the materials
-        // show their palette colours.
-        const white = window.T.sceneBg;
-        this.scene.add(new THREE.AmbientLight(white, 0.1));
-        const topLight = new THREE.DirectionalLight(white, 1);
-        topLight.position.set(5, 20, 10);
-        this.scene.add(topLight);
-        const botLight = new THREE.DirectionalLight(white, 0.5);
-        botLight.position.set(-5, -20, 10);
-        this.scene.add(botLight);
-        const rimLight = new THREE.SpotLight(white, 2);
-        rimLight.position.set(30, 0, 0);
-        rimLight.lookAt(0, 0, 0);
-        this.scene.add(rimLight);
-
-        this.buildMembrane();
-        this.buildChannels();
-        this.buildIons();
-
-        new ResizeObserver(() => this.resize()).observe(host);
-        this.resize();
-    },
-
-    resize: function () {
-        const r = host.getBoundingClientRect();
-        if (!r.width || !r.height) return;
-        this.camera.aspect = r.width / r.height;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(r.width, r.height);
-    },
-
-    buildMembrane: function () {
-        // Bilayer cross-section: head groups at y = +1.8 and -1.8, gaps left
-        // for the Na channel (x = -10), pump (x = 0) and K channel (x = 10).
-        const headGeo = new THREE.SphereGeometry(0.5, 16, 16);
-        const headMat = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1 });
-        this.mats.lipid = headMat;
-        const dummy = new THREE.Object3D();
-        const isGap = (x) => Math.abs(x + 10) < 3 || Math.abs(x) < 4 || Math.abs(x - 10) < 3;
-        const mesh = new THREE.InstancedMesh(headGeo, headMat, 5000);
-        let idx = 0;
-        for (let x = -28; x <= 28; x += 1.0) {
-            for (let z = -6; z <= 6; z += 1.0) {
-                if (isGap(x)) continue;
-                const jx = (Math.random() - 0.5) * 0.3;
-                const jz = (Math.random() - 0.5) * 0.3;
-                const jy = (Math.random() - 0.5) * 0.1;
-                dummy.position.set(x + jx, 1.8 + jy, z + jz);
-                dummy.updateMatrix();
-                mesh.setMatrixAt(idx++, dummy.matrix);
-                dummy.position.set(x + jx, -1.8 + jy, z + jz);
-                dummy.updateMatrix();
-                mesh.setMatrixAt(idx++, dummy.matrix);
-            }
-        }
-        mesh.count = idx;
-        this.scene.add(mesh);
-
-        const tailMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.3 });
-        this.mats.tail = tailMat;
-        this.scene.add(new THREE.Mesh(new THREE.BoxGeometry(60, 3.0, 12), tailMat));
-    },
-
-    buildChannels: function () {
-        const geo = new THREE.CapsuleGeometry(0.8, 4, 4, 16);
-
-        // Na channel (x = -10): four subunits and a ball-and-chain inactivation gate.
-        {
-            const group = new THREE.Group();
-            group.position.set(-10, 0, 0);
-            const mat = new THREE.MeshStandardMaterial({ roughness: 0.2 });
-            this.mats.nachan = mat;
-            const subunits = [];
-            for (let i = 0; i < 4; i++) {
-                const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-                const pivot = new THREE.Group();
-                pivot.position.set(Math.cos(angle) * 1.2, 0, Math.sin(angle) * 1.2);
-                pivot.lookAt(0, 0, 0);
-                pivot.add(new THREE.Mesh(geo, mat));
-                group.add(pivot);
-                subunits.push(pivot);
-            }
-            const gateMat = new THREE.MeshStandardMaterial();
-            this.mats.gate = gateMat;
-            const gate = new THREE.Mesh(new THREE.SphereGeometry(1.2), gateMat);
-            gate.position.set(0, -3.5, 0);   // intracellular side
-            group.add(gate);
-            this.scene.add(group);
-            this.channels.na = { subunits, gate };
-        }
-
-        // K channel (x = 10): four subunits.
-        {
-            const group = new THREE.Group();
-            group.position.set(10, 0, 0);
-            const mat = new THREE.MeshStandardMaterial({ roughness: 0.2 });
-            this.mats.kchan = mat;
-            const subunits = [];
-            for (let i = 0; i < 4; i++) {
-                const angle = (i / 4) * Math.PI * 2;
-                const pivot = new THREE.Group();
-                pivot.position.set(Math.cos(angle) * 1.2, 0, Math.sin(angle) * 1.2);
-                pivot.lookAt(0, 0, 0);
-                pivot.add(new THREE.Mesh(geo, mat));
-                group.add(pivot);
-                subunits.push(pivot);
-            }
-            this.scene.add(group);
-            this.channels.k = { subunits };
-        }
-
-        // Na/K pump (x = 0): body and two moving gates.
-        {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ roughness: 0.4 });
-            this.mats.pump = mat;
-            group.add(new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 5, 8), mat));
-            const top = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), mat);
-            top.position.y = 2.5;
-            const bot = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), mat);
-            bot.position.y = -2.5;
-            group.add(top, bot);
-            this.scene.add(group);
-            this.channels.pump = { top, bot };
-        }
-    },
-
-    buildIons: function () {
-        const naCount = 2000, kCount = 2000;
-        this.mats.na = new THREE.MeshBasicMaterial();
-        this.mats.k = new THREE.MeshBasicMaterial();
-        this.ions.na = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 8, 8), this.mats.na, naCount);
-        this.ions.k = new THREE.InstancedMesh(new THREE.SphereGeometry(0.25, 8, 8), this.mats.k, kCount);
-        this.scene.add(this.ions.na, this.ions.k);
-
-        const dummy = new THREE.Object3D();
-        const getPos = (isTop) => new THREE.Vector3(
-            (Math.random() - 0.5) * 50,
-            isTop ? 3.5 + Math.random() * 12 : -3.5 - Math.random() * 12,   // keep clear of the membrane
-            (Math.random() - 0.5) * 10
-        );
-        const seed = (type, count, pOut) => {
-            for (let i = 0; i < count; i++) {
-                const isOut = i < Math.round(count * pOut);   // exact compartment split
-                const pos = getPos(isOut);
-                dummy.position.copy(pos);
-                dummy.updateMatrix();
-                this.ions[type].setMatrixAt(i, dummy.matrix);
-                this.ionData[type].push({
-                    pos: pos.clone(),
-                    vel: new THREE.Vector3((Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1),
-                    region: isOut ? 'out' : 'in', mode: 'free', pore: null
-                });
-            }
-        };
-        // Split in proportion to the concentrations (equal compartment volumes).
-        seed('na', naCount, B.frac.na);
-        seed('k', kCount, B.frac.k);
-    },
-
-    recolour: function () {
-        this.scene.background = new THREE.Color(window.T.sceneBg);
-        this.scene.fog.color.set(window.T.sceneBg);
-        [['lipid', '--c-lipid'], ['tail', '--c-tail'], ['nachan', '--c-nachan'], ['gate', '--c-gate'],
-         ['kchan', '--c-kchan'], ['pump', '--c-pump'], ['na', '--c-na'], ['k', '--c-k']]
-            .forEach(([m, v]) => this.mats[m].color.copy(col(v)));
-    },
-
-    update: function () {
-        this.time += 0.05;
-        this.controls.update();
-        this.animateChannels();
-        this.animatePump();
-        this.animateIons();
-        this.renderer.render(this.scene, this.camera);
-    },
-
-    animateChannels: function () {
-        const m = HH.m, h = HH.h, n = HH.n;
-        this.channels.na.subunits.forEach((grp) => { grp.children[0].rotation.x = 0.5 * (1 - m); });
-        // Inactivation ball swings into the blocked position as h falls.
-        const ballTarget = new THREE.Vector3(0, -2.0, 0).lerp(new THREE.Vector3(3, -5, 1), h);
-        this.channels.na.gate.position.lerp(ballTarget, 0.1);
-        this.channels.k.subunits.forEach((grp) => { grp.children[0].rotation.x = -0.8 * n; });
-    },
-
-    animatePump: function () {
-        // Gate motion is visual only; pump ion transport is started by
-        // fulfillPending from the model's pump flux.
-        const phase = Math.sin(this.time * 2);
-        this.channels.pump.top.position.y = 2.5 + (phase > 0 ? 0.8 * phase : 0);
-        this.channels.pump.bot.position.y = -2.5 - (phase < 0 ? 0.8 * -phase : 0);
-    },
-
-    animateIons: function () {
-        const dummy = new THREE.Object3D();
-        const gNa_val = HH.g_Na * Math.pow(HH.m, 3) * HH.h;
-        const gK_val = HH.g_K * Math.pow(HH.n, 4);
-        const naOpen = THREE.MathUtils.clamp(gNa_val / HH.g_Na, 0, 1);
-        const kOpen = THREE.MathUtils.clamp(gK_val / HH.g_K, 0, 1);
-
-        // HH convention: INa < 0 is an inward Na current.
-        const naFrom = HH.INa < 0 ? 'out' : 'in';
-        const kFrom = HH.IK > 0 ? 'in' : 'out';
-        const L = this.lastMoved;
-        L.naIn = L.naOut = L.kIn = L.kOut = 0;
-        const tally = (type, n) => {
-            if (type === 'na') { if (n > 0) L.naIn += n; else L.naOut -= n; }
-            else { if (n > 0) L.kIn += n; else L.kOut -= n; }
-        };
-        tally('na', this.fulfillPending('na', this.channelX.na, 'passive'));
-        tally('k', this.fulfillPending('k', this.channelX.k, 'passive'));
-        tally('na', this.fulfillPending('na', this.channelX.pump, 'pump'));
-        tally('k', this.fulfillPending('k', this.channelX.pump, 'pump'));
-
-        const run = (type, xCh, from, open) => {
-            const list = this.ionData[type];
-            for (let i = 0; i < list.length; i++) {
-                const p = list[i];
-                if (p.mode === 'pore') {
-                    this.updatePoreMotion(p);
-                } else {
-                    this.applyBrownian(p);
-                    this.applyChannelAttraction(p, xCh, from, open);
-                    p.pos.add(p.vel);
-                    if (p.pos.y > this.bounds.yTop) p.vel.y *= -1;
-                    if (p.pos.y < this.bounds.yBot) p.vel.y *= -1;
-                    if (Math.abs(p.pos.x) > this.bounds.x) p.vel.x *= -1;
-                    if (Math.abs(p.pos.z) > this.bounds.z) p.vel.z *= -1;
-                    // Membrane collision, except at this ion's channel and the pump.
-                    if (p.region === 'out' && p.pos.y < 2 && Math.abs(p.pos.x - xCh) > 2.5 && Math.abs(p.pos.x) > 2.5) {
-                        p.pos.y = 2; p.vel.y = Math.abs(p.vel.y);
-                    }
-                    if (p.region === 'in' && p.pos.y > -2 && Math.abs(p.pos.x - xCh) > 2.5 && Math.abs(p.pos.x) > 2.5) {
-                        p.pos.y = -2; p.vel.y = -Math.abs(p.vel.y);
-                    }
-                }
-                dummy.position.copy(p.pos);
-                dummy.updateMatrix();
-                this.ions[type].setMatrixAt(i, dummy.matrix);
-            }
-            this.ions[type].instanceMatrix.needsUpdate = true;
-        };
-        run('na', this.channelX.na, naFrom, naOpen);
-        run('k', this.channelX.k, kFrom, kOpen);
-    },
-
-    easeInOutQuad: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
-
-    limitSpeed: function (v, maxSpeed) {
-        if (v.lengthSq() > maxSpeed * maxSpeed) v.setLength(maxSpeed);
-    },
-
-    applyBrownian: function (p) {
-        const cfg = this.fluxCfg;
-        p.vel.x += (Math.random() - 0.5) * cfg.brownian;
-        p.vel.y += (Math.random() - 0.5) * cfg.brownian;
-        p.vel.z += (Math.random() - 0.5) * cfg.brownian;
-        p.vel.multiplyScalar(cfg.damping);
-        this.limitSpeed(p.vel, cfg.maxSpeed);
-    },
-
-    applyChannelAttraction: function (p, xLoc, fromReg, openFactor) {
-        if (p.mode !== 'free' || p.region !== fromReg || openFactor < 0.02) return;
-        const cfg = this.fluxCfg;
-        if (fromReg === 'out' && p.pos.y < cfg.mouthY + 1.0) return;
-        if (fromReg === 'in' && p.pos.y > -cfg.mouthY - 1.0) return;
-        const dx = xLoc - p.pos.x, dz = -p.pos.z;
-        const d2 = dx * dx + dz * dz, r = cfg.attractRadius;
-        if (d2 > r * r) return;
-        const d = Math.sqrt(d2) + 1e-6;
-        const s = openFactor * (1 - d / r);
-        p.vel.x += (dx / d) * 0.020 * s;
-        p.vel.z += (dz / d) * 0.020 * s;
-        const entryY = fromReg === 'out' ? cfg.mouthY : -cfg.mouthY;
-        p.vel.y += (entryY - p.pos.y) * 0.010 * s;
-        this.limitSpeed(p.vel, cfg.maxSpeed);
-    },
-
-    startPoreTransport: function (p, fromReg, toReg, xLoc) {
-        const cfg = this.fluxCfg;
-        p.mode = 'pore';
-        p.pore = {
-            toReg, t: 0,
-            speed: cfg.poreSpeed + Math.random() * cfg.poreSpeedJitter,
-            centerX: xLoc + (Math.random() - 0.5) * 0.8,
-            centerZ: (Math.random() - 0.5) * 0.8,
-            entryY: fromReg === 'out' ? cfg.mouthY : -cfg.mouthY,
-            exitY: toReg === 'out' ? cfg.mouthY : -cfg.mouthY,
-            swirlPhase: Math.random() * Math.PI * 2,
-            swirlAmp: cfg.lateralWiggle * (0.5 + Math.random() * 0.6)
-        };
-        p.vel.set(0, 0, 0);
-    },
-
-    updatePoreMotion: function (p) {
-        const cfg = this.fluxCfg, pr = p.pore;
-        if (!pr) { p.mode = 'free'; return; }
-        pr.t = Math.min(1, pr.t + pr.speed);
-        const e = this.easeInOutQuad(pr.t);
-        const mid = 1 - Math.abs(2 * e - 1);   // wiggle strongest mid-pore
-        const ang = pr.swirlPhase + this.time * 3.0, amp = pr.swirlAmp * mid;
-        p.pos.set(pr.centerX + Math.cos(ang) * amp, THREE.MathUtils.lerp(pr.entryY, pr.exitY, e), pr.centerZ + Math.sin(ang) * amp);
-        if (pr.t >= 1) {
-            // Exit: scatter into the target compartment.
-            p.mode = 'free';
-            p.region = pr.toReg;
-            p.pos.x = pr.centerX + (Math.random() - 0.5) * cfg.exitSpread;
-            p.pos.z = (Math.random() - 0.5) * cfg.exitSpread;
-            p.pos.y = p.region === 'out' ? cfg.mouthY + 1.3 : -cfg.mouthY - 1.3;
-            const vySign = p.region === 'out' ? 1 : -1;
-            p.vel.set(
-                (Math.random() - 0.5) * cfg.exitSpeed,
-                vySign * (0.8 + Math.random() * 0.8) * cfg.exitSpeed,
-                (Math.random() - 0.5) * cfg.exitSpeed
-            );
-            this.limitSpeed(p.vel, cfg.maxSpeed);
-            p.pore = null;
-        }
-    },
-
-    // Start pore transports to satisfy BIO.pending[route][type], at most
-    // maxPerFrame per rendered frame. Returns the signed number started.
-    fulfillPending: function (type, xLoc, route) {
-        const cfg = this.fluxCfg, pend = B.pending[route][type];
-        let n = 0;
-        if (pend >= 1) n = Math.min(Math.floor(pend), cfg.maxPerFrame);
-        else if (pend <= -1) n = -Math.min(Math.floor(-pend), cfg.maxPerFrame);
-        if (n === 0) return 0;
-        const fromReg = n > 0 ? 'out' : 'in', toReg = n > 0 ? 'in' : 'out', need = Math.abs(n);
-        const list = this.ionData[type], capR2 = cfg.captureRadius * cfg.captureRadius;
-        let moved = 0, attempts = 0;
-        while (moved < need && attempts < 4000) {
-            attempts++;
-            const ion = list[(Math.random() * list.length) | 0];
-            if (ion.mode !== 'free' || ion.region !== fromReg) continue;
-            if (fromReg === 'out' && ion.pos.y < cfg.mouthY + 1.0) continue;
-            if (fromReg === 'in' && ion.pos.y > -cfg.mouthY - 1.0) continue;
-            const dx = ion.pos.x - xLoc, dz = ion.pos.z;
-            if (dx * dx + dz * dz > capR2) continue;
-            this.startPoreTransport(ion, fromReg, toReg, xLoc);
-            moved++;
-        }
-        const signedMoved = n > 0 ? moved : -moved;
-        B.pending[route][type] -= signedMoved;
-        return signedMoved;
-    }
-};
-
-VIS.init();
-VIS.recolour();
-
-// Started transports per ms of model time (concentrations come from the model).
-const elFlux = document.querySelector('[data-out3d="flux"]');
-function readout() {
-    const dtFrame = B.STEPS_PER_FRAME * HH.dt, L = VIS.lastMoved;
-    const r = (v) => (v / dtFrame).toFixed(1);
-    elFlux.textContent = 'Na ' + r(L.naIn) + '/' + r(L.naOut) + ' · K ' + r(L.kOut) + '/' + r(L.kIn);
+function add(parent, geo, mat, x, y, z) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    parent.add(m);
+    return m;
 }
 
-B.onTick(() => { VIS.update(); readout(); }, host);
+function label(tex, x, y) {
+    const el = document.createElement('div');
+    el.className = 'scene-label';
+    window.katex.render(tex, el, { throwOnError: false });
+    const o = new CSS2DObject(el);
+    o.position.set(x, y, 0);
+    scene.add(o);
+}
+
+// ───────── Bilayer ─────────
+(function buildMembrane() {
+    const pitch = 0.85, lipids = [];
+    const clear = (x, z) => FOOTPRINT.every(([gx, r]) => (x - gx) * (x - gx) + z * z > r * r);
+    for (let i = 0, x = -BOX.x - 0.4; x <= BOX.x + 0.4; x += pitch, i++) {
+        for (let z = -BOX.depth - 0.4 + (i % 2) * pitch / 2; z <= 0.45; z += pitch) {
+            for (const s of [1, -1]) {                     // the two leaflets are not in register
+                const lx = x + rnd(0.3), lz = z + rnd(0.3);
+                if (clear(lx, lz)) lipids.push([lx, s, lz]);
+            }
+        }
+    }
+    const headMat = solidMat('--c-lipid');
+    const tailMat = solidMat('--c-lipid');
+    tailMat.color.lerp(new THREE.Color(0xffffff), 0.45);
+    const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.42, 12, 10), headMat, lipids.length);
+    const tails = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 5), tailMat, lipids.length * 2);
+    const d = new THREE.Object3D();
+    lipids.forEach(([x, s, z], i) => {
+        d.rotation.set(0, 0, 0);
+        d.position.set(x, s * (1.95 + rnd(0.15)), z);
+        d.updateMatrix();
+        heads.setMatrixAt(i, d.matrix);
+        for (let t = 0; t < 2; t++) {                      // two acyl chains per lipid
+            d.rotation.set(rnd(0.3), 0, rnd(0.3));
+            d.position.set(x + (t ? 0.2 : -0.2), s * 0.93, z + rnd(0.2));
+            d.updateMatrix();
+            tails.setMatrixAt(2 * i + t, d.matrix);
+        }
+    });
+    scene.add(heads, tails);
+})();
+
+// ───────── Channels ─────────
+// Four pore domains at 0, 90, 180 and 270 degrees about the pore axis. Each is
+// hinged at its outer end, so rotation.z of the pivot swings the inner end
+// towards (closed) or away from (open) the axis. The domain at 90 degrees is
+// in front of the section and is drawn as a ghost.
+function buildChannel(x, colourVar, o) {
+    const g = new THREE.Group();
+    g.position.x = x;
+    scene.add(g);
+    const solid = solidMat(colourVar), ghost = ghostOf(solid);
+    const rear = shade(solid, -0.3), light = shade(solid, 0.35), dark = shade(solid, -0.5);
+    const rTop = o.vsd ? 1.7 : 1.5, pds = [], s4s = [];
+    const pdGeo = new THREE.CapsuleGeometry(0.95, 3.0, 6, 16);
+    for (let i = 0; i < 4; i++) {
+        const a = i * Math.PI / 2, piv = new THREE.Group();
+        piv.position.set(Math.cos(a) * rTop, 2.2, Math.sin(a) * rTop);
+        piv.rotation.y = -a;                               // local +x points radially outward
+        add(piv, pdGeo, i === 1 ? ghost : i === 3 ? rear : solid, 0, -2.2, 0);   // rear wall darker, so the pore reads in section
+        g.add(piv);
+        pds.push(piv);
+    }
+    // Selectivity filter: rear half of a ring that narrows the outer pore.
+    for (let i = 0; i < o.filter; i++) {
+        add(g, new THREE.TorusGeometry(0.62, 0.3, 10, 24, Math.PI), solid, 0, 1.7 - 0.6 * i, 0).rotation.x = -Math.PI / 2;
+    }
+    if (o.vsd) {
+        const vsdGeo = new THREE.CapsuleGeometry(0.85, 2.9, 6, 16);
+        const s4Geo = new THREE.CapsuleGeometry(0.3, 3.4, 4, 10);
+        for (let i = 0; i < 4; i++) {                      // 45 (front right), 135 (front left), 225, 315 degrees
+            const a = Math.PI / 4 + i * Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+            add(g, vsdGeo, s > 0 ? ghostOf(light) : light, 3.0 * c, 0, 3.0 * s);
+            s4s.push(add(g, s4Geo, dark, 3.75 * c, 0, 3.75 * s));
+        }
+    }
+    return { g, pds, s4s };
+}
+
+// open: open fraction (pore area), sensors: outward displacement of each S4, 0 to 1.
+function setChannel(ch, open, sensors) {
+    const th = lerp(-0.16, 0.07, Math.sqrt(open));
+    ch.pds.forEach((p) => { p.rotation.z = th; });
+    ch.s4s.forEach((s, i) => { s.position.y = -0.45 + 0.9 * sensors[i]; });
+}
+
+const naCh = buildChannel(X.na, '--c-nachan', { vsd: true, filter: 1 });
+const kCh = buildChannel(X.k, '--c-kchan', { vsd: true, filter: 2 });
+setChannel(buildChannel(X.leakNa, '--c-nachan', { vsd: false, filter: 1 }), 0.45, []);
+setChannel(buildChannel(X.leakK, '--c-kchan', { vsd: false, filter: 2 }), 0.45, []);
+
+// Na+ inactivation particle on its linker, hinged below the right-hand pore domain.
+const lidMat = solidMat('--c-gate');
+const lid = add(naCh.g, new THREE.SphereGeometry(0.6, 20, 14), lidMat, 0, 0, 0);
+const tether = add(naCh.g, new THREE.CylinderGeometry(0.11, 0.11, 1, 8), lidMat, 0, 0, 0);
+const HINGE = V3(2.4, -2.6, 0), DOCK = V3(0, -3.05, 0), AWAY = V3(3.6, -4.7, 0), UP = V3(0, 1, 0), tmp = V3(0, 0, 0);
+
+function animateChannels() {
+    const m = HH.m, h = HH.h, n = HH.n;
+    setChannel(naCh, m * m * m, [1 - h, m, m, m]);
+    setChannel(kCh, n * n * n * n, [n, n, n, n]);
+    lid.position.lerpVectors(DOCK, AWAY, h);
+    tmp.subVectors(lid.position, HINGE);
+    tether.scale.y = tmp.length();
+    tether.position.copy(HINGE).addScaledVector(tmp, 0.5);
+    tether.quaternion.setFromUnitVectors(UP, tmp.normalize());
+}
+
+// ───────── Na+/K+-ATPase ─────────
+const PUMP = { state: 0, t: 0, rock: 1, held: [], jaws: [], nDom: null };
+// Spheres that free ions cannot enter (pump head and beta ectodomain), world coordinates.
+const BLOCK = [];
+(function buildPump() {
+    const g = new THREE.Group();
+    g.position.x = X.pump;
+    scene.add(g);
+    const solid = solidMat('--c-pump'), ghost = ghostOf(solid);
+    solid.roughness = 0.35;
+    const lobe = new THREE.CapsuleGeometry(1.1, 3.0, 6, 16), lip = new THREE.SphereGeometry(0.5, 14, 10);
+    for (const s of [-1, 1]) {                             // the two rocking halves, pivoted mid-membrane
+        const piv = new THREE.Group();
+        piv.position.x = s * 1.55;
+        add(piv, lobe, solid, 0, 0, 0);
+        add(piv, lip, solid, -s * 1.0, 2.3, 0);            // outer gate
+        add(piv, lip, solid, -s * 1.0, -2.3, 0);           // inner gate
+        g.add(piv);
+        PUMP.jaws.push(piv);
+    }
+    const light = shade(solid, 0.22);
+    add(g, lobe, light, 0, 0, -1.7);                       // rear wall of the ion pathway
+    add(g, lobe, ghost, 0, 0, 1.7);
+    const blob = (r, x, y, z) => {
+        BLOCK.push({ c: V3(X.pump + x, y, z), r: r + 0.3 });
+        return add(g, new THREE.SphereGeometry(r, 24, 16), solid, x, y, z);
+    };
+    blob(1.6, 1.9, -4.2, -1.8);                            // P domain
+    PUMP.nDom = blob(1.9, 2.6, -6.9, -1.8);                // N domain (binds ATP)
+    blob(1.6, -1.9, -4.3, -1.8);                           // A domain
+    add(g, new THREE.CapsuleGeometry(0.4, 3.6, 4, 10), light, -2.7, 0, -1.3);   // beta subunit helix
+    blob(1.3, -2.5, 3.9, -1.3).material = light;           // beta subunit ectodomain
+})();
+
+// ───────── Ions ─────────
+const ions = { na: [], k: [] }, meshes = {};
+const inBlock = (q) => BLOCK.some((b) => q.distanceToSquared(b.c) < b.r * b.r);
+function randomPos(region) {
+    const sy = region === 'out' ? 1 : -1, q = V3(0, 0, 0);
+    do q.set(rnd(2 * BOX.x), sy * lerp(BOX.yMem, BOX.yMax, Math.random()), -Math.random() * BOX.depth);
+    while (inBlock(q));
+    return q;
+}
+for (const type of ['na', 'k']) {
+    for (const region of ['out', 'in']) {
+        for (let i = Math.round(B.amount0[type][region]); i > 0; i--) {
+            ions[type].push({ pos: randomPos(region), vel: V3(0, 0, 0), region, mode: 'free', pts: null, t: 0, frames: 1, to: null });
+        }
+    }
+    const mat = new THREE.MeshLambertMaterial({ color: col('--c-' + type) });
+    meshes[type] = new THREE.InstancedMesh(new THREE.SphereGeometry(R_ION[type], 10, 8), mat, ions[type].length);
+    scene.add(meshes[type]);
+}
+
+// Transports started this frame, by direction.
+const moved = { naIn: 0, naOut: 0, kIn: 0, kOut: 0 };
+const tally = (type, dir) => { moved[type + (dir > 0 ? 'In' : 'Out')]++; };
+
+function nearest(type, region, pt) {
+    let best = null, bd = Infinity;
+    for (const p of ions[type]) {
+        if (p.mode !== 'free' || p.region !== region) continue;
+        const d = p.pos.distanceToSquared(pt);
+        if (d < bd) { bd = d; best = p; }
+    }
+    return best;
+}
+
+// Move ion p through the points pts in the given number of frames, then
+// release it into region `to`, or hold it at the last point if `to` is null.
+function send(p, pts, frames, to) {
+    p.mode = 'path';
+    p.pts = [p.pos.clone()].concat(pts);
+    p.t = 0; p.frames = frames; p.to = to;
+}
+
+function stepPath(p) {
+    const n = p.pts.length - 1;
+    p.t = Math.min(1, p.t + 1 / p.frames);
+    const u = p.t * n, i = Math.min(Math.floor(u), n - 1);
+    p.pos.lerpVectors(p.pts[i], p.pts[i + 1], u - i);
+    if (p.t < 1) return;
+    if (!p.to) { p.mode = 'held'; return; }
+    p.region = p.to;
+    p.mode = 'free';
+    p.vel.set(0, p.to === 'out' ? 0.1 : -0.1, 0);
+}
+
+const mouth = (xc, sy) => V3(xc + rnd(0.3), sy * 2.9, -Math.random() * 0.3);
+
+// Start the whole-ion transports owed on a passive route through the pore at
+// xc. The nearest free ion on the source side is used. A backlog of more than
+// eight (the scene was off screen) is moved without animation.
+function cross(type, route, xc) {
+    const pend = B.pending[route];
+    let n = Math.trunc(pend[type]);
+    if (!n) return;
+    const dir = Math.sign(n), from = dir > 0 ? 'out' : 'in', to = dir > 0 ? 'in' : 'out';
+    for (n = Math.abs(n); n > 0; n--) {
+        const m = mouth(xc, dir), p = nearest(type, from, m);
+        if (!p) break;
+        if (n > 8) { p.region = to; p.pos.copy(randomPos(to)); }
+        else send(p, [m, mouth(xc, -dir)], 22, to);
+        pend[type] -= dir;
+        tally(type, dir);
+    }
+}
+
+// Post-Albers cycle of the pump: [rock target, frames]. rock = +1 is open to
+// the cytoplasm (E1), -1 open to the outside (E2), 0 occluded.
+const CYCLE = [
+    [1, 0],      // 0  E1, empty, waiting for three Na+ of pump flux
+    [1, 12],     // 1  three Na+ bind from the cytoplasm
+    [0, 5],      // 2  E1P, occluded: ATP hydrolysed, pump phosphorylated
+    [-1, 10],    // 3  E2P, Na+ released outside
+    [-1, 12],    // 4  two K+ bind from outside
+    [0, 5],      // 5  E2, occluded: pump dephosphorylated
+    [1, 10]      // 6  E1, K+ released to the cytoplasm
+];
+const SITE = { na: [0.75, 0, -0.75], k: [0.4, -0.4] };   // binding sites along the pump axis
+
+function pumpBind(type, from, sy) {
+    const gate = V3(X.pump, sy * 3.1, 0), pend = B.pending.pump;
+    SITE[type].forEach((y) => {
+        const p = nearest(type, from, gate);
+        if (!p) return;
+        send(p, [gate, V3(X.pump, y, 0)], 10, null);
+        PUMP.held.push(p);
+        pend[type] -= sy;                                  // Na+ leaves (sy = -1), K+ enters (sy = +1)
+        tally(type, sy);
+    });
+}
+
+function pumpRelease(to, sy) {
+    // The first, zero-length segment holds the ions while the gate opens.
+    PUMP.held.forEach((p) => send(p, [p.pos.clone(), V3(X.pump + rnd(0.3), sy * 3.1, 0)], 10, to));
+    PUMP.held = [];
+}
+
+function stepPump() {
+    const P = PUMP, pend = B.pending.pump;
+    while (pend.na <= -18) {                               // backlog from time off screen: move without animation
+        for (let i = 0; i < 5; i++) {
+            const type = i < 3 ? 'na' : 'k', to = i < 3 ? 'out' : 'in';
+            const p = nearest(type, i < 3 ? 'in' : 'out', V3(X.pump, 0, 0));
+            if (p) { p.region = to; p.pos.copy(randomPos(to)); }
+            tally(type, i < 3 ? -1 : 1);
+        }
+        pend.na += 3; pend.k -= 2;
+    }
+    P.rock += (CYCLE[P.state][0] - P.rock) * 0.3;
+    P.jaws[0].rotation.z = -0.15 * P.rock;
+    P.jaws[1].rotation.z = 0.15 * P.rock;
+    P.nDom.position.x = 2.6 - 0.25 * (1 - P.rock);
+
+    if (P.state === 0) { if (pend.na > -3) return; }
+    else if ((P.t += clamp(-pend.na / 3, 1, 3)) < CYCLE[P.state][1]) return;
+    P.state = (P.state + 1) % CYCLE.length;
+    P.t = 0;
+    if (P.state === 1) pumpBind('na', 'in', -1);
+    if (P.state === 3) pumpRelease('out', 1);
+    if (P.state === 4) pumpBind('k', 'out', 1);
+    if (P.state === 6) pumpRelease('in', -1);
+}
+
+const mat4 = new THREE.Matrix4();
+function stepIons(type) {
+    const list = ions[type], mesh = meshes[type], s = NOISE[type];
+    for (let i = 0; i < list.length; i++) {
+        const p = list[i], q = p.pos, v = p.vel;
+        if (p.mode === 'path') stepPath(p);
+        else if (p.mode === 'free') {
+            // Velocity with a short memory: a random walk without frame-to-frame jitter.
+            v.multiplyScalar(0.88);
+            v.x += rnd(s); v.y += rnd(s); v.z += rnd(s);
+            q.add(v);
+            const sy = p.region === 'out' ? 1 : -1, ay = q.y * sy;
+            if (Math.abs(q.x) > BOX.x) { q.x = Math.sign(q.x) * BOX.x; v.x = -v.x; }
+            if (q.z > 0 || q.z < -BOX.depth) { q.z = clamp(q.z, -BOX.depth, 0); v.z = -v.z; }
+            if (ay < BOX.yMem || ay > BOX.yMax) { q.y = sy * clamp(ay, BOX.yMem, BOX.yMax); v.y = -v.y; }
+            if (inBlock(q)) { q.sub(v); v.negate(); }
+        }
+        mesh.setMatrixAt(i, mat4.makeTranslation(q.x, q.y, q.z));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+}
+
+// ───────── Labels and scale bar ─────────
+label('\\text{Na}^+\\ \\text{channel}', X.na, 5.9);
+label('\\text{K}^+\\ \\text{channel}', X.k, 5.9);
+label('\\text{Na}^+\\ \\text{leak}', X.leakNa, -4.6);
+label('\\text{K}^+\\ \\text{leak}', X.leakK, -4.6);
+label('\\text{Na}^+/\\text{K}^+\\text{-ATPase}', X.pump, -10.6);
+label('\\text{extracellular fluid}', 0, 12.6);
+label('\\text{cytoplasm}', -12, -12.6);
+add(scene, new THREE.BoxGeometry(5, 0.14, 0.14), new THREE.MeshBasicMaterial({ color: col('--d-ink') }), -21.5, -14, 0);
+label('5\\,\\text{nm}', -21.5, -12);
+
+// ───────── Frame loop ─────────
+// Started transports in ions per ms of model time, smoothed over about 20 frames.
+const elFlux = document.querySelector('[data-out3d="flux"]');
+const rate = { naIn: 0, naOut: 0, kIn: 0, kOut: 0 };
+
+resize();
+B.onTick(() => {
+    controls.update();
+    moved.naIn = moved.naOut = moved.kIn = moved.kOut = 0;
+    animateChannels();
+    cross('na', 'chan', X.na);
+    cross('na', 'leak', X.leakNa);
+    cross('k', 'chan', X.k);
+    cross('k', 'leak', X.leakK);
+    stepPump();
+    stepIons('na');
+    stepIons('k');
+    renderer.render(scene, camera);
+    labels.render(scene, camera);
+
+    const dtFrame = B.STEPS_PER_FRAME * HH.dt;
+    for (const k in rate) rate[k] += (moved[k] / dtFrame - rate[k]) * 0.05;
+    const r = (v) => v.toFixed(1);
+    elFlux.textContent = 'Na ' + r(rate.naIn) + '/' + r(rate.naOut) + ' · K ' + r(rate.kOut) + '/' + r(rate.kIn);
+}, host);

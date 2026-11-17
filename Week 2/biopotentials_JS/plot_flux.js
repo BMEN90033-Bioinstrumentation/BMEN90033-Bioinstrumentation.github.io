@@ -1,6 +1,6 @@
-// Section 04 · Passive (channel + leak) particle flux over the last 70 ms:
+// Section 04 · Passive (channel + leak) ion flux over the last 70 ms:
 // Na+ influx and K+ efflux, both positive in their physiological direction.
-// The symmetric y range grows to fit the window (minimum +/-30 particles/ms)
+// The symmetric y range grows to fit the window (minimum +/-30 ions/ms)
 // and the plot is redrawn when it changes. Series in the HTML legend.
 (function () {
     var sel = '#plot-flux';
@@ -20,7 +20,7 @@
         var f = B.frame(sel, {});
         var x = B.timeScale(f.iw);
         var y = d3.scaleLinear().domain([-lim, lim]).range([f.ih, 0]);
-        B.axes(f, f.g, x, y, f.ih, 0, { yTitle: '\\dot{N}\\;[\\text{particles/ms}]', yWidth: 240, xTitle: 't\\;[\\mathrm{ms}]' });
+        B.axes(f, f.g, x, y, f.ih, 0, { yTitle: '\\dot{N}\\;[\\text{ions/ms}]', yWidth: 240, xTitle: 't\\;[\\mathrm{ms}]' });
         refs = {
             x: x, y: y,
             na: f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-na')).attr('stroke-width', 2.2),

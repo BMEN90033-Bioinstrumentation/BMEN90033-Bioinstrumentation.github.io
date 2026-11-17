@@ -76,8 +76,10 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the membrane patch</span></div>
             <h2>Ion gradients, channels and the pump</h2>
 
-            <p class="lead">The scene shows a cross-section of a lipid bilayer separating the extracellular fluid
-                (above) from the cytoplasm (below). The page models a squid giant axon, the preparation on which
+            <p class="lead">The scene shows a block of lipid bilayer, $50\,\text{nm}$ wide and $10\,\text{nm}$
+                deep, separating the extracellular fluid (above) from the cytoplasm (below). It is drawn to scale
+                and sectioned through the axes of the membrane proteins; the parts of each protein in front of the
+                section are drawn faintly. The page models a squid giant axon, the preparation on which
                 Hodgkin and Huxley based their model. Sodium is concentrated outside the axon and potassium inside.
                 The concentrations are representative squid-axon values, with the external $\text{K}^+$
                 concentration chosen so that the Nernst potentials equal the reversal potentials of the model
@@ -88,23 +90,39 @@
                 <li>$\text{K}^+$: $16.3\,\text{mM}$ outside, $400\,\text{mM}$ inside.</li>
             </ul>
 
-            <p>Three membrane proteins span the bilayer. The voltage-gated $\text{Na}^+$ channel has four subunits
-                that open with the activation variable $m$ and a cytoplasmic inactivation gate that moves into the
-                pore as $h$ falls. The voltage-gated $\text{K}^+$ channel has four subunits that open with $n$. The
-                $\text{Na}^+/\text{K}^+$-ATPase exports three $\text{Na}^+$ and imports two $\text{K}^+$ per
-                ATP hydrolysed.</p>
+            <p>Every sphere is one ion. Each compartment is $12.5\,\text{nm}$ deep and holds the number of ions
+                that its concentration implies: about 1660 $\text{Na}^+$ and 60 $\text{K}^+$ outside, and 210
+                $\text{Na}^+$ and 1500 $\text{K}^+$ inside. Water and the anions that keep each compartment
+                electrically neutral are not drawn, and the ions are drawn at about twice their ionic radii.</p>
 
-            <p>Ions cross at the rates set by the model (section 04). Passive flux, through the channel and the leak
-                pathway of each ion, is drawn at that ion's channel; pump flux is drawn through the pump. At rest the
-                pump exactly balances the passive leak of both ions, so the concentrations are stationary.</p>
+            <p>The bilayer is $4\,\text{nm}$ thick between its head groups. Both voltage-gated channels have four
+                pore domains around a central pore, with a selectivity filter at the outer end and an activation
+                gate at the inner end. Each domain carries a voltage sensor whose S4 helix (dark rod) moves outward
+                on depolarisation. In the $\text{K}^+$ channel, a tetramer of identical subunits, the four sensors
+                follow $n$ and the pore area follows $n^4$. The $\text{Na}^+$ channel is one protein with four
+                domains: three sensors follow $m$ and the pore area follows $m^3$; the fourth sensor follows
+                $1 - h$, and the inactivation particle on the cytoplasmic linker docks at the inner mouth as $h$
+                falls. A separate, always-open pore for each ion carries its leak current.</p>
+
+            <p>The $\text{Na}^+/\text{K}^+$-ATPase alternates between a state open to the cytoplasm, which binds
+                three $\text{Na}^+$, and a state open to the outside, which releases them and binds two
+                $\text{K}^+$. Neither gate opens until the other has closed, and each cycle hydrolyses one ATP at
+                the cytoplasmic head. The pump completes one cycle for every three $\text{Na}^+$ of pump current in
+                the model, about 110 cycles per second at rest. At rest the pump exactly balances the passive flux
+                of both ions, so the concentrations are stationary.</p>
 
             <div class="callout">
-                Each rendered particle represents 1000 ions crossing a $1\,\mu\text{m}^2$ patch, and the
-                concentration readouts follow the amount of each ion in each compartment. The compartments in the
-                scene are small, so one action potential visibly raises $[\text{Na}^+]_\text{in}$ and
-                $[\text{K}^+]_\text{out}$; the pump returns them to their resting values over tens of seconds of
-                animation. In an axon the change per impulse is far smaller, and $E_\text{Na}$ and $E_\text{K}$
-                are held at their resting values.
+                The drawn gates show the mean state of a population of channels, and each pathway carries the
+                current of the whole patch (section 04). About 1 % of the $\text{K}^+$ channels are open at rest,
+                so a small $\text{K}^+$ efflux passes the nearly closed gate. A single open channel passes
+                several thousand ions per millisecond, but a patch of this size contains on average less than one
+                channel of either type. One action potential moves about 40 $\text{Na}^+$ in and 40 $\text{K}^+$
+                out across the patch, although a net transfer of only three charges changes the potential across
+                $500\,\text{nm}^2$ of membrane by $100\,\text{mV}$. The compartments are $10^4$ times shallower
+                than the $0.5\,\text{mm}$ axon, so one impulse visibly raises $[\text{Na}^+]_\text{in}$ and
+                $[\text{K}^+]_\text{out}$, and the pump restores them over about a minute of animation. In the
+                axon the change per impulse is about $1\,\mu\text{M}$, and $E_\text{Na}$ and $E_\text{K}$ are
+                held at their resting values.
             </div>
         </div>
 
@@ -121,16 +139,17 @@
                     </span>
                 </div>
                 <div class="plot-box scene3d">
-                    <div class="label">3D membrane patch · <b>extracellular above, cytoplasm below</b></div>
+                    <div class="label">3D membrane patch · <b>to scale, sectioned through the proteins</b></div>
                     <div class="three-host" id="bio-three"></div>
                     <div class="hint">drag to rotate · click, then scroll to zoom</div>
                 </div>
                 <div class="legend">
                     <span><span class="sw ring" style="background:var(--c-na)"></span>$\text{Na}^+$ ion</span>
                     <span><span class="sw ring" style="background:var(--c-k)"></span>$\text{K}^+$ ion</span>
-                    <span><span class="sw band" style="background:var(--c-nachan)"></span>$\text{Na}^+$ channel</span>
-                    <span><span class="sw ring" style="background:var(--c-gate)"></span>inactivation gate</span>
-                    <span><span class="sw band" style="background:var(--c-kchan)"></span>$\text{K}^+$ channel</span>
+                    <span><span class="sw band" style="background:var(--c-nachan)"></span>$\text{Na}^+$ channel and leak</span>
+                    <span><span class="sw ring" style="background:var(--c-gate)"></span>inactivation particle</span>
+                    <span><span class="sw band" style="background:var(--c-kchan)"></span>$\text{K}^+$ channel and leak</span>
+                    <span><span class="sw ring" style="background:var(--c-lipid)"></span>phospholipid</span>
                     <span><span class="sw band" style="background:var(--c-pump)"></span>$\text{Na}^+/\text{K}^+$ pump</span>
                 </div>
                 <div class="readout">
@@ -139,7 +158,7 @@
                     <div class="item"><span class="k">$g_\text{K}$</span><span class="v" data-out="gk"></span></div>
                     <div class="item"><span class="k">$[\text{Na}^+]$ out | in</span><span class="v" data-out="na"></span></div>
                     <div class="item"><span class="k">$[\text{K}^+]$ in | out</span><span class="v" data-out="k"></span></div>
-                    <div class="item"><span class="k">flux, Na in/out · K out/in [particles/ms]</span><span class="v" data-out3d="flux"></span></div>
+                    <div class="item"><span class="k">flux, Na in/out · K out/in [ions/ms]</span><span class="v" data-out3d="flux"></span></div>
                 </div>
             </div>
         </div>
@@ -300,12 +319,12 @@
             <p class="lead">An ionic current is a flow of charged ions across the membrane. For monovalent ions, a
                 current density $I$ through a patch of area $A$ moves</p>
 
-            <div class="eq-block">$$\Delta N = -\frac{I\,A\,\Delta t}{e\,n_p}$$</div>
+            <div class="eq-block">$$\Delta N = -\frac{I\,A\,\Delta t}{e}$$</div>
 
-            <p>particles in a time step $\Delta t$, where $e$ is the elementary charge and $n_p = 1000$ is the number
-                of ions represented by one particle. The model uses $A = 10^{-8}\,\text{cm}^2$ ($1\,\mu\text{m}^2$).
+            <p>ions in a time step $\Delta t$, where $e$ is the elementary charge. The model uses the area of the
+                patch in section 01, $A = 5 \times 10^{-12}\,\text{cm}^2$ ($500\,\text{nm}^2$).
                 Outward current is positive in the Hodgkin-Huxley convention, so the minus sign makes $\Delta N$
-                positive for influx. This flux drives the particle transport in section 01.</p>
+                positive for influx. This flux drives the ion transport in section 01.</p>
 
             <p>Each ion has three pathways: its voltage-gated channel, a leak, and the pump. The model divides the
                 Hodgkin-Huxley leak into a $\text{Na}^+$ and a $\text{K}^+$ component and adds the pump current
@@ -332,7 +351,7 @@
                 large part of the sodium charge entering the cell is offset by potassium charge leaving it.</p>
 
             <p>At the peak, $I_\text{Na}$ reaches about $-800\,\mu\text{A/cm}^2$, which corresponds to about
-                50 particles, or $5 \times 10^4$ ions, per millisecond through the patch.</p>
+                25 ions per millisecond through the patch.</p>
 
             <div class="callout">
                 After an action potential the raised $[\text{Na}^+]_i$ increases the pump rate. Its extra outward
@@ -355,7 +374,7 @@
                     </span>
                 </div>
                 <div class="plot-box flux">
-                    <div class="label">particle flux · <b>last 70 ms, present at $t = 0$</b></div>
+                    <div class="label">ion flux · <b>last 70 ms, present at $t = 0$</b></div>
                     <svg class="bode" id="plot-flux"></svg>
                 </div>
                 <div class="legend">
