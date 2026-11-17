@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · The Op-Amp as an Oscillator</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The op-amp as an oscillator</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="op_amp_oscillator_JS/oscillator.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -47,7 +42,7 @@
     <!-- ================= LANDING ================= -->
     <section class="landing">
         <div>
-            <div class="meta">BMEN90033 · WEEK 9 · OP-AMP AS AN OSCILLATOR</div>
+            <div class="meta">BMEN90033 · Week 9 · Op-amp as an oscillator</div>
             <h1 class="hero">The op-amp as an <em>oscillator</em></h1>
             <p class="sub">An oscillator is a circuit that produces a periodic output without any periodic input. It
                 is built by closing a positive-feedback loop around an amplifier with a frequency-selective network,
@@ -98,7 +93,7 @@
             <div class="callout">
                 A negative-feedback amplifier returns an inverted copy of the output to the input, which subtracts
                 from the input and stabilises the gain. A positive-feedback oscillator returns a non-inverted copy,
-                which adds to the input, and the loop is engineered so that addition compounds at exactly one
+                which adds to the input, and the loop is designed so that the addition reinforces exactly one
                 frequency.
             </div>
         </div>
@@ -124,14 +119,14 @@
                 provides the forward gain. Two paths leave the output: a negative-feedback path that fixes that gain,
                 and a positive-feedback path through a frequency-selective RC network.</p>
 
-            <p>The negative feedback path is the familiar non-inverting amplifier wiring. $R_4$ runs from the output
+            <p>The negative feedback path is the non-inverting amplifier configuration. $R_4$ runs from the output
                 to the inverting input, and $R_3$ runs from the inverting input to ground. Together they fix the
                 forward gain at</p>
 
             <div class="eq-block">$$A = 1 + \frac{R_4}{R_3}.$$</div>
 
-            <p>The positive-feedback path is the network at the bottom of the schematic. Its job is to sample the
-                output, attenuate every frequency except one, and return that one frequency to the non-inverting
+            <p>The positive-feedback path is the network at the bottom of the schematic. It samples the
+                output, attenuates every frequency except one, and returns that one frequency to the non-inverting
                 input. It is built from two RC arms tuned to the same time constant: a series arm of $R_1$ and $C_1$
                 between the output and the non-inverting input, and a parallel arm of $R_2$ and $C_2$ between the
                 non-inverting input and ground.</p>
@@ -169,7 +164,7 @@
             <p class="lead">The bottom of the schematic, taken on its own, is a passive voltage divider made from
                 two RC arms. Each arm is a single-pole filter. The series arm $R_1, C_1$ behaves as a high-pass
                 section; the parallel arm $R_2 \,\|\, C_2$ behaves as a low-pass section. Their cascade produces a
-                band-pass response, and the band-pass peak is what the oscillator runs on.</p>
+                band-pass response, and the oscillator operates at the band-pass peak.</p>
 
             <h3>Series arm: high-pass</h3>
             <p>The series arm has impedance</p>
@@ -177,7 +172,7 @@
             <div class="eq-block">$$Z_1(j\omega) = R_1 + \frac{1}{j\omega C_1}.$$</div>
 
             <p>At low frequencies, $1/(\omega C_1)$ is large, so $Z_1$ is dominated by the capacitor and approaches
-                infinity as $\omega \to 0$. The series arm therefore blocks dc and low-frequency content, exactly as
+                infinity as $\omega \to 0$. The series arm therefore blocks DC and low-frequency content, exactly as
                 a passive high-pass filter does. At high frequencies $C_1$ behaves as a short circuit and $Z_1 \to
                 R_1$, so high frequencies are passed with negligible attenuation.</p>
 
@@ -214,9 +209,11 @@
         <div>
             <div id="wien-decomp-wrap">
                 <div class="toolbar wien-toolbar">
+                    <span class="seg">
                     <button class="ctrl-btn active" data-wien-mode="high-pass">High-pass</button>
                     <button class="ctrl-btn" data-wien-mode="low-pass">Low-pass</button>
                     <button class="ctrl-btn" data-wien-mode="band-pass">Band-pass</button>
+                    </span>
                 </div>
                 <div class="wien-decomp-grid">
                     <div class="plot-box wien-decomp">
@@ -235,14 +232,14 @@
     <section class="scene" id="sec-barkhausen">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>the Barkhausen criterion</span></div>
-            <h2>When does the loop sustain itself?</h2>
+            <h2>The condition for a self-sustaining loop</h2>
 
             <p class="lead">A signal that travels once around the loop is multiplied first by the amplifier gain $A$
                 and then by the feedback transfer $\beta(j\omega)$. For a steady oscillation, the signal that returns
                 to the input must be identical to the signal that left it. Identical means the same magnitude and the
                 same phase.</p>
 
-            <p>Plotting $A\beta(j\omega)$ on the complex plane makes the criterion visual. As $\omega$ sweeps from
+            <p>Plotting $A\beta(j\omega)$ on the complex plane gives the criterion a geometric form. As $\omega$ sweeps from
                 $0$ to $\infty$ the product traces a closed curve. The criterion is satisfied at any frequency where
                 that curve passes through the point $1 + j\,0$, the round-trip identity.</p>
 
@@ -254,9 +251,9 @@
 
             <div class="eq-block">$$\tfrac{A}{3} = 1 \;\Longrightarrow\; A = 3 \;\Longrightarrow\; R_4 = 2\,R_3.$$</div>
 
-            <p>Use the slider to move the amplifier gain $A$. The locus scales with $A$: it crosses the real axis at
+            <p>The slider sets the amplifier gain $A$. The locus scales with $A$: it crosses the real axis at
                 $A/3$. When that crossing falls short of $1$, oscillation decays; when it overshoots, the amplitude
-                grows until the op-amp clips. Only at $A = 3$ does the curve pass cleanly through the Barkhausen
+                grows until the op-amp clips. Only at $A = 3$ does the curve pass through the Barkhausen
                 point.</p>
 
             <div class="callout">
@@ -272,7 +269,7 @@
             <div id="barkhausen-wrap">
                 <div class="toolbar bark-toolbar">
                     <span class="slider-group">
-                        <span class="lab">amp gain $A$</span>
+                        <span class="lab">amplifier gain $A$</span>
                         <input type="range" id="bark-A" min="1.0" max="5.0" step="0.05" value="3.00">
                         <span class="val" id="bark-A-val">3.00 &middot; A&beta;(j&omega;<sub>0</sub>) = 1.000</span>
                     </span>
@@ -294,7 +291,7 @@
     <section class="scene" id="sec-time">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>start-up and steady state</span></div>
-            <h2>How the oscillation builds up</h2>
+            <h2>Growth of the oscillation from noise</h2>
 
             <p class="lead">When power is first applied, the output of the op-amp contains only thermal noise.
                 Components of that noise at every frequency are recirculated by the loop, but only the component near
@@ -314,9 +311,9 @@
             </ul>
 
             <div class="callout">
-                The oscillator does not need an input. The seed for the oscillation is the small, broadband noise
-                that exists at the input of any active device. Frequency selectivity is what turns that broadband
-                seed into a single coherent tone.
+                The oscillator requires no input signal. The seed for the oscillation is the small, broadband noise
+                that exists at the input of any active device. Frequency selectivity converts that broadband
+                seed into a single sinusoid.
             </div>
         </div>
 
@@ -329,9 +326,9 @@
                 </div>
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">amp gain $A$</span>
+                        <span class="lab">amplifier gain $A$</span>
                         <input type="range" id="osc-loop" min="2.40" max="3.30" step="0.05" value="3.00">
-                        <span class="val" id="osc-loop-val">3.00 · A&beta;=1.000 · threshold</span>
+                        <span class="val" id="osc-loop-val">3.00 · A&beta; = 1.000 · threshold</span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
@@ -385,14 +382,14 @@
                 <div class="card">
                     <div class="card-num">d</div>
                     <h3>Function generators and stimulus sources</h3>
-                    <p>Audio-frequency oscillators built around op-amps are the analogue heart of bench function
+                    <p>Audio-frequency oscillators built around op-amps form the analogue core of bench function
                         generators and of the stimulus sources used in nerve and muscle experiments.</p>
                 </div>
                 <div class="card">
                     <div class="card-num">e</div>
                     <h3>Timing references for sampled systems</h3>
                     <p>An RC oscillator provides the clock reference for slow-rate analogue-to-digital converters
-                        and for timing in low-power instrumentation where a quartz crystal would be excessive.</p>
+                        and for timing in low-power instrumentation where the accuracy of a quartz crystal is not required.</p>
                 </div>
                 <div class="card">
                     <div class="card-num">f</div>

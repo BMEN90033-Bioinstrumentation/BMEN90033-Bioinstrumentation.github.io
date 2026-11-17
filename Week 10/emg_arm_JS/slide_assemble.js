@@ -161,7 +161,7 @@
     function buildChain() {
         chainEl.innerHTML = '';
         slots = [];
-        chainEl.appendChild(makeEndcap('input', 'Strain Gauge'));
+        chainEl.appendChild(makeEndcap('input', 'Strain gauge'));
         for (var i = 0; i < N; i++) {
             chainEl.appendChild(makeArrow());
             var s = makeSlot(i);

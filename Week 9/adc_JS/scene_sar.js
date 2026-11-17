@@ -2,7 +2,7 @@
 // Visualises the binary search a SAR ADC performs to convert one held input.
 // The y-axis is voltage normalised by V_ref; the x-axis is the step index from
 // the most-significant trial (k = 0) to the least-significant trial (k = N).
-// A red horizontal line marks the input. The thick output trace is the value
+// A dashed horizontal line marks the input. The thick output trace is the value
 // the DAC settles on after each decision; the open marker at each step is the
 // tentative trial value that was offered to the comparator at that cycle.
 (function () {
@@ -39,14 +39,14 @@
         return { trace: trace, finalCode: code, finalV: code / levels };
     }
 
-    var svg = d3.select('#plot-sar-trace').classed('ov', true);
+    var svg = d3.select('#plot-sar-trace').classed('bode', true);
 
     function makeFrame() {
         var rect = svg.node().getBoundingClientRect();
         var W = Math.max(440, rect.width);
         var H = Math.max(280, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 22, right: 90, bottom: 40, left: 60 };
+        var m = { top: 54, right: 60, bottom: 48, left: 66 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -77,32 +77,15 @@
         f.g.append('line')
             .attr('x1', 0).attr('x2', f.iw)
             .attr('y1', y(state.vin)).attr('y2', y(state.vin))
-            .attr('stroke', 'var(--c-thresh)')
+            .attr('stroke', 'var(--c-input)')
             .attr('stroke-width', 1.8)
             .attr('stroke-dasharray', '5 4');
         f.g.append('text')
             .attr('x', f.iw + 6).attr('y', y(state.vin) + 4)
             .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-thresh)')
-            .text('V_in');
-
-        // Above / below legend near top-right
-        f.g.append('text')
-            .attr('x', f.iw + 6).attr('y', 12)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-thresh)')
-            .text('▲ above');
-        f.g.append('text')
-            .attr('x', f.iw + 6).attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-output2)')
-            .text('▼ below');
+            .attr('font-size', 13)
+            .attr('fill', 'var(--c-input)')
+            .call(window.adcSub, 'V_in');
 
         // Build the resolved staircase up to step state.step.
         var s = state.step;
@@ -154,7 +137,7 @@
                 .attr('stroke-dasharray', t.bit ? null : '3 3')
                 .attr('opacity', 0.8);
 
-            // Trial marker, color-coded above (red) / below (green) V_in
+            // Trial marker, colour-coded by whether the trial lies above V_in
             f.g.append('circle')
                 .attr('cx', xMid).attr('cy', y(t.trial))
                 .attr('r', 5)
@@ -162,32 +145,28 @@
                 .attr('stroke', compColor)
                 .attr('stroke-width', 1.6);
 
-            // Direction glyph next to marker
-            f.g.append('text')
-                .attr('x', xMid + 9).attr('y', y(t.trial) + 4)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 12)
-                .attr('font-weight', 700)
-                .attr('fill', compColor)
-                .text(above ? '▲' : '▼');
 
-            // V_trial value label inside the strip (small, above the marker)
-            var vLabelY = above ? y(t.trial) - 9 : y(t.trial) + 18;
-            f.g.append('text')
-                .attr('x', xMid - 8).attr('y', vLabelY)
-                .attr('text-anchor', 'end')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 9.5)
-                .attr('fill', compColor)
-                .text(t.trial.toFixed(3));
+            // Trial value label. A rejected trial is labelled above and to the
+            // left of its marker; a kept trial below and to the right, clear of
+            // the staircase riser. Omitted when the columns are too narrow.
+            if (x(1) - x(0) >= 48) {
+                f.g.append('text')
+                    .attr('x', above ? xMid - 8 : xMid + 9)
+                    .attr('y', above ? y(t.trial) - 9 : y(t.trial) + 19)
+                    .attr('text-anchor', above ? 'end' : 'start')
+                    .attr('font-family', "'JetBrains Mono', monospace")
+                    .attr('font-size', 13)
+                    .attr('fill', compColor)
+                    .text(t.trial.toFixed(3));
+            }
 
-            // Decision label above each step (matches above/below colour)
+            // Decision label in a fixed row above the plot area, clear of
+            // trial labels near full scale (matches above/below colour)
             f.g.append('text')
-                .attr('x', xMid).attr('y', y(1) - 6)
+                .attr('x', xMid).attr('y', -14)
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 12)
-                .attr('font-weight', 700)
+                .attr('font-size', 13)
                 .attr('fill', compColor)
                 .text(t.bit ? '1' : '0');
         }
@@ -221,14 +200,14 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('clock cycle (bit being tested)');
+            .text('Clock cycle (bit under test)');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-46) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-52) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('V_DAC / V_ref');
+            .call(window.adcSub, 'V_DAC / V_ref');
     }
 
     function buildBits() {
@@ -258,10 +237,10 @@
             if (k < s) pad += search.trace[k].bit;
             else pad += '·';
         }
-        rdVin.textContent = state.vin.toFixed(3) + ' V_ref';
-        rdVdac.textContent = vdac.toFixed(3) + ' V_ref';
+        rdVin.innerHTML = state.vin.toFixed(3) + ' V<sub>ref</sub>';
+        rdVdac.innerHTML = vdac.toFixed(3) + ' V<sub>ref</sub>';
         rdCode.textContent = pad;
-        rdDec.textContent = (s === N) ? code + ' / ' + Math.pow(2, N) : '—';
+        rdDec.textContent = (s === N) ? code + ' / ' + Math.pow(2, N) : 'n/a';
     }
 
     function refresh() {
@@ -302,7 +281,7 @@
     function init() {
         vinI.addEventListener('input', function () {
             state.vin = parseFloat(vinI.value);
-            vinL.textContent = state.vin.toFixed(3) + ' V_ref';
+            vinL.innerHTML = state.vin.toFixed(3) + ' V<sub>ref</sub>';
             refresh();
         });
         stepI.addEventListener('input', function () {
@@ -316,7 +295,6 @@
             stop();
             setStep(0);
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

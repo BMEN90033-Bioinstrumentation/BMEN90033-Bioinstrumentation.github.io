@@ -8,19 +8,19 @@
     // actuator), so it is not a tile here; its mechanical smoothing is
     // applied implicitly after the chain runs.
     var BLOCKS = [
-        { id: 'amp',     short: 'AMP', name: 'Bridge Amp',     help: 'Instrumentation amp on the Wheatstone bridge; lifts mV to V.' },
+        { id: 'amp',     short: 'AMP', name: 'Bridge amplifier', help: 'Instrumentation amplifier on the Wheatstone bridge; raises the millivolt bridge output to volts.' },
         { id: 'hpf',     short: 'HPF', name: 'High-pass',      help: 'Removes the bridge DC bias and slow thermal drift.' },
-        { id: 'bpf',     short: 'BPF', name: 'Band-pass',      help: 'Selects the finger-flexion band, keeping mechanical noise out.' },
-        { id: 'notch',   short: 'NCH', name: 'Notch (50 Hz)',  help: 'Narrow band-stop; rejects 50 Hz mains coupling left over from the bridge.' },
+        { id: 'bpf',     short: 'BPF', name: 'Band-pass',      help: 'Selects the finger-flexion band and rejects mechanical noise.' },
+        { id: 'notch',   short: 'NCH', name: 'Notch (50 Hz)',  help: 'Narrow band-stop; rejects residual 50 Hz mains coupling from the bridge.' },
         { id: 'rect',    short: 'REC', name: 'Rectifier',      help: 'Full-wave |x|; converts AC strain activity to a magnitude.' },
         { id: 'lpf',     short: 'LPF', name: 'Low-pass',       help: 'Smooths the rectified signal to extract a flexion envelope.' },
-        { id: 'peak',    short: 'PKD', name: 'Peak Detector',  help: 'Active envelope detector; charges to the peak fast and decays slowly. Replaces REC + LPF.' },
+        { id: 'peak',    short: 'PKD', name: 'Peak detector',  help: 'Active envelope detector; charges rapidly to the peak and decays slowly. Replaces REC and LPF.' },
         { id: 'comp',    short: 'CMP', name: 'Comparator',     help: 'Single-threshold gate; chatters near the threshold under noise.' },
-        { id: 'schmitt', short: 'SCH', name: 'Schmitt Trigger',help: 'Hysteretic comparator; clean gating even with a noisy envelope.' },
-        { id: 'pwm',     short: 'PWM', name: 'PWM',            help: 'Encodes the gated envelope as a 50 Hz pulse train (simplified: duty 0 to 100 %, not 1 to 2 ms servo pulses).' }
+        { id: 'schmitt', short: 'SCH', name: 'Schmitt trigger',help: 'Comparator with hysteresis; gates without chatter when the envelope is noisy.' },
+        { id: 'pwm',     short: 'PWM', name: 'PWM',            help: 'Encodes the gated envelope as a 50 Hz pulse train (simplified: duty 0 to 100 %; a real servo expects 1 to 2 ms pulses).' }
     ];
 
-    // Canonical chain — eight stages with mains rejection and the
+    // Canonical chain: eight stages with mains rejection and the
     // rectifier/low-pass envelope path. Peak Detector and Comparator stay
     // in the tray as alternatives (PKD replaces REC+LPF; CMP replaces SCH).
     var CANONICAL = ['amp', 'hpf', 'bpf', 'notch', 'rect', 'lpf', 'schmitt', 'pwm'];

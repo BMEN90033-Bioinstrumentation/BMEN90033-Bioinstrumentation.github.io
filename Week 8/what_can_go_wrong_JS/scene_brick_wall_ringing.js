@@ -46,9 +46,15 @@
         var ySharp = convolve(values, sharp);
         var yHam = convolve(values, ham);
         var P = window.WCGW.setupDual('#plot-brick-dual', {
+            legend: [
+                { key: 'distort', label: 'truncated sinc' },
+                { key: 'fixed', label: 'Hamming window' },
+                { key: 'clean', label: 'input', opacity: 0.45, dash: true },
+                { key: 'distort', band: true, label: 'pre-ringing interval' }
+            ],
             xDomain: [0, 1.2],
             yTopDomain: [-0.18, 0.28],
-            yBottomDomain: [-0.45, 1.55],
+            yBottomDomain: [-0.45, 1.85],
             xLabel: 't\\,[\\mathrm{s}]',
             topLabel: 'h[n]',
             bottomLabel: 'v\\,[\\mathrm{mV}]'
@@ -62,17 +68,10 @@
         window.WCGW.drawLine({ x: P.x, g: P.gBottom }, out, function (d) { return d.t; }, function (d) { return d.ham; }, 'fixed', P.yBottom, P.gBottom);
         P.gBottom.append('rect').attr('x', P.x(0.30)).attr('y', 0).attr('width', P.x(0.36) - P.x(0.30)).attr('height', P.innerH)
             .attr('fill', C.distort).attr('opacity', 0.08);
-        P.gBottom.append('text').attr('x', P.x(0.31)).attr('y', 18).attr('fill', C.distort)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('pre-ringing');
-        window.WCGW.legend(P.svg, [
-            { key: 'distort', label: 'truncated sinc' },
-            { key: 'fixed', label: 'Hamming window' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
         if (!document.getElementById('plot-brick-dual')) return;
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

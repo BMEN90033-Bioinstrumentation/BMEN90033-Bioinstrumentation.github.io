@@ -42,8 +42,8 @@ scene.add(dirLight);
 scene.add(new THREE.DirectionalLight(white, 0.2).translateX(-15).translateY(10).translateZ(-10));
 
 let grid = null;
-let C = {};   // colours, refreshed on theme change
-function applyTheme() {
+let C = {};   // colours, read once from the page CSS variables
+function applyColours() {
     const T = window.T;
     scene.background = new THREE.Color(T.sceneBg);
     scene.fog = new THREE.FogExp2(T.sceneBg, 0.003);
@@ -53,7 +53,8 @@ function applyTheme() {
     scene.add(grid);
     C = {
         si: col('--c-si'), p: col('--c-p'), b: col('--c-b'), bond: col('--c-bond'),
-        free: col('--c-free'), hole: col('--c-hole'), neg: col('--c-plate-neg'), pos: col('--c-plate-pos')
+        free: col('--c-free'), hole: col('--c-hole'), neg: col('--c-plate-neg'), pos: col('--c-plate-pos'),
+        field: col('--c-field')
     };
     C.bondEm = C.bond.clone().multiplyScalar(0.25);
     C.negEm = C.neg.clone().multiplyScalar(0.3);
@@ -243,8 +244,6 @@ function createFreeElectron(pos, homeAtomIdx) {
         color: C.free, emissive: C.free, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
     mesh.position.copy(pos);
     carrierGroup.add(mesh);
-    mesh.add(new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 8),
-        new THREE.MeshBasicMaterial({ color: C.free, transparent: true, opacity: 0.12, depthWrite: false })));
     const TLEN = 50;
     const tp = new Float32Array(TLEN * 3);
     for (let i = 0; i < TLEN * 3; i += 3) { tp[i] = pos.x; tp[i + 1] = pos.y; tp[i + 2] = pos.z; }
@@ -309,7 +308,7 @@ function buildPlates(N) {
     for (let y = -extent; y <= extent; y += step) {
         for (let z = -extent; z <= extent; z += step) {
             const arr = new THREE.ArrowHelper(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(px - 2, y, z),
-                arrowLen, C.free, headLen, headW);
+                arrowLen, C.field, headLen, headW);
             arr.visible = false;
             arr.line.material.transparent = true;
             arr.cone.material.transparent = true;
@@ -317,7 +316,7 @@ function buildPlates(N) {
             fieldArrows.push(arr);
         }
     }
-    fieldLabel = cssLabel('← E', css('--c-free'));
+    fieldLabel = cssLabel('field E', css('--c-field'));
     fieldLabel.position.set(px - 2 - arrowLen / 2, extent + 3 * s, 0);
     plateGroup.add(fieldLabel);
 }
@@ -380,8 +379,6 @@ function step(dt) {
         while (holeMeshes.length < holes.length) {
             const hm = new THREE.Mesh(holeGeo, new THREE.MeshPhongMaterial({
                 color: C.hole, emissive: C.hole, emissiveIntensity: 0.3, transparent: true, opacity: 0.7, side: THREE.DoubleSide }));
-            hm.add(new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8),
-                new THREE.MeshBasicMaterial({ color: C.hole, transparent: true, opacity: 0.1, depthWrite: false })));
             carrierGroup.add(hm);
             holeMeshes.push(hm);
         }
@@ -433,8 +430,6 @@ function step(dt) {
                 const mesh = new THREE.Mesh(freeElecGeo, new THREE.MeshPhongMaterial({
                     color: C.free, emissive: C.free, emissiveIntensity: 0.6, transparent: true, opacity: 0.95 }));
                 mesh.position.copy(fromPos);
-                mesh.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8),
-                    new THREE.MeshBasicMaterial({ color: C.free, transparent: true, opacity: 0.15, depthWrite: false })));
                 carrierGroup.add(mesh);
                 pTypeHopElectrons.push({ mesh, fromPos, toPos: permanentHoles[0].pos.clone(), progress: 0, currentStep: 0 });
             }
@@ -627,7 +622,7 @@ function start() { if (!raf) { clock.getDelta(); raf = requestAnimationFrame(fra
 function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
 new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? start() : stop())), { threshold: 0.05 }).observe(box);
 
-applyTheme();
+applyColours();
 buildScene();
 resize();
 step(0);
@@ -635,4 +630,3 @@ renderer.render(scene, camera);
 
 const REBUILD = { mode: 1, size: 1, dopant: 1, reset: 1 };
 window.addEventListener('dopchange', (e) => { if (e.detail && REBUILD[e.detail.key]) buildScene(); });
-window.addEventListener('themechange', () => { applyTheme(); buildScene(); });

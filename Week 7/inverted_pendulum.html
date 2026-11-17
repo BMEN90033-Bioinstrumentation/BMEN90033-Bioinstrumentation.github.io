@@ -3,197 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033: The Inverted Pendulum</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>BMEN90033 · The inverted pendulum</title>
+
+    <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <style>
+      /* Page palette: one hue per quantity, assigned in palette order.
+         Layout comes from ../components/lecture_page.css. */
       :root {
-        --bg: #0a0a10;
-        --bg-2: #12131c;
-        --bg-panel: rgba(22,23,32,0.75);
-        --fg: #eef0f5;
-        --text: #eef0f5;
-        --text-dim: #d4d7e0;
-        --text-muted: #8b90a3;
-        --muted: #8b90a3;
-        --real: #58a6ff;
-        --imag: #ff5c7a;
-        --time: #7be089;
-        --accent: #ffcf5c;
-        --blue: #58a6ff;
-        --red: #ff5c7a;
-        --green: #7be089;
-        --yellow: #ffcf5c;
-        --grid: rgba(255,255,255,0.06);
-        --border: rgba(255,255,255,0.09);
-        --border-hover: rgba(255,255,255,0.18);
-        --body-size: 17px;
-        --math-size: 18px;
-        --hero-size: 64px;
+        --c-stable: var(--d-blue);       /* left half-plane, stable open-loop pole */
+        --c-tangent: var(--d-orange);    /* tangential component of the weight */
+        --c-unstable: var(--d-pink);     /* right half-plane, open-loop poles and response */
+        --c-closed: var(--d-green);      /* closed-loop poles and response */
+        --c-torque: var(--d-violet);     /* applied torque and controller */
+        --c-gravity: var(--d-slate);     /* weight */
+        --c-stable-band: var(--d-blue-soft);
+        --c-unstable-band: var(--d-pink-soft);
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: var(--body-size); line-height: 1.55; -webkit-font-smoothing: antialiased; }
-      body { overflow-x: hidden; min-height: 100vh; }
-
-      .katex { font-size: var(--math-size) !important; }
-      .katex-display { margin: 0.6em 0 !important; }
-      .katex-display > .katex { font-size: calc(var(--math-size) * 1.1) !important; }
-
-      a { color: var(--accent); }
-
-      .rail { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: transparent; z-index: 60; pointer-events: none; }
-      .rail-fill { height: 100%; background: linear-gradient(90deg, var(--real), var(--accent)); width: 0%; transition: width 0.15s; }
-
-      .brand { position: fixed; top: 20px; left: 24px; z-index: 40; font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 10px; }
-      .brand .mark { width: 10px; height: 10px; border-radius: 50%; background: conic-gradient(var(--real), var(--imag), var(--time), var(--real)); }
-
-      .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: rgba(22,23,32,0.6); border: 1px solid var(--border); color: var(--fg); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; backdrop-filter: blur(8px); transition: all 0.15s; }
-      .back-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-      section.scene {
-        min-height: 100vh;
-        padding: 100px 56px 80px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-        gap: 48px;
-        align-items: center;
-        position: relative;
-        border-bottom: 1px solid var(--border);
+      @media (min-width: 1201px) {
+        section.scene { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+        section.scene .canvas-wrap { position: sticky; top: 80px; }
       }
-      section.scene.wide { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-      section.scene .copy { max-width: 680px; }
-      section.scene.wide .copy { max-width: 660px; }
-      section.scene .canvas-wrap { position: relative; width: 100%; max-width: 720px; margin: 0 auto; }
+      /* lets wide equations and the block diagrams scroll inside their column */
+      section.scene > * { min-width: 0; }
+      section.scene .canvas-wrap { width: 100%; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+      section.scene .canvas-wrap .callout { margin-top: 0; }
 
-      .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
-      .eyebrow .num { color: var(--accent); }
-      .eyebrow .bar { flex: 0 0 28px; height: 1px; background: var(--accent); }
+      .plot-box .sub { position: absolute; top: 30px; left: 14px; font-family: var(--font-mono); font-size: 13px; color: var(--fg); z-index: 2; pointer-events: none; }
 
-      h1.hero { font-size: var(--hero-size); line-height: 1.02; font-weight: 600; letter-spacing: -0.025em; margin: 0 0 24px; }
-      h1.hero em { font-style: normal; background: linear-gradient(135deg, var(--real), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-      h2 { font-size: 38px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 18px; color: var(--fg); }
-      h3 { font-size: 18px; font-weight: 600; margin: 22px 0 8px; color: var(--fg); letter-spacing: -0.01em; }
-      p { margin: 0 0 14px; color: #d4d7e0; }
-      p.lead { font-size: calc(var(--body-size) + 2px); color: var(--fg); }
-      p.dim { color: var(--muted); }
-      section.scene ul { padding-left: 20px; margin: 4px 0 14px; color: #d4d7e0; }
-      section.scene li { margin-bottom: 6px; line-height: 1.6; }
-      strong { color: var(--fg); font-weight: 600; }
-      em.real { font-style: normal; color: var(--real); }
-      em.imag { font-style: normal; color: var(--imag); }
-      em.time { font-style: normal; color: var(--time); }
-      em.acc  { font-style: normal; color: var(--accent); }
-      em.yellow { font-style: normal; color: var(--yellow); }
-
-      .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 18px 0 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
       .legend span { display: inline-flex; align-items: center; gap: 6px; }
-      .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+      .legend svg { width: 16px; height: 16px; flex: none; }
+      .legend .sw.band { width: 14px; margin-right: 0; border: 1px solid var(--border); }
 
-      .controls { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; padding: 16px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; backdrop-filter: blur(8px); }
-      .control-group { display: grid; grid-template-columns: 170px 1fr 90px; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-      .control-group label { color: var(--muted); }
-      .control-group .control-value { color: var(--accent); text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; min-width: 0; }
-      .control-group input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: auto; }
-      .control-group input[type=range]::-webkit-slider-runnable-track { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; }
-      .control-group input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); margin-top: -5.5px; cursor: grab; border: 2px solid var(--bg); }
-      .control-group input[type=range]::-moz-range-track { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; }
-      .control-group input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); cursor: grab; }
+      .controls { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; padding: var(--spacing-4); background: var(--hydro-blue-100); border-radius: var(--radius-5); }
+      .control-group { display: grid; grid-template-columns: 170px 1fr 90px; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; }
+      .control-group label { color: var(--muted); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+      .control-group label .katex { font-size: 15px !important; text-transform: none; letter-spacing: 0; }
+      .control-group .control-value { text-align: right; }
+      .control-group input[type=range] { width: 100%; }
+      .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+      .readout { margin: var(--spacing-4) 0; }
 
-      .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-      .pillbtn { background: transparent; border: 1px solid var(--border); color: var(--fg); padding: 8px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
-      .pillbtn:hover { border-color: var(--accent); color: var(--accent); }
-      .pillbtn.active { border-color: var(--accent); color: var(--accent); background: rgba(255,207,92,0.08); }
+      .eq-line { display: block; margin: 14px 0; padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--radius-5); text-align: center; overflow-x: auto; }
 
-      .plot { position: absolute; inset: 0; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-      .plot .title { position: absolute; top: 10px; left: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); z-index: 2; }
-      .plot .sub { position: absolute; top: 26px; left: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); z-index: 2; }
-      .plot canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-
-      .eq-block { display: block; margin: 16px 0; padding: 16px 20px; background: rgba(255,207,92,0.05); border: 1px solid rgba(255,207,92,0.18); border-radius: 10px; text-align: center; color: var(--fg); }
-      .eq-line { display: block; padding: 14px 18px; margin: 14px 0; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; text-align: center; color: var(--fg); }
-
-      .callout { margin-top: 18px; padding: 16px 20px; border-left: 2px solid var(--accent); background: rgba(255,207,92,0.05); border-radius: 0 8px 8px 0; font-size: 14px; color: #d4d7e0; line-height: 1.7; }
-      .callout strong { color: var(--fg); }
-      .callout.warn { border-left-color: var(--imag); background: rgba(255,92,122,0.06); }
-      .callout.ok { border-left-color: var(--time); background: rgba(123,224,137,0.06); }
-
-      .readout-bar { display: flex; gap: 22px; flex-wrap: wrap; padding: 12px 16px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; margin: 16px 0; backdrop-filter: blur(8px); font-family: 'JetBrains Mono', monospace; }
-      .readout-item { font-size: 10.5px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; display: inline-flex; align-items: baseline; gap: 8px; }
-      .readout-item .val { color: var(--fg); font-size: 13px; text-transform: none; letter-spacing: 0; }
-      .readout-item .val.accent { color: var(--accent); }
-      .readout-item .val.green { color: var(--time); }
-      .readout-item .val.red { color: var(--imag); }
-
-      /* Block diagram (HTML overlay + SVG arrows) */
-      .bd-wrap { padding: 22px 18px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; }
-      .bd-canvas-inner { position: relative; width: 100%; }
+      /* Block diagram (HTML overlay on SVG arrows) */
+      /* The diagram keeps a minimum width and scrolls horizontally on narrow screens;
+         its text scales with the diagram through container units. */
+      .bd-wrap { padding: 22px 12px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-container); overflow-x: auto; }
+      .bd-canvas-inner { position: relative; width: 100%; min-width: 520px; container-type: inline-size; }
       .bd-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; overflow: visible; }
-      .bd-arrow { stroke: var(--accent); stroke-width: 1.6; fill: none; marker-end: url(#bd-arrowhead); }
-      .bd-summing { fill: var(--bg-2); stroke: var(--accent); stroke-width: 1.4; }
-      .bd-text-sign { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: var(--accent); text-anchor: middle; dominant-baseline: middle; }
+      .bd-arrow { stroke: var(--fg); stroke-width: 1.6; fill: none; marker-end: url(#bd-arrowhead); }
+      .bd-summing { fill: var(--white); stroke: var(--fg); stroke-width: 1.4; }
+      .bd-text-sign { font-family: var(--font-mono); font-size: 18px; fill: var(--fg); text-anchor: middle; dominant-baseline: middle; }
       .bd-block2 {
         position: absolute;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
-        border: 1px solid var(--border-hover);
-        border-radius: 8px;
-        background: rgba(22,23,32,0.92);
+        border: 1px solid var(--fg);
+        border-radius: var(--radius-5);
+        background: var(--white);
         padding: 6px 10px;
         text-align: center;
         gap: 4px;
       }
-      .bd-block2.ctrl { border-color: rgba(88,166,255,0.5); background: rgba(88,166,255,0.08); }
-      .bd-block2.system { border-color: rgba(255,207,92,0.5); background: rgba(255,207,92,0.08); }
-      .bd-block2 .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
-      .bd-block2 .eq { color: var(--fg); font-size: 13px; line-height: 1.1; }
-      .bd-block2 .eq .katex { font-size: 14px !important; }
-      .bd-block2.ctrl .eq, .bd-block2.ctrl .eq .katex { color: var(--blue); }
-      .bd-block2.system .eq, .bd-block2.system .eq .katex { color: var(--accent); }
-      .bd-port2 { position: absolute; display: flex; align-items: center; justify-content: center; color: var(--text-dim); }
-      .bd-port2 .katex { font-size: 14px !important; }
-      .bd-flow2 { position: absolute; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-dim); }
-      .bd-flow2 .katex { font-size: 12px !important; }
-      .bd-caption2 { position: absolute; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-dim); text-align: center; }
-      .bd-caption2 .katex { font-size: 13px !important; }
-      .bd-step-lbl { position: absolute; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; }
-      .bd-step-lbl .katex { font-size: 11px !important; color: var(--accent); }
-      .bd-eq-line { position: absolute; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-family: 'Inter', sans-serif; font-size: 14px; }
-      .bd-eq-line.accent, .bd-eq-line.accent .katex { color: var(--accent); }
+      .bd-block2.ctrl { border-color: var(--c-torque); }
+      .bd-block2 .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+      .bd-block2 .eq { color: var(--fg); line-height: 1.1; white-space: nowrap; }
+      .bd-block2 .eq .katex { font-size: min(14px, 2.4cqw) !important; }
+      .bd-block2.ctrl .eq, .bd-block2.ctrl .eq .katex { color: var(--c-torque); }
+      .bd-port2, .bd-flow2, .bd-caption2, .bd-eq-line { position: absolute; display: flex; align-items: center; justify-content: center; gap: 0.3em; color: var(--fg); font-size: 13px; text-align: center; }
+      .bd-port2 .katex, .bd-flow2 .katex, .bd-caption2 .katex { font-size: min(14px, 2.4cqw) !important; }
+      .bd-port2.out { justify-content: flex-start; }
+      .bd-step-lbl { position: absolute; font-family: var(--font-mono); font-size: 10px; color: var(--fg); letter-spacing: 0.12em; text-transform: uppercase; }
 
-      details.derivation { margin: 18px 0 8px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.02); overflow: hidden; }
-      details.derivation > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.15s, background 0.15s; }
+      details.derivation { margin: 18px 0 8px; border: 1px solid var(--border); border-radius: var(--radius-container); overflow: hidden; }
+      details.derivation > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 18px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg); }
       details.derivation > summary::-webkit-details-marker { display: none; }
-      details.derivation > summary:hover { color: var(--fg); background: rgba(255,255,255,0.03); }
-      details.derivation > summary .tag { color: var(--accent); }
-      details.derivation > summary .chev { margin-left: auto; font-size: 14px; color: var(--muted); transition: transform 0.2s; line-height: 1; }
-      details.derivation[open] > summary { border-bottom: 1px solid var(--border); color: var(--fg); }
-      details.derivation[open] > summary .chev { transform: rotate(90deg); color: var(--accent); }
+      details.derivation > summary .chev { margin-left: auto; transition: transform 0.2s; }
+      details.derivation[open] > summary { border-bottom: 1px solid var(--border); }
+      details.derivation[open] > summary .chev { transform: rotate(90deg); }
       details.derivation .body { padding: 18px 22px 22px; }
       details.derivation .body > :first-child { margin-top: 0; }
 
-      .landing { min-height: 100vh; display: grid; place-items: center; padding: 120px 56px 80px; position: relative; text-align: center; }
-      .landing .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 32px; }
-      .landing h1 { max-width: 22ch; margin-left: auto; margin-right: auto; }
-      .landing .sub { color: var(--muted); font-size: 18px; max-width: 60ch; margin: 20px auto 0; line-height: 1.6; }
-      .landing .tags { margin-top: 40px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-      .field-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; display: inline-block; padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
-      .scroll-hint { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-      .scroll-hint .line { width: 1px; height: 32px; background: linear-gradient(var(--muted), transparent); animation: pulse 2s infinite; }
-      @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
-
-      footer { padding: 60px 56px 80px; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
-
       @media (max-width: 900px) {
-        section.scene, section.scene.wide { grid-template-columns: 1fr; padding: 80px 24px 60px; }
-        .landing { padding: 100px 24px 60px; }
-        h1.hero { font-size: 44px; }
-        h2 { font-size: 28px; }
-        .brand { top: 16px; left: 16px; }
         .control-group { grid-template-columns: 130px 1fr 80px; }
       }
     </style>
+    <script src="../theme.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
@@ -216,14 +113,13 @@
     </svg>
     Back
 </a>
-<div class="rail"><div class="rail-fill" id="rail"></div></div>
 
 <!-- =========================== LANDING =========================== -->
 <section class="landing" id="s0">
     <div>
         <div class="meta">BMEN90033 · WEEK 7 · BIOINSTRUMENTATION</div>
-        <h1 class="hero">The <em>Inverted Pendulum</em>.</h1>
-        <p class="sub">An open-loop unstable plant. The transfer function is derived, the right-half-plane pole responsible for instability is identified, and a feedback controller is constructed that relocates the closed-loop poles into the stable region.</p>
+        <h1 class="hero">The inverted pendulum</h1>
+        <p class="sub">The inverted pendulum is an open-loop unstable plant. This page derives its transfer function, identifies the right-half-plane pole responsible for the instability, and constructs a feedback controller that relocates the closed-loop poles into the stable region.</p>
         <div class="tags">
             <span class="field-tag">stability</span>
             <span class="field-tag">feedback</span>
@@ -233,57 +129,57 @@
     <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
 </section>
 
-<!-- =========================== SECTION 1 — SETUP =========================== -->
+<!-- =========================== SECTION 1: SETUP =========================== -->
 <section class="scene" id="s1">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the system</span></div>
-        <h2>A pendulum supported above its pivot.</h2>
+        <h2>A pendulum with its mass above the pivot</h2>
         <p class="lead">The inverted pendulum consists of a massless rigid rod of length $L$ with a point mass $m$ at its tip, mounted at its base on a frictionless pivot, with the mass positioned <em>above</em> the pivot rather than below. The angle $\theta$ is measured from the upright vertical.</p>
-        <p>An external torque $\tau(t)$, supplied by a motor at the pivot, constitutes the input. The angle $\theta(t)$ is the output. A viscous damping coefficient $b$ acts on the angular velocity. The configuration differs from the conventional gravity pendulum only in the orientation of the mass, but this change reverses the sign of the gravitational term, with consequences developed below.</p>
-        <ul>
+        <p>An external torque $\tau(t)$, supplied by a motor at the pivot, constitutes the input. The angle $\theta(t)$ is the output. A viscous damping coefficient $b$ acts on the angular velocity. The configuration differs from the conventional gravity pendulum only in the orientation of the mass, but this change reverses the sign of the gravitational term. The consequences are developed in the following sections.</p>
+        <ul class="bullets">
             <li>The downward pendulum returns to $\theta = 0$ from any small disturbance.</li>
             <li>The inverted pendulum departs from $\theta = 0$ under any nonzero disturbance.</li>
         </ul>
         <p>The objective is to express this difference as a property of the transfer function, and to introduce a controller that restores stability without modifying the plant.</p>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 4/5; max-width: 460px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 460px;">
+        <div class="plot-box" style="aspect-ratio: 4 / 5;">
             <canvas id="setup-diagram"></canvas>
-            <div class="title">geometry · upright equilibrium</div>
+            <div class="label">Geometry at the upright equilibrium</div>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 2 — DERIVATION =========================== -->
+<!-- =========================== SECTION 2: DERIVATION =========================== -->
 <section class="scene" id="s2">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>equation of motion</span></div>
-        <h2>Torque balance about the pivot.</h2>
+        <h2>Torque balance about the pivot</h2>
         <p class="lead">Newton's second law for rotation about the pivot is $I\ddot{\theta} = \sum \tau$, with $I = mL^2$ the moment of inertia of a point mass at radius $L$. Three torques act about the pivot.</p>
 
         <details class="derivation" open>
-          <summary><span class="tag">show</span><span>full derivation · 4 steps</span><span class="chev">&#x25B6;</span></summary>
+          <summary><span>Full derivation · 4 steps</span><svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></summary>
           <div class="body">
 
-        <h3 style="margin-top:0;">Step 1 · enumerate the torques</h3>
-        <p>Three contributions act about the pivot:</p>
-        <ul>
+        <h3 style="margin-top:0;">Step 1: torques about the pivot</h3>
+        <p>The three contributions are:</p>
+        <ul class="bullets">
             <li><strong>Gravity</strong> acts vertically downward on the mass at height $L\cos\theta$ above the pivot. The horizontal moment arm is $L\sin\theta$. Because the mass lies <em>above</em> the pivot, gravity acts to <em>increase</em> $\theta$ rather than restore it: $\tau_g = +mgL\sin\theta$.</li>
             <li><strong>Viscous damping</strong> at the pivot: $\tau_d = -b\,\dot{\theta}$.</li>
             <li><strong>Applied torque</strong> from the motor: $\tau_a = \tau(t)$.</li>
         </ul>
         <div class="eq-line">$$mL^2\,\ddot{\theta} = mgL\sin\theta - b\,\dot{\theta} + \tau(t).$$</div>
 
-        <h3>Step 2 · linearise about the upright equilibrium</h3>
+        <h3>Step 2: linearisation about the upright equilibrium</h3>
         <p>For small $\theta$ the Taylor expansion $\sin\theta = \theta - \theta^3/6 + \ldots$ is truncated at first order, with an error of about $2\%$ at $\theta = 20^\circ$:</p>
         <div class="eq-line">$$mL^2\,\ddot{\theta} - mgL\,\theta + b\,\dot{\theta} = \tau(t).$$</div>
-        <p>The sign of the gravitational term is the single point of difference between this equation and that of the standard gravity pendulum. The standard pendulum carries $+mgL\theta$ on the left-hand side (a restoring stiffness); the inverted pendulum carries $-mgL\theta$ (a <em class="imag">destabilising</em> stiffness).</p>
+        <p>The sign of the gravitational term is the single point of difference between this equation and that of the standard gravity pendulum. The standard pendulum carries $+mgL\theta$ on the left-hand side (a restoring stiffness); the inverted pendulum carries $-mgL\theta$ (a <em>destabilising</em> stiffness).</p>
 
-        <h3>Step 3 · normalise</h3>
+        <h3>Step 3: normalisation</h3>
         <p>Dividing through by $mL^2$ and writing $\omega_0^2 = g/L$ for the natural angular frequency of the equivalent gravity pendulum:</p>
         <div class="eq-line">$$\ddot{\theta} + \frac{b}{mL^2}\,\dot{\theta} - \omega_0^2\,\theta = \frac{\tau(t)}{mL^2}.$$</div>
 
-        <h3>Step 4 · Laplace transform</h3>
+        <h3>Step 4: Laplace transform</h3>
         <p>Under quiescent initial conditions $\theta(0) = \dot{\theta}(0) = 0$, each derivative maps to a multiplication by $s$:</p>
         <div class="eq-line">$$s^2\,\Theta(s) + \frac{b}{mL^2}\,s\,\Theta(s) - \omega_0^2\,\Theta(s) = \frac{T(s)}{mL^2}.$$</div>
         <p>Factoring $\Theta(s)$ and forming the ratio $\Theta(s)/T(s)$ yields the open-loop transfer function, stated in the next section.</p>
@@ -291,52 +187,53 @@
           </div>
         </details>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 1/1; max-width: 480px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 480px;">
+        <div class="plot-box" style="aspect-ratio: 1 / 1;">
             <canvas id="fbd-diagram"></canvas>
-            <div class="title">free-body diagram</div>
+            <div class="label">Free-body diagram</div>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 3 — TRANSFER FUNCTION =========================== -->
+<!-- =========================== SECTION 3: TRANSFER FUNCTION =========================== -->
 <section class="scene" id="s3">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>open-loop transfer function</span></div>
-        <h2>The plant has a pole in the right half-plane.</h2>
+        <h2>The plant has a pole in the right half-plane</h2>
         <p class="lead">From the linearised Laplace-domain equation, the open-loop transfer function $G(s)$ from applied torque to angle is</p>
         <div class="eq-block">$$G(s) = \frac{\Theta(s)}{T(s)} = \frac{1/(mL^2)}{s^2 + \dfrac{b}{mL^2}\,s - \omega_0^2}.$$</div>
         <p>The poles of $G(s)$ are the roots of its denominator. Setting the denominator to zero:</p>
         <div class="eq-line">$$s^2 + \frac{b}{mL^2}\,s - \omega_0^2 = 0 \;\;\Longrightarrow\;\; s = -\frac{b}{2mL^2} \pm \sqrt{\left(\frac{b}{2mL^2}\right)^2 + \omega_0^2}.$$</div>
-        <p>The discriminant is strictly positive whenever $\omega_0 \ne 0$, so both poles are real. The second term under the square root exceeds the first in magnitude, so one pole lies on the <em class="imag">positive real axis</em>:</p>
+        <p>The discriminant is strictly positive whenever $\omega_0 \ne 0$, so both poles are real. The second term under the square root exceeds the first in magnitude, so one pole lies on the <em>positive real axis</em>:</p>
         <div class="eq-line">$$s_1 = -\frac{b}{2mL^2} + \sqrt{\left(\frac{b}{2mL^2}\right)^2 + \omega_0^2} \;>\; 0, \qquad s_2 \;<\; 0.$$</div>
-        <p>A pole in the right half-plane corresponds to a time-domain mode of the form $e^{s_1 t}$, which grows without bound. Any nonzero initial condition, including disturbance from sensor noise or air currents, projects onto this mode and produces unbounded growth. The system is therefore <em class="imag">unstable</em> in the bounded-input bounded-output sense.</p>
+        <p>A pole in the right half-plane corresponds to a time-domain mode of the form $e^{s_1 t}$, which grows without bound. Any nonzero initial condition, including disturbance from sensor noise or air currents, projects onto this mode and produces unbounded growth. The system is therefore <em>unstable</em> in the bounded-input bounded-output sense.</p>
 
-        <h3>Numerical instance</h3>
-        <p>For $L = 0.5~\mathrm{m}$, $m = 1~\mathrm{kg}$, $b = 0.05~\mathrm{N{\cdot}m{\cdot}s/rad}$, and $g = 9.81~\mathrm{m/s^2}$ one finds $\omega_0 = \sqrt{g/L} \approx 4.43~\mathrm{rad/s}$. The poles are approximately $s_1 \approx +4.33$ and $s_2 \approx -4.53$. The unstable mode grows by a factor of $e \approx 2.72$ every $1/s_1 \approx 0.23~\mathrm{s}$.</p>
+        <h3>Numerical example</h3>
+        <p>For $L = 0.5~\mathrm{m}$, $m = 1~\mathrm{kg}$, $b = 0.05~\mathrm{N{\cdot}m{\cdot}s/rad}$, and $g = 9.81~\mathrm{m/s^2}$, the natural frequency is $\omega_0 = \sqrt{g/L} \approx 4.43~\mathrm{rad/s}$. The poles are approximately $s_1 \approx +4.33$ and $s_2 \approx -4.53$. The unstable mode grows by a factor of $e \approx 2.72$ every $1/s_1 \approx 0.23~\mathrm{s}$.</p>
 
-        <div class="callout warn">
-            <strong>Stability criterion.</strong> A linear system is stable if and only if every pole of its transfer function lies in the open left half of the complex plane. The presence of even a single pole with positive real part is sufficient to guarantee instability.
+        <div class="callout">
+            <strong>Stability criterion.</strong> A linear system is stable if and only if every pole of its transfer function lies in the open left half of the complex plane. A single pole with positive real part is sufficient for instability.
         </div>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 1/0.95; max-width: 600px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 600px;">
+        <div class="plot-box" style="aspect-ratio: 1 / 0.95;">
             <canvas id="ol-pz"></canvas>
-            <div class="title">open-loop poles · s-plane</div>
+            <div class="label">Open-loop poles in the s-plane</div>
         </div>
-        <div class="legend" style="margin-top: 14px;">
-            <span><i style="background:var(--imag)"></i>× poles</span>
-            <span><i style="background:var(--real)"></i>stable region</span>
-            <span><i style="background:var(--imag); opacity:0.4"></i>unstable region</span>
+        <div class="legend">
+            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-stable)" stroke-width="2" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>stable pole</span>
+            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-unstable)" stroke-width="2" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>unstable pole</span>
+            <span><i class="sw band" style="background:var(--c-stable-band)"></i>stable region</span>
+            <span><i class="sw band" style="background:var(--c-unstable-band)"></i>unstable region</span>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 4 — UNSTABLE ANIMATION =========================== -->
+<!-- =========================== SECTION 4: UNSTABLE ANIMATION =========================== -->
 <section class="scene wide" id="s4">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>open-loop response</span></div>
-        <h2>Open-loop response from a small perturbation.</h2>
+        <h2>Open-loop response from a small perturbation</h2>
         <p class="lead">The right-half-plane pole has a direct physical interpretation. With no applied torque, an initial perturbation $\theta(0) = \theta_0$ from the upright equilibrium evolves according to the homogeneous solution</p>
         <div class="eq-block">$$\theta(t) = A\,e^{s_1 t} + B\,e^{s_2 t},$$</div>
         <p>with constants $A$, $B$ fixed by the initial conditions. The decaying mode $e^{s_2 t}$ contributes a transient. The growing mode $e^{s_1 t}$ dominates within a fraction of a second, and the linearisation ceases to apply once $\theta$ leaves the small-angle regime. In the figure the linearised model is integrated until the angle reaches $\pm 90^\circ$, at which point the trajectory is held to indicate departure.</p>
@@ -351,34 +248,34 @@
             </div>
         </div>
 
-        <div class="readout-bar">
-            <div class="readout-item">unstable pole<span class="val red" id="ol-s1">—</span></div>
-            <div class="readout-item">stable pole<span class="val" id="ol-s2">—</span></div>
-            <div class="readout-item">time to fall<span class="val accent" id="ol-tfall">—</span></div>
+        <div class="readout">
+            <div class="item"><span class="k">unstable pole</span><span class="v" id="ol-s1">–</span></div>
+            <div class="item"><span class="k">stable pole</span><span class="v" id="ol-s2">–</span></div>
+            <div class="item"><span class="k">time to depart</span><span class="v" id="ol-tfall">–</span></div>
         </div>
 
-        <div class="callout warn">
+        <div class="callout">
             <strong>Note.</strong> No combination of the physical parameters $L$, $m$, or $b$ moves the unstable pole into the left half-plane. Stability cannot be obtained by tuning the plant; it requires an external feedback path that supplies a corrective torque in response to the measured angle.
         </div>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 1/1.05; max-width: 580px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 580px;">
+        <div class="plot-box" style="aspect-ratio: 1 / 1.05;">
             <canvas id="ol-sim"></canvas>
-            <div class="title">open-loop simulation</div>
-            <div class="sub" id="ol-sub">θ(t) divergent</div>
+            <div class="label">Open-loop simulation</div>
+            <div class="sub" id="ol-sub"></div>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 5 — THE CONTROLLER =========================== -->
+<!-- =========================== SECTION 5: THE CONTROLLER =========================== -->
 <section class="scene" id="s5">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>introducing a controller</span></div>
-        <h2>Closing the loop with measurement and actuation.</h2>
-        <p class="lead">A <em class="acc">controller</em> is a system that observes the output of the plant and computes an input intended to drive that output toward a desired reference. The arrangement of plant, sensor, controller, and summing junction constitutes a <em>closed loop</em>, as distinct from the open loop of the preceding sections.</p>
-        <p>The block diagram below states this structure. The reference $R(s)$ is the desired angle, set to zero for the upright stabilisation problem. The error $E(s) = R(s) - \Theta(s)$ is the difference between the reference and the measurement. The controller $C(s)$ acts on the error to produce a torque command $T(s) = C(s)\,E(s)$, which drives the plant $G(s)$.</p>
+        <h2>Closing the loop with measurement and actuation</h2>
+        <p class="lead">A <em>controller</em> is a system that observes the output of the plant and computes an input intended to drive that output toward a desired reference. The arrangement of plant, sensor, controller, and summing junction constitutes a <em>closed loop</em>, as distinct from the open loop of the preceding sections.</p>
+        <p>The block diagram shows this structure. The reference $R(s)$ is the desired angle, set to zero for the upright stabilisation problem. The error $E(s) = R(s) - \Theta(s)$ is the difference between the reference and the measurement. The controller $C(s)$ acts on the error to produce a torque command $T(s) = C(s)\,E(s)$, which drives the plant $G(s)$.</p>
 
-        <h3>Why feedback differs from open-loop tuning</h3>
+        <h3>Feedback modifies the equation of motion</h3>
         <p>The poles of the plant are properties of the physical assembly. They cannot be moved by any choice of input signal, since the input enters only the right-hand side of the differential equation. Feedback modifies the equation itself. Substituting $\tau = -K_p\theta - K_d\dot{\theta}$ converts the original</p>
         <div class="eq-line">$$mL^2\ddot{\theta} + b\dot{\theta} - mgL\theta = \tau$$</div>
         <p>into</p>
@@ -391,7 +288,7 @@
                 <svg viewBox="0 0 720 280" preserveAspectRatio="xMidYMid meet" class="bd-svg-layer" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <marker id="bd-arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                            <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/>
+                            <path d="M0,0 L10,5 L0,10 Z" fill="var(--fg)"/>
                         </marker>
                     </defs>
 
@@ -400,9 +297,9 @@
 
                     <!-- Summing junction (cx=85, cy=130, r=14) -->
                     <circle cx="85" cy="130" r="14" class="bd-summing"/>
-                    <line x1="76" y1="130" x2="94" y2="130" stroke="var(--accent)" stroke-width="1"/>
-                    <line x1="85" y1="121" x2="85" y2="139" stroke="var(--accent)" stroke-width="1"/>
-                    <text x="68" y="120" class="bd-text-sign">+</text>
+                    <line x1="76" y1="130" x2="94" y2="130" stroke="var(--fg)" stroke-width="1"/>
+                    <line x1="85" y1="121" x2="85" y2="139" stroke="var(--fg)" stroke-width="1"/>
+                    <text x="62" y="115" class="bd-text-sign">+</text>
                     <text x="103" y="152" class="bd-text-sign">−</text>
 
                     <!-- Σ → C (Σ right edge x=99, C left edge x=180) -->
@@ -413,16 +310,16 @@
                     <line x1="640" y1="130" x2="680" y2="130" class="bd-arrow"/>
 
                     <!-- Feedback path: tap at (650, 130) → down → left → up to Σ bottom (85, 144) -->
-                    <line x1="650" y1="130" x2="650" y2="220" stroke="var(--accent)" stroke-width="1.6"/>
-                    <line x1="650" y1="220" x2="85" y2="220" stroke="var(--accent)" stroke-width="1.6"/>
+                    <line x1="650" y1="130" x2="650" y2="220" stroke="var(--fg)" stroke-width="1.6"/>
+                    <line x1="650" y1="220" x2="85" y2="220" stroke="var(--fg)" stroke-width="1.6"/>
                     <line x1="85" y1="220" x2="85" y2="144" class="bd-arrow"/>
-                    <circle cx="650" cy="130" r="2.5" fill="var(--accent)"/>
+                    <circle cx="650" cy="130" r="2.5" fill="var(--fg)"/>
                 </svg>
 
                 <!-- HTML overlay: ports, flow labels, blocks -->
                 <!-- Port labels centered on the wire (y=130 → 46.4%) -->
                 <div class="bd-port2"   style="left: 0%;     top: 41.1%; width: 7%;     height: 10.7%;">$R(s)$</div>
-                <div class="bd-port2"   style="left: 95.1%;  top: 41.1%; width: 4.9%;   height: 10.7%;">$\Theta(s)$</div>
+                <div class="bd-port2 out" style="left: 95.6%;  top: 41.1%; width: 4.4%;   height: 10.7%;">$\Theta(s)$</div>
 
                 <!-- Flow labels above the wire (centered y=70, fully above blocks at y=90-170) -->
                 <div class="bd-flow2"   style="left: 15.3%;  top: 21.4%; width: 8.3%;   height: 8.6%;">$E(s)$</div>
@@ -443,21 +340,21 @@
             </div>
         </div>
         <div class="callout">
-            <strong>Reading the diagram.</strong> The forward path is $R \rightarrow E \rightarrow T \rightarrow \Theta$. The feedback path returns the measured output to the summing junction with a negative sign, so the controller acts on the error rather than the reference. This sign convention defines <em>negative feedback</em>.
+            <strong>Signal flow.</strong> The forward path is $R \rightarrow E \rightarrow T \rightarrow \Theta$. The feedback path returns the measured output to the summing junction with a negative sign, so the controller acts on the error rather than the reference. This sign convention defines <em>negative feedback</em>.
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 6 — CLOSED-LOOP DERIVATION =========================== -->
+<!-- =========================== SECTION 6: CLOSED-LOOP DERIVATION =========================== -->
 <section class="scene" id="s6">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>closed-loop transfer function</span></div>
-        <h2>Closed-loop transfer function from block-diagram algebra.</h2>
+        <h2>Closed-loop transfer function from block-diagram algebra</h2>
         <p class="lead">The closed-loop transfer function $T_{cl}(s) = \Theta(s)/R(s)$ is obtained by writing the algebraic relations imposed by each block and eliminating the intermediate signals.</p>
 
         <h3>Block relations</h3>
         <p>Reading the block diagram from left to right:</p>
-        <ul>
+        <ul class="bullets">
             <li>The summing junction gives $E(s) = R(s) - \Theta(s)$.</li>
             <li>The controller gives $T(s) = C(s)\,E(s)$.</li>
             <li>The plant gives $\Theta(s) = G(s)\,T(s)$.</li>
@@ -470,13 +367,13 @@
         <div class="eq-line">$$\Theta(s)\bigl[1 + G(s)\,C(s)\bigr] = G(s)\,C(s)\,R(s).$$</div>
         <p>Dividing yields the closed-loop transfer function:</p>
         <div class="eq-block">$$T_{cl}(s) = \frac{\Theta(s)}{R(s)} = \frac{G(s)\,C(s)}{1 + G(s)\,C(s)}.$$</div>
-        <p>This is the standard result of feedback theory. Its denominator $1 + G(s)C(s)$ is the <em class="acc">characteristic polynomial</em>; the roots of this polynomial are the closed-loop poles, which determine the stability of the controlled system.</p>
+        <p>This is the standard result for a unity negative-feedback loop. Its denominator $1 + G(s)C(s)$ is the <em>characteristic polynomial</em>; the roots of this polynomial are the closed-loop poles, which determine the stability of the controlled system.</p>
 
         <h3>Pole relocation</h3>
-        <p>The closed-loop poles are not the open-loop poles. They are the roots of $1 + G(s)C(s) = 0$, a polynomial whose coefficients depend on both the plant and the controller. With a suitable choice of $C(s)$, the closed-loop poles can be relocated to any positions consistent with the order of the polynomial. In particular, poles initially in the right half-plane can be moved into the left half-plane.</p>
+        <p>The closed-loop poles differ from the open-loop poles. They are the roots of $1 + G(s)C(s) = 0$, a polynomial whose coefficients depend on both the plant and the controller. With a suitable choice of $C(s)$, the closed-loop poles can be relocated to any positions consistent with the order of the polynomial. In particular, poles initially in the right half-plane can be moved into the left half-plane.</p>
 
         <h3>Application to the inverted pendulum</h3>
-        <p>A <em>proportional-derivative</em> (PD) controller is taken, of the form $C(s) = K_p + K_d s$. This controller acts on both the angle $\theta$ and its rate of change $\dot{\theta}$. Multiplying $G(s)$ by $C(s)$:</p>
+        <p>The controller chosen is <em>proportional-derivative</em> (PD), with $C(s) = K_p + K_d s$. This controller acts on both the angle $\theta$ and its rate of change $\dot{\theta}$. Multiplying $G(s)$ by $C(s)$:</p>
         <div class="eq-line">$$G(s)C(s) = \frac{(K_p + K_d s)/(mL^2)}{s^2 + \dfrac{b}{mL^2}s - \omega_0^2}.$$</div>
         <p>Substituting into $T_{cl}(s) = GC/(1 + GC)$ and clearing denominators:</p>
         <div class="eq-block">$$T_{cl}(s) = \frac{K_p + K_d s}{mL^2 s^2 + (b + K_d)\,s + (K_p - mgL)}.$$</div>
@@ -490,33 +387,33 @@
                 <svg viewBox="0 0 720 440" preserveAspectRatio="xMidYMid meet" class="bd-svg-layer" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <marker id="bd-arrowhead2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                            <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)"/>
+                            <path d="M0,0 L10,5 L0,10 Z" fill="var(--fg)"/>
                         </marker>
                     </defs>
 
                     <!-- Step 1: forward path with feedback. Wire y=140. Blocks span y=90-190. -->
                     <!-- R → Σ -->
-                    <line x1="55" y1="140" x2="71" y2="140" stroke="var(--accent)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
+                    <line x1="55" y1="140" x2="71" y2="140" stroke="var(--fg)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
 
                     <!-- Summing junction (cx=85, cy=140, r=14) -->
                     <circle cx="85" cy="140" r="14" class="bd-summing"/>
-                    <line x1="76" y1="140" x2="94" y2="140" stroke="var(--accent)" stroke-width="1"/>
-                    <line x1="85" y1="131" x2="85" y2="149" stroke="var(--accent)" stroke-width="1"/>
-                    <text x="68" y="130" class="bd-text-sign">+</text>
+                    <line x1="76" y1="140" x2="94" y2="140" stroke="var(--fg)" stroke-width="1"/>
+                    <line x1="85" y1="131" x2="85" y2="149" stroke="var(--fg)" stroke-width="1"/>
+                    <text x="62" y="125" class="bd-text-sign">+</text>
                     <text x="103" y="162" class="bd-text-sign">−</text>
 
                     <!-- Σ → C (Σ right x=99, C left x=180) -->
-                    <line x1="99" y1="140" x2="180" y2="140" stroke="var(--accent)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
+                    <line x1="99" y1="140" x2="180" y2="140" stroke="var(--fg)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
                     <!-- C → G (C right x=360, G left x=400) -->
-                    <line x1="360" y1="140" x2="400" y2="140" stroke="var(--accent)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
+                    <line x1="360" y1="140" x2="400" y2="140" stroke="var(--fg)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
                     <!-- G → Θ (G right x=660, Θ port starts x=685) -->
-                    <line x1="660" y1="140" x2="680" y2="140" stroke="var(--accent)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
+                    <line x1="660" y1="140" x2="680" y2="140" stroke="var(--fg)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
 
                     <!-- Feedback path: tap at (670, 140), down to y=235, left to x=85, up to Σ bottom (85, 154) -->
-                    <line x1="670" y1="140" x2="670" y2="235" stroke="var(--accent)" stroke-width="1.6"/>
-                    <line x1="670" y1="235" x2="85" y2="235" stroke="var(--accent)" stroke-width="1.6"/>
-                    <line x1="85" y1="235" x2="85" y2="154" stroke="var(--accent)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
-                    <circle cx="670" cy="140" r="2.5" fill="var(--accent)"/>
+                    <line x1="670" y1="140" x2="670" y2="235" stroke="var(--fg)" stroke-width="1.6"/>
+                    <line x1="670" y1="235" x2="85" y2="235" stroke="var(--fg)" stroke-width="1.6"/>
+                    <line x1="85" y1="235" x2="85" y2="154" stroke="var(--fg)" stroke-width="1.6" fill="none" marker-end="url(#bd-arrowhead2)"/>
+                    <circle cx="670" cy="140" r="2.5" fill="var(--fg)"/>
 
                     <!-- Divider above algebra section -->
                     <line x1="40" y1="270" x2="680" y2="270" stroke="var(--border)" stroke-width="1"/>
@@ -525,11 +422,11 @@
                 <!-- Step 1 heading -->
                 <div class="bd-step-lbl" style="left: 2%; top: 4%;">step 1 · block diagram with feedback</div>
 
-                <!-- Port labels — centred on wire (y=140 → 31.8%) -->
+                <!-- Port labels, centred on wire (y=140 → 31.8%) -->
                 <div class="bd-port2"   style="left: 0%;     top: 27.3%; width: 7%;     height: 9.1%;">$R(s)$</div>
-                <div class="bd-port2"   style="left: 95.1%;  top: 27.3%; width: 4.9%;   height: 9.1%;">$\Theta(s)$</div>
+                <div class="bd-port2 out" style="left: 95.6%;  top: 27.3%; width: 4.4%;   height: 9.1%;">$\Theta(s)$</div>
 
-                <!-- Flow labels — above wire, fully clear of block tops at y=90 -->
+                <!-- Flow labels, above wire, fully clear of block tops at y=90 -->
                 <div class="bd-flow2"   style="left: 15.3%;  top: 11%;   width: 8.3%;   height: 5%;">$E(s)$</div>
                 <div class="bd-flow2"   style="left: 48.6%;  top: 11%;   width: 8.3%;   height: 5%;">$T(s)$</div>
 
@@ -551,22 +448,22 @@
 
                 <!-- Step 3 heading & solution -->
                 <div class="bd-step-lbl" style="left: 2%; top: 80.5%;">step 3 · solve for the closed-loop transfer function</div>
-                <div class="bd-eq-line accent" style="left: 0%; top: 86%; width: 100%; height: 11%; font-size: 16px;">$\dfrac{\Theta(s)}{R(s)} = \dfrac{G(s)\,C(s)}{1 + G(s)\,C(s)}$</div>
+                <div class="bd-eq-line" style="left: 0%; top: 88%; width: 100%; height: 11%;">$\dfrac{\Theta(s)}{R(s)} = \dfrac{G(s)\,C(s)}{1 + G(s)\,C(s)}$</div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 7 — POLE PLACEMENT =========================== -->
+<!-- =========================== SECTION 7: POLE PLACEMENT =========================== -->
 <section class="scene wide" id="s7">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">07</span><span>placing the closed-loop poles</span></div>
-        <h2>Closed-loop pole locations as a function of the gains.</h2>
+        <h2>Closed-loop pole locations as a function of the gains</h2>
         <p class="lead">The closed-loop denominator $mL^2 s^2 + (b + K_d) s + (K_p - mgL)$ is a quadratic whose roots admit a closed-form expression. Their position in the complex plane is fully determined by the two controller gains $K_p$ and $K_d$. The plot shows the closed-loop poles for the present gain selection alongside the open-loop poles for reference.</p>
         <p>Three regimes are observed as $K_p$ is varied from below to above the critical value $mgL$:</p>
-        <ul>
+        <ul class="bullets">
             <li><strong>$K_p < mgL$:</strong> One closed-loop pole lies in the right half-plane. The system is unstable for any $K_d$.</li>
-            <li><strong>$K_p = mgL$:</strong> A pole sits at the origin. The system is on the boundary of stability.</li>
+            <li><strong>$K_p = mgL$:</strong> A pole lies at the origin. The system is on the boundary of stability.</li>
             <li><strong>$K_p > mgL$:</strong> Both poles lie in the left half-plane. The system is stable, and the damping ratio of the second-order response is set by $K_d$.</li>
         </ul>
 
@@ -576,35 +473,36 @@
             <div class="control-group"><label>length $L$</label><input type="range" id="cl-L" min="0.2" max="1.5" step="0.01" value="0.5"><span class="control-value" id="cl-L-val">0.50 m</span></div>
         </div>
 
-        <div class="readout-bar">
-            <div class="readout-item">$K_p^{\min} = mgL$<span class="val accent" id="kp-crit">—</span></div>
-            <div class="readout-item">closed-loop poles<span class="val" id="cl-poles">—</span></div>
-            <div class="readout-item">status<span class="val" id="cl-status">—</span></div>
+        <div class="readout">
+            <div class="item"><span class="k">$K_p^{\min} = mgL$</span><span class="v" id="kp-crit">–</span></div>
+            <div class="item"><span class="k">closed-loop poles</span><span class="v" id="cl-poles">–</span></div>
+            <div class="item"><span class="k">status</span><span class="v" id="cl-status">–</span></div>
         </div>
 
         <div class="callout">
             <strong>Geometric interpretation.</strong> Increasing $K_p$ above $mgL$ brings the two real closed-loop poles toward each other along the real axis; beyond a further critical value they leave the real axis as a complex-conjugate pair and move into the left half-plane. Increasing $K_d$ raises the damping of this pair without changing its natural frequency.
         </div>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 1/0.95; max-width: 600px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 600px;">
+        <div class="plot-box" style="aspect-ratio: 1 / 0.95;">
             <canvas id="cl-pz"></canvas>
-            <div class="title">closed-loop poles vs gains</div>
+            <div class="label">Open-loop and closed-loop poles</div>
         </div>
-        <div class="legend" style="margin-top: 14px;">
-            <span><i style="background:var(--imag); opacity:0.4"></i>× open-loop poles · fixed</span>
-            <span><i style="background:var(--time)"></i>⊗ closed-loop poles · move with gains</span>
-            <span><i style="background:var(--real)"></i>stable region</span>
+        <div class="legend">
+            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-unstable)" stroke-width="1.6" opacity="0.45" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>open-loop poles, fixed by the plant</span>
+            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-closed)" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="7"/><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>closed-loop poles, set by the gains</span>
+            <span><i class="sw band" style="background:var(--c-stable-band)"></i>stable region</span>
+            <span><i class="sw band" style="background:var(--c-unstable-band)"></i>unstable region</span>
         </div>
     </div>
 </section>
 
-<!-- =========================== SECTION 8 — STABILISED ANIMATION =========================== -->
+<!-- =========================== SECTION 8: STABILISED ANIMATION =========================== -->
 <section class="scene wide" id="s8">
     <div class="copy">
         <div class="eyebrow"><span class="bar"></span><span class="num">08</span><span>closed-loop response</span></div>
-        <h2>Closed-loop simulation under PD control.</h2>
-        <p class="lead">With the PD controller active, the pendulum is integrated subject to the same initial perturbation as in Section 04, with the actuator driven by $\tau(t) = -K_p\,\theta(t) - K_d\,\dot{\theta}(t)$. The two pendulums shown share identical physical parameters and identical initial conditions; they differ only in whether the feedback loop is engaged.</p>
+        <h2>Closed-loop simulation under PD control</h2>
+        <p class="lead">With the PD controller active, the pendulum is integrated from an initial perturbation $\theta_0$, as in Section 04, with the actuator driven by $\tau(t) = -K_p\,\theta(t) - K_d\,\dot{\theta}(t)$. The two pendulums shown share identical physical parameters and identical initial conditions; they differ only in whether the feedback loop is engaged.</p>
         <p>The trace at the bottom of each panel shows the time evolution of $\theta$. The open-loop response diverges along $e^{s_1 t}$ as before. The closed-loop response, governed by the stable characteristic polynomial, decays toward zero with a time constant set by the real part of the closed-loop pole pair.</p>
 
         <div class="controls">
@@ -618,22 +516,20 @@
             </div>
         </div>
 
-        <div class="callout ok">
+        <div class="callout">
             <strong>Reference tracking.</strong> The reference $\theta_r$ shifts the equilibrium angle the controller maintains. The plant follows it, with a steady-state offset determined by the proportional gain. Increasing $K_p$ reduces the offset; increasing $K_d$ damps oscillation about the reference.
         </div>
-        <p class="dim" style="font-size:14px;">The same principle generalises to plants of arbitrary order and to controllers of higher complexity than PD. For any $C(s)$, the closed-loop characteristic polynomial $1 + G(s)C(s) = 0$ governs stability, and the design objective is to choose $C(s)$ such that all of its roots lie in the left half-plane.</p>
+        <p class="dim" style="font-size: 14px; margin-top: var(--spacing-5);">The same principle generalises to plants of arbitrary order and to controllers of higher complexity than PD. For any $C(s)$, the closed-loop characteristic polynomial $1 + G(s)C(s) = 0$ governs stability, and the design objective is to choose $C(s)$ such that all of its roots lie in the left half-plane.</p>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 1/1.1; max-width: 620px;">
-        <div class="plot">
+    <div class="canvas-wrap" style="max-width: 620px;">
+        <div class="plot-box" style="aspect-ratio: 1 / 1.1;">
             <canvas id="compare-sim"></canvas>
-            <div class="title">open-loop vs closed-loop response</div>
+            <div class="label">Open-loop and closed-loop response</div>
         </div>
     </div>
 </section>
 
-<footer>
-    <p>Linearised model integrated under the small-angle approximation. PD controller with negative feedback.</p>
-</footer>
+<footer>The simulations integrate the linearised small-angle model. The controller is PD with negative feedback.</footer>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -642,20 +538,97 @@
 const G_ACC = 9.81;
 const M_BOB = 1.0;
 
+// Colours are read on every frame from the page palette (--c-*) and window.T.
 function colors() {
     const cs = getComputedStyle(document.documentElement);
+    const v = n => cs.getPropertyValue(n).trim();
     return {
-        text:  cs.getPropertyValue('--text').trim(),
-        dim:   cs.getPropertyValue('--text-dim').trim(),
-        muted: cs.getPropertyValue('--text-muted').trim(),
-        accent:cs.getPropertyValue('--accent').trim(),
-        blue:  cs.getPropertyValue('--blue').trim(),
-        red:   cs.getPropertyValue('--red').trim(),
-        green: cs.getPropertyValue('--green').trim(),
-        bg:    cs.getPropertyValue('--bg-2').trim(),
-        grid:  cs.getPropertyValue('--grid').trim(),
-        border:cs.getPropertyValue('--border').trim(),
+        text: T.text, muted: T.textDim, ink: T.c('ink'),
+        axis: T.gridAxis, grid: T.gridMed, border: v('--border'),
+        stable: v('--c-stable'), tangent: v('--c-tangent'), unstable: v('--c-unstable'),
+        closed: v('--c-closed'), torque: v('--c-torque'), gravity: v('--c-gravity'),
+        stableBand: v('--c-stable-band'), unstableBand: v('--c-unstable-band'),
     };
+}
+
+const FONT = '13px "JetBrains Mono", monospace';
+// Two-decimal number with a typographic minus sign.
+const fmt2 = v => v.toFixed(2).replace('-', '−');
+
+function drawCross(ctx, x, y, size, col, lw) {
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    ctx.moveTo(x - size, y - size); ctx.lineTo(x + size, y + size);
+    ctx.moveTo(x - size, y + size); ctx.lineTo(x + size, y - size);
+    ctx.stroke();
+}
+
+// Axes, half-plane shading and titles shared by the two s-plane plots.
+// Four-quadrant layout: the Im(s) title sits above the plot on the imaginary
+// axis and the Re(s) title to the right of the plot on the real axis.
+function drawSPlane(ctx, W, H, range, tickStep, c) {
+    const x0 = 24, x1 = W - 58, y0 = 62, y1 = H - 24;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    const scale = Math.min(x1 - x0, y1 - y0) / 2 / range;
+
+    ctx.fillStyle = c.unstableBand;
+    ctx.fillRect(cx, y0, x1 - cx, y1 - y0);
+    ctx.fillStyle = c.stableBand;
+    ctx.fillRect(x0, y0, cx - x0, y1 - y0);
+
+    // Imaginary axis: the stability boundary
+    ctx.strokeStyle = c.text;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx, y0); ctx.lineTo(cx, y1);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Real axis
+    ctx.strokeStyle = c.axis;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x0, cy); ctx.lineTo(x1, cy);
+    ctx.stroke();
+
+    // Ticks
+    ctx.font = FONT;
+    ctx.fillStyle = c.muted;
+    const n = Math.floor(range / tickStep);
+    for (let k = -n; k <= n; k++) {
+        if (k === 0) continue;
+        const label = String(k * tickStep).replace('-', '−');
+        const xx = cx + k * tickStep * scale;
+        const yy = cy - k * tickStep * scale;
+        ctx.beginPath();
+        ctx.moveTo(xx, cy - 3); ctx.lineTo(xx, cy + 3);
+        ctx.moveTo(cx - 3, yy); ctx.lineTo(cx + 3, yy);
+        ctx.stroke();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(label, xx, cy + 11);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(label, cx + 8, yy);
+    }
+
+    // Axis titles, outside the plot area
+    ctx.fillStyle = c.text;
+    ctx.fillText('Re(s)', x1 + 8, cy);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('Im(s)', cx, y0 - 10);
+
+    // Region labels
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = c.stable;
+    ctx.fillText('Stable', x0 + 8, y0 + 8);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = c.unstable;
+    ctx.fillText('Unstable', x1 - 8, y0 + 8);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+    return { cx, cy, scale, x0, y0, w: x1 - x0, h: y1 - y0 };
 }
 
 function setupCanvas(canvas) {
@@ -704,7 +677,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
     }
 
     // Rod
-    ctx.strokeStyle = opts.color || c.accent;
+    ctx.strokeStyle = opts.color || c.ink;
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -714,7 +687,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
     ctx.lineCap = 'butt';
 
     // Bob
-    ctx.fillStyle = opts.color || c.accent;
+    ctx.fillStyle = opts.color || c.ink;
     ctx.beginPath();
     ctx.arc(tipX, tipY, 11, 0, Math.PI * 2);
     ctx.fill();
@@ -729,7 +702,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// Section 1 — geometric setup
+// Section 1: geometric setup
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('setup-diagram');
@@ -751,51 +724,46 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 
         const geom = drawInvertedPendulum(s.ctx, pivotX, pivotY, L_px, theta, c);
 
-        // Theta angle arc and label
         const ctx = s.ctx;
-        ctx.strokeStyle = c.accent;
+        ctx.font = FONT;
+
+        // Angle arc and label
+        ctx.strokeStyle = c.ink;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(pivotX, pivotY, 36, -Math.PI/2, -Math.PI/2 + theta);
+        ctx.arc(pivotX, pivotY, 36, -Math.PI/2, -Math.PI/2 + theta, theta < 0);
         ctx.stroke();
-        ctx.fillStyle = c.accent;
-        ctx.font = '13px JetBrains Mono';
-        ctx.fillText('θ', pivotX + 12, pivotY - 36);
-
-        // L label along rod
-        const midX = (pivotX + geom.tipX) / 2 + 10;
-        const midY = (pivotY + geom.tipY) / 2;
-        ctx.fillStyle = c.dim;
-        ctx.font = '12px JetBrains Mono';
-        ctx.fillText('L', midX, midY);
-
-        // m label at bob
         ctx.fillStyle = c.text;
-        ctx.fillText('m', geom.tipX + 16, geom.tipY + 4);
+        ctx.fillText('θ', pivotX + 12, pivotY - 42);
 
-        // Gravity arrow at tip
-        ctx.strokeStyle = c.muted;
-        ctx.lineWidth = 1.4;
+        // L label beside the rod
+        ctx.fillText('L', (pivotX + geom.tipX) / 2 + 12, (pivotY + geom.tipY) / 2);
+
+        // m label to the left of the bob
+        ctx.textAlign = 'right';
+        ctx.fillText('m', geom.tipX - 18, geom.tipY + 4);
+
+        // Torque label at the pivot
+        ctx.fillStyle = c.torque;
+        ctx.fillText('τ(t)', pivotX - 14, pivotY - 2);
+        ctx.textAlign = 'left';
+
+        // Weight arrow, offset to the right of the bob so that it is clear of the rod
+        const gx = geom.tipX + 28;
+        ctx.strokeStyle = c.gravity;
+        ctx.fillStyle = c.gravity;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.moveTo(geom.tipX, geom.tipY + 18);
-        ctx.lineTo(geom.tipX, geom.tipY + 48);
+        ctx.moveTo(gx, geom.tipY);
+        ctx.lineTo(gx, geom.tipY + 36);
         ctx.stroke();
-        // Arrowhead
         ctx.beginPath();
-        ctx.moveTo(geom.tipX, geom.tipY + 48);
-        ctx.lineTo(geom.tipX - 4, geom.tipY + 42);
-        ctx.lineTo(geom.tipX + 4, geom.tipY + 42);
+        ctx.moveTo(gx, geom.tipY + 36);
+        ctx.lineTo(gx - 4, geom.tipY + 29);
+        ctx.lineTo(gx + 4, geom.tipY + 29);
         ctx.closePath();
-        ctx.fillStyle = c.muted;
         ctx.fill();
-        ctx.fillStyle = c.muted;
-        ctx.font = '11px JetBrains Mono';
-        ctx.fillText('mg', geom.tipX + 8, geom.tipY + 38);
-
-        // Torque label at pivot
-        ctx.fillStyle = c.blue;
-        ctx.font = '12px JetBrains Mono';
-        ctx.fillText('τ(t)', pivotX - 56, pivotY + 6);
+        ctx.fillText('mg', gx + 9, geom.tipY + 24);
 
         requestAnimationFrame(draw);
     }
@@ -803,7 +771,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 })();
 
 // ══════════════════════════════════════════════════════════════
-// Section 2 — free body diagram
+// Section 2: free body diagram
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('fbd-diagram');
@@ -845,20 +813,20 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
             ctx.fillStyle = col;
             ctx.fill();
             ctx.fillStyle = col;
-            ctx.font = '12px JetBrains Mono';
+            ctx.font = FONT;
             ctx.fillText(label, lx, ly);
         }
 
-        // mg downward from bob
-        arrow(tipX, tipY + 14, tipX, tipY + 60, c.red, 'mg', tipX + 8, tipY + 50);
+        // Weight, acting downward at the bob
+        arrow(tipX, tipY + 14, tipX, tipY + 60, c.gravity, 'mg', tipX + 9, tipY + 50);
 
-        // Component decomposition - tangential force = mg sin(theta)
+        // Tangential component of the weight, mg sin(theta)
         const tangX = Math.cos(theta), tangY = Math.sin(theta);
         const fx = tangX * 38, fy = tangY * 38;
-        arrow(tipX, tipY, tipX + fx, tipY + fy, c.accent, 'mg sin θ', tipX + fx + 6, tipY + fy + 4);
+        arrow(tipX, tipY, tipX + fx, tipY + fy, c.tangent, 'mg sin θ', tipX + fx + 7, tipY + fy + 5);
 
         // Torque arc at pivot
-        ctx.strokeStyle = c.blue;
+        ctx.strokeStyle = c.torque;
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.arc(pivotX, pivotY, 28, Math.PI * 0.85, Math.PI * 1.55, false);
@@ -872,33 +840,35 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         ctx.lineTo(ax + 6, ay - 3);
         ctx.lineTo(ax + 4, ay + 5);
         ctx.closePath();
-        ctx.fillStyle = c.blue;
+        ctx.fillStyle = c.torque;
         ctx.fill();
-        ctx.fillStyle = c.blue;
-        ctx.font = '12px JetBrains Mono';
-        ctx.fillText('τ', pivotX - 56, pivotY + 14);
+        ctx.textAlign = 'right';
+        ctx.fillText('τ', pivotX - 38, pivotY - 4);
 
         // Damping label
         ctx.fillStyle = c.muted;
-        ctx.font = '11px JetBrains Mono';
-        ctx.fillText('+ b θ̇  damping at pivot', pivotX - 90, H - 18);
+        ctx.textAlign = 'center';
+        ctx.fillText('viscous damping b θ̇ at the pivot', pivotX, H - 18);
 
-        // Theta arc
-        ctx.strokeStyle = c.accent;
+        // Angle arc, with its label between the vertical reference and the rod
+        ctx.strokeStyle = c.ink;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.arc(pivotX, pivotY, 50, -Math.PI/2, -Math.PI/2 + theta);
         ctx.stroke();
-        ctx.fillStyle = c.accent;
-        ctx.font = '13px JetBrains Mono';
-        ctx.fillText('θ', pivotX + 18, pivotY - 50);
+        ctx.fillStyle = c.text;
+        ctx.textBaseline = 'middle';
+        ctx.fillText('θ', pivotX + 68 * Math.sin(theta / 2), pivotY - 68 * Math.cos(theta / 2));
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
     }
     draw();
     window.addEventListener('resize', () => requestAnimationFrame(draw));
+    document.fonts.ready.then(draw);   // static figure: redraw once the label font has loaded
 })();
 
 // ══════════════════════════════════════════════════════════════
-// Section 3 — open-loop pole-zero plot (static)
+// Section 3: open-loop pole-zero plot (static)
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('ol-pz');
@@ -919,93 +889,31 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const ctx = s.ctx;
         ctx.clearRect(0, 0, W, H);
 
-        const pad = 40;
-        const cx = W / 2, cy = H / 2;
-        const half = Math.min(W, H) / 2 - pad;
-        const range = 6.5;
-        const scale = half / range;
+        const { cx, cy, scale } = drawSPlane(ctx, W, H, 6.5, 2, c);
 
-        // Unstable region shading
-        ctx.fillStyle = 'rgba(255,92,122,0.06)';
-        ctx.fillRect(cx, pad, W - cx - pad, H - 2*pad);
-
-        // Stable region tinted
-        ctx.fillStyle = 'rgba(88,166,255,0.04)';
-        ctx.fillRect(pad, pad, cx - pad, H - 2*pad);
-
-        // Imaginary axis (boundary)
-        ctx.strokeStyle = c.red;
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Real axis
-        ctx.strokeStyle = c.border;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy);
-        ctx.stroke();
-
-        // Grid ticks
-        ctx.strokeStyle = c.grid;
-        ctx.fillStyle = c.muted;
-        ctx.font = '10px JetBrains Mono';
-        for (let v = -6; v <= 6; v += 2) {
-            if (v === 0) continue;
-            const xx = cx + v * scale;
-            ctx.beginPath();
-            ctx.moveTo(xx, cy - 3); ctx.lineTo(xx, cy + 3);
-            ctx.stroke();
-            ctx.fillText(String(v), xx - 6, cy + 14);
-            const yy = cy - v * scale;
-            ctx.beginPath();
-            ctx.moveTo(cx - 3, yy); ctx.lineTo(cx + 3, yy);
-            ctx.stroke();
-            ctx.fillText(String(v), cx + 6, yy + 3);
-        }
-
-        // Axis labels
-        ctx.fillStyle = c.muted;
-        ctx.font = '11px JetBrains Mono';
-        ctx.fillText('Re(s)', W - pad - 36, cy - 8);
-        ctx.fillText('Im(s)', cx + 8, pad + 12);
-
-        // Region labels
-        ctx.fillStyle = c.blue;
-        ctx.font = '10px JetBrains Mono';
-        ctx.fillText('STABLE', pad + 6, pad + 14);
-        ctx.fillStyle = c.red;
-        ctx.fillText('UNSTABLE', W - pad - 70, pad + 14);
-
-        // Compute poles for the canonical instance L = 0.5, b = 0.05
+        // Poles for the numerical example, L = 0.5 and b = 0.05
         const [s1, s2] = poles(0.5, 0.05);
 
         function plotPole(sv, label, col) {
             const x = cx + sv * scale;
-            const y = cy;
-            ctx.strokeStyle = col;
-            ctx.lineWidth = 2.4;
-            ctx.beginPath();
-            ctx.moveTo(x - 7, y - 7); ctx.lineTo(x + 7, y + 7);
-            ctx.moveTo(x - 7, y + 7); ctx.lineTo(x + 7, y - 7);
-            ctx.stroke();
+            drawCross(ctx, x, cy, 7, col, 2.4);
             ctx.fillStyle = col;
-            ctx.font = '11px JetBrains Mono';
-            ctx.fillText(label, x - 24, y - 14);
+            ctx.font = FONT;
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, cy - 16);
+            ctx.textAlign = 'left';
         }
 
-        plotPole(s2, 's₂ = ' + s2.toFixed(2), c.blue);
-        plotPole(s1, 's₁ = +' + s1.toFixed(2), c.red);
+        plotPole(s2, 's₂ = ' + fmt2(s2), c.stable);
+        plotPole(s1, 's₁ = +' + fmt2(s1), c.unstable);
     }
     draw();
     window.addEventListener('resize', () => requestAnimationFrame(draw));
+    document.fonts.ready.then(draw);   // static figure: redraw once the label font has loaded
 })();
 
 // ══════════════════════════════════════════════════════════════
-// Section 4 — open-loop simulation
+// Section 4: open-loop simulation
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('ol-sim');
@@ -1039,8 +947,8 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const sq = Math.sqrt(disc);
         const s1 = -a1/2 + sq;
         const s2 = -a1/2 - sq;
-        elS1.textContent = '+' + s1.toFixed(2);
-        elS2.textContent = s2.toFixed(2);
+        elS1.textContent = '+' + fmt2(s1);
+        elS2.textContent = fmt2(s2);
         // Approximate time to reach 90deg from theta0 along the unstable mode.
         const tFall = Math.log((Math.PI/2) / Math.abs(theta0)) / s1;
         elTfall.textContent = tFall.toFixed(2) + ' s';
@@ -1103,14 +1011,14 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const L_px = Math.min(H * 0.45, 180);
 
         const isFallen = Math.abs(theta) >= Math.PI / 2 - 0.001;
-        drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, { color: isFallen ? c.red : c.accent });
+        drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, { color: isFallen ? c.unstable : c.ink });
 
         if (isFallen) {
             elSub.textContent = 'linearisation no longer valid';
-            elSub.style.color = c.red;
+            elSub.style.color = c.unstable;
         } else {
             elSub.textContent = 'θ(t) = ' + (theta * 180 / Math.PI).toFixed(2) + '°';
-            elSub.style.color = c.accent;
+            elSub.style.color = c.text;
         }
 
         // Small trace at the bottom
@@ -1128,10 +1036,10 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         ctx.moveTo(traceX0, tcy); ctx.lineTo(traceX1, tcy);
         ctx.stroke();
         ctx.fillStyle = c.muted;
-        ctx.font = '9px JetBrains Mono';
-        ctx.fillText('θ(t)', traceX0 + 4, traceY0 + 12);
+        ctx.font = FONT;
+        ctx.fillText('θ(t)', traceX0, traceY0 - 7);
 
-        ctx.strokeStyle = c.red;
+        ctx.strokeStyle = c.unstable;
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         const tw = traceX1 - traceX0;
@@ -1151,7 +1059,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 })();
 
 // ══════════════════════════════════════════════════════════════
-// Section 7 — closed-loop pole-zero
+// Section 7: closed-loop pole-zero
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('cl-pz');
@@ -1195,11 +1103,10 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
     function updateReadouts() {
         elKpCrit.textContent = (m * G_ACC * L).toFixed(2);
         const ps = clPoles();
-        const fmt = p => p.im === 0 ? p.re.toFixed(2) : (p.re.toFixed(2) + (p.im > 0 ? ' + ' : ' − ') + Math.abs(p.im).toFixed(2) + 'j');
+        const fmt = p => p.im === 0 ? fmt2(p.re) : (fmt2(p.re) + (p.im > 0 ? ' + ' : ' − ') + Math.abs(p.im).toFixed(2) + 'j');
         elPoles.textContent = ps.map(fmt).join(', ');
         const stable = ps.every(p => p.re < -1e-6);
         elStatus.textContent = stable ? 'stable' : (ps.some(p => p.re > 1e-6) ? 'unstable' : 'marginal');
-        elStatus.className = 'val ' + (stable ? 'green' : 'red');
     }
 
     function bind(el, val, fmt, setter) {
@@ -1219,95 +1126,29 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const ctx = s.ctx;
         ctx.clearRect(0, 0, W, H);
 
-        const pad = 36;
-        const cx = W / 2, cy = H / 2;
-        const half = Math.min(W, H) / 2 - pad;
-        const range = 12;
-        const scale = half / range;
+        const { cx, cy, scale, x0, y0, w, h } = drawSPlane(ctx, W, H, 12, 5, c);
 
-        // Region shading
-        ctx.fillStyle = 'rgba(255,92,122,0.05)';
-        ctx.fillRect(cx, pad, W - cx - pad, H - 2*pad);
-        ctx.fillStyle = 'rgba(88,166,255,0.04)';
-        ctx.fillRect(pad, pad, cx - pad, H - 2*pad);
-
-        // Imaginary axis
-        ctx.strokeStyle = c.red;
-        ctx.lineWidth = 1.4;
-        ctx.setLineDash([4, 4]);
+        // Poles outside the plotted range are clipped at the plot frame.
+        ctx.save();
         ctx.beginPath();
-        ctx.moveTo(cx, pad); ctx.lineTo(cx, H - pad);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.rect(x0, y0, w, h);
+        ctx.clip();
 
-        // Real axis
-        ctx.strokeStyle = c.border;
-        ctx.beginPath();
-        ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy);
-        ctx.stroke();
+        // Open-loop poles: faint reference markers that do not move with the gains
+        ctx.globalAlpha = 0.45;
+        olPoles().forEach(p => drawCross(ctx, cx + p.re * scale, cy - p.im * scale, 6, c.unstable, 1.6));
+        ctx.globalAlpha = 1;
 
-        // Ticks
-        ctx.fillStyle = c.muted;
-        ctx.font = '10px JetBrains Mono';
-        for (let v = -10; v <= 10; v += 5) {
-            if (v === 0) continue;
-            const xx = cx + v * scale;
+        // Closed-loop poles: a cross ringed by a circle
+        clPoles().forEach(p => {
+            const x = cx + p.re * scale, y = cy - p.im * scale;
+            drawCross(ctx, x, y, 6, c.closed, 2.2);
+            ctx.lineWidth = 1.4;
             ctx.beginPath();
-            ctx.strokeStyle = c.grid;
-            ctx.moveTo(xx, cy - 3); ctx.lineTo(xx, cy + 3); ctx.stroke();
-            ctx.fillText(String(v), xx - 6, cy + 14);
-            const yy = cy - v * scale;
-            ctx.beginPath();
-            ctx.moveTo(cx - 3, yy); ctx.lineTo(cx + 3, yy); ctx.stroke();
-            ctx.fillText(String(v), cx + 6, yy + 3);
-        }
-
-        ctx.fillStyle = c.muted;
-        ctx.font = '11px JetBrains Mono';
-        ctx.fillText('Re(s)', W - pad - 36, cy - 8);
-        ctx.fillText('Im(s)', cx + 8, pad + 12);
-        ctx.fillStyle = c.blue;
-        ctx.font = '10px JetBrains Mono';
-        ctx.fillText('STABLE', pad + 6, pad + 14);
-        ctx.fillStyle = c.red;
-        ctx.fillText('UNSTABLE', W - pad - 70, pad + 14);
-
-        function plotX(p, col, lw, size) {
-            const x = cx + p.re * scale;
-            const y = cy - p.im * scale;
-            ctx.strokeStyle = col;
-            ctx.lineWidth = lw;
-            ctx.beginPath();
-            ctx.moveTo(x - size, y - size); ctx.lineTo(x + size, y + size);
-            ctx.moveTo(x - size, y + size); ctx.lineTo(x + size, y - size);
+            ctx.arc(x, y, 11, 0, Math.PI * 2);
             ctx.stroke();
-            return { x, y };
-        }
-        function plotCircle(x, y, r, col, lw) {
-            ctx.strokeStyle = col;
-            ctx.lineWidth = lw;
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // Open-loop poles — faint red reference (do not move with gains)
-        const op = olPoles();
-        op.forEach(p => plotX(p, 'rgba(255,92,122,0.35)', 1.6, 6));
-
-        // Closed-loop poles — solid green x ringed by a circle
-        const cp = clPoles();
-        cp.forEach(p => {
-            const pt = plotX(p, c.green, 2.2, 6);
-            plotCircle(pt.x, pt.y, 11, c.green, 1.4);
         });
-
-        // Legend inside plot
-        ctx.fillStyle = 'rgba(255,92,122,0.55)';
-        ctx.font = '10px JetBrains Mono';
-        ctx.fillText('× open loop (fixed plant poles)', pad + 6, H - pad - 14);
-        ctx.fillStyle = c.green;
-        ctx.fillText('⊗ closed loop (current K_p, K_d)', pad + 6, H - pad);
+        ctx.restore();
     }
     updateReadouts();
     function loop() { draw(); requestAnimationFrame(loop); }
@@ -1315,7 +1156,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 })();
 
 // ══════════════════════════════════════════════════════════════
-// Section 8 — side by side comparison
+// Section 8: side by side comparison
 // ══════════════════════════════════════════════════════════════
 (function(){
     const canvas = document.getElementById('compare-sim');
@@ -1378,7 +1219,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const a = (G_ACC / L) * stateCL.theta - (b / (m * L * L)) * stateCL.omega + tau / (m * L * L);
         stateCL.omega += a * dt;
         stateCL.theta += stateCL.omega * dt;
-        // Soft clamp so wild gains don't NaN the canvas
+        // Soft clamp so that large gains cannot produce NaN values
         if (Math.abs(stateCL.theta) > Math.PI) {
             stateCL.theta = Math.sign(stateCL.theta) * Math.PI;
             stateCL.omega = 0;
@@ -1405,23 +1246,23 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         const halfW = W / 2;
         ctx.strokeStyle = c.border;
         ctx.beginPath();
-        ctx.moveTo(halfW, 8); ctx.lineTo(halfW, H - 8);
+        ctx.moveTo(halfW, 36); ctx.lineTo(halfW, H - 8);
         ctx.stroke();
 
-        // Panel labels — placed below the .title HTML overlay (which sits at y≈10–22)
-        ctx.font = '10px JetBrains Mono';
+        // Panel labels, placed below the HTML label overlay (which sits at y = 10 to 22)
+        ctx.font = FONT;
         ctx.textBaseline = 'top';
-        ctx.fillStyle = c.red;
-        ctx.fillText('OPEN LOOP · no controller', 14, 44);
-        ctx.fillStyle = c.green;
-        ctx.fillText('CLOSED LOOP · PD controller', halfW + 14, 44);
+        ctx.fillStyle = c.unstable;
+        ctx.fillText('Open loop', 14, 44);
+        ctx.fillStyle = c.closed;
+        ctx.fillText('Closed loop (PD)', halfW + 14, 44);
         ctx.textBaseline = 'alphabetic';
 
         // Pendulums
         const pivY = H * 0.45;
-        const Lpx = Math.min(H * 0.32, 130);
-        drawInvertedPendulum(ctx, halfW / 2, pivY, Lpx, stateOL.theta, c, { color: stateOL.fallen ? c.red : c.accent });
-        drawInvertedPendulum(ctx, halfW + halfW / 2, pivY, Lpx, stateCL.theta, c, { color: c.green });
+        const Lpx = Math.min(H * 0.32, 130, pivY - 84);   // keeps the bob below the panel labels
+        drawInvertedPendulum(ctx, halfW / 2, pivY, Lpx, stateOL.theta, c, { color: stateOL.fallen ? c.unstable : c.ink });
+        drawInvertedPendulum(ctx, halfW + halfW / 2, pivY, Lpx, stateCL.theta, c, { color: c.closed });
 
         // Reference indicator on closed loop side
         if (Math.abs(ref) > 1e-3) {
@@ -1437,8 +1278,10 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
             ctx.stroke();
             ctx.setLineDash([]);
             ctx.fillStyle = c.muted;
-            ctx.font = '10px JetBrains Mono';
-            ctx.fillText('θ_r', tipX + 6, tipY);
+            ctx.font = FONT;
+            ctx.fillText('θ', tipX + 16, tipY);
+            ctx.font = '10px "JetBrains Mono", monospace';   // subscript
+            ctx.fillText('r', tipX + 25, tipY + 4);
         }
 
         // Traces
@@ -1447,7 +1290,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         if (traceOL.length > TRACE_LEN) traceOL.shift();
         if (traceCL.length > TRACE_LEN) traceCL.shift();
 
-        function drawTrace(x0, x1, y0, y1, data, col, label) {
+        function drawTrace(x0, x1, y0, y1, data, col, showRef) {
             ctx.strokeStyle = c.border;
             ctx.lineWidth = 1;
             ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
@@ -1457,7 +1300,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
             ctx.moveTo(x0, cy); ctx.lineTo(x1, cy);
             ctx.stroke();
             // reference line for closed loop
-            if (label === 'θ(t)' && col === c.green && Math.abs(ref) > 1e-3) {
+            if (showRef && Math.abs(ref) > 1e-3) {
                 const ry = cy - (ref / (Math.PI/2)) * ((y1 - y0)/2);
                 ctx.strokeStyle = c.muted;
                 ctx.setLineDash([2, 4]);
@@ -1466,8 +1309,8 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
                 ctx.setLineDash([]);
             }
             ctx.fillStyle = c.muted;
-            ctx.font = '9px JetBrains Mono';
-            ctx.fillText(label, x0 + 4, y0 + 12);
+            ctx.font = FONT;
+            ctx.fillText('θ(t)', x0, y0 - 7);
 
             ctx.strokeStyle = col;
             ctx.lineWidth = 1.6;
@@ -1484,27 +1327,14 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         }
 
         const ty0 = H - 90, ty1 = H - 20;
-        drawTrace(20, halfW - 20, ty0, ty1, traceOL, c.red, 'θ(t)');
-        drawTrace(halfW + 20, W - 20, ty0, ty1, traceCL, c.green, 'θ(t)');
+        drawTrace(20, halfW - 20, ty0, ty1, traceOL, c.unstable, false);
+        drawTrace(halfW + 20, W - 20, ty0, ty1, traceCL, c.closed, true);
 
         requestAnimationFrame(draw);
     }
     draw();
 })();
 
-// ══════════════════════════════════════════════════════════════
-// Progress rail
-// ══════════════════════════════════════════════════════════════
-(function(){
-    const rail = document.getElementById('rail');
-    function update() {
-        const sc = document.documentElement.scrollTop || document.body.scrollTop;
-        const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-        rail.style.width = Math.min(100, (sc / max) * 100) + '%';
-    }
-    window.addEventListener('scroll', update, { passive: true });
-    update();
-})();
 </script>
 
 </body>

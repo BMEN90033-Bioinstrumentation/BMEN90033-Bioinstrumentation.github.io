@@ -1,3 +1,41 @@
+// Helpers shared by the four scene scripts of active_peak_detector.html.
+// This file is loaded first.
+window.APD = {
+    // Rewrites every "X_y" in the SVG text under root as X with a subscript y.
+    sub: function (root) {
+        root.selectAll('text').each(function () {
+            var s = this.textContent;
+            if (s.indexOf('_') < 0) return;
+            var el = d3.select(this).text(null);
+            var re = /_([A-Za-z0-9]+)/g, last = 0, m, lowered = false;
+            while ((m = re.exec(s))) {
+                el.append('tspan').attr('dy', lowered ? -3 : null).text(s.slice(last, m.index));
+                el.append('tspan').attr('class', 'sub').attr('dy', 3).text(m[1]);
+                lowered = true;
+                last = re.lastIndex;
+            }
+            if (last < s.length) el.append('tspan').attr('dy', -3).text(s.slice(last));
+        });
+    },
+    // Legend in the top margin of a plot, right-aligned above the plot area:
+    // a line swatch and an ink label per row. The caller reserves the margin
+    // with APD.legendTop(rows).
+    legendTop: function (n) { return 36 + n * 17 + 8; },
+    legend: function (g, iw, rows) {
+        var lg = g.append('g')
+            .attr('transform', 'translate(' + iw + ',' + (-(rows.length * 17 + 8)) + ')');
+        rows.forEach(function (r, i) {
+            var yy = 10 + i * 17;
+            lg.append('line').attr('x1', -22).attr('x2', 0).attr('y1', yy - 4).attr('y2', yy - 4)
+                .attr('stroke', r.color).attr('stroke-width', 2.2)
+                .attr('stroke-dasharray', r.dash || null);
+            lg.append('text').attr('class', 'ink').attr('text-anchor', 'end')
+                .attr('x', -28).attr('y', yy).text(r.label);
+        });
+        APD.sub(lg);
+    }
+};
+
 // Scene 01 · Precision half-wave rectifier (super diode).
 // V_in drives the (+) input. The op-amp output drives the diode anode and the
 // diode cathode is the output node. Negative feedback from the output node to
@@ -35,7 +73,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 52, left: 68 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -48,60 +86,57 @@
     function wire(g, x1, y1, x2, y2) {
         if (x1 === x2 || y1 === y2) {
             g.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2)
-                .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+                .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         } else {
             g.append('polyline')
                 .attr('points', x1 + ',' + y1 + ' ' + x2 + ',' + y1 + ' ' + x2 + ',' + y2)
-                .attr('fill', 'none').attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+                .attr('fill', 'none').attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         }
     }
     function source(g, x, y, label) {
         g.append('circle').attr('cx', x).attr('cy', y).attr('r', 24)
-            .attr('fill', 'var(--bg-2)').attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('path').attr('d',
             'M ' + (x - 14) + ',' + y + ' Q ' + (x - 7) + ',' + (y - 12) + ' ' + x + ',' + y +
             ' T ' + (x + 14) + ',' + y)
             .attr('fill', 'none').attr('stroke', 'var(--c-input)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x).attr('y', y + 46).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text(label);
+            .attr('class', 'lbl').text(label);
     }
     function diodeH(g, cx, cy, label) {
         // Triangle pointing right with cathode bar; anode on left, cathode on right.
         g.append('polygon').attr('class', 'diode-body')
             .attr('points', (cx - 14) + ',' + (cy - 12) + ' ' + (cx - 14) + ',' + (cy + 12) + ' ' + (cx + 14) + ',' + cy)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('fill', 'var(--white)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', cx + 14).attr('y1', cy - 14).attr('x2', cx + 14).attr('y2', cy + 14)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.4);
         if (label) {
             g.append('text').attr('x', cx).attr('y', cy - 24).attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-                .attr('fill', 'var(--muted)').text(label);
+                .attr('class', 'lbl').text(label);
         }
     }
     function resistorV(g, x, y0, y1, label) {
         var topY = (y0 + y1) / 2 - 22;
         var botY = (y0 + y1) / 2 + 22;
         g.append('line').attr('x1', x).attr('y1', y0).attr('x2', x).attr('y2', topY)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('rect').attr('x', x - 12).attr('y', topY).attr('width', 24).attr('height', botY - topY)
-            .attr('fill', 'var(--bg-panel)').attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('fill', 'var(--white)').attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', x).attr('y1', botY).attr('x2', x).attr('y2', y1)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         if (label) {
             g.append('text').attr('x', x + 22).attr('y', (topY + botY) / 2 + 4)
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-                .attr('fill', 'var(--muted)').text(label);
+                .attr('class', 'lbl').text(label);
         }
     }
     function ground(g, x, y) {
         g.append('line').attr('x1', x - 14).attr('y1', y).attr('x2', x + 14).attr('y2', y)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('line').attr('x1', x - 9).attr('y1', y + 5).attr('x2', x + 9).attr('y2', y + 5)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('line').attr('x1', x - 4).attr('y1', y + 10).attr('x2', x + 4).attr('y2', y + 10)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.2);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.2);
     }
     // Op-amp drawn as a triangle. (+) is the top input, (-) the bottom input.
     // Returns the connection nodes the caller should wire to.
@@ -112,21 +147,18 @@
         var rx = lx + w;
         g.append('polygon')
             .attr('points', lx + ',' + (cy - halfH) + ' ' + lx + ',' + (cy + halfH) + ' ' + rx + ',' + cy)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('fill', 'var(--white)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         var inPlusY  = cy - halfH * 0.45;
         var inMinusY = cy + halfH * 0.45;
         g.append('text').attr('x', lx + 8).attr('y', inPlusY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--text-dim)').text('+');
+            .attr('class', 'ink').text('+');
         g.append('text').attr('x', lx + 8).attr('y', inMinusY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 14)
-            .attr('fill', 'var(--text-dim)').text('−');
+            .attr('class', 'ink').text('−');
         if (opts.label) {
             g.append('text').attr('x', lx + w / 2 - 4).attr('y', cy + halfH + 16)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-                .attr('fill', 'var(--muted)').text(opts.label);
+                .attr('class', 'lbl').text(opts.label);
         }
         return {
             inPlus:  { x: lx, y: inPlusY },
@@ -136,7 +168,7 @@
     }
     function dot(g, x, y) {
         g.append('circle').attr('cx', x).attr('cy', y).attr('r', 3.2)
-            .attr('fill', 'var(--text-dim)');
+            .attr('fill', 'var(--fg)');
     }
 
     // ---- circuit drawing ---------------------------------------------------
@@ -147,7 +179,7 @@
         var g = circSvg.append('g');
 
         var srcX = 80, srcY = 200;
-        var op = opAmp(g, 200, 200, { label: 'A1' });
+        var op = opAmp(g, 200, 200, { label: 'A_1' });
         var dCx = op.out.x + 60;
         var dY  = op.out.y;
         var fbX  = dCx + 70;     // feedback tap on the rail
@@ -163,7 +195,7 @@
 
         // Op-amp output to diode anode
         wire(g, op.out.x, op.out.y, dCx - 14, dY);
-        diodeH(g, dCx, dY, 'D1');
+        diodeH(g, dCx, dY, 'D_1');
 
         // Diode cathode through feedback tap and load tap to the output terminal
         wire(g, dCx + 14, dY, termX, dY);
@@ -178,8 +210,7 @@
         g.append('circle').attr('cx', termX).attr('cy', dY).attr('r', 4)
             .attr('fill', 'var(--c-output)');
         g.append('text').attr('x', termX + 10).attr('y', dY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--c-output)').text('v_out');
+            .attr('class', 't-output').text('v_out');
 
         // Feedback: tap drops below the circuit then returns to the (-) input
         var fbY = op.inMinus.y + 70;
@@ -190,13 +221,13 @@
 
         // V_F annotation across the diode
         g.append('text').attr('x', dCx).attr('y', dY + 32).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)').text('V_F absorbed');
+            .attr('class', 't-thresh').text('V_F inside the loop');
+        APD.sub(circSvg);
     }
 
     // ---- trace drawing -----------------------------------------------------
     function drawTrace() {
-        var f = makeFrame(traceSvg);
+        var f = makeFrame(traceSvg, { margin: { top: APD.legendTop(3), right: 36, bottom: 52, left: 68 } });
         f.g.selectAll('*').remove();
 
         var yMax = Math.max(2.6, state.amp + 0.4);
@@ -239,10 +270,10 @@
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
                 .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(-Math.floor(yMax), Math.floor(yMax) + 1, 1))
@@ -251,23 +282,18 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle').text('Time');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-54) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
 
         // Legend (top right)
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-passive)').text('passive half-wave');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-precision)').text('precision half-wave');
+        APD.legend(f.g, f.iw, [
+            { color: 'var(--c-input)', label: 'v_in(t)' },
+            { color: 'var(--c-passive)', label: 'passive rectifier' },
+            { color: 'var(--c-precision)', label: 'precision rectifier' }
+        ]);
     }
 
     function updateReadout() {
@@ -275,10 +301,10 @@
         rdVpPas.textContent  = Math.max(0, state.amp - state.vf).toFixed(2) + ' V';
         rdVpPre.textContent  = state.amp.toFixed(2) + ' V';
         if (state.amp <= state.vf) {
-            rdSmall.textContent = 'V_F blocks passive';
+            rdSmall.innerHTML = 'blocked by V<sub>F</sub>';
             rdSmall.className = 'v warn';
         } else {
-            rdSmall.textContent = 'passes';
+            rdSmall.textContent = 'conducts';
             rdSmall.className = 'v on';
         }
     }
@@ -305,7 +331,6 @@
             fL.textContent = state.f.toFixed(1) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', function () { drawCircuit(); refresh(); });
         window.addEventListener('resize', function () { drawCircuit(); refresh(); });
         refresh();
     }

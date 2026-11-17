@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Class D Amplifier</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The class D amplifier</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -47,7 +41,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
-            <h1 class="hero">The class D <em>amplifier</em></h1>
+            <h1 class="hero">The class D amplifier</h1>
             <p class="sub">A class D amplifier switches its output transistors fully on or fully off at high
                 frequency, unlike class A, B and AB stages, which operate in the linear region. The input is
                 encoded as a pulse-width modulated (PWM) waveform, amplified by a MOSFET half-bridge and recovered
@@ -141,7 +135,7 @@
                 visible.</p>
 
             <div class="callout">
-                The cursor marks the instant shown by the schematic, whose output dot changes colour with the
+                The cursor marks the instant shown by the schematic, whose output marker changes colour with the
                 comparator state.
             </div>
         </div>
@@ -180,8 +174,8 @@
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-vin)"></span>$v_\text{in}$</span>
                     <span><span class="sw" style="background:var(--c-car)"></span>carrier $v_c$</span>
-                    <span><span class="sw" style="background:var(--c-hi)"></span>PWM output</span>
-                    <span>dot on schematic: <b style="color:var(--c-hi)">HIGH</b> / <b style="color:var(--c-lo)">LOW</b></span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>PWM output; schematic marker when HIGH</span>
+                    <span><span class="sw" style="background:var(--c-lo)"></span>schematic marker when LOW</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$v_\text{in}/\hat{v}_c$</span><span class="v" data-out="vin"></span></div>
@@ -230,7 +224,8 @@
             </ul>
 
             <div class="callout">
-                These are representative values for a small power MOSFET pair and driver, not a specific part.
+                These values are representative of a small power MOSFET pair and driver and do not describe a
+                specific part.
                 The switching and gate-drive losses grow in proportion to $f_\text{sw}$, which limits how high the
                 switching frequency can be raised.
             </div>
@@ -334,9 +329,10 @@
                     <svg class="bode" id="plot-filter"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-hi);opacity:0.35"></span>$v_\text{sw}$, switching node</span>
-                    <span><span class="sw" style="background:var(--c-hi)"></span>$v_C$, filter output node</span>
-                    <span><span class="sw" style="background:var(--c-car)"></span>capacitor charging current</span>
+                    <span><span class="sw" style="background:var(--c-hi)"></span>$v_\text{sw}$, switching node (faint trace); inductor current while PWM is HIGH</span>
+                    <span><span class="sw" style="background:var(--c-out)"></span>$v_C$, filter output node; load current</span>
+                    <span><span class="sw" style="background:var(--c-rip)"></span>capacitor charging current</span>
+                    <span><span class="sw" style="background:var(--c-lo)"></span>inductor current while PWM is LOW</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$f_\text{sw}/f_\text{sig}$</span><span class="v" data-out="ratio"></span></div>
@@ -424,24 +420,25 @@
     <section class="scene" id="sec-mosfets">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>device choice</span></div>
-            <h2>Why MOSFETs</h2>
+            <h2>MOSFETs as the switching devices</h2>
 
             <p class="lead">Class D operation requires fast switching with low conduction and drive losses. MOSFETs
-                are generally preferred to BJTs for four reasons.</p>
+                are generally preferred to BJTs for three reasons.</p>
 
             <ul class="bullets">
-                <li><strong>switching speed</strong>: a saturated BJT has a storage time, because minority carriers
+                <li><strong>Switching speed</strong>: a saturated BJT has a storage time, because minority carriers
                     in the base must be removed before it turns off. MOSFETs are majority-carrier devices with no
                     storage time and switch faster.</li>
-                <li><strong>voltage-driven gate</strong>: a BJT needs continuous base current to stay on. A MOSFET
+                <li><strong>Voltage-driven gate</strong>: a BJT needs continuous base current to stay on. A MOSFET
                     needs only its gate capacitance charged, after which no steady-state gate current flows, which
                     simplifies the driver.</li>
-                <li><strong>low on-resistance</strong>: power MOSFETs reach $R_{DS(\text{on})}$ in the low
+                <li><strong>Low on-resistance</strong>: power MOSFETs reach $R_{DS(\text{on})}$ in the low
                     milliohm range. At high currents this gives a smaller voltage drop than the $V_{CE(\text{sat})}$
                     of a BJT, and therefore lower conduction loss.</li>
-                <li><strong>applications</strong>: audio amplifiers, motor drivers, DC-DC converters and
-                    battery-powered biomedical devices.</li>
             </ul>
+
+            <p>Applications include audio amplifiers, motor drivers, DC-DC converters and battery-powered
+                biomedical devices.</p>
 
             <div class="callout">
                 Class D is the dominant amplifier topology in portable and battery-powered biomedical devices.
@@ -457,8 +454,8 @@
                     <svg class="bode" id="plot-compare"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-lo);opacity:0.5"></span>linear output stages</span>
-                    <span><span class="sw" style="background:var(--c-hi)"></span>class D, simulated at $m = 1$ and the present $f_\text{sw}$; bar: typical 90 to 95 %</span>
+                    <span><span class="sw" style="background:var(--c-lin)"></span>linear output stages</span>
+                    <span><span class="sw" style="background:var(--c-out)"></span>class D, simulated at $m = 1$ and the present $f_\text{sw}$; error bar: typical range, 90 to 95 %</span>
                 </div>
             </div>
         </div>

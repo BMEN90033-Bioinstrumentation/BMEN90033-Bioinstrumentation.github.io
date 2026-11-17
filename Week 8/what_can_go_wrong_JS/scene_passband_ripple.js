@@ -87,6 +87,11 @@
         var butter = butterTrace(wc);
 
         var mag = window.WCGW.setupPlot('#plot-ripple-mag', {
+            legend: [
+                { key: 'fixed', label: 'Butterworth' },
+                { key: 'distort', label: 'Chebyshev' },
+                { key: 'mark', dash: true, label: 'cutoff ω_c' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-70, 4],
@@ -95,6 +100,7 @@
             yTicks: 5
         });
         var phase = window.WCGW.setupPlot('#plot-ripple-phase', {
+            legend: [{ key: 'mark', dash: true, label: 'cutoff ω_c' }],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-380, 10],
@@ -109,12 +115,12 @@
         window.WCGW.drawLine(phase, cheb, function (d) { return d.w; }, function (d) { return d.phase; }, 'distort', phase.y);
         mag.g.append('line').attr('class', 'marker-line').attr('x1', mag.x(wc)).attr('x2', mag.x(wc)).attr('y1', 0).attr('y2', mag.innerH);
         phase.g.append('line').attr('class', 'marker-line').attr('x1', phase.x(wc)).attr('x2', phase.x(wc)).attr('y1', 0).attr('y2', phase.innerH);
-        window.WCGW.legend(mag.svg, [
-            { key: 'fixed', label: 'Butterworth' },
-            { key: 'distort', label: 'Chebyshev' }
-        ], mag.W - 155, 14);
 
         var P = window.WCGW.setupPlot('#plot-ripple-signal', {
+            legend: [
+                { key: 'clean', label: 'flat passband reference', opacity: 0.38 },
+                { key: 'distort', label: 'Chebyshev output' }
+            ],
             xDomain: [0, 1.2],
             yDomain: [-1.1, 1.1],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -123,10 +129,6 @@
         var data = signal(rippleDb, wc);
         window.WCGW.drawLine(P, data, function (d) { return d.t; }, function (d) { return d.clean; }, 'clean reference', P.y);
         window.WCGW.drawLine(P, data, function (d) { return d.t; }, function (d) { return d.cheby; }, 'distort', P.y);
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'flat passband reference' },
-            { key: 'distort', label: 'Chebyshev output' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -137,7 +139,6 @@
         if (!rippleSlider || !cutoffSlider) return;
         rippleSlider.addEventListener('input', draw);
         cutoffSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

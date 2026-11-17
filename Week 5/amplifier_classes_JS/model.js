@@ -127,7 +127,7 @@
         var d = derived(q), n = d.vinPeak > 0 ? vin / d.vinPeak : 0;
         if (q.cls === 'A') {
             if (Math.abs(n) < 0.05) return { n: n, key: 'quiet', text: 'quiescent' };
-            return n > 0 ? { n: n, key: 'npn', text: 'I_C increasing' } : { n: n, key: 'pnp', text: 'I_C decreasing' };
+            return n > 0 ? { n: n, key: 'npn', text: '$I_C$ increasing' } : { n: n, key: 'pnp', text: '$I_C$ decreasing' };
         }
         var vo = outputSample(vin, q);
         if (d.vinPeak <= 0) return { n: 0, key: 'quiet', text: 'no signal, both off', vo: 0 };
@@ -144,12 +144,11 @@
         // sine (0..2), t in seconds of wall time (for current-flow dots).
         clock: { phase: 0, t: 0 },
         vinNow: function () { return derived().vinPeak * Math.sin(2 * Math.PI * window.AMP.clock.phase); },
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ampchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

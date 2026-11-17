@@ -20,7 +20,7 @@
             .call(d3.axisBottom(x).tickValues([-1, -0.5, 0.5, 1]).tickSizeOuter(0));
         var ya = g.append('g').attr('transform', 'translate(' + x(0) + ',0)')
             .call(d3.axisLeft(y).ticks(6).tickSizeOuter(0).tickFormat(function (d) { return d === 0 ? '' : d; }));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(window.PN.styleAxis);
         window.renderKatex(f.svg, 'I\\;[\\mathrm{mA}]', f.m.left + x(0), f.m.top - 18, { width: 100, height: 22, size: 16 });
         window.renderKatex(f.svg, 'V\\;[\\mathrm{V}]', f.m.left + iw + 38, f.m.top + y(0), { width: 50, height: 22, size: 16 });   // clear of the last tick label
 
@@ -51,7 +51,7 @@
         var yt = [1e-12, 1e-9, 1e-6, 1e-3, 1];
         var xa = g.append('g').attr('transform', 'translate(0,' + ih + ')').call(d3.axisBottom(x).ticks(6).tickSizeOuter(0));
         var ya = g.append('g').call(d3.axisLeft(y).tickValues(yt).tickFormat(function () { return ''; }).tickSizeOuter(0));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(window.PN.styleAxis);
         yt.forEach(function (v) {
             window.renderKatex(f.svg, '10^{' + Math.round(Math.log10(v)) + '}', f.m.left - 30, f.m.top + y(v),
                 { width: 44, height: 18, size: 13, color: T.text, align: 'right' });

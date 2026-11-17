@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Comparators and the Schmitt Trigger</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The op-amp as a comparator</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="comparator_JS/comparator.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -48,9 +43,9 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 9 · OP-AMP AS A COMPARATOR</div>
-            <h1 class="hero">The op-amp as a <em>comparator</em></h1>
+            <h1 class="hero">The op-amp as a comparator</h1>
             <p class="sub">An operational amplifier with no negative feedback no longer behaves as a linear gain
-                stage. The very large open-loop gain forces the output to one of the two supply rails, with the rail
+                stage. The large open-loop gain forces the output to one of the two supply rails, with the rail
                 selected by the sign of the differential input. The resulting circuit, the comparator, is a
                 single-bit analogue-to-digital element that reports only whether one input is greater than the
                 other.</p>
@@ -121,11 +116,11 @@
             <div class="eq-block">$$\Delta v_\text{lin} = \frac{V_\text{sat}^+ - V_\text{sat}^-}{A_\text{OL}},$$</div>
 
             <p>about $240\,\mu\text{V}$ for $A_\text{OL} = 10^5$ and $\pm 12\,\text{V}$ rails. At the resolution of
-                most biopotential signals this transition is invisible; the transfer characteristic is effectively a
-                step.</p>
+                most biopotential signals this transition is negligible, and the transfer characteristic is
+                effectively a step.</p>
 
             <div class="callout">
-                The comparator is not an amplifier. Its function is to discard the amplitude of the input and report
+                The comparator does not operate as an amplifier. It discards the amplitude of the input and reports
                 only the binary outcome of the comparison with the reference. Any processing that depends on a
                 faithful copy of the signal must occur in the stages preceding it.
             </div>
@@ -154,8 +149,8 @@
                 $v_\text{in}(t) = V_\text{ref}$, namely</p>
 
             <div class="eq-block">$$t_{\uparrow,k} = \frac{\arcsin r}{\omega} + kT, \qquad
-                t_{\downarrow,k} = \frac{\pi - \arcsin r}{\omega} + kT, \qquad r = \frac{V_\text{ref}}{V_m},\;
-                |V_\text{ref}| \le V_m,$$</div>
+                t_{\downarrow,k} = \frac{\pi - \arcsin r}{\omega} + kT,$$
+                $$r = \frac{V_\text{ref}}{V_m},\qquad |V_\text{ref}| \le V_m,$$</div>
 
             <p>for the upward and downward crossings respectively. The output is high for the fraction
                 $D = (\pi - 2\arcsin r)/(2\pi)$ of each period.</p>
@@ -163,7 +158,7 @@
             <p>If $|V_\text{ref}| > V_m$, the input never reaches the threshold and the output remains at one rail.
                 Setting $V_\text{ref} = 0$ gives the zero-crossing detector, in which the output edges coincide with
                 the sign changes of the input. The amplitude of $v_\text{in}$ is then irrelevant; only the timing of
-                its zeros matters. This is the standard front-end for a phase-locked loop, a digital tachometer, or
+                its zeros matters. This arrangement is the standard front end for a phase-locked loop, a digital tachometer, or
                 a heart-rate counter.</p>
 
             <div class="callout">
@@ -207,21 +202,21 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>noise at the threshold</span></div>
             <h2>Limitations of the plain comparator with a noisy input</h2>
 
-            <p class="lead">Real biosignals carry broadband noise from the electrodes, the analogue front-end, and
+            <p class="lead">Recorded biosignals carry broadband noise from the electrodes, the analogue front end, and
                 the surrounding environment. Far from the threshold this noise has no effect. Near the threshold,
                 every small excursion of the input across the reference produces an output transition, and the
-                comparator breaks into rapid chatter.</p>
+                output switches repeatedly between the rails. This behaviour is termed chatter.</p>
 
             <p>The plot shows a synthetic ECG-like signal with adjustable noise. The counter on the output trace
-                reports the number of edges produced over a three-second window. Even moderate noise placed near the
+                reports the number of edges produced over a three-second window. Moderate noise near the
                 R-wave threshold can convert a single genuine crossing into ten or more reported edges, making the
                 output unusable for downstream timing or counting.</p>
 
-            <h3>Where the noise comes from</h3>
+            <h3>Sources of noise</h3>
 
             <ul class="bullets">
                 <li>drift of the electrode-to-skin half-cell potential, of the order of millivolts per minute;</li>
-                <li>mains pickup at 50 or 60 Hz, partially rejected by a differential amplifier but never
+                <li>mains pickup at 50 or 60 Hz, partially rejected by a differential amplifier but not
                     eliminated;</li>
                 <li>electromyogram (EMG) artefact within the passband of the ECG channel;</li>
                 <li>input-referred voltage noise of the first amplifier stage.</li>
@@ -232,9 +227,9 @@
                 reference, which is its principal limitation as a threshold detector for biosignals.</p>
 
             <div class="callout">
-                Sweeping the threshold close to the noise floor demonstrates the failure mode directly: the edge
-                count climbs sharply as the reference enters the noisy portion of the signal, while the underlying
-                heartbeat rate has not changed.
+                Moving the threshold towards the noise floor shows the failure mode: the edge count rises sharply
+                as the reference enters the noisy portion of the signal, while the underlying heart rate is
+                unchanged.
             </div>
         </div>
 

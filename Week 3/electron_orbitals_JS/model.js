@@ -307,12 +307,11 @@
         computeMaxDensity: computeMaxDensity, samplePoint: samplePoint, sampleOrbital: sampleOrbital,
         isosurfaceVertices: isosurfaceVertices, configFor: configFor, energy: energy, orbitalEnergy: orbitalEnergy,
         p: p, setConfig: setConfig, zeffOf: zeffOf, fmtConfig: fmtConfig,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('eochange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

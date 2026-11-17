@@ -1,4 +1,4 @@
-// Scene 5b — Transfer functions: HTML+KaTeX block diagram, s-plane, and a
+// Scene 5b, Transfer functions: HTML+KaTeX block diagram, s-plane, and a
 // worked input/output example per system so the filter's effect is visible.
 // For each preset we feed in a sum of sinusoids and plot the steady-state
 // response y(t), computed from H(jω) of each component (LTI, no transient).
@@ -20,13 +20,13 @@
   // `tMax`/`yMax` set the viewport for the plot so both traces share axes.
   const SYSTEMS = {
     lowpass: {
-      name: 'low-pass · single pole',
+      name: 'Low-pass, single pole',
       tex:  'H(s) = \\dfrac{1}{s + 1}',
       zeros: [],
       poles: [{ re: -1.0, im: 0 }],
       comps: [
-        { A: 1, w: 0.5, fn: 'sin' },   // slow tone — passes through
-        { A: 1, w: 4.0, fn: 'sin' },   // fast tone — gets squashed
+        { A: 1, w: 0.5, fn: 'sin' },   // slow tone, passes through
+        { A: 1, w: 4.0, fn: 'sin' },   // fast tone, gets squashed
       ],
       xTex: 'X(s) = \\dfrac{0.5}{s^{2}+0.25} + \\dfrac{4}{s^{2}+16}',
       yTex: 'Y(s) = \\dfrac{X(s)}{s + 1}',
@@ -35,13 +35,13 @@
       inputDesc: 'x(t) = sin(0.5 t) + sin(4 t)',
     },
     resonator: {
-      name: 'lightly damped · 2nd order',
+      name: 'Lightly damped, second order',
       tex:  'H(s) = \\dfrac{1}{(s + 0.2)^{2} + 1.4^{2}}',
       zeros: [],
       poles: [{ re: -0.2, im:  1.4 }, { re: -0.2, im: -1.4 }],
       comps: [
         { A: 1, w: 0.5, fn: 'sin' },
-        { A: 1, w: 1.4, fn: 'sin' },   // right at the resonance — amplified
+        { A: 1, w: 1.4, fn: 'sin' },   // right at the resonance, amplified
         { A: 1, w: 2.5, fn: 'sin' },
       ],
       xTex: 'X(s) = \\dfrac{0.5}{s^{2}+0.25} + \\dfrac{1.4}{s^{2}+1.96} + \\dfrac{2.5}{s^{2}+6.25}',
@@ -51,13 +51,13 @@
       inputDesc: 'x(t) = sin(0.5 t) + sin(1.4 t) + sin(2.5 t)',
     },
     notch: {
-      name: 'notch · zeros on jω axis',
+      name: 'Notch, zeros on the jω axis',
       tex:  'H(s) = \\dfrac{s^{2} + 1}{(s + 0.3)^{2} + 1^{2}}',
       zeros: [{ re: 0, im:  1.0 }, { re: 0, im: -1.0 }],
       poles: [{ re: -0.3, im:  1.0 }, { re: -0.3, im: -1.0 }],
       comps: [
         { A: 1, w: 0.5, fn: 'sin' },
-        { A: 1, w: 1.0, fn: 'sin' },   // the notched frequency — killed
+        { A: 1, w: 1.0, fn: 'sin' },   // the notched frequency, killed
         { A: 1, w: 2.0, fn: 'sin' },
       ],
       xTex: 'X(s) = \\dfrac{0.5}{s^{2}+0.25} + \\dfrac{1}{s^{2}+1} + \\dfrac{2}{s^{2}+4}',
@@ -67,7 +67,7 @@
       inputDesc: 'x(t) = sin(0.5 t) + sin(1.0 t) + sin(2.0 t)',
     },
     integrator: {
-      name: 'pure integrator · pole at origin',
+      name: 'Integrator, pole at the origin',
       tex:  'H(s) = \\dfrac{1}{s}',
       zeros: [],
       poles: [{ re: 0, im: 0 }],
@@ -79,7 +79,7 @@
       yTex: 'Y(s) = \\dfrac{X(s)}{s}',
       tMax: 14,
       yMax: 1.8,
-      inputDesc: 'x(t) = cos(t) + ½ cos(3 t)',
+      inputDesc: 'x(t) = cos(t) + 0.5 cos(3 t)',
     },
   };
   let cur = 'lowpass';
@@ -159,15 +159,16 @@
 
     const sys = SYSTEMS[cur];
     const span = 2.2;
-    const padL = 36, padR = 22, padT = 44, padB = 34;
+    const padL = 16, padR = 30, padT = 70, padB = 40;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const bw = x1 - x0, bh = y1 - y0;
     const xOf = re => x0 + (re + span) / (2 * span) * bw;
     const yOf = im => y1 - (im + span) / (2 * span) * bh;
 
     // LHP stability tint
-    ctx.fillStyle = 'rgba(123,224,137,0.05)';
+    ctx.fillStyle = CFG.alpha(C.time, 0.1);
     ctx.fillRect(x0, y0, xOf(0) - x0, bh);
+    CFG.label(ctx, 'LHP: stable', x0 + 6, y0 + 6, C.muted);
 
     // grid
     ctx.strokeStyle = C.grid;
@@ -183,10 +184,9 @@
     ctx.beginPath(); ctx.moveTo(x0, yOf(0)); ctx.lineTo(x1, yOf(0)); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(xOf(0), y0); ctx.lineTo(xOf(0), y1); ctx.stroke();
 
-    // axis labels (σ right end, jω top end — placed just outside the plot)
-    CFG.label(ctx, 'σ',  x1 + 4,      yOf(0) - 5, C.muted, { size: 11 });
-    CFG.label(ctx, 'jω', xOf(0) + 6,  y0 - 12,    C.real,  { size: 11 });
-    CFG.label(ctx, '0',  xOf(0) + 4,  yOf(0) + 4, C.muted, { size: 10 });
+    // axis labels (σ right end, jω top end, placed just outside the plot)
+    CFG.label(ctx, 'σ',  x1 + 8, yOf(0), C.muted, { baseline: 'middle' });
+    CFG.label(ctx, 'jω', xOf(0), y0 - 6, C.muted, { align: 'center', baseline: 'bottom' });
 
     // Input-frequency tick marks on the jω axis with their ω values.
     ctx.strokeStyle = C.accent;
@@ -204,7 +204,7 @@
     for (const c of sys.comps) {
       const py = yOf(c.w);
       if (py < y0 || py > y1) continue;
-      CFG.label(ctx, `ω=${c.w}`, xOf(0) + 10, py - 5, C.accent, { size: 9 });
+      CFG.label(ctx, `ω = ${c.w}`, xOf(0) + 12, py, C.accent, { baseline: 'middle' });
     }
 
     // zeros
@@ -212,9 +212,7 @@
     ctx.strokeStyle = C.time;
     for (const z of sys.zeros) {
       const px = xOf(z.re), py = yOf(z.im);
-      ctx.shadowColor = C.time; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.stroke();
-      ctx.shadowBlur = 0;
     }
     // poles
     ctx.lineWidth = 2.4;
@@ -222,24 +220,22 @@
     for (const p of sys.poles) {
       const px = xOf(p.re), py = yOf(p.im);
       const r = 7;
-      ctx.shadowColor = C.imag; ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.moveTo(px - r, py - r); ctx.lineTo(px + r, py + r);
       ctx.moveTo(px - r, py + r); ctx.lineTo(px + r, py - r);
       ctx.stroke();
-      ctx.shadowBlur = 0;
     }
 
     // bottom legend row
-    const legY = y1 + 14;
-    CFG.label(ctx, '×  poles',       x0,        legY, C.imag,   { size: 10 });
-    CFG.label(ctx, '○  zeros',       x0 + 70,   legY, C.time,   { size: 10 });
-    CFG.label(ctx, '┄  input ω',     x0 + 140,  legY, C.accent, { size: 10 });
-    CFG.label(ctx, 'LHP = stable',   x1,        legY, C.muted,  { size: 10, align: 'right' });
+    CFG.legend(ctx, x0, y1 + 20, [
+      { mark: 'pole', text: 'poles', color: C.imag },
+      { mark: 'zero', text: 'zeros', color: C.time },
+      { mark: 'dash', text: 'input ω', color: C.accent },
+    ]);
   }
 
   // ─── Input/output panel ────────────────────────────────────────────────
-  // Two traces sharing the same t-axis and the same y-scale — equal scale is
+  // Two traces sharing the same t-axis and the same y-scale, equal scale is
   // what makes attenuation / amplification visible at a glance.
   function drawInOut() {
     const { ctx, w, h } = CFG.setupCanvas(cIO);
@@ -253,7 +249,7 @@
 
     // Leave room at the top for the .title/.sub HTML overlays and a label
     // row inside the canvas for each lane; extra bottom padding for the t axis.
-    const padL = 48, padR = 18, padT = 66, padB = 34;
+    const padL = 48, padR = 18, padT = 78, padB = 46;
     const labelLane = 20;  // per-lane header strip above each lane
     const midGap = 26;
     const x0 = padL, x1 = w - padR;
@@ -267,8 +263,8 @@
     function plotLane(y0, y1, color, headLabel, headDetail, comps) {
       // header strip just above the trace box (baseline 'middle' centers it on the strip)
       const headY = y0 - labelLane / 2;
-      CFG.label(ctx, headLabel,  x0,      headY, color,   { size: 12, weight: 700, baseline: 'middle' });
-      CFG.label(ctx, headDetail, x0 + 44, headY, C.muted, { size: 10,              baseline: 'middle' });
+      CFG.label(ctx, headLabel,  x0,      headY, color,   { baseline: 'middle' });
+      CFG.label(ctx, headDetail, x0 + 44, headY, C.muted, { baseline: 'middle' });
 
       const mid = (y0 + y1) / 2;
       const amp = (y1 - y0) / 2 - 4;
@@ -277,7 +273,7 @@
       ctx.strokeStyle = C.grid;
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
-      // frame — left edge + baseline
+      // frame, left edge + baseline
       ctx.strokeStyle = C.gridStrong;
       ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
@@ -288,9 +284,9 @@
       ctx.moveTo(x0 - 3, mid); ctx.lineTo(x0, mid);
       ctx.moveTo(x0 - 3, y1);  ctx.lineTo(x0, y1);
       ctx.stroke();
-      CFG.label(ctx, `+${yMax.toFixed(1)}`, x0 - 6, y0,  C.muted, { size: 9, align: 'right', baseline: 'middle' });
-      CFG.label(ctx, '0',                    x0 - 6, mid, C.muted, { size: 9, align: 'right', baseline: 'middle' });
-      CFG.label(ctx, `−${yMax.toFixed(1)}`, x0 - 6, y1,  C.muted, { size: 9, align: 'right', baseline: 'middle' });
+      CFG.label(ctx, `+${yMax.toFixed(1)}`, x0 - 6, y0 + 4,  C.muted, { align: 'right', baseline: 'middle' });
+      CFG.label(ctx, '0',                    x0 - 6, mid, C.muted, { align: 'right', baseline: 'middle' });
+      CFG.label(ctx, `−${yMax.toFixed(1)}`, x0 - 6, y1 - 4,  C.muted, { align: 'right', baseline: 'middle' });
 
       // trace
       ctx.strokeStyle = color;
@@ -307,8 +303,8 @@
       ctx.stroke();
     }
 
-    plotLane(topY0, topY1, C.real, 'x(t)',  'input · applied signal',  sys.comps);
-    plotLane(botY0, botY1, C.imag, 'y(t)',  'output · H(s) · x(t)',    yOut);
+    plotLane(topY0, topY1, C.real, 'x(t)',  'input',  sys.comps);
+    plotLane(botY0, botY1, C.imag, 'y(t)',  'output, steady state',    yOut);
 
     // shared t axis ticks
     ctx.strokeStyle = C.gridStrong;
@@ -316,9 +312,9 @@
       const t = (k / 4) * tMax;
       const px = x0 + (t / tMax) * (x1 - x0);
       ctx.beginPath(); ctx.moveTo(px, botY1); ctx.lineTo(px, botY1 + 4); ctx.stroke();
-      CFG.label(ctx, t.toFixed(t < 10 ? 0 : 0), px, botY1 + 6, C.muted, { size: 9, align: 'center' });
+      CFG.label(ctx, t.toFixed(1).replace('.0', ''), px, botY1 + 6, C.muted, { align: 'center' });
     }
-    CFG.label(ctx, 't  (seconds) →', x1, botY1 + 18, C.muted, { size: 10, align: 'right' });
+    CFG.label(ctx, 't (s)', (x0 + x1) / 2, botY1 + 24, C.muted, { align: 'center' });
 
     ioSub.textContent = sys.inputDesc;
   }

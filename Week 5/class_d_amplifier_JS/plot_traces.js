@@ -23,11 +23,11 @@
         L[1].g.append('path').attr('class', 'trace').attr('stroke', css('--c-hi')).attr('stroke-width', 1.5)
             .attr('d', d3.line()(C.pwmSteps(0, C.WINDOW).map(function (d) { return [P.x(d[0]), L[1].y(d[1])]; })));
         function out(t) { return C.loadAt(t); }
-        trace(L[2], out, '--c-hi', 2.4, Math.max(1200, C.p.ratio * 48));
+        trace(L[2], out, '--c-out', 2.4, Math.max(1200, C.p.ratio * 48));
         cur = C.cursor(P, [
             { panel: 0, col: '--c-vin', fn: C.inputSignal },
             { panel: 1, col: '--c-hi', fn: C.pwmSignal },
-            { panel: 2, col: '--c-hi', fn: out }
+            { panel: 2, col: '--c-out', fn: out }
         ]);
         tick();
     }

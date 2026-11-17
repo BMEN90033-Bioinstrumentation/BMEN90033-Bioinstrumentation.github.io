@@ -2,6 +2,25 @@
 // Static D3 diagram tracing an ECG beat from the electrode through the analog
 // front-end, the ADC, and into the digital domain. The ADC block is highlighted
 // to indicate where this page is positioned within the chain.
+// Shared by the scene scripts on this page: writes SVG text in which a
+// pattern such as V_in is drawn as V with a subscript.
+window.adcSub = function (sel, str) {
+    sel.text(null);
+    var raise = false;
+    function span(txt) {
+        var t = sel.append('tspan').text(txt);
+        if (raise) { t.attr('dy', '-0.26em'); raise = false; }
+        return t;
+    }
+    str.split(/([A-Za-z]_[A-Za-z]+)/).forEach(function (part, i) {
+        if (!part) return;
+        if (i % 2 === 0) { span(part); return; }
+        span(part.charAt(0));
+        sel.append('tspan').attr('font-size', '75%').attr('dy', '0.35em').text(part.slice(2));
+        raise = true;
+    });
+};
+
 (function () {
     var svg = d3.select('#plot-chain');
     // Fixed coordinate system; preserveAspectRatio scales the SVG to the box
@@ -32,11 +51,11 @@
         var pad = 30;
         var topPad = 60;
         var blocks = [
-            { id: 'sensor', label: 'electrode',  sub: 'mV-scale',     analog: true,  noisy: 0.18, gain: 0.55 },
+            { id: 'sensor', label: 'electrode',  sub: 'millivolt signal', analog: true,  noisy: 0.18, gain: 0.55 },
             { id: 'amp',    label: 'amplifier',  sub: '× 1000',        analog: true,  noisy: 0.10, gain: 0.95 },
-            { id: 'aaf',    label: 'anti-alias', sub: 'LPF',           analog: true,  noisy: 0.04, gain: 0.95 },
+            { id: 'aaf',    label: 'anti-alias', sub: 'low-pass filter', analog: true,  noisy: 0.04, gain: 0.95 },
             { id: 'adc',    label: 'ADC',        sub: 'sample · quantise', analog: false, highlight: true },
-            { id: 'mcu',    label: 'MCU',        sub: 'digital',       digital: true }
+            { id: 'mcu',    label: 'MCU',        sub: 'microcontroller', digital: true }
         ];
 
         var n = blocks.length;
@@ -50,13 +69,11 @@
         svg.append('text')
             .attr('x', pad).attr('y', topPad - 18)
             .attr('class', 'blk-sub')
-            .attr('fill', 'var(--c-input)')
-            .text('analog · continuous voltage');
+            .text('analogue · continuous voltage');
         svg.append('text')
             .attr('x', W - pad).attr('y', topPad - 18)
             .attr('text-anchor', 'end')
             .attr('class', 'blk-sub')
-            .attr('fill', 'var(--c-output)')
             .text('digital · integer codes');
 
         // Build positions
@@ -141,12 +158,12 @@
             } else if (b.id === 'mcu') {
                 // Bit stream
                 var bits = '01101011010110100110101011010110';
-                var n2 = Math.floor(blockW / 7);
+                var n2 = Math.floor(blockW / 10);
                 g.append('text')
                     .attr('x', blockW / 2).attr('y', sigH / 2 + 5)
                     .attr('text-anchor', 'middle')
                     .attr('font-family', "'JetBrains Mono', monospace")
-                    .attr('font-size', 11)
+                    .attr('font-size', 12)
                     .attr('fill', 'var(--c-output)')
                     .attr('letter-spacing', '0.16em')
                     .text(bits.substring(0, n2));
@@ -162,12 +179,12 @@
                 .attr('rx', 8);
 
             svg.append('text')
-                .attr('x', b.cx).attr('y', b.cy - 4)
+                .attr('x', b.cx).attr('y', b.cy - 2)
                 .attr('text-anchor', 'middle')
                 .attr('class', 'blk-text')
                 .text(b.label);
             svg.append('text')
-                .attr('x', b.cx).attr('y', b.cy + 14)
+                .attr('x', b.cx).attr('y', b.cy + 17)
                 .attr('text-anchor', 'middle')
                 .attr('class', 'blk-sub')
                 .text(b.sub);
@@ -191,13 +208,11 @@
             .attr('x', (pad + divX) / 2).attr('y', legY + 18)
             .attr('text-anchor', 'middle')
             .attr('class', 'blk-sub')
-            .attr('fill', 'var(--c-input)')
-            .text('analog domain');
+            .text('analogue domain');
         svg.append('text')
             .attr('x', (divX + W - pad) / 2).attr('y', legY + 18)
             .attr('text-anchor', 'middle')
             .attr('class', 'blk-sub')
-            .attr('fill', 'var(--c-output)')
             .text('digital domain');
 
         // Vertical divider line where the ADC sits
@@ -212,7 +227,6 @@
 
     function init() {
         build();
-        window.addEventListener('themechange', build);
         window.addEventListener('resize', build);
     }
 

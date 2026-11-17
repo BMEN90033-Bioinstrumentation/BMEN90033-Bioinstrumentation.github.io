@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Passive Peak Detection</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Passive peak detection</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="passive_peak_detector_JS/passive_peak_detector.css">
@@ -50,7 +44,7 @@
         <section class="slide title-slide active" data-slide="0">
             <div class="copy">
                 <div class="meta">BMEN90033 · WEEK 10 · PASSIVE PEAK DETECTION</div>
-                <h1 class="slide-hero">Peak detection with <em>passive</em> components.</h1>
+                <h1 class="slide-hero">Peak detection with passive components</h1>
                 <div class="brief-box">
                     <div class="brief-label">Overview</div>
                     <p class="brief-body">A peak detector is a circuit whose output equals the maximum value
@@ -61,11 +55,11 @@
                         peak detectors based on operational amplifiers are deferred to a later chapter.</p>
                 </div>
                 <div class="tags">
-                    <span class="field-tag">diode</span>
-                    <span class="field-tag">capacitor</span>
-                    <span class="field-tag">envelope</span>
+                    <span class="field-tag">Diode</span>
+                    <span class="field-tag">Capacitor</span>
+                    <span class="field-tag">Envelope</span>
                     <span class="field-tag">RC discharge</span>
-                    <span class="field-tag">transistor reset</span>
+                    <span class="field-tag">Transistor reset</span>
                 </div>
             </div>
         </section>
@@ -73,10 +67,10 @@
         <!-- ═════════════ SLIDE 1 · SIMPLE DIODE + CAPACITOR ═════════════ -->
         <section class="slide" data-slide="1" id="sec-simple">
         <div class="copy">
-            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the diode-capacitor circuit</span></div>
-            <h2>Charging a capacitor through a <em class="output">diode</em>.</h2>
+            <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>The diode-capacitor circuit</span></div>
+            <h2>Charging a capacitor through a diode</h2>
 
-            <p class="lead">Consider a diode placed in series with a capacitor whose far terminal is grounded.
+            <p class="lead">A diode is placed in series with a capacitor whose far terminal is grounded.
                 The output is taken at the node between the diode cathode and the capacitor. When the input
                 voltage exceeds the capacitor voltage by more than the diode forward drop $V_F$, the diode is
                 forward-biased and the capacitor charges toward $V_\mathrm{in} - V_F$. When the input falls
@@ -87,7 +81,7 @@
             <p>The output is therefore equal to the running maximum of $V_\mathrm{in} - V_F$ since the last
                 reset of the capacitor. For a silicon junction diode, $V_F$ lies between approximately
                 $0.6\,\mathrm{V}$ and $0.7\,\mathrm{V}$; a Schottky diode reduces this value to between
-                $0.2\,\mathrm{V}$ and $0.3\,\mathrm{V}$. Two consequences follow immediately. First, the output
+                $0.2\,\mathrm{V}$ and $0.3\,\mathrm{V}$. Two consequences follow. First, the output
                 is offset below the true peak by a constant $V_F$. Second, any input excursion smaller than
                 $V_F$ does not forward-bias the diode and is therefore not registered.</p>
 
@@ -114,7 +108,7 @@
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">V<sub>F</sub></span>
+                        <span class="lab">$V_F$</span>
                         <input type="range" id="pp-s-vf" min="0" max="1.2" step="0.01" value="0.7">
                         <span class="val" id="pp-s-vf-val">0.70 V</span>
                     </span>
@@ -126,13 +120,18 @@
                     <svg id="plot-pp-s-circ"></svg>
                 </div>
                 <div class="plot-box trace-box">
-                    <div class="label">input and output · <b>v<sub>in</sub>(t), v<sub>out</sub>(t)</b></div>
+                    <div class="label">input and output · $v_\mathrm{in}(t)$, $v_\mathrm{out}(t)$</div>
                     <svg id="plot-pp-s-trace"></svg>
                 </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-input)"></span>$v_\mathrm{in}(t)$</span>
+                    <span><span class="sw" style="background:var(--c-output)"></span>$v_\mathrm{out}(t)$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-output)"></span>held level $A - V_F$</span>
+                </div>
                 <div class="readout">
-                    <div class="item"><span class="k">peak v<sub>in</sub></span><span class="v" id="pp-s-vp">1.60 V</span></div>
-                    <div class="item"><span class="k">v<sub>out</sub> (held)</span><span class="v" id="pp-s-vo">0.90 V</span></div>
-                    <div class="item"><span class="k">drop V<sub>F</sub></span><span class="v" id="pp-s-vd">0.70 V</span></div>
+                    <div class="item"><span class="k">peak $v_\mathrm{in}$</span><span class="v" id="pp-s-vp">1.60 V</span></div>
+                    <div class="item"><span class="k">$v_\mathrm{out}$ (held)</span><span class="v" id="pp-s-vo">0.90 V</span></div>
+                    <div class="item"><span class="k">drop $V_F$</span><span class="v" id="pp-s-vd">0.70 V</span></div>
                     <div class="item"><span class="k">status</span><span class="v" id="pp-s-st">conducting</span></div>
                 </div>
             </div>
@@ -142,23 +141,23 @@
         <!-- ═════════════ SLIDE 2 · RC ENVELOPE ═════════════ -->
         <section class="slide" data-slide="2" id="sec-rc">
         <div class="copy">
-            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>the rc envelope detector</span></div>
-            <h2>Adding a discharge path with a <em class="thresh">parallel resistor</em>.</h2>
+            <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>The RC envelope detector</span></div>
+            <h2>Adding a discharge path with a parallel resistor</h2>
 
-            <p class="lead">Place a resistor $R$ in parallel with the storage capacitor. Between conduction
+            <p class="lead">A resistor $R$ is placed in parallel with the storage capacitor. Between conduction
                 intervals of the diode, the capacitor discharges exponentially through $R$ with time constant
                 $\tau = RC$. The resulting circuit is known as an envelope detector: it follows the slowly
                 varying amplitude (the envelope) of an amplitude-modulated input, rather than holding the
                 all-time peak.</p>
 
-            <p>The choice of $\tau$ involves a fundamental compromise. If $\tau$ is much shorter than the
+            <p>The choice of $\tau$ involves a compromise. If $\tau$ is much shorter than the
                 carrier period, the capacitor discharges substantially within a single carrier cycle and the
                 output exhibits ripple at the carrier frequency. If $\tau$ is much longer than the timescale
                 of the modulation, the capacitor cannot discharge fast enough to follow a decreasing envelope
                 and a lag develops between the true envelope and the detector output. The standard design
                 criterion is</p>
 
-            <p style="text-align:center;">$$ \tfrac{1}{f_\mathrm{in}} \;\ll\; \tau \;\ll\; \tfrac{1}{f_\mathrm{env}}, $$</p>
+            <p>$$ \tfrac{1}{f_\mathrm{in}} \;\ll\; \tau \;\ll\; \tfrac{1}{f_\mathrm{env}}, $$</p>
 
             <p>where $f_\mathrm{in}$ denotes the carrier frequency and $f_\mathrm{env}$ the highest frequency
                 component of the envelope. When the carrier spectrum and the envelope spectrum overlap, the
@@ -182,19 +181,19 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">τ = RC</span>
+                        <span class="lab">$\tau = RC$</span>
                         <input type="range" id="pp-r-tau" min="5" max="600" step="1" value="120">
                         <span class="val" id="pp-r-tau-val">120 ms</span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">f<sub>carrier</sub></span>
+                        <span class="lab">carrier $f_\mathrm{in}$</span>
                         <input type="range" id="pp-r-fc" min="2" max="40" step="0.5" value="12">
                         <span class="val" id="pp-r-fc-val">12 Hz</span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">f<sub>env</sub></span>
+                        <span class="lab">envelope $f_\mathrm{env}$</span>
                         <input type="range" id="pp-r-fe" min="0.2" max="4" step="0.1" value="1.0">
                         <span class="val" id="pp-r-fe-val">1.0 Hz</span>
                     </span>
@@ -204,11 +203,16 @@
                     <svg id="plot-pp-r-circ"></svg>
                 </div>
                 <div class="plot-box trace-box">
-                    <div class="label">input and output · <b>v<sub>in</sub>(t), v<sub>out</sub>(t)</b></div>
+                    <div class="label">input and output · $v_\mathrm{in}(t)$, $v_\mathrm{out}(t)$</div>
                     <svg id="plot-pp-r-trace"></svg>
                 </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-input)"></span>$v_\mathrm{in}(t)$</span>
+                    <span><span class="sw" style="background:var(--c-output)"></span>$v_\mathrm{out}(t)$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-thresh)"></span>true envelope</span>
+                </div>
                 <div class="readout">
-                    <div class="item"><span class="k">τ / T<sub>carrier</sub></span><span class="v" id="pp-r-ratio">1.4</span></div>
+                    <div class="item"><span class="k">$\tau / T_\mathrm{in}$</span><span class="v" id="pp-r-ratio">1.4</span></div>
                     <div class="item"><span class="k">ripple</span><span class="v" id="pp-r-ripple">0.18 V</span></div>
                     <div class="item"><span class="k">envelope lag</span><span class="v" id="pp-r-lag">low</span></div>
                 </div>
@@ -219,8 +223,8 @@
         <!-- ═════════════ SLIDE 3 · TRANSISTOR RESET ═════════════ -->
         <section class="slide" data-slide="3" id="sec-active">
         <div class="copy">
-            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>switched discharge with a transistor</span></div>
-            <h2>Replacing the resistor with a <em class="output">controlled switch</em>.</h2>
+            <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>Switched discharge with a transistor</span></div>
+            <h2>Replacing the resistor with a controlled switch</h2>
 
             <p class="lead">A continuous bleed resistor enforces an exponential discharge whose time constant
                 is fixed by the choice of $R$. In many measurement contexts, a different behaviour is required:
@@ -269,7 +273,7 @@
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">f<sub>carrier</sub></span>
+                        <span class="lab">carrier $f_\mathrm{in}$</span>
                         <input type="range" id="pp-a-fc" min="6" max="80" step="0.5" value="20">
                         <span class="val" id="pp-a-fc-val">20 Hz</span>
                     </span>
@@ -279,11 +283,16 @@
                     <svg id="plot-pp-a-circ"></svg>
                 </div>
                 <div class="plot-box trace-box">
-                    <div class="label">input and output · <b>v<sub>in</sub>(t), v<sub>out</sub>(t)</b></div>
+                    <div class="label">input and output · $v_\mathrm{in}(t)$, $v_\mathrm{out}(t)$</div>
                     <svg id="plot-pp-a-trace"></svg>
                 </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-input)"></span>$v_\mathrm{in}(t)$</span>
+                    <span><span class="sw" style="background:var(--c-output)"></span>$v_\mathrm{out}(t)$</span>
+                    <span><span class="sw band" style="background:var(--c-thresh);opacity:0.25"></span>reset interval</span>
+                </div>
                 <div class="plot-box short-box">
-                    <div class="label">reset signal · <b>φ<sub>rst</sub>(t)</b></div>
+                    <div class="label">reset signal · $\phi_\mathrm{rst}(t)$</div>
                     <svg id="plot-pp-a-rst"></svg>
                 </div>
                 <div class="readout">
@@ -298,8 +307,8 @@
         <!-- ═════════════ SLIDE 4 · WHERE PASSIVE PEAK DETECTION FAILS ═════════════ -->
         <section class="slide" data-slide="4" id="sec-fail">
         <div class="copy">
-            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>limitations and failure modes</span></div>
-            <h2>Failure modes of <em class="thresh">passive peak detection</em>.</h2>
+            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>Limitations and failure modes</span></div>
+            <h2>Failure modes of passive peak detection</h2>
 
             <p class="lead">Each of the three passive detectors developed above has specific operating regimes
                 in which its output ceases to represent the true peak of the input. To exhibit these regimes
@@ -353,34 +362,45 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">spike size</span>
+                        <span class="lab">spike amplitude</span>
                         <input type="range" id="pp-f-amp" min="0.2" max="2.5" step="0.05" value="0.45">
                         <span class="val" id="pp-f-amp-val">0.45 V</span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">V<sub>F</sub></span>
+                        <span class="lab">$V_F$</span>
                         <input type="range" id="pp-f-vf" min="0" max="1.0" step="0.01" value="0.55">
                         <span class="val" id="pp-f-vf-val">0.55 V</span>
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">τ (RC)</span>
+                        <span class="lab">$\tau = RC$</span>
                         <input type="range" id="pp-f-tau" min="20" max="2000" step="10" value="400">
                         <span class="val" id="pp-f-tau-val">400 ms</span>
                     </span>
                 </div>
                 <div class="plot-box trace-box">
-                    <div class="label">input · <b>v<sub>in</sub>(t)</b> with small early spikes and a decaying spike train</div>
+                    <div class="label">input · $v_\mathrm{in}(t)$ with small early spikes and a decaying spike train</div>
                     <svg id="plot-pp-f-input"></svg>
                 </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-input)"></span>$v_\mathrm{in}(t)$</span>
+                    <span><span class="sw band" style="background:var(--c-thresh);opacity:0.25"></span>below $V_F$: the diode does not conduct</span>
+                </div>
                 <div class="plot-box trace-box">
-                    <div class="label">three passive detectors · <b>simple, RC, transistor-reset</b></div>
+                    <div class="label">three passive detectors · <b>diode-capacitor, RC envelope, transistor reset</b></div>
                     <svg id="plot-pp-f-out"></svg>
                 </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-input);opacity:0.35"></span>input</span>
+                    <span><span class="sw" style="background:var(--c-amber)"></span>diode-capacitor</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-output2)"></span>RC envelope</span>
+                    <span><span class="sw" style="background:var(--c-output)"></span>transistor reset</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-thresh)"></span>reset instants</span>
+                </div>
                 <div class="readout">
-                    <div class="item"><span class="k">small spikes seen</span><span class="v" id="pp-f-small">0 / 4</span></div>
-                    <div class="item"><span class="k">simple detector</span><span class="v" id="pp-f-simple">latched</span></div>
+                    <div class="item"><span class="k">small spikes detected</span><span class="v" id="pp-f-small">0 / 4</span></div>
+                    <div class="item"><span class="k">diode-capacitor</span><span class="v" id="pp-f-simple">latched</span></div>
                     <div class="item"><span class="k">RC tracking</span><span class="v" id="pp-f-rc">lags</span></div>
                 </div>
             </div>
@@ -392,7 +412,7 @@
     <!-- ═════════════ DECK NAV ═════════════ -->
     <div class="nav-hint">Use the dots or the arrow keys to advance through the slides.</div>
     <div class="deck-nav">
-        <span class="arrow" id="nav-prev" aria-label="previous slide">
+        <span class="arrow" id="nav-prev" aria-label="Previous slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 18l-6-6 6-6" />
@@ -400,7 +420,7 @@
         </span>
         <span class="dots" id="nav-dots"></span>
         <span class="counter"><b id="nav-cur">1</b> / <span id="nav-tot">5</span></span>
-        <span class="arrow" id="nav-next" aria-label="next slide">
+        <span class="arrow" id="nav-next" aria-label="Next slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />

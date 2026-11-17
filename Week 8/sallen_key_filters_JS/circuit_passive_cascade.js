@@ -32,9 +32,7 @@
             svg.append('rect').attr('class', 'resistor')
                 .attr('x', cx - w / 2).attr('y', cy - h / 2)
                 .attr('width', w).attr('height', h).attr('rx', 3);
-            svg.append('text')
-                .attr('x', cx).attr('y', cy - h / 2 - 8)
-                .attr('text-anchor', 'middle').attr('font-size', 12).text(label);
+            window.renderKatex(svg, label, cx, cy - h / 2 - 12, { width: 40, height: 18, size: 15 });
         }
         function capacitor(cx, cy, label) {
             var gap = 6, plate = 22;
@@ -44,9 +42,7 @@
             svg.append('line').attr('class', 'cap-plate')
                 .attr('x1', cx - plate / 2 + 4).attr('x2', cx + plate / 2 - 4)
                 .attr('y1', cy + gap / 2).attr('y2', cy + gap / 2);
-            svg.append('text')
-                .attr('x', cx + plate / 2 + 6).attr('y', cy + 4)
-                .attr('text-anchor', 'start').attr('font-size', 12).text(label);
+            window.renderKatex(svg, label, cx + plate / 2 + 18, cy, { width: 24, height: 18, size: 15 });
         }
         function gnd(cx, cy) {
             svg.append('line').attr('class', 'gnd')
@@ -69,8 +65,7 @@
             .attr('text-anchor', 'middle').attr('font-size', 13).text('+');
         svg.append('text').attr('x', xVin).attr('y', top + 54)
             .attr('text-anchor', 'middle').attr('font-size', 13).text('−');
-        svg.append('text').attr('x', xVin - 30).attr('y', top + 44)
-            .attr('text-anchor', 'end').attr('font-size', 12).text('Vin');
+        window.renderKatex(svg, 'V_{\\text{in}}', xVin - 42, top + 40, { width: 28, height: 18, size: 15 });
         wire(xVin, top + 62, xVin, rail);
 
         // Top rail wires
@@ -81,15 +76,15 @@
         wire(xVout, top, xLoad, top);
 
         // Resistors
-        resistor(xR1, top, 'R1');
-        resistor(xR2, top, 'R2');
+        resistor(xR1, top, 'R_1');
+        resistor(xR2, top, 'R_2');
 
         // Capacitors to ground
         wire(xV1, top, xV1, top + 28);
-        capacitor(xV1, top + 38, 'C1');
+        capacitor(xV1, top + 38, 'C_1');
         wire(xV1, top + 44, xV1, rail);
         wire(xVout, top, xVout, top + 28);
-        capacitor(xVout, top + 38, 'C2');
+        capacitor(xVout, top + 38, 'C_2');
         wire(xVout, top + 44, xVout, rail);
 
         // Junction dots
@@ -101,9 +96,8 @@
 
         // Loading arrow: highlight current drawn from C1 by R2
         var arrowY = top - 30;
-        svg.append('text').attr('x', (xV1 + xR2) / 2).attr('y', arrowY)
-            .attr('text-anchor', 'middle').attr('font-size', 11)
-            .attr('fill', T.fg(0.7)).text('R2 draws current from C1');
+        window.renderKatex(svg, 'R_2\\ \\text{draws current from}\\ C_1',
+            (xV1 + xR2) / 2, arrowY - 10, { width: 240, height: 18, size: 14 });
         svg.append('path')
             .attr('d', 'M ' + (xV1 + 20) + ' ' + (arrowY + 6) +
                        ' L ' + (xR2 - 32) + ' ' + (arrowY + 6))
@@ -121,8 +115,7 @@
         // Output terminal
         svg.append('circle').attr('class', 'node-dot')
             .attr('cx', xLoad).attr('cy', top).attr('r', 4);
-        svg.append('text').attr('x', xLoad + 12).attr('y', top + 4)
-            .attr('font-size', 12).attr('fill', T.text).text('Vout');
+        window.renderKatex(svg, 'V_{\\text{out}}', xLoad + 30, top, { width: 36, height: 18, size: 15 });
 
         // Ground rail
         wire(xVin, rail, xLoad, rail);
@@ -133,15 +126,12 @@
             .attr('x', W / 2).attr('y', 28)
             .attr('text-anchor', 'middle').attr('font-size', 13)
             .attr('fill', T.text).text('Two passive RC sections in direct cascade');
-        svg.append('text')
-            .attr('x', W / 2).attr('y', 46)
-            .attr('text-anchor', 'middle').attr('font-size', 11)
-            .attr('fill', T.fg(0.6)).text('R1 = R2 = R   ·   C1 = C2 = C');
+        window.renderKatex(svg, 'R_1 = R_2 = R, \\qquad C_1 = C_2 = C',
+            W / 2, 46, { width: 300, height: 18, size: 14 });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

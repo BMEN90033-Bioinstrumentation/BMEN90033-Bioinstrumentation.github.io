@@ -5,6 +5,9 @@
         document.querySelectorAll('[data-out="' + k + '"]').forEach(function (el) { el.textContent = v; });
     }
 
+    // Typographic minus sign for negative readout values.
+    function minus(s) { return s.replace('-', '\u2212'); }
+
     function dc() {
         var A = window.AMP, b = A.computeDCBias(), ss = A.computeSmallSignal(b);
         set('region', b.region);
@@ -12,11 +15,11 @@
         set('icq', A.fmtmA(b.icq));
         set('vceq', A.fmtV(b.vceq));
         var active = b.region === 'active' && isFinite(ss.av);
-        set('av', active ? ss.av.toFixed(1) : '–');
+        set('av', active ? minus(ss.av.toFixed(1)) : '–');
         set('avdb', active ? (20 * Math.log10(Math.max(Math.abs(ss.av), 1e-10))).toFixed(1) + ' dB' : '–');
         set('gm', b.region !== 'cutoff' ? (ss.gm * 1e3).toFixed(1) + ' mS' : '–');
         set('rpi', b.region !== 'cutoff' ? A.fmtR(Math.round(ss.zin)) : '–');
-        set('avi', b.icq > 0 && b.region === 'active' ? ss.av_intrinsic.toFixed(0) : '–');
+        set('avi', b.icq > 0 && b.region === 'active' ? minus(ss.av_intrinsic.toFixed(0)) : '–');
         set('bforced', b.region === 'saturation' && b.ibq > 0 ? (b.icq / b.ibq).toFixed(1) : '–');
         set('frac', b.region !== 'cutoff' ? ss.vbe_fraction.toFixed(3) : '–');
         tick();

@@ -2,7 +2,7 @@
 (function () {
     var views = new Map();
     var normCache = new WeakMap();
-    var PROBE_COLOR = '#a855f7';
+    var viewWidth = 0;   // width of the view being drawn; keeps boxed labels inside it
     var DEFAULT_ABOVE_PLANE_PITCH = 0.72;
     var MIN_ABOVE_PLANE_PITCH = 0.46;
     var MAX_ABOVE_PLANE_PITCH = 1.56;
@@ -115,7 +115,7 @@
         var view3dButton = toolbar ? toolbar.querySelector('[id$="-view-3d"]') : null;
 
         if (!toolbar) {
-            button.className = 'd3-top-view-toggle';
+            button.className = 'pill d3-top-view-toggle';
             box.appendChild(button);
             return;
         }
@@ -131,8 +131,10 @@
         var rect = view.host.getBoundingClientRect();
         var width = Math.max(1, rect.width);
         var height = Math.max(1, rect.height);
+        viewWidth = width;
         var opts = view.opts;
-        var T = window.T || {};
+        var T = window.T;
+        var PROBE_COLOR = window.AFPlots.getCssVar('--c-mark');
         view.pitch = constrainAbovePlanePitch(view.pitch);
         updateTopButton(view);
 
@@ -189,7 +191,7 @@
         drawProbeTrace(view.svg, project, opts.filter, xDomain, yDomain, sx, sz, PROBE_COLOR, surfaceMode);
         drawProbePoint(view.svg, project, opts.filter, opts.probeOmega, opts.probeActive, xDomain, yDomain, sx, sz, PROBE_COLOR, surfaceMode);
         drawPoleZeroMarkers(view.svg, project, opts.filter, xDomain, yDomain, sx, sz, opts.color, surfaceMode);
-        drawSceneLabels(view.svg, width, T);
+        drawSceneLabels(view.svg, width, height, T);
     }
 
     function updateTopButton(view) {
@@ -201,7 +203,11 @@
     function drawSurface(svg, project, filter, xDomain, yDomain, sx, sz, color, surfaceMode, T, planeSide) {
         var n = 72;
         var cells = [];
-        var meshColor = T.gridAxis || T.grid || T.text || 'rgba(255,255,255,0.24)';
+        var meshColor = T.gridAxis;
+        // Sequential colour scales for the surface height, built from the data palette.
+        var surfaceScale = surfaceMode === 'angle'
+            ? d3.interpolateRgb(T.c('pink'), T.c('slate'))
+            : d3.interpolateRgb(T.c('blue-soft'), T.c('slate'));
 
         function vertexAt(re, im) {
             var value = surfaceValueAt({ re: re, im: im }, filter, surfaceMode);
@@ -229,9 +235,7 @@
                 if (surfaceMode === 'angle' && area >= -0.1) return;
                 if (surfaceMode === 'angle' && hasPhaseWrap(tri) && Math.abs(area) < 8) return;
                 var valueMean = d3.mean(tri, function (v) { return v.value; });
-                var surfaceFill = surfaceMode === 'angle'
-                    ? d3.interpolateRgb('#dc2626', '#1e3a8a')(surfaceMix(valueMean, surfaceMode))
-                    : d3.interpolateRgb('#dbeafe', '#1e3a8a')(surfaceMix(valueMean, surfaceMode));
+                var surfaceFill = surfaceScale(surfaceMix(valueMean, surfaceMode));
                 var depths = points.map(function (p) { return p.depth; });
                 var meanDepth = d3.mean(depths);
                 cells.push({
@@ -328,7 +332,7 @@
     function drawZeroDbPlaneFill(svg, project, filter, xDomain, yDomain, sx, sz, T) {
         var corners = zeroDbPlaneCorners(project, xDomain, yDomain, sx, sz, 0);
         var root = svg.append('g').attr('class', 'd3-zero-db-plane-fill');
-        var fillColor = T.fg ? T.fg(0.16) : 'rgba(128,128,128,0.16)';
+        var fillColor = T.fg(0.16);
         var path = polygonPath(corners) + zeroDbCutoutPath(project, filter, xDomain, yDomain, sx, sz);
 
         root.append('path')
@@ -376,7 +380,7 @@
     function drawZeroDbPlaneOverlay(svg, project, xDomain, yDomain, sx, sz, T) {
         var corners = zeroDbPlaneCorners(project, xDomain, yDomain, sx, sz, 0.006);
         var root = svg.append('g').attr('class', 'd3-zero-db-plane-overlay');
-        var strokeColor = T.fg ? T.fg(0.68) : 'rgba(128,128,128,0.68)';
+        var strokeColor = T.fg(0.68);
 
         root.append('path')
             .attr('d', polygonPath(corners))
@@ -400,8 +404,8 @@
 
     function drawGrid(svg, project, xDomain, yDomain, sx, sz, T) {
         var root = svg.append('g').attr('class', 'd3-base-grid');
-        var gridColor = T.grid || 'rgba(255,255,255,0.18)';
-        var axisColor = T.gridAxis || T.text || '#ffffff';
+        var gridColor = T.grid;
+        var axisColor = T.gridAxis;
 
         for (var x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
             drawLine(root, project({ x: x * sx, y: 0, z: imToZ(yDomain[0], sz) }), project({ x: x * sx, y: 0, z: imToZ(yDomain[1], sz) }), x === 0 ? axisColor : gridColor, x === 0 ? 2 : 1, x === 0 ? 0.9 : 0.45);
@@ -413,7 +417,7 @@
 
     function drawAxes(svg, project, xDomain, yDomain, sx, sz, T, labelsOnly, surfaceMode) {
         var root = svg.append('g').attr('class', 'd3-axes');
-        var axisColor = T.text || '#ffffff';
+        var axisColor = T.text;
         var reStart = project({ x: xDomain[0] * sx, y: 0.02, z: 0 });
         var reEnd = project({ x: xDomain[1] * sx, y: 0.02, z: 0 });
         var imStart = project({ x: 0, y: 0.02, z: imToZ(yDomain[0], sz) });
@@ -434,13 +438,13 @@
 
         addPillText(root, 'Re{s}', reEnd.x + 30, reEnd.y, axisColor, 52);
         addPillText(root, 'Im{s}', imEnd.x, imEnd.y - 16, axisColor, 52);
-        addPillText(root, surfaceMode === 'angle' ? 'angle H(s) [deg]' : '|H(s)| [dB]', magTop.x + 62, magTop.y - 10, axisColor, surfaceMode === 'angle' ? 130 : 104);
+        addPillText(root, surfaceMode === 'angle' ? '∠H(s) [°]' : '|H(s)| [dB]', magTop.x + 62, magTop.y - 10, axisColor, 104);
     }
 
     function drawZeroDbPlaneLabel(svg, project, xDomain, yDomain, sx, sz, color) {
         var root = svg.append('g').attr('class', 'd3-zero-db-plane-label');
         var labelPos = project({ x: xDomain[0] * sx * 0.72, y: 0.08, z: imToZ(yDomain[1] * 0.88, sz) });
-        addPillText(root, '|H(s)| = 1 plane', labelPos.x, labelPos.y, color, 128);
+        addPillText(root, '|H(s)| = 1 plane', labelPos.x, labelPos.y, color, 136);
     }
 
     function drawContour(svg, project, filter, xDomain, yDomain, sx, sz, color) {
@@ -468,18 +472,18 @@
         var labelPos = project({ x: xDomain[1] * sx * 0.58, y: 0.18, z: imToZ(yDomain[1] * 0.72, sz) });
         var pill = root.append('g').attr('transform', 'translate(' + labelPos.x + ',' + labelPos.y + ')');
         pill.append('rect')
-            .attr('x', -48).attr('y', -12)
-            .attr('width', 96).attr('height', 24)
-            .attr('rx', 12)
-            .attr('fill', 'rgba(255,255,255,0.94)')
+            .attr('x', -52).attr('y', -12)
+            .attr('width', 104).attr('height', 24)
+            .attr('rx', 4)
+            .attr('fill', window.T.plotBg)
             .attr('stroke', color)
             .attr('stroke-width', 1.2);
         pill.append('text')
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'middle')
-            .attr('fill', '#1a1a1e')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
+            .attr('fill', window.T.text)
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 12)
             .text('|H(s)| = 1');
     }
 
@@ -513,7 +517,7 @@
                 .attr('cx', q.x)
                 .attr('cy', q.y)
                 .attr('r', 7)
-                .attr('fill', 'rgba(255,255,255,0.92)')
+                .attr('fill', window.T.plotBg)
                 .attr('stroke', color)
                 .attr('stroke-width', 2.6);
         });
@@ -544,7 +548,7 @@
             root.append('line')
                 .attr('x1', marker.x).attr('y1', marker.y)
                 .attr('x2', base.x).attr('y2', base.y)
-                .attr('stroke', '#ffffff')
+                .attr('stroke', window.T.plotBg)
                 .attr('stroke-width', 1.1)
                 .attr('stroke-dasharray', '4 4')
                 .attr('stroke-opacity', 0.74)
@@ -554,7 +558,7 @@
         function drawPoleCross(point, size, width) {
             root.append('path')
                 .attr('d', 'M' + (point.x - size) + ',' + (point.y - size) + 'L' + (point.x + size) + ',' + (point.y + size) + 'M' + (point.x - size) + ',' + (point.y + size) + 'L' + (point.x + size) + ',' + (point.y - size))
-                .attr('stroke', '#ffffff')
+                .attr('stroke', window.T.plotBg)
                 .attr('stroke-width', width)
                 .attr('stroke-linecap', 'round')
                 .attr('pointer-events', 'none');
@@ -566,7 +570,7 @@
                 .attr('cy', point.y)
                 .attr('r', radius)
                 .attr('fill', 'none')
-                .attr('stroke', '#ffffff')
+                .attr('stroke', window.T.plotBg)
                 .attr('stroke-width', width)
                 .attr('pointer-events', 'none');
         }
@@ -602,7 +606,7 @@
             .attr('cx', point.x)
             .attr('cy', point.y)
             .attr('r', 7)
-            .attr('fill', 'rgba(255,255,255,0.96)')
+            .attr('fill', window.T.plotBg)
             .attr('stroke', color)
             .attr('stroke-width', 2.8);
         root.append('circle')
@@ -611,7 +615,7 @@
             .attr('r', 3)
             .attr('fill', color);
 
-        addPillText(root, 's = j' + omega.toFixed(2), point.x + 48, point.y - 18, color, 86);
+        addPillText(root, 's = j' + omega.toFixed(2), point.x + 52, point.y - 18, color, 94);
     }
 
     function drawProbeTrace(svg, project, filter, xDomain, yDomain, sx, sz, color, surfaceMode) {
@@ -656,7 +660,7 @@
                 .x(function (d) { return d.x; })
                 .y(function (d) { return d.y; })(points))
             .attr('fill', 'none')
-            .attr('stroke', 'rgba(255,255,255,0.9)')
+            .attr('stroke', window.T.plotBg)
             .attr('stroke-width', 1.4)
             .attr('stroke-linecap', 'round')
             .attr('stroke-linejoin', 'round')
@@ -679,15 +683,18 @@
             .attr('fill-opacity', 0.82);
     }
 
-    function drawSceneLabels(svg, width, T) {
+    // Interaction hint in the bottom-right corner, clear of the panel label
+    // at the top; the halo keeps it legible over the surface.
+    function drawSceneLabels(svg, width, height, T) {
         svg.append('text')
             .attr('x', width - 16)
-            .attr('y', 24)
+            .attr('y', height - 14)
             .attr('text-anchor', 'end')
-            .attr('fill', T.text || '#ffffff')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('drag to rotate, scroll to zoom');
+            .attr('stroke', T.plotBg).attr('stroke-width', 4).attr('paint-order', 'stroke')
+            .attr('fill', T.textDim)
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 12)
+            .text('Drag to rotate, scroll to zoom');
     }
 
     function drawLine(root, a, b, color, width, opacity) {
@@ -716,35 +723,24 @@
             .attr('fill', color);
     }
 
-    function addText(root, text, x, y, color, anchor) {
-        root.append('text')
-            .attr('x', x)
-            .attr('y', y)
-            .attr('text-anchor', anchor || 'middle')
-            .attr('dominant-baseline', 'middle')
-            .attr('fill', color)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 12)
-            .text(text);
-    }
-
     function addPillText(root, text, x, y, color, width) {
+        if (viewWidth > width + 8) x = clamp(x, width / 2 + 4, viewWidth - width / 2 - 4);
         var group = root.append('g').attr('transform', 'translate(' + x + ',' + y + ')');
         group.append('rect')
             .attr('x', -width / 2)
             .attr('y', -12)
             .attr('width', width)
             .attr('height', 24)
-            .attr('rx', 12)
-            .attr('fill', 'rgba(255,255,255,0.94)')
+            .attr('rx', 4)
+            .attr('fill', window.T.plotBg)
             .attr('stroke', color)
             .attr('stroke-width', 1.1);
         group.append('text')
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'middle')
-            .attr('fill', '#1a1a1e')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
+            .attr('fill', window.T.text)
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 12)
             .text(text);
     }
 
@@ -895,18 +891,6 @@
 
     function inside(p, xDomain, yDomain) {
         return p.re >= xDomain[0] && p.re <= xDomain[1] && p.im >= yDomain[0] && p.im <= yDomain[1];
-    }
-
-    function brighten(color, amount) {
-        return d3.rgb(
-            color.r + (255 - color.r) * amount,
-            color.g + (255 - color.g) * amount,
-            color.b + (255 - color.b) * amount
-        ).formatRgb();
-    }
-
-    function darken(color, amount) {
-        return d3.rgb(color.r * amount, color.g * amount, color.b * amount).formatRgb();
     }
 
     function clamp(v, lo, hi) {

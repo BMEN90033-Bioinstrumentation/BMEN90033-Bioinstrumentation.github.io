@@ -1,4 +1,4 @@
-// Scene 5 — Laplace: σ tames the signal. Signal + wound + s-plane with ROC.
+// Scene 5, Laplace: σ tames the signal. Signal + wound + s-plane with ROC.
 (function () {
   const cSig = document.getElementById('l_sig');
   const cWnd = document.getElementById('l_wound');
@@ -27,18 +27,21 @@
     CFG.clear(ctx, w, h);
     const sigma = parseFloat(sEl.value);
     const a = parseFloat(aEl.value);
-    const padL = 14, padR = 12, padT = 34, padB = 14;
+    const padL = 34, padR = 12, padT = 34, padB = 26;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const mid = (y0 + y1) / 2;
-    ctx.strokeStyle = C.grid;
+    ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
+    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
+    CFG.label(ctx, 'amplitude', 14, mid, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
 
     const Tmax = 8;
     // raw signal
     let maxV = 0;
     for (let i = 0; i <= 200; i++) maxV = Math.max(maxV, Math.abs(signal(i / 200 * Tmax, a)));
     maxV = Math.max(1, maxV);
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.2;
+    ctx.strokeStyle = C.grey; ctx.lineWidth = 1.2;
     ctx.setLineDash([2, 3]);
     ctx.beginPath();
     for (let i = 0; i <= 300; i++) {
@@ -66,9 +69,10 @@
     }
     ctx.stroke();
 
-    CFG.label(ctx, `σ = ${sigma.toFixed(2)}`, x1 - 6, y0 + 6, C.accent, { align: 'right', size: 11 });
-    CFG.label(ctx, 'raw g(t)', x0 + 6, y0 + 6, 'rgba(255,255,255,0.6)', { size: 10 });
-    CFG.label(ctx, 'g(t)·e^(-σt)', x0 + 6, y0 + 22, C.time, { size: 10 });
+    CFG.legend(ctx, x0 + 8, y0 + 12, [
+      { mark: 'dash', text: 'g(t)', color: C.muted },
+      { mark: 'line', text: 'g(t)·exp(−σt)', color: C.time },
+    ]);
   }
 
   function drawWound(tAnim) {
@@ -83,8 +87,11 @@
     ctx.strokeStyle = C.grid;
     for (let r = 1; r <= 4; r++) { ctx.beginPath(); ctx.arc(cx, cy, r * 20, 0, Math.PI * 2); ctx.stroke(); }
     ctx.strokeStyle = C.gridStrong;
-    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+    // Axes stop short of the titles, which sit beyond the axis ends.
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
+    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle' });
+    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center' });
 
     const Tmax = 8, N = 700;
     const scale = 20;
@@ -116,12 +123,10 @@
       const cmx = CFG.clamp(cx + comX * scale, 6, w - 6);
       const cmy = CFG.clamp(cy - comY * scale, 6, h - 6);
       ctx.fillStyle = C.accent;
-      ctx.shadowColor = C.accent; ctx.shadowBlur = 12;
       ctx.beginPath(); ctx.arc(cmx, cmy, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
-    sub.textContent = inROC ? `bounded · in ROC (σ > ${a.toFixed(2)})` : `diverges · outside ROC`;
+    sub.textContent = (inROC ? `Bounded: inside the ROC (σ > ${a.toFixed(2)})` : 'Unbounded: outside the ROC').replace('-', '−');
   }
 
   function drawSPlane() {
@@ -137,34 +142,38 @@
     const sScale = (w - 60) / 3.5;
     const wScale = (h - 40) / 6;
 
+    // Plot frame. The axis titles sit outside it: jω above the vertical
+    // axis, σ to the right of the horizontal axis.
+    const fx0 = 6, fx1 = w - 30, fy0 = 28, fy1 = h - 6;
+
     // ROC region σ > a: fill right of x line
     const xA = cx + a * sScale;
-    ctx.fillStyle = 'rgba(123,224,137,0.08)';
-    ctx.fillRect(xA, 6, w - xA - 6, h - 12);
-    ctx.strokeStyle = 'rgba(123,224,137,0.35)'; ctx.setLineDash([3, 4]);
-    ctx.beginPath(); ctx.moveTo(xA, 6); ctx.lineTo(xA, h - 6); ctx.stroke();
+    ctx.fillStyle = CFG.alpha(C.time, 0.12);
+    ctx.fillRect(xA, fy0, fx1 - xA, fy1 - fy0);
+    ctx.strokeStyle = CFG.alpha(C.time, 0.6); ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(xA, fy0); ctx.lineTo(xA, fy1); ctx.stroke();
     ctx.setLineDash([]);
-    CFG.label(ctx, 'ROC: σ > a', w - 8, h - 10, C.time, { size: 10, align: 'right' });
+    CFG.label(ctx, 'ROC: σ > a', fx1 - 8, fy1 - 6, C.time, { align: 'right', baseline: 'bottom' });
 
     // grid
     ctx.strokeStyle = C.grid;
     for (let i = -3; i <= 3; i++) {
       const x = cx + i * sScale / 2;
-      ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x, h - 6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, fy0); ctx.lineTo(x, fy1); ctx.stroke();
     }
-    for (let i = -3; i <= 3; i++) {
+    for (let i = -2; i <= 3; i++) {
       const y = cy + i * wScale;
-      ctx.beginPath(); ctx.moveTo(6, y); ctx.lineTo(w - 6, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(fx0, y); ctx.lineTo(fx1, y); ctx.stroke();
     }
     ctx.strokeStyle = C.gridStrong;
-    ctx.beginPath(); ctx.moveTo(6, cy); ctx.lineTo(w - 6, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 6); ctx.lineTo(cx, h - 6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(fx0, cy); ctx.lineTo(fx1, cy); ctx.stroke();
 
-    // jω axis — Fourier slice highlight
+    // jω axis, Fourier slice highlight
     ctx.strokeStyle = C.real; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(cx, 6); ctx.lineTo(cx, h - 6); ctx.stroke();
-    CFG.label(ctx, 'jω axis · Fourier slice', cx + 6, 28, C.real, { size: 10 });
-    CFG.label(ctx, 'σ →', w - 6, cy - 4, C.muted, { align: 'right', size: 10 });
+    ctx.beginPath(); ctx.moveTo(cx, fy0); ctx.lineTo(cx, fy1); ctx.stroke();
+    CFG.label(ctx, 'jω', cx, fy0 - 6, C.real, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, 'σ = 0: Fourier transform', cx + 8, fy0 + 6, C.real);
+    CFG.label(ctx, 'σ', fx1 + 8, cy, C.muted, { baseline: 'middle' });
 
     // pole at a ± j w0
     drawPole(ctx, cx + a * sScale, cy - w0 * wScale, C);
@@ -177,15 +186,13 @@
     ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(sx, sy); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = C.accent;
-    ctx.shadowColor = C.accent; ctx.shadowBlur = 14;
     ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
     // Flip the label left/below when near the top-right so it never collides
     // with the "jω axis · Fourier slice" caption up top.
-    const sLblY = sy < 48 ? sy + 10 : sy - 14;
-    const sLblX = sx > w - 140 ? sx - 10 : sx + 10;
-    const sLblAlign = sx > w - 140 ? 'right' : 'left';
-    CFG.label(ctx, `s = ${sigma.toFixed(2)} + j${omega.toFixed(2)}`, sLblX, sLblY, C.accent, { size: 10, align: sLblAlign });
+    const sLblY = sy < 72 ? sy + 10 : sy - 22;
+    const sLblX = sx > w - 200 ? sx - 10 : sx + 10;
+    const sLblAlign = sx > w - 200 ? 'right' : 'left';
+    CFG.label(ctx, `s = ${sigma.toFixed(2)} + j${omega.toFixed(2)}`.replace('-', '−'), sLblX, sLblY, C.accent, { align: sLblAlign });
   }
 
   function drawPole(ctx, x, y, C) {

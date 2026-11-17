@@ -1,7 +1,7 @@
 // Section 02 · Radial conductivity profile sigma(r) of the enabled shells,
 // as the model sees it: the innermost layer holds the source and the
-// outermost extends to infinity. Each step takes its layer colour; the
-// chips above the plot identify the layers, so the plot carries no labels.
+// outermost extends to infinity. Each step takes its layer colour and, where
+// the step is wide enough, a direct label with the layer key.
 (function () {
     var sel = '#plot-sigma';
     var R_MAX = 20;
@@ -32,9 +32,9 @@
         if (!act.length) {
             // Centred left of the electrode-radius guide, on a background pill
             // so the vertical gridlines do not run through it.
-            var bg = g.append('rect').attr('fill', css('--bg-2')).attr('rx', 4);
+            var bg = g.append('rect').attr('fill', css('--white')).attr('rx', 4);
             var tx = g.append('text').attr('x', xs / 2).attr('y', y(0.0316) + 4).attr('text-anchor', 'middle')
-                .attr('fill', T.textDim).attr('font-size', 13).text('no layers enabled: homogeneous medium');
+                .attr('fill', T.textDim).attr('font-size', 13).text('No layers enabled: homogeneous medium');
             var b = tx.node().getBBox();
             bg.attr('x', b.x - 8).attr('y', b.y - 4).attr('width', b.width + 16).attr('height', b.height + 8);
             return;
@@ -50,6 +50,14 @@
             }
             g.append('line').attr('x1', x(r0)).attr('x2', x(r1)).attr('y1', yy).attr('y2', yy)
                 .attr('stroke', c).attr('stroke-width', 3).attr('stroke-linecap', 'butt');
+            // Direct label above the step, on a background pill so gridlines
+            // do not run through it; omitted where the step is too narrow.
+            var lbg = g.append('rect').attr('fill', css('--white')).attr('rx', 3);
+            var lt = g.append('text').attr('x', (x(r0) + x(r1)) / 2).attr('y', yy - 9)
+                .attr('text-anchor', 'middle').attr('fill', T.text).attr('font-size', 13).text(l.key);
+            var lb = lt.node().getBBox();
+            if (lb.width + 8 > x(r1) - x(r0)) { lt.remove(); lbg.remove(); }
+            else lbg.attr('x', lb.x - 3).attr('y', lb.y).attr('width', lb.width + 6).attr('height', lb.height);
             prevY = yy; prevX = x(r1); r0 = r1;
         });
     }

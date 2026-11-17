@@ -18,13 +18,13 @@
 
     function buildFilters(N) {
         var list = [
-            { name: 'butterworth',  filt: window.FilterMath.butterworth(N),     css: 'butter' },
-            { name: 'chebyshev I',  filt: window.FilterMath.chebyshev1(N, 0.35), css: 'cheb1' },
-            { name: 'chebyshev II', filt: window.FilterMath.chebyshev2(N, 0.10), css: 'cheb2' }
+            { name: 'Butterworth',  filt: window.FilterMath.butterworth(N),     css: 'butter' },
+            { name: 'Chebyshev I',  filt: window.FilterMath.chebyshev1(N, 0.35), css: 'cheb1' },
+            { name: 'Chebyshev II', filt: window.FilterMath.chebyshev2(N, 0.10), css: 'cheb2' }
         ];
         // Elliptic is tabulated for N ∈ {2,3,4,5}
         if (N >= 2 && N <= 5) {
-            list.push({ name: 'elliptic', filt: window.FilterMath.elliptic(N), css: 'ellip' });
+            list.push({ name: 'Elliptic', filt: window.FilterMath.elliptic(N), css: 'ellip' });
         }
         return list;
     }
@@ -66,14 +66,12 @@
             });
         });
 
-        // Legend in the bottom-right corner.
+        // Legend below the plot frame.
         var legend = families.map(function (f) {
             return { color: colorMap[f.css], label: f.name };
         });
-        window.AFPlots.drawLegend(SP.g,
-            SP.innerW - 8,
-            SP.innerH - 8 - 18 * (legend.length - 1) - 12,
-            legend, T);
+        legend.push({ subRow: true, label: 'Dashed outlines: unity-gain contours' });
+        window.AFPlots.drawLegend(SP.g, SP.legendX, SP.legendY, legend, T);
     }
 
     function renderBode() {
@@ -129,7 +127,6 @@
     function init() {
         if (sliderN) sliderN.addEventListener('input', onSlider);
         if (sliderN) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

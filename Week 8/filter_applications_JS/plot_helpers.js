@@ -10,7 +10,7 @@
         ax.selectAll('path,line').attr('stroke', T.gridAxis);
         ax.selectAll('text')
             .attr('fill', T.text)
-            .attr('font-size', 12)
+            .attr('font-size', 13)
             .attr('font-family', "'JetBrains Mono', monospace");
     }
 
@@ -21,7 +21,8 @@
         var yDomain = opts.yDomain || [-1.2, 1.2];
         var xTitle  = opts.xTitle  || 't \\, [\\mathrm{s}]';
         var yTitle  = opts.yTitle  || 'amplitude';
-        var margin  = opts.margin  || { top: 30, right: 28, bottom: 50, left: 64 };
+        var margin  = opts.margin  || { top: 30, right: 28, bottom: 50, left: 76 };
+        var legend  = (opts.legend || []).filter(function (it) { return it.show !== false; });
 
         var root = d3.select(sel);
         root.selectAll('*').remove();
@@ -31,6 +32,18 @@
         var H = rect.height || 320;
 
         var innerW = W - margin.left - margin.right;
+
+        // Legend rows sit in the top margin, below the panel label, so the
+        // legend never covers a trace. Items wrap when the plot is narrow.
+        var CH = 7.9, SW = 18, ROW = 18;   // 13 px mono advance, swatch, row height
+        var lx = 0, row = 0;
+        legend.forEach(function (it) {
+            var w = SW + 6 + it.label.length * CH + 16;
+            if (lx > 0 && lx + w - 16 > innerW) { lx = 0; row++; }
+            it._x = lx; it._row = row; lx += w;
+        });
+        if (legend.length) margin = Object.assign({}, margin, { top: margin.top + ROW * (row + 1) + 2 });
+
         var innerH = H - margin.top  - margin.bottom;
 
         var svg = root.append('svg')
@@ -43,6 +56,18 @@
 
         var g = svg.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        legend.forEach(function (it) {
+            var ly = -ROW * (row - it._row) - 10;
+            g.append('line')
+                .attr('x1', it._x).attr('x2', it._x + SW)
+                .attr('y1', ly - 4).attr('y2', ly - 4)
+                .attr('stroke', it.color).attr('stroke-width', 2.2)
+                .attr('stroke-dasharray', it.dashed ? '4 4' : null);
+            g.append('text')
+                .attr('x', it._x + SW + 6).attr('y', ly)
+                .text(it.label);
+        });
 
         // Gridlines
         var yTicks = opts.yTicks || y.ticks(5);
@@ -71,9 +96,9 @@
         }
 
         var xAxis = d3.axisBottom(x).tickValues(xTicks).tickSizeOuter(0)
-            .tickFormat(opts.xTickFormat || d3.format('.2g'));
+            .tickFormat(opts.xTickFormat || d3.format('~g'));
         var yAxis = d3.axisLeft(y).tickValues(yTicks).tickSizeOuter(0)
-            .tickFormat(opts.yTickFormat || d3.format('.2g'));
+            .tickFormat(opts.yTickFormat || d3.format('~g'));
 
         var xg = g.append('g').attr('transform', 'translate(0,' + innerH + ')').call(xAxis);
         var yg = g.append('g').call(yAxis);
@@ -108,7 +133,7 @@
         var yDomain = opts.yDomain || [0, 1.05];
         var xTitle  = opts.xTitle  || 'f \\, [\\mathrm{Hz}]';
         var yTitle  = opts.yTitle  || '|H(f)|';
-        var margin  = opts.margin  || { top: 30, right: 28, bottom: 50, left: 60 };
+        var margin  = opts.margin  || { top: 30, right: 28, bottom: 50, left: 78 };
 
         var root = d3.select(sel);
         root.selectAll('*').remove();
@@ -149,9 +174,9 @@
             .attr('stroke', T.grid).attr('stroke-width', 1);
 
         var xAxis = d3.axisBottom(x).tickValues(xTicks).tickSizeOuter(0)
-            .tickFormat(opts.xTickFormat || d3.format('.2g'));
+            .tickFormat(opts.xTickFormat || d3.format('~g'));
         var yAxis = d3.axisLeft(y).tickValues(yTicks).tickSizeOuter(0)
-            .tickFormat(opts.yTickFormat || d3.format('.2g'));
+            .tickFormat(opts.yTickFormat || d3.format('~g'));
 
         var xg = g.append('g').attr('transform', 'translate(0,' + innerH + ')').call(xAxis);
         var yg = g.append('g').call(yAxis);

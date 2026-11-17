@@ -186,17 +186,21 @@
         var realTicks = [-0.4, 0, 0.4, 0.8, 1.0, 1.2, 1.6, 2.0];
         realTicks.forEach(function (rv) {
             if (rv < x.domain()[0] || rv > x.domain()[1]) return;
+            if (x(rv) > innerW - 16) return;        // label would cross the frame
             g.append('line')
                 .attr('x1', x(rv)).attr('x2', x(rv))
                 .attr('y1', y(0) - 4).attr('y2', y(0) + 4)
                 .attr('stroke', tickLine).attr('stroke-width', 1);
             g.append('text')
-                .attr('x', x(rv))
-                .attr('y', y(0) + 16)
-                .attr('text-anchor', 'middle')
+                .attr('x', rv === 0 ? x(rv) - 8 : x(rv))
+                .attr('y', y(0) + 22)
+                .attr('text-anchor', rv === 0 ? 'end' : 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('fill', window.T.textDim)
+                // halo keeps the label legible where the locus crosses it
+                .attr('paint-order', 'stroke')
+                .attr('stroke', window.T.plotBg).attr('stroke-width', 4)
                 .text(rv === 0 ? '0' : rv.toFixed(1));
         });
         var imagTicks = [-1.0, -0.5, 0.5, 1.0];
@@ -211,7 +215,7 @@
                 .attr('y', y(iv) + 4)
                 .attr('text-anchor', 'end')
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('fill', window.T.textDim)
                 .text(iv.toFixed(1));
         });
@@ -222,19 +226,21 @@
             { width: 240, height: 24, size: 14 });
         window.renderKatex(svg, '\\Re\\{A\\beta(j\\omega)\\}',
             margin.left + innerW + 70, margin.top + y(0),
-            { width: 140, height: 24, size: 13 });
+            { width: 140, height: 24, size: 14 });
 
         // ── on-plot annotations ─────────────────────────────────────
         window.renderKatex(svg, '1 + j\\,0',
-            margin.left + x(1), margin.top + y(0) - 22,
-            { width: 100, height: 20, size: 12, color: targetColor });
+            margin.left + x(1) + 38, margin.top + y(0) - 26,
+            { width: 56, height: 20, size: 13, color: targetColor })
+            .select('div').style('background', window.T.plotBg);
         window.renderKatex(svg,
             'A\\beta(j\\omega_0) = ' + (state.A * BETA0).toFixed(3),
-            margin.left + x(markerR), margin.top + y(0) + 22,
-            { width: 220, height: 22, size: 12, color: traceColor });
+            margin.left + x(markerR), margin.top + y(0) + 42,
+            { width: 150, height: 22, size: 13, color: traceColor })
+            .select('div').style('background', window.T.plotBg);
 
         // ── legend (top-right of plot) ──────────────────────────────
-        var legRowH = 18;
+        var legRowH = 22;
         var legSegW = 22;
         var legGap  = 8;
         var legLabelW = 200;
@@ -256,7 +262,7 @@
             if (it.dashed) seg.attr('stroke-dasharray', '4 4');
             window.renderKatex(svg, it.label,
                 legX + legSegW + legGap + legLabelW / 2, ly,
-                { width: legLabelW, height: 18, size: 11,
+                { width: legLabelW, height: 18, size: 13,
                   color: window.T.text, align: 'left' })
                 .attr('opacity', it.op);
         });
@@ -285,7 +291,6 @@
 
     function init() {
         attachSlider();   // also runs the first render
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

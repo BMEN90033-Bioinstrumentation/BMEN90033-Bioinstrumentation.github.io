@@ -1,4 +1,4 @@
-// Scene 2 — Rotating phasor.
+// Scene 2, Rotating phasor.
 // cos(ωt) = real shadow: lives BELOW the plane, shares its vertical axis with Re.
 //   Horizontal position of the trace = real shadow value, vertical position = time (flowing DOWN).
 // sin(ωt) = imaginary shadow: lives to the RIGHT of the plane, shares its horizontal axis with Im.
@@ -21,7 +21,7 @@
     wO.textContent = omega.toFixed(2);
     aO.textContent = A.toFixed(2);
 
-    const stripW = 120;
+    const stripW = 150;
     const margin = 14;
     const planeX0 = margin, planeY0 = margin;
     const planeX1 = w - stripW - margin;
@@ -42,7 +42,7 @@
       ctx.beginPath(); ctx.moveTo(gx, planeY0); ctx.lineTo(gx, planeY1); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(planeX0, gy); ctx.lineTo(planeX1, gy); ctx.stroke();
     }
-    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.strokeStyle = CFG.ink(0.14);
     ctx.setLineDash([4, 5]);
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
@@ -51,8 +51,8 @@
     ctx.beginPath(); ctx.moveTo(planeX0, cy); ctx.lineTo(planeX1, cy); ctx.stroke();
     ctx.strokeStyle = C.imag;
     ctx.beginPath(); ctx.moveTo(cx, planeY0); ctx.lineTo(cx, planeY1); ctx.stroke();
-    CFG.label(ctx, 'Re', planeX1 - 4, cy + 6, C.real, { align: 'right', size: 11 });
-    CFG.label(ctx, 'Im', cx + 8, planeY0 + 4, C.imag, { size: 11 });
+    CFG.label(ctx, 'Re', planeX1 - 6, cy - 8, C.real, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, 'Im', cx + 8, planeY0 + 4, C.imag);
 
     // Phasor tip
     const phi = tAnim * omega;
@@ -62,7 +62,7 @@
     const py = cy - imVal * R;
 
     // fading orbit trail
-    ctx.strokeStyle = 'rgba(255,207,92,0.18)'; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = CFG.alpha(C.accent, 0.35); ctx.lineWidth = 1.5;
     ctx.beginPath();
     for (let k = 0; k < 80; k++) {
       const p = phi - k * 0.04;
@@ -89,9 +89,7 @@
     ctx.strokeStyle = C.accent; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
     ctx.fillStyle = C.accent;
-    ctx.shadowColor = C.accent; ctx.shadowBlur = 10;
     ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
 
     const Tspan = 6; // seconds of history shown
 
@@ -103,7 +101,7 @@
     const bottomTop = planeY1 + 8;
     const bottomBot = h - margin;
     const bottomH = bottomBot - bottomTop;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = CFG.ink(0.08);
     ctx.strokeRect(planeX0, bottomTop, pw, bottomH);
 
     // vertical zero line (real = 0) aligns with cx
@@ -131,12 +129,10 @@
     ctx.beginPath(); ctx.moveTo(px, cy); ctx.lineTo(px, bottomTop + 2); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = C.real;
-    ctx.shadowColor = C.real; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(px, bottomTop + 2, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
 
-    CFG.label(ctx, 'cos(ωt) = Re{e^{jωt}}', planeX0 + 6, bottomTop + 4, C.real, { size: 10 });
-    CFG.label(ctx, 'time ↓', planeX1 - 6, bottomBot - 4, C.muted, { size: 9, align: 'right' });
+    CFG.label(ctx, 'cos ωt (real part)', planeX0 + 6, bottomTop + 6, C.real);
+    CFG.label(ctx, 'time ↓', planeX1 - 6, bottomBot - 6, C.muted, { align: 'right', baseline: 'bottom' });
 
     // ===================================================================
     // RIGHT STRIP: sin(ωt) = imaginary shadow.
@@ -146,7 +142,7 @@
     const rightLeft = planeX1 + 8;
     const rightRight = w - margin;
     const rightW = rightRight - rightLeft;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = CFG.ink(0.08);
     ctx.strokeRect(rightLeft, planeY0, rightW, ph);
 
     // horizontal zero line aligns with cy (imag = 0)
@@ -174,12 +170,11 @@
     ctx.beginPath(); ctx.moveTo(cx, py); ctx.lineTo(rightLeft + 2, py); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = C.imag;
-    ctx.shadowColor = C.imag; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(rightLeft + 2, py, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
 
-    CFG.label(ctx, 'sin(ωt) = Im{e^{jωt}}', rightLeft + 6, planeY0 + 4, C.imag, { size: 10 });
-    CFG.label(ctx, 'time →', rightRight - 6, planeY1 - 4, C.muted, { size: 9, align: 'right' });
+    CFG.label(ctx, 'sin ωt', rightLeft + 6, planeY0 + 6, C.imag);
+    CFG.label(ctx, '(imaginary part)', rightLeft + 6, planeY0 + 24, C.imag);
+    CFG.label(ctx, 'time →', rightRight - 6, planeY1 - 6, C.muted, { align: 'right', baseline: 'bottom' });
   }
 
   CFG.registerLoop(canvas, draw);

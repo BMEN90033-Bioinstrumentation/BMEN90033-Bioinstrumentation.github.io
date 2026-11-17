@@ -89,42 +89,18 @@
             .attr('y1', 0).attr('y2', H.innerH)
             .attr('stroke', T.fg(0.35)).attr('stroke-width', 1)
             .attr('stroke-dasharray', '3 3');
-        H.gMag.append('text')
-            .attr('x', x0 - 6).attr('y', 14)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.55))
-            .attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('1 / RC');
+        // Label at the foot of the magnitude panel, clear of every trace.
+        window.renderKatex(H.gMag, '1/RC', x0 - 26, H.innerH - 12,
+            { width: 40, height: 18, size: 13, color: T.textDim });
 
         H_helpers.attachHover(H, [
             { name: 'buffered cascade',  cssClass: 'buffered', pts: bPts },
             { name: 'passive cascade',   cssClass: 'passive',  pts: pPts }
         ]);
-
-        var entries = [
-            { c: 'buffered', label: 'buffered  (1+sRC)²' },
-            { c: 'passive',  label: 'passive  (loaded)' }
-        ];
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
-        entries.forEach(function (e, idx) {
-            var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
-            row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8)
-                .attr('y1', 8).attr('y2', 8);
-            row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
-                .attr('fill', T.text)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .text(e.label);
-        });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

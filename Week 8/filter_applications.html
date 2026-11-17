@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Filter Applications</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Filter applications</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="filter_applications_JS/filter_applications.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -48,12 +43,12 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 8 · FILTER APPLICATIONS</div>
-            <h1 class="hero">Filter applications in <em>measurement systems</em>.</h1>
+            <h1 class="hero">Filter applications in measurement systems</h1>
             <p class="sub">A filter implements a frequency-selective gain. By specifying which frequency components
                 are transmitted and which are attenuated, a measurement chain can separate signal from noise, prevent
                 aliasing during sampling, suppress slow baseline drift, and reject narrow-band interference. Four
                 worked examples are presented below: low-pass smoothing, anti-alias filtering prior to an
-                analog-to-digital converter, high-pass removal of baseline wander in an electrocardiogram, and a
+                analogue-to-digital converter, high-pass removal of baseline wander in an electrocardiogram, and a
                 notch filter at the mains frequency.</p>
             <div class="tags">
                 <span class="field-tag">smoothing</span>
@@ -69,7 +64,7 @@
     <section class="scene" id="sec-lpf">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>low-pass smoothing</span></div>
-            <h2>Low-pass smoothing. <em class="filtered">Attenuation of out-of-band noise.</em></h2>
+            <h2>Low-pass smoothing: attenuation of out-of-band noise</h2>
 
             <p class="lead">Most physiological signals carry their diagnostic information within a relatively narrow
                 low-frequency band, whereas sensor noise, thermal noise, and electromagnetic pickup distribute their
@@ -80,10 +75,10 @@
             <div class="eq-block">$$ |H_{\text{LPF}}(f)| \;=\; \frac{1}{\sqrt{1 + (f / f_c)^2}}, \qquad
                 y[n] \;=\; \alpha\, x[n] \,+\, (1-\alpha)\, y[n-1]. $$</div>
 
-            <h3>Description of the figure.</h3>
-            <p>The red trace shows the recorded input, comprising a slow biosignal, additive white noise, and a
+            <h3>Description of the figure</h3>
+            <p>The orange trace shows the recorded input, comprising a slow biosignal, additive white noise, and a
                 $50\,\mathrm{Hz}$ component representing mains pickup. The green trace shows the same input after
-                a first-order low-pass filter with cutoff $f_c$, applied forward and then backward in time. The faint blue trace is the underlying noise-free
+                a first-order low-pass filter with cutoff $f_c$, applied forward and then backward in time. The dashed blue trace is the underlying noise-free
                 signal, included for reference; the filtered output approaches this reference when $f_c$ lies below
                 the noise band yet above the signal band.</p>
 
@@ -118,7 +113,7 @@
                     <svg id="plot-lpf-time"></svg>
                 </div>
                 <div class="plot-box mag-small">
-                    <div class="label">effective magnitude response · <b>|H<sub>LPF</sub>(f)|<sup>2</sup></b></div>
+                    <div class="label">effective magnitude response · <b>$|H_{\text{LPF}}(f)|^2$</b></div>
                     <svg id="plot-lpf-mag"></svg>
                 </div>
             </div>
@@ -129,7 +124,7 @@
     <section class="scene" id="sec-aa">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>anti-alias filtering</span></div>
-            <h2>Anti-alias filtering. <em class="filtered">Bandlimiting prior to sampling.</em></h2>
+            <h2>Anti-alias filtering: band-limiting prior to sampling</h2>
 
             <p class="lead">A sampler operating at rate $f_s$ can uniquely represent frequencies only up to the
                 Nyquist limit $f_s/2$. Any input component above this limit is folded back into the baseband at a
@@ -140,24 +135,24 @@
             <div class="eq-block">$$ f_{\text{alias}} \;=\; \bigl|\, f_{\text{in}} - n f_s \,\bigr|,
                 \quad n = \mathrm{round}(f_{\text{in}} / f_s). $$</div>
 
-            <h3>Description of the figure.</h3>
-            <p>The faint blue curve represents the continuous-time input sinusoid. The yellow markers indicate the
-                sample values acquired at rate $f_s$. The bold trace passing through these markers shows the ideal
+            <h3>Description of the figure</h3>
+            <p>The dashed blue curve represents the continuous-time input sinusoid. The black markers indicate the
+                sample values acquired at rate $f_s$. The solid trace passing through these markers shows the ideal
                 sinc reconstruction, that is, the continuous waveform that would be produced by an ideal
-                digital-to-analog converter operating on those samples. With the anti-alias filter disabled, an input
+                digital-to-analogue converter operating on those samples. With the anti-alias filter disabled, an input
                 above $f_s/2$ yields samples consistent with a lower-frequency sinusoid; the resulting reconstruction
-                is plotted in purple and corresponds to the aliased component. With the filter enabled, the input is
+                is plotted in violet and corresponds to the aliased component. With the filter enabled, the input is
                 attenuated before sampling, the samples approach zero, and the reconstruction is correspondingly
                 flat.</p>
 
             <p>The lower panel illustrates the spectrum. The green region indicates the passband below $f_s/2$, and
-                the red region indicates the stopband above. A blue stem marks the position of the input frequency,
-                and a purple stem marks the location at which the alias appears within the baseband. As the input
+                the pink region indicates the stopband above. A blue stem marks the position of the input frequency,
+                and a violet stem marks the location at which the alias appears within the baseband. As the input
                 frequency exceeds $f_s/2$, the stem in the stopband produces a corresponding fold-back component
                 within the passband.</p>
 
             <div class="callout">
-                The anti-alias filter must be implemented in hardware, immediately preceding the analog-to-digital
+                The anti-alias filter must be implemented in hardware, immediately preceding the analogue-to-digital
                 converter. It cannot be applied in software after sampling, because at that point the aliased
                 components are already superimposed on the legitimate signal. A digital low-pass filter applied
                 post-sampling can reduce broadband noise but cannot recover information lost to aliasing at the same
@@ -169,7 +164,7 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">input freq</span>
+                        <span class="lab">input frequency</span>
                         <input type="range" id="aa-fsig-slider" min="1" max="200" step="0.5" value="70">
                         <span class="val" id="aa-fsig-val">70 Hz</span>
                     </span>
@@ -179,7 +174,7 @@
                         <span class="val" id="aa-fs-val">100 Hz</span>
                     </span>
                     <span class="divider"></span>
-                    <span class="pill" id="aa-aaf-toggle">anti-aliasing off</span>
+                    <span class="pill" id="aa-aaf-toggle">anti-alias filter off</span>
                 </div>
                 <div class="plot-box time-pair">
                     <div class="label">time domain · <b>continuous input · samples · reconstruction</b></div>
@@ -197,7 +192,7 @@
     <section class="scene" id="sec-hpf">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>baseline wander removal</span></div>
-            <h2>Baseline wander removal. <em class="filtered">High-pass rejection of slow drift.</em></h2>
+            <h2>Baseline wander removal: high-pass rejection of slow drift</h2>
 
             <p class="lead">An electrocardiogram is recorded on a baseline that is not stationary. Respiration,
                 electrode polarisation, and patient movement each contribute slow voltage drifts whose amplitude can
@@ -209,10 +204,10 @@
             <div class="eq-block">$$ |H_{\text{HPF}}(f)| \;=\; \frac{f / f_c}{\sqrt{1 + (f / f_c)^2}}, \qquad
                 y[n] \;=\; \alpha\,(y[n-1] + x[n] - x[n-1]). $$</div>
 
-            <h3>Description of the figure.</h3>
+            <h3>Description of the figure</h3>
             <p>The dashed grey curve represents the slow drift component, with energy concentrated below
-                $0.5\,\mathrm{Hz}$. The red trace shows the recorded ECG, comprising the underlying beats summed
-                with this drift. The faint blue trace is the noise-free reference, included for comparison. The
+                $0.5\,\mathrm{Hz}$. The orange trace shows the recorded ECG, comprising the underlying beats summed
+                with this drift. The dashed blue trace is the noise-free reference, included for comparison. The
                 green trace is the high-pass output: as $f_c$ is increased through the drift band, the baseline
                 progressively flattens. When $f_c$ is increased beyond the drift band, however, low-frequency
                 components of the QRS complex are also attenuated, producing distortion of the waveform morphology.</p>
@@ -227,8 +222,7 @@
                 to $0.67\,\mathrm{Hz}$ when a linear-phase or zero-phase filter is used; continuous monitoring commonly
                 uses approximately $0.5\,\mathrm{Hz}$. Higher cutoff frequencies
                 flatten the baseline more effectively but introduce distortion of the ST segment, which is used in
-                the assessment of ischaemia. The selection of $f_c$ therefore reflects a clinical compromise rather
-                than an arbitrary choice.
+                the assessment of ischaemia. The selection of $f_c$ is therefore a clinical compromise.
             </div>
         </div>
 
@@ -248,7 +242,7 @@
                     <svg id="plot-hpf-time"></svg>
                 </div>
                 <div class="plot-box mag-small">
-                    <div class="label">effective magnitude response · <b>|H<sub>HPF</sub>(f)|<sup>2</sup></b></div>
+                    <div class="label">effective magnitude response · <b>$|H_{\text{HPF}}(f)|^2$</b></div>
                     <svg id="plot-hpf-mag"></svg>
                 </div>
             </div>
@@ -259,7 +253,7 @@
     <section class="scene" id="sec-notch">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>mains-frequency notch</span></div>
-            <h2>Mains-frequency notch. <em class="filtered">Rejection of narrow-band interference.</em></h2>
+            <h2>Mains-frequency notch: rejection of narrow-band interference</h2>
 
             <p class="lead">Capacitive coupling between mains wiring and the patient leads introduces a sinusoidal
                 interference at $50\,\mathrm{Hz}$, or $60\,\mathrm{Hz}$ in some regions, into every biopotential
@@ -276,9 +270,9 @@
                 notch, attenuating a small band around $f_0$ while leaving adjacent frequencies essentially
                 unaffected.</p>
 
-            <h3>Description of the figure.</h3>
-            <p>The red trace shows the contaminated ECG, comprising the clean signal summed with a $50\,\mathrm{Hz}$
-                sinusoid of sufficient amplitude to obscure the QRS detail. The faint blue trace is the noise-free
+            <h3>Description of the figure</h3>
+            <p>The orange trace shows the contaminated ECG, comprising the clean signal summed with a $50\,\mathrm{Hz}$
+                sinusoid of sufficient amplitude to obscure the QRS detail. The dashed blue trace is the noise-free
                 reference. The green trace is the notch output. When $f_0$ is aligned with $50\,\mathrm{Hz}$ and $Q$
                 is sufficiently large, the interference is suppressed and the underlying waveform morphology is
                 recovered. The lower panel shows the effective forward-backward notch response $|H(f)|^2$: a sharp attenuation at $f_0$ and
@@ -299,14 +293,14 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">notch f<sub>0</sub></span>
+                        <span class="lab">notch $f_0$</span>
                         <input type="range" id="notch-f0-slider" min="20" max="120" step="0.5" value="50">
                         <span class="val" id="notch-f0-val">50 Hz</span>
                     </span>
                     <span class="slider-group">
-                        <span class="lab">quality Q</span>
+                        <span class="lab">quality factor $Q$</span>
                         <input type="range" id="notch-q-slider" min="2" max="60" step="1" value="12">
-                        <span class="val" id="notch-q-val">Q = 12</span>
+                        <span class="val" id="notch-q-val">12</span>
                     </span>
                     <span class="divider"></span>
                     <span class="pill active" id="notch-hum-toggle">50 Hz hum on</span>
@@ -316,7 +310,7 @@
                     <svg id="plot-notch-time"></svg>
                 </div>
                 <div class="plot-box mag-small">
-                    <div class="label">effective magnitude response · <b>|H<sub>notch</sub>(f)|<sup>2</sup></b></div>
+                    <div class="label">effective magnitude response · <b>$|H_{\text{notch}}(f)|^2$</b></div>
                     <svg id="plot-notch-mag"></svg>
                 </div>
             </div>
@@ -325,6 +319,7 @@
 
     <footer>BMEN90033 · The University of Melbourne</footer>
 
+    <script defer src="../components/eq_fit.js"></script>
     <script defer src="filter_applications_JS/katex_label.js"></script>
     <script defer src="filter_applications_JS/plot_helpers.js"></script>
     <script defer src="filter_applications_JS/signals.js"></script>

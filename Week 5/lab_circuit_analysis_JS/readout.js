@@ -1,6 +1,9 @@
 // Fills every [data-out] readout value from the present parameters and the
 // cursor frequency.
 (function () {
+    // Typographic minus sign for negative readout values.
+    function sgn(s) { return s.replace('-', '−'); }
+
     function render() {
         var L = window.LCA, p = L.p, P = L.params();
         var tau = 2 * Math.PI;
@@ -24,11 +27,11 @@
             fh1: L.fmtFreq(P.wH1 / tau),
             fh2: L.fmtFreq(P.wH2 / tau),
             cmiller: (P.Cin_Miller * 1e12).toFixed(1) + ' pF',
-            mag: h.mag.toFixed(2) + ' (' + magDb.toFixed(1) + ' dB)',
-            phase: L.unwrappedPhase(P, p.f).toFixed(1) + '°',
+            mag: h.mag.toFixed(2) + ' (' + sgn(magDb.toFixed(1)) + ' dB)',
+            phase: sgn(L.unwrappedPhase(P, p.f).toFixed(1)) + '°',
             a360: a360.toFixed(1) + '°',
-            re: h.re.toFixed(2),
-            im: h.im.toFixed(2) + 'j'
+            re: sgn(h.re.toFixed(2)),
+            im: sgn(h.im.toFixed(2)) + 'j'
         };
         document.querySelectorAll('[data-out]').forEach(function (el) {
             el.textContent = out[el.dataset.out];

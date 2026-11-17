@@ -61,7 +61,7 @@
 
         // Axes: position in µm along the bottom, energy arrow on the left.
         var xa = g.append('g').attr('transform', 'translate(0,' + ih + ')').call(d3.axisBottom(x).ticks(6).tickSizeOuter(0));
-        window.CMP.styleAxis(xa);
+        P.styleAxis(xa);
         g.append('line').attr('x1', -8).attr('x2', -8).attr('y1', ih).attr('y2', -6)
             .attr('stroke', T.gridAxis).attr('stroke-width', 1.2);
         g.append('path').attr('d', 'M-12,2 L-8,-8 L-4,2').attr('fill', 'none').attr('stroke', T.gridAxis).attr('stroke-width', 1.2);
@@ -118,7 +118,7 @@
         var mono = "'JetBrains Mono', monospace";
         function name(txt, px, anchor, col) {
             g.append('text').attr('x', px).attr('y', ih * 0.07 - 2).attr('text-anchor', anchor)
-                .attr('dominant-baseline', 'middle').attr('font-family', mono).attr('font-size', 12).attr('fill', col).text(txt);
+                .attr('dominant-baseline', 'middle').attr('font-family', mono).attr('font-size', 13).attr('fill', col).text(txt);
         }
         name('p-type', 4, 'start', css('--c-b'));
         name('n-type', iw - 4, 'end', css('--c-p'));

@@ -95,19 +95,20 @@
 
     function draw() {
         var ctx = canvas.getContext('2d');
+        var ST = window.Scope555.subText, TAG = window.Scope555.tag;
         var bg     = window.CMP.cssVar('--bg-2');
         var grid   = window.CMP.cssVar('--grid-line');
         var gridZ  = window.CMP.cssVar('--grid-zero');
         var muted  = window.CMP.cssVar('--muted');
         var fg     = window.CMP.cssVar('--fg');
         var cTrig  = window.CMP.cssVar('--c-trigger');
-        var cThresh= window.CMP.cssVar('--c-thresh');
+        var cThresh= window.CMP.cssVar('--c-reset');
         var cOut   = window.CMP.cssVar('--c-output');
 
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, dims.w, dims.h);
 
-        var marL = 64, marR = 30, marT = 28, marB = 38;
+        var marL = 84, marR = 30, marT = 28, marB = 46;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
         var gap = 10;
@@ -143,53 +144,48 @@
 
         // Tick labels
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'center';
         for (var s = 0; s <= WINDOW_SECS; s++) {
             var px = marL + (s / WINDOW_SECS) * innerW;
-            var lab = (s === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - s) + 's';
+            var lab = (s === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - s);
             ctx.fillText(lab, px, outY0 + hOut + 6);
         }
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText('0',   marL - 6, yToPxSet(0));
-        ctx.fillText('Vcc', marL - 6, yToPxSet(Vcc));
+        ST(ctx, 'V_{CC}', marL - 6, yToPxSet(Vcc));
         ctx.fillText('0',   marL - 6, yToPxRst(0));
-        ctx.fillText('Vcc', marL - 6, yToPxRst(Vcc));
+        ST(ctx, 'V_{CC}', marL - 6, yToPxRst(Vcc));
         ctx.fillText('0',   marL - 6, yToPxOut(0));
-        ctx.fillText('Vcc', marL - 6, yToPxOut(Vcc));
+        ST(ctx, 'V_{CC}', marL - 6, yToPxOut(Vcc));
 
         // Axis titles
         ctx.save();
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "400 13px 'Inter', sans-serif";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText('time (relative, s)', marL + innerW / 2, outY0 + hOut + 24);
+        ctx.fillText('Time relative to present (s)', marL + innerW / 2, outY0 + hOut + 31);
         function vTitle(label, panelY, panelH) {
             ctx.save();
-            ctx.translate(18, panelY + panelH / 2);
+            ctx.translate(16, panelY + panelH / 2);
             ctx.rotate(-Math.PI / 2);
             ctx.textAlign = 'center';
-            ctx.fillText(label, 0, 0);
+            ST(ctx, label, 0, 0);
             ctx.restore();
         }
         vTitle('SET', setY0, hSet);
         vTitle('RESET', rstY0, hRst);
-        vTitle('OUT (V)', outY0, hOut);
+        vTitle('v_{out} (V)', outY0, hOut);
         ctx.restore();
 
         // Panel labels
-        ctx.fillStyle = cTrig;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'right';
-        ctx.fillText('SET pulse (active low)', marL + innerW - 8, setY0 + 4);
-        ctx.fillStyle = cThresh;
-        ctx.fillText('RESET pulse (active low)', marL + innerW - 8, rstY0 + 4);
-        ctx.fillStyle = cOut;
-        ctx.fillText('OUT (latched)', marL + innerW - 8, outY0 + 6);
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
+        TAG(ctx, 'SET pulse (active low)', cTrig, bg, marL + innerW - 8, setY0 + hSet / 2);
+        TAG(ctx, 'RESET pulse (active low)', cThresh, bg, marL + innerW - 8, rstY0 + hRst / 2);
+        TAG(ctx, 'OUT (latched)', cOut, bg, marL + innerW - 8, outY0 + hOut / 2);
     }
 
     var running = false;
@@ -242,8 +238,6 @@
             }
         }, { threshold: 0.15 });
         io.observe(canvas);
-
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { setupCanvas(); draw(); });
     }
 

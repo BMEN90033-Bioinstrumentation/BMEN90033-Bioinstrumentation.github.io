@@ -32,7 +32,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 22, right: 28, bottom: 38, left: 60 };
+        var m = opts.margin || { top: 34, right: 40, bottom: 48, left: 82 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -67,7 +67,7 @@
         f.g.append('line')
             .attr('x1', 0).attr('x2', f.iw)
             .attr('y1', y(v0)).attr('y2', y(v0))
-            .attr('stroke', 'var(--c-input)')
+            .attr('stroke', 'var(--c-ref)')
             .attr('stroke-dasharray', '4 4')
             .attr('stroke-width', 1.2)
             .attr('opacity', 0.7);
@@ -84,12 +84,10 @@
             .attr('x1', x(t1) - 4).attr('x2', x(t1) - 4)
             .attr('y1', y(v0)).attr('y2', y(v0 - dv))
             .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 1.4);
-        f.g.append('text')
-            .attr('x', x(t1) - 8).attr('y', y(v0 - dv / 2) + 4)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)')
-            .text('ΔV = ' + (dv * 1e3).toFixed(2) + ' mV');
+        // Placed below the trace so the text does not sit on the lines.
+        var dvStr = dv < 1e-3 ? (dv * 1e6).toFixed(1) + ' µV' : (dv * 1e3).toFixed(2) + ' mV';
+        window.renderKatex(f.g, '\\Delta V = \\text{' + dvStr.replace('µ', '}\\mu\\text{') + '}', x(t1) - 8 - 90, y(v0 - dv) + 18,
+            { width: 180, height: 20, align: 'right', size: 13, color: 'var(--c-thresh)' });
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
@@ -100,22 +98,18 @@
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).ticks(3)
-                .tickFormat(function (d) { return d.toFixed(3) + ' V'; })
+                .tickFormat(function (d) { return d.toFixed(4); })
                 .tickSize(0).tickPadding(8));
         ay.select('.domain').remove();
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
             .text('time during hold');
-        f.g.append('text')
-            .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-50) + ',' + (f.ih / 2) + ') rotate(-90)')
-            .attr('text-anchor', 'middle')
-            .text('v_C');
+        window.renderKatex(f.g, 'v_C\\ (\\mathrm{V})', -68, f.ih / 2, { rotate: -90, size: 15 });
 
-        rdDv.textContent = dv < 1e-3 ? (dv * 1e6).toFixed(1) + ' µV' : (dv * 1e3).toFixed(2) + ' mV';
+        rdDv.textContent = dvStr;
     }
 
     // ─── Aperture-jitter panel ───
@@ -172,12 +166,8 @@
             .attr('height', y(v0 - sigV) - y(v0 + sigV))
             .attr('fill', 'var(--c-thresh)').attr('opacity', 0.10);
 
-        f.g.append('text')
-            .attr('x', f.iw - 6).attr('y', 14)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)')
-            .text('σ_V = ' + (sigV * 1e3).toFixed(2) + ' mV  (1 MHz sine)');
+        window.renderKatex(f.g, '\\sigma_V = \\text{' + (sigV * 1e3).toFixed(2) + ' mV for a 1 MHz sine}',
+            f.iw - 6 - 130, 8, { width: 260, height: 20, align: 'right', size: 13, color: 'var(--c-thresh)' });
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
@@ -193,14 +183,14 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
             .text('time');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-40) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude');
+            .text('normalised amplitude');
 
         rdSv.textContent = (sigV * 1e3).toFixed(2) + ' mV';
     }
@@ -209,7 +199,7 @@
     function drawChargeInjection() {
         var f = makeFrame(svgC, {
             minH: 130,
-            margin: { top: 18, right: 28, bottom: 32, left: 60 }
+            margin: { top: 30, right: 40, bottom: 40, left: 82 }
         });
         f.g.selectAll('*').remove();
 
@@ -225,7 +215,7 @@
         f.g.append('line')
             .attr('x1', 0).attr('x2', f.iw)
             .attr('y1', y(v0)).attr('y2', y(v0))
-            .attr('stroke', 'var(--c-input)')
+            .attr('stroke', 'var(--c-ref)')
             .attr('stroke-dasharray', '4 4')
             .attr('stroke-width', 1.2)
             .attr('opacity', 0.7);
@@ -249,29 +239,34 @@
         f.g.append('line')
             .attr('x1', x(tEdge)).attr('x2', x(tEdge))
             .attr('y1', 0).attr('y2', f.ih)
-            .attr('stroke', 'var(--accent)')
+            .attr('stroke', 'var(--fg)')
             .attr('stroke-dasharray', '3 4').attr('stroke-width', 1.0);
         f.g.append('text')
             .attr('x', x(tEdge) + 6).attr('y', 12)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--accent)')
+            .attr('fill', 'var(--fg)')
             .text('switch opens');
 
         // ΔV_cj annotation
-        f.g.append('text')
-            .attr('x', x(tEdge) + 8).attr('y', y(v0 - dvCj / 2) + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)')
-            .text('ΔV_cj = ' + (dvCj * 1e3).toFixed(1) + ' mV');
+        // Placed below the held level so the text stays clear of both levels
+        // when the step is small.
+        window.renderKatex(f.g, '\\Delta V_\\mathrm{cj} = \\text{' + (dvCj * 1e3).toFixed(1) + ' mV}',
+            x(tEdge) + 8 + 90, y(v0 - dvCj) + 16,
+            { width: 180, height: 20, align: 'left', size: 13, color: 'var(--c-thresh)' });
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(0).tickSize(0));
         ax.select('.domain').remove();
+        var ay = f.g.append('g').attr('class', 'axis')
+            .call(d3.axisLeft(y).ticks(3)
+                .tickFormat(function (d) { return d.toFixed(3); })
+                .tickSize(0).tickPadding(8));
+        ay.select('.domain').remove();
+        window.renderKatex(f.g, 'v_C\\ (\\mathrm{V})', -68, f.ih / 2, { rotate: -90, size: 15 });
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 22)
+            .attr('x', f.iw / 2).attr('y', f.ih + 24)
             .attr('text-anchor', 'middle')
             .text('time across hold transition');
 
@@ -307,7 +302,6 @@
             qchL.textContent = parseFloat(qchI.value).toFixed(0) + ' fC';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

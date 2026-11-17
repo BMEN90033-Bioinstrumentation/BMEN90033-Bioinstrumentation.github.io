@@ -6,7 +6,7 @@
     function um(cm) { return (cm * 1e4).toFixed(3) + ' µm'; }
 
     function render() {
-        var P = window.PN, V = P.p.bias, css = window.CMP.cssVar;
+        var P = window.PN, V = P.p.bias;
         var st = P.junctionState(V), F = P.formation, v0 = P.V0();
         var out = {
             bias: fmtV(V),
@@ -24,12 +24,11 @@
             state3d: F ? F.phase + ' ' + Math.round(F.progress * 100) + ' %' : st,
             v0: (F ? v0 * F.progress : v0).toFixed(2) + ' V',
             w3d: F ? um(P.W(0) * F.wfrac) : um(P.W(V)),
-            current3d: F ? '~0 A' : P.fmtI(P.current(V))
+            current3d: F ? '≈ 0 A' : P.fmtI(P.current(V))
         };
         document.querySelectorAll('[data-out]').forEach(function (el) {
             var k = el.dataset.out;
             if (el.textContent !== out[k]) el.textContent = out[k];
-            if (k === 'state' || k === 'state3d') el.style.color = css(F && k === 'state3d' ? '--c-barrier' : P.STATE_VAR[st]);
         });
         var d = document.getElementById('pn-desc');
         if (d) {

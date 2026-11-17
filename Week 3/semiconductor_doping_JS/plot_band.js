@@ -27,7 +27,6 @@
         var cbTop = ih * 0.08, cbBot = ih * 0.28, vbTop = ih * 0.68, vbBot = ih;
         var gapH = vbTop - cbBot, yMid = (cbBot + vbTop) / 2;
         var cV = css('--c-valence'), cC = css('--c-conduction'), cF = css('--c-free'), cH = css('--c-hole');
-        var mono = "'JetBrains Mono', monospace";
         function yE(eFromEi) { return yMid - eFromEi / s.eg * gapH; }
 
         g.append('rect').attr('x', 0).attr('y', cbTop).attr('width', iw).attr('height', cbBot - cbTop)
@@ -46,7 +45,7 @@
 
         function name(txt, y, col) {
             g.append('text').attr('x', 12).attr('y', y).attr('dominant-baseline', 'middle')
-                .attr('fill', col).attr('font-size', 13).attr('font-family', mono).text(txt);
+                .attr('fill', col).attr('font-size', 13).text(txt);
         }
         name('conduction band', cbTop + 16, cC);
         name('valence band', vbBot - 16, cV);
@@ -118,10 +117,11 @@
 
         var lab = document.getElementById('band-label');
         if (lab) {
-            var Ntxt = mode === 'pure' ? '' : ' · N = ' + D.N().toExponential(1).replace('e+', 'e') + ' cm⁻³';
+            var Ntxt = mode === 'pure' ? '' : ' · $N = ' + D.fmtSci(D.N()) + '\\,\\text{cm}^{-3}$';
             lab.innerHTML = '<b>' + D.LABELS[mode].name + '</b>' + Ntxt + ' · ' + Math.round(p.temp) + ' K' +
-                (yF === null ? ' · E_F undefined at 0 K' : clamped ? ' · E_F held at band edge (model invalid)'
-                : nearEdge ? ' · E_F within 3kT of band edge (model inaccurate)' : '');
+                (yF === null ? ' · $E_F$ undefined at 0 K' : clamped ? ' · $E_F$ held at band edge (model invalid)'
+                : nearEdge ? ' · $E_F$ within $3kT$ of band edge (model inaccurate)' : '');
+            if (window.renderMathInElement) window.renderMathInElement(lab, { delimiters: [{ left: '$', right: '$', display: false }], throwOnError: false });
         }
     }
 

@@ -1,32 +1,18 @@
-/* lab_circuit_analysis.html · page palette, plot sizes and the component
+/* lab_circuit_analysis.html · trace palette, plot sizes and the component
    table. Layout comes from ../components/lecture_page.css. */
 
 :root {
-    --c-mag:   #58a6ff;   /* magnitude, Nyquist locus */
-    --c-phase: #ffcf5c;   /* phase, angle arc */
-    --c-lf:    #ff7a6b;   /* low-frequency poles, -1 point */
-    --c-hf:    #c8a8ff;   /* high-frequency pole, frequency dots */
-    --c-q:     #7be089;   /* Q-point, v_pi */
-    --c-bias:  #ffcf5c;   /* bias current line */
-    --c-load:  rgba(255, 255, 255, 0.55);
-    --c-node:  #8b90a3;
-    --c-warn:  #ff5c7a;
-    --c-sat-band: rgba(255, 92, 122, 0.12);
-    --hero-a: var(--c-mag);
-    --hero-b: var(--c-phase);
-}
-
-[data-theme="light"] {
-    --c-mag:   #1d4ed8;
-    --c-phase: #b88200;
-    --c-lf:    #c2410c;
-    --c-hf:    #7c3aed;
-    --c-q:     #2f8f3f;
-    --c-bias:  #b88200;
-    --c-load:  rgba(0, 0, 0, 0.5);
-    --c-node:  #6a6f7c;
-    --c-warn:  #dc2626;
-    --c-sat-band: rgba(220, 38, 38, 0.10);
+    --c-mag:   var(--d-blue);     /* magnitude, Nyquist locus, v_o */
+    --c-phase: var(--d-orange);   /* phase, angle arc */
+    --c-lf:    var(--d-pink);     /* low-frequency poles, -1 point */
+    --c-hf:    var(--d-violet);   /* high-frequency pole, frequency dots */
+    --c-q:     var(--d-green);    /* Q-point */
+    --c-bias:  var(--d-green);    /* bias current I_C at the Q-point */
+    --c-vpi:   var(--d-olive);    /* v_pi polarity marks */
+    --c-load:  var(--d-grey);
+    --c-node:  var(--d-slate);
+    --c-warn:  var(--d-pink);
+    --c-sat-band: var(--d-pink-soft);
 }
 
 .plot-box.circuit  { aspect-ratio: 1.86 / 1; }
@@ -42,12 +28,12 @@
 /* Component and pole-zero tables in the copy column. */
 table.param-table {
     width: 100%; border-collapse: collapse; margin: 14px 0 16px;
-    font-size: 14px; color: var(--text-dim);
+    font-size: 14px; color: var(--fg);
 }
 table.param-table th {
-    text-align: left; font-family: 'JetBrains Mono', monospace;
+    text-align: left; font-family: var(--font-mono);
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--muted); font-weight: 500;
+    color: var(--muted); font-weight: 400;
     padding: 6px 10px; border-bottom: 1px solid var(--border-hover);
 }
 table.param-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }

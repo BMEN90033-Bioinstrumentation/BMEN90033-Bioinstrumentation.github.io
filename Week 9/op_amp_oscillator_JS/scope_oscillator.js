@@ -23,7 +23,7 @@
     };
 
     var dims = { w: 0, h: 0, dpr: 1 };
-    var margin = { top: 28, right: 28, bottom: 50, left: 76 };
+    var margin = { top: 28, right: 28, bottom: 50, left: 92 };
 
     function setupCanvas() {
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -198,9 +198,9 @@
             ctx.setLineDash([]);
         }
 
-        // Axis tick labels (plain text — purely numeric, no math)
+        // Axis tick labels (plain text: purely numeric, no math)
         ctx.fillStyle = window.T.textDim;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         for (var ti2 = 0; ti2 <= state.T_total + 1e-9; ti2 += tStep) {
@@ -217,7 +217,7 @@
 
         // Phase annotations: noise-seed, growth, steady state
         ctx.fillStyle = window.T.textDim;
-        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         var labelY = margin.top + 8;
@@ -251,7 +251,7 @@
             { width: 100, height: 22, size: 14 });
         // y-axis title (rotated -90)
         window.renderKatex(svg, 'v_\\text{out} \\, [\\mathrm{V}]',
-            22, margin.top + innerH / 2,
+            18, margin.top + innerH / 2,
             { width: 140, height: 22, rotate: -90, size: 14 });
     }
 
@@ -324,7 +324,7 @@
                                  : (C_uF * 1000).toFixed(0) + ' nF';
             var rcVal = state.RC >= 0.5 ? state.RC.toFixed(2) + ' s'
                                         : (state.RC * 1000).toFixed(2) + ' ms';
-            loopLab.textContent = A.toFixed(2) + ' · Aβ=' + state.loopGain.toFixed(3)
+            loopLab.textContent = A.toFixed(2) + ' · Aβ = ' + state.loopGain.toFixed(3)
                                 + ' · ' + regime;
             rcLab.textContent   = cVal + ' · RC = ' + rcVal;
             start();
@@ -351,12 +351,6 @@
         renderOverlay();
         bind();
         window.addEventListener('resize', resize);
-        window.addEventListener('themechange', function () {
-            renderOverlay();
-            // The animation loop will pick up new colors on its next frame;
-            // if paused, draw immediately.
-            if (!state.running) draw(state.T_total);
-        });
     }
 
     if (document.readyState === 'loading') {

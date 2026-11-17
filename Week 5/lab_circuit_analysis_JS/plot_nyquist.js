@@ -158,7 +158,7 @@
         if (rm && rm.i >= 8 && !rm.lead) leader(rm, [x(-1), Y0], cWarn);
         dots.forEach(function (d) {
             var r = Pl.label(d[2], function (w, h) { return ring(d[0], d[1], w, h, [8, 32, 56]); },
-                { color: css('--c-hf'), size: 12, anchor: [d[0], d[1]] });
+                { color: css('--c-hf'), size: 13, anchor: [d[0], d[1]] });
             // Labels moved beyond the first ring get a leader to their dot.
             if (r && r.i >= 8 && !r.lead) leader(r, d, css('--c-hf'));
         });

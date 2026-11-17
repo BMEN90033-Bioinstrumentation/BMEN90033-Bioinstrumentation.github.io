@@ -53,8 +53,8 @@
         k.flow('p', [[440, 50], [440, 210]]);
         k.flow('n', [[440, 210], [440, 360]]);
         k.flow('lc', [[440, 210], [680, 210], [780, 210], [780, 360]]);
-        onP = k.text('', 470, 130, { anchor: 'start', size: 12, weight: 600 });
-        onN = k.text('', 470, 290, { anchor: 'start', size: 12, weight: 600 });
+        onP = k.text('', 470, 130, { anchor: 'start', size: 13, weight: 400 });
+        onN = k.text('', 470, 290, { anchor: 'start', size: 13, weight: 400 });
         tick();
     }
 
@@ -65,9 +65,9 @@
         k.setFlow('sig', '--c-vin', 0.4);
         k.setFlow('gate', pOn ? '--c-hi' : '--c-lo', 0.6);
         if (pOn) k.setFlow('p', '--c-hi', 0.8); else k.setFlow('n', '--c-lo', 0.8);
-        k.setFlow('lc', '--c-hi', 0.5);
+        k.setFlow('lc', '--c-out', 0.5);
         onP.text(pOn ? 'ON' : 'OFF').attr('fill', css(pOn ? '--c-hi' : '--c-off'));
-        onN.text(pOn ? 'OFF' : 'ON').attr('fill', css(pOn ? '--c-off' : '--c-hi'));
+        onN.text(pOn ? 'OFF' : 'ON').attr('fill', css(pOn ? '--c-off' : '--c-lo'));
     }
 
     window.CLD.onRender(render);

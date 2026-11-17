@@ -101,7 +101,7 @@
             var bracketTex = null, bx = qx + 22, byN = 0;
             if (bias.region === 'saturation' && bias.ibq > 0) {
                 byN = y(Math.min(p.hfe * bias.ibq * (1 + A.VCE_SAT / 100) * 1e3, icMax));
-                var cV = css('--c-vce');
+                var cV = css('--c-lin');
                 g.append('path').attr('fill', 'none').attr('stroke', cV).attr('stroke-width', 1.5)
                     .attr('stroke-dasharray', '4 3').attr('d', 'M' + bx + ',' + qy + 'V' + byN);
                 g.append('path').attr('fill', 'none').attr('stroke', cV).attr('stroke-width', 1.5)
@@ -124,7 +124,7 @@
             if (!label(qt, qc, lq, cQ)) {
                 label('Q', [[qx + 10, qy - 14], [qx - 30, qy - 14, 'right'], [qx + 10, qy + 14], [qx - 30, qy + 14, 'right']], 20, cQ);
             }
-            if (bracketTex) label(bracketTex, [[bx + 10, byN + 14], [bx + 10, byN - 14], [bx + 10, (qy + byN) / 2]], 60, css('--c-vce'));
+            if (bracketTex) label(bracketTex, [[bx + 10, byN + 14], [bx + 10, byN - 14], [bx + 10, (qy + byN) / 2]], 60, css('--c-lin'));
         }
 
         fam.forEach(function (c) {

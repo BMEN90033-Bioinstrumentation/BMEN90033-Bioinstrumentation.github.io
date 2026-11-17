@@ -22,7 +22,6 @@
             };
             row.querySelectorAll('[data-out]').forEach(function (el) {
                 el.textContent = out[el.dataset.out];
-                el.classList.toggle('on', (el.dataset.out === 'state' || el.dataset.out === 'emit') && on);
             });
         });
     }

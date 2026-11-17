@@ -35,15 +35,6 @@
         var tau1 = tauNom * (1 + d / 2);
         var tau2 = tauNom * (1 - d / 2);
 
-        var P = window.WCGW.setupPlot('#plot-cmrr', {
-            xScale: d3.scaleLog(),
-            xDomain: [0.1, 10000],
-            yDomain: [0, 140],
-            xLabel: 'f\\,[\\mathrm{Hz}]',
-            yLabel: '\\mathrm{CMRR}_F\\,[\\mathrm{dB}]',
-            yTicks: 8
-        });
-
         var fs = d3.range(0, 240).map(function (i) { return Math.pow(10, -1 + 5 * i / 239); });
         var trace = fs.map(function (f) {
             var w = 2 * Math.PI * f;
@@ -53,27 +44,34 @@
             return { f: f, db: 20 * Math.log10(ratio) };
         });
 
+        var idx50 = trace.reduce(function (acc, d, i) {
+            return Math.abs(d.f - 50) < Math.abs(trace[acc].f - 50) ? i : acc;
+        }, 0);
+        var cmrr50 = trace[idx50].db;
+        var floorDb = 20 * Math.log10(1 / (d + 1e-9));
+
+        var P = window.WCGW.setupPlot('#plot-cmrr', {
+            legend: [
+                { key: 'distort', label: 'CMRR_F with mismatch δτ/τ' },
+                { key: 'noise', dash: true, label: 'mains, 50 and 60 Hz' },
+                { label: 'CMRR_F at 50 Hz = ' + cmrr50.toFixed(1) + ' dB,  high-frequency floor ≈ ' + floorDb.toFixed(1) + ' dB' }
+            ],
+            xScale: d3.scaleLog(),
+            xDomain: [0.1, 10000],
+            yDomain: [0, 140],
+            xLabel: 'f\\,[\\mathrm{Hz}]',
+            yLabel: '\\mathrm{CMRR}_F\\,[\\mathrm{dB}]',
+            yTicks: 8
+        });
+
         window.WCGW.drawLine(P, trace, function (d) { return d.f; }, function (d) { return d.db; }, 'distort', P.y);
 
         [50, 60].forEach(function (fMains) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fMains)).attr('x2', P.x(fMains)).attr('y1', 0).attr('y2', P.innerH)
                 .attr('stroke', P.colors.noise).attr('opacity', 0.6);
         });
-        P.g.append('text').attr('x', P.x(50) + 6).attr('y', 14).attr('fill', P.colors.noise)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('mains');
 
-        var idx50 = trace.reduce(function (acc, d, i) {
-            return Math.abs(d.f - 50) < Math.abs(trace[acc].f - 50) ? i : acc;
-        }, 0);
-        var cmrr50 = trace[idx50].db;
-        var floorDb = 20 * Math.log10(1 / (d + 1e-9));
-        var info = 'CMRR_F at 50 Hz = ' + cmrr50.toFixed(1) + ' dB    ·    high-frequency floor ≈ ' + floorDb.toFixed(1) + ' dB';
-        P.g.append('text').attr('x', 14).attr('y', P.innerH - 10).attr('fill', P.colors.fg)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text(info);
 
-        window.WCGW.legend(P.svg, [
-            { key: 'distort', label: 'CMRR_F with mismatch δτ/τ' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -84,7 +82,6 @@
         if (!mmSlider) return;
         mmSlider.addEventListener('input', draw);
         fcSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

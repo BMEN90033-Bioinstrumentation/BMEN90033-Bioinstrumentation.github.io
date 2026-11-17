@@ -108,7 +108,7 @@
             .attr('preserveAspectRatio', 'xMidYMid meet');
         var svg = root;
 
-        var margin = { top: 36, right: 56, bottom: 32, left: 36 };
+        var margin = { top: 54, right: 56, bottom: 26, left: 46 };
         var innerW = W - margin.left - margin.right;
         var innerH = Hpx - margin.top - margin.bottom;
 
@@ -146,13 +146,10 @@
             .attr('stroke', T.fg(0.45))
             .attr('stroke-width', 1.2)
             .attr('stroke-dasharray', '4 3');
-        g.append('text')
-            .attr('x', xs(-Math.SQRT1_2) - 4)
-            .attr('y', ys(Math.SQRT1_2) - 4)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.6)).attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('|s| = ω0');
+        // Labelled in the right half-plane, which never holds a pole.
+        window.renderKatex(g, '|s| = \\omega_0',
+            xs(Math.SQRT1_2) + 40, ys(Math.SQRT1_2) - 12,
+            { width: 70, height: 18, size: 14, color: T.textDim });
 
         // Axes through the origin
         g.append('line')
@@ -164,18 +161,18 @@
             .attr('y1', oy).attr('y2', oy + plotH)
             .attr('stroke', T.gridStrong).attr('stroke-width', 1.4);
 
-        // Tick labels (only those inside the plotted domain)
-        ticks.filter(function (v) { return v !== 0; }).forEach(function (v) {
+        // Tick labels on the left and bottom edges, clear of the unit circle
+        ticks.forEach(function (v) {
             g.append('text')
-                .attr('x', xs(v)).attr('y', ys(0) + 14)
+                .attr('x', xs(v)).attr('y', oy + plotH + 18)
                 .attr('text-anchor', 'middle')
-                .attr('fill', T.fg(0.7)).attr('font-size', 11)
+                .attr('fill', T.fg(0.7)).attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .text(v.toFixed(1));
             g.append('text')
-                .attr('x', xs(0) - 6).attr('y', ys(v) + 4)
+                .attr('x', ox - 7).attr('y', ys(v) + 4)
                 .attr('text-anchor', 'end')
-                .attr('fill', T.fg(0.7)).attr('font-size', 11)
+                .attr('fill', T.fg(0.7)).attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .text(v.toFixed(1));
         });
@@ -222,19 +219,9 @@
         }
 
         // Passive 2-stage RC: poles at -0.382 and -2.618 (the latter is
-        // outside the visible window and is annotated rather than drawn).
+        // outside the visible window and is noted in the HTML legend).
         if (state.showPassive) {
-            var passiveColor = getComputedStyle(document.documentElement)
-                .getPropertyValue('--c-passive').trim();
             drawX(g, xs(-0.381966), ys(0), 'pole-x passive', 6);
-            g.append('text')
-                .attr('x', xs(sigDomain[0]) + 6)
-                .attr('y', ys(0) - 6)
-                .attr('text-anchor', 'start')
-                .attr('fill', passiveColor)
-                .attr('font-size', 10)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .text('passive 2nd pole at σ = −2.62 →');
         }
 
         // Active Sallen-Key pole pair (drawn last so it sits on top)
@@ -252,8 +239,20 @@
         }
     }
 
+    // The legend is an HTML row under the plots; it follows the toggles.
+    function updateLegend() {
+        var q = document.getElementById('q-legend');
+        if (q) q.textContent = fmtQ(state.Q);
+        var p = document.getElementById('legend-passive');
+        if (p) p.style.display = state.showPassive ? '' : 'none';
+        document.querySelectorAll('.legend-ref').forEach(function (el) {
+            el.style.display = state.showRefs ? '' : 'none';
+        });
+    }
+
     function render() {
         renderSplane();
+        updateLegend();
 
         var H = H_helpers.setupBode({
             sel: sel,
@@ -288,9 +287,9 @@
             H.gPhase.append('path').datum(butter).attr('class', 'trace butter').attr('d', linePhase);
             H.gMag.append('path').datum(cheby).attr('class', 'trace cheby').attr('d', lineMag);
             H.gPhase.append('path').datum(cheby).attr('class', 'trace cheby').attr('d', linePhase);
-            refTraces.push({ name: 'Bessel  Q=0.58', cssClass: 'bessel', pts: bessel });
-            refTraces.push({ name: 'Butter  Q=0.71', cssClass: 'butter', pts: butter });
-            refTraces.push({ name: 'Peaking Q=2.00', cssClass: 'cheby',  pts: cheby  });
+            refTraces.push({ name: 'Bessel Q = 0.58', cssClass: 'bessel', pts: bessel });
+            refTraces.push({ name: 'Butterworth Q = 0.71', cssClass: 'butter', pts: butter });
+            refTraces.push({ name: 'peaking Q = 2.00', cssClass: 'cheby',  pts: cheby  });
         }
 
         // Passive cascade reference.
@@ -299,7 +298,7 @@
             var passive = passiveSamples();
             H.gMag.append('path').datum(passive).attr('class', 'trace passive').attr('d', lineMag);
             H.gPhase.append('path').datum(passive).attr('class', 'trace passive').attr('d', linePhase);
-            passiveTraces.push({ name: 'passive 2RC', cssClass: 'passive', pts: passive });
+            passiveTraces.push({ name: 'passive cascade', cssClass: 'passive', pts: passive });
         }
 
         // Active Sallen-Key trace at user-selected Q.
@@ -321,13 +320,9 @@
             .attr('stroke', T.fg(0.35))
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '3 3');
-        H.gMag.append('text')
-            .attr('x', x0 - 6).attr('y', 14)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.55))
-            .attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('ω0');
+        // Label at the foot of the magnitude panel, clear of every trace.
+        window.renderKatex(H.gMag, '\\omega_0', x0 - 16, H.innerH - 12,
+            { width: 20, height: 18, size: 13, color: T.textDim });
 
         // ── Peak marker on the active curve (for Q > 1/sqrt(2)) ──
         if (state.Q > 1 / Math.sqrt(2) + 1e-3) {
@@ -346,43 +341,21 @@
                     .attr('fill', T.text)
                     .attr('stroke', T.text).attr('stroke-width', 1.2)
                     .attr('fill-opacity', 0);
+                // Right of both the peak and the ω0 marker; kept below the box title.
                 H.gMag.append('text')
-                    .attr('x', px + 8).attr('y', py - 6)
+                    .attr('x', Math.max(px, x0) + 8).attr('y', Math.max(py - 6, 14))
                     .attr('fill', T.text)
-                    .attr('font-size', 11)
+                    .attr('font-size', 13)
                     .attr('font-family', "'JetBrains Mono', monospace")
                     .text('peak ' + magPkDb.toFixed(1) + ' dB');
             }
         }
 
-        // ── Hover crosshair + readout ─────────────────────────────
-        var hoverTraces = [{ name: 'Sallen-Key Q=' + fmtQ(state.Q), cssClass: 'active', pts: sk }];
+        // ── Hover crosshair and readout ─────────────────────────────
+        var hoverTraces = [{ name: 'Sallen-Key Q = ' + fmtQ(state.Q), cssClass: 'active', pts: sk }];
         for (var p = 0; p < passiveTraces.length; p++) hoverTraces.push(passiveTraces[p]);
         for (var r = 0; r < refTraces.length; r++) hoverTraces.push(refTraces[r]);
         H_helpers.attachHover(H, hoverTraces);
-
-        // ── Legend (top-right of magnitude panel) ─────────────────
-        var entries = [{ c: 'active', label: 'Sallen-Key  Q = ' + fmtQ(state.Q) }];
-        if (state.showPassive) entries.push({ c: 'passive', label: 'passive 2-stage RC' });
-        if (state.showRefs) {
-            entries.push({ c: 'bessel', label: 'Bessel  Q = 0.58' });
-            entries.push({ c: 'butter', label: 'Butterworth  Q = 0.71' });
-            entries.push({ c: 'cheby',  label: 'Peaking  Q = 2.00' });
-        }
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
-        entries.forEach(function (e, idx) {
-            var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
-            row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8)
-                .attr('y1', 8).attr('y2', 8);
-            row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
-                .attr('fill', T.text)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .text(e.label);
-        });
     }
 
     function onSlider() {
@@ -397,6 +370,7 @@
         pill.addEventListener('click', function () {
             state[key] = !state[key];
             pill.classList.toggle('active', state[key]);
+            pill.setAttribute('aria-pressed', String(state[key]));
             render();
         });
     }
@@ -410,7 +384,6 @@
         }
         attachPill(pillPassive, 'showPassive');
         attachPill(pillRefs, 'showRefs');
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

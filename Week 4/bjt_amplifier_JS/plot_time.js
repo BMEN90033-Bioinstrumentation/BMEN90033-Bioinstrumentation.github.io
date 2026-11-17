@@ -12,7 +12,7 @@
     function render() {
         var A = window.AMP, p = A.p, css = window.CMP.cssVar;
         var f = A.frame(sel, {});
-        var gap = 14, ph = (f.ih - gap) / 2;
+        var gap = 24, ph = (f.ih - gap) / 2;
         var x = d3.scaleLinear().domain([0, WIN]).range([0, f.iw]);
         var vpk = Math.max(p.vin, 1) * 1.2;
         var yV = d3.scaleLinear().domain([-vpk, vpk]).range([ph, 0]).nice(4);

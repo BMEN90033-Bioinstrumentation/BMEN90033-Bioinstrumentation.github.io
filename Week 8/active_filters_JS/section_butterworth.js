@@ -14,7 +14,7 @@
     function colors() {
         return {
             butter: window.AFPlots.getCssVar('--c-butter'),
-            ref:    window.AFPlots.getCssVar('--c-mark')
+            ref:    window.AFPlots.getCssVar('--c-ref')
         };
     }
 
@@ -57,31 +57,23 @@
         if (poleTop) {
             var ang = Math.atan2(poleTop.im, poleTop.re) * 180 / Math.PI;
             // Angle measured from the +Re direction; show as a dashed
-            // radial line and a text pill near the pole.
+            // radial line and a label near the pole.
             SP.g.append('line')
                 .attr('x1', SP.x(0)).attr('y1', SP.y(0))
                 .attr('x2', SP.x(poleTop.re)).attr('y2', SP.y(poleTop.im))
                 .attr('stroke', col.butter).attr('stroke-width', 1)
                 .attr('stroke-dasharray', '3 3').attr('opacity', 0.5);
-            SP.g.append('text')
-                .attr('x', SP.x(poleTop.re) - 14).attr('y', SP.y(poleTop.im) - 10)
-                .attr('text-anchor', 'end')
-                .attr('fill', T.text)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .text('θ = ' + ang.toFixed(0) + '°');
+            window.renderKatex(SP.g, '\\theta = ' + ang.toFixed(0) + '^{\\circ}',
+                SP.x(poleTop.re) - 14 - 50, SP.y(poleTop.im) - 14,
+                { width: 100, height: 20, size: 13, align: 'end' }).attr('class', 'af-note');
         }
 
-        // Legend in the bottom-right corner of the inner plot, where the
-        // RHP/im-negative quadrant is empty for any LHP filter.
+        // Legend below the plot frame.
         var entries = [
-            { color: col.butter, label: 'butterworth poles (N = ' + N + ')' },
-            { color: col.ref, label: '|H(s)| = 1 contour' }
+            { color: col.butter, label: 'Butterworth poles', marker: 'pole' },
+            { color: col.ref, label: 'Unity-gain contour', marker: 'dash' }
         ];
-        window.AFPlots.drawLegend(SP.g,
-            SP.innerW - 8,
-            SP.innerH - 8 - 18 * (entries.length - 1) - 12,
-            entries, T);
+        window.AFPlots.drawLegend(SP.g, SP.legendX, SP.legendY, entries, T);
     }
 
     function renderBode() {
@@ -114,14 +106,13 @@
             xc, BD.innerH - 16,
             { width: 80, height: 22, size: 11, pill: true });
 
-        // Slope annotation in the stopband
+        // Slope annotation, placed in the empty region below the passband
         BD.gMag.append('text')
-            .attr('x', BD.innerW - 12).attr('y', BD.innerH - 12)
-            .attr('text-anchor', 'end')
+            .attr('x', 8).attr('y', BD.innerH - 36)
             .attr('fill', T.fg(0.6))
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('−' + (20 * state.N) + ' dB/dec');
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 13)
+            .text('−' + (20 * state.N) + ' dB/decade');
     }
 
     function phaseTicksFor(N) {
@@ -186,7 +177,6 @@
             });
         }
         if (slider) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('af-d3-ready', render3D);
     }

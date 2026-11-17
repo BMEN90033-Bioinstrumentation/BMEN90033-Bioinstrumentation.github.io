@@ -1,10 +1,10 @@
-// Scene 2b — Wrap intro. Four-stage continuous morph that builds up the
+// Scene 2b, Wrap intro. Four-stage continuous morph that builds up the
 // "wind the signal around the complex plane" gesture:
 //
 //   stage 0 : signal g(t) drawn on a straight time axis (time domain)
 //   stage 1 : the complex exponential e^{-j2πft} shown as a UNIT CIRCLE
 //             (the straight signal is ghosted on the left for reference)
-//   stage 2 : multiply by g(t0) for a FIXED slice of time — the unit circle
+//   stage 2 : multiply by g(t0) for a FIXED slice of time, the unit circle
 //             scales in/out as we scrub t0. The radius IS g(t0).
 //   stage 3 : let t sweep. Radius breathes with g(t), angle advances with
 //             the exponential. The trace is the wound signal.
@@ -65,7 +65,7 @@
   }
   stageBtns.forEach(b => b.addEventListener('click', () => {
     playing = false;
-    playBtn.textContent = 'play sequence';
+    playBtn.textContent = 'Play sequence';
     const n = +b.dataset.v;
     drawProgress = 1;
     circleProgress = 1;
@@ -85,19 +85,19 @@
   playBtn.addEventListener('click', () => {
     playing = !playing;
     if (playing) {
-      playBtn.textContent = 'pause';
+      playBtn.textContent = 'Pause';
       playT0 = performance.now();
       u = 0; target = 0;
       drawProgress = 0; circleProgress = 0; wrapProgress = 0; t0Scrub = 0;
       setStage(0);
     } else {
-      playBtn.textContent = 'play sequence';
+      playBtn.textContent = 'Play sequence';
     }
   });
 
   resetBtn.addEventListener('click', () => {
     playing = false;
-    playBtn.textContent = 'play sequence';
+    playBtn.textContent = 'Play sequence';
     u = 0; drawProgress = 0; circleProgress = 0; wrapProgress = 0; t0Scrub = 0;
     setStage(0);
   });
@@ -107,37 +107,20 @@
   const Tmax = 6;
   const N = 360;
 
-  // hex → rgb for color interpolation
-  function hexToRgb(hex) {
-    if (!hex || !hex.startsWith('#')) return null;
-    let m = hex.trim();
-    if (m.length === 4) m = '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3];
-    const n = parseInt(m.slice(1), 16);
-    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-  }
-  function interpColor(a, b, t) {
-    const A = hexToRgb(a), B = hexToRgb(b);
-    if (!A || !B) return a;
-    const r = Math.round(A.r + (B.r - A.r) * t);
-    const g = Math.round(A.g + (B.g - A.g) * t);
-    const bl = Math.round(A.b + (B.b - A.b) * t);
-    return `rgb(${r},${g},${bl})`;
-  }
-
   function draw() {
     const { ctx, w, h } = CFG.setupCanvas(cvs);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
 
-    const padT = 40, padB = 30;
-    const leftX0 = 44;
+    const padT = 78, padB = 64;
+    const leftX0 = 50;
     const leftX1 = Math.min(w * 0.42, w - 320);
     const leftMid = (padT + (h - padB)) / 2;
     const leftAmp = Math.min(60, (h - padT - padB) / 3);
 
     const rightCx = (leftX1 + w - 24) / 2;
     const rightCy = (padT + (h - padB)) / 2;
-    const R = Math.min((w - leftX1) / 2 - 30, (h - padT - padB) / 2 - 18);
+    const R = Math.min((w - leftX1) / 2 - 40, (h - padT - padB) / 2);
     const Runit = R * 0.62; // unit circle radius in screen pixels
 
     const fVal = parseFloat(fEl.value);
@@ -154,22 +137,21 @@
 
     // ============ LEFT: straight time-domain signal ============
     // Baseline at the bottom since g(t) is strictly positive now.
-    const leftBase = h - padB - 8;
-    const leftTop = padT + 14;
+    const leftBase = h - padB + 14;
+    const leftTop = padT + 4;
     const leftScale = (leftBase - leftTop) / 2.4; // g peaks around 1.7, leave generous headroom
     ctx.strokeStyle = C.grid;
     ctx.beginPath(); ctx.moveTo(leftX0, leftBase); ctx.lineTo(leftX1, leftBase); ctx.stroke();
 
-    ctx.fillStyle = C.muted;
-    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.strokeStyle = C.gridStrong;
+    ctx.beginPath(); ctx.moveTo(leftX0, leftBase); ctx.lineTo(leftX1, leftBase); ctx.stroke();
     for (let k = 0; k <= 6; k++) {
       const px = leftX0 + (k / Tmax) * (leftX1 - leftX0);
-      ctx.strokeStyle = C.grid;
-      ctx.beginPath(); ctx.moveTo(px, leftBase - 3); ctx.lineTo(px, leftBase + 3); ctx.stroke();
-      ctx.fillText(String(k), px - 3, leftBase + 14);
+      ctx.beginPath(); ctx.moveTo(px, leftBase); ctx.lineTo(px, leftBase + 4); ctx.stroke();
+      CFG.label(ctx, String(k), px, leftBase + 7, C.muted, { align: 'center' });
     }
-    CFG.label(ctx, 't →', leftX1 + 4, leftBase - 5, C.muted, { size: 10 });
-    CFG.label(ctx, 'g(t)', leftX0 - 4, leftTop - 6, C.muted, { size: 10, align: 'right' });
+    CFG.label(ctx, 't (s)', (leftX0 + leftX1) / 2, leftBase + 28, C.muted, { align: 'center' });
+    CFG.label(ctx, 'g(t)', leftX0 - 26, (leftTop + leftBase) / 2, C.time, { rotate: true, align: 'center', baseline: 'middle' });
 
     // The signal itself (traces in during stage 0, then stays)
     const drawN = Math.max(2, Math.floor(N * drawProgress));
@@ -192,9 +174,7 @@
       const px = leftX0 + (tt / Tmax) * (leftX1 - leftX0);
       const py = leftBase - v * leftScale;
       ctx.fillStyle = C.accent;
-      ctx.shadowColor = C.accent; ctx.shadowBlur = 14;
       ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
     // In stage 2 we highlight a specific "slice" t0 on the left axis.
@@ -205,17 +185,15 @@
       const px = leftX0 + (tSlice / Tmax) * (leftX1 - leftX0);
       const py = leftBase - v * leftScale;
       // vertical guide
-      ctx.strokeStyle = `rgba(255,207,92,${0.25 + 0.4 * u2})`;
+      ctx.strokeStyle = CFG.alpha(C.accent, 0.25 + 0.4 * u2);
       ctx.setLineDash([3, 5]); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(px, padT + 4); ctx.lineTo(px, h - padB - 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px, padT + 4); ctx.lineTo(px, leftBase); ctx.stroke();
       ctx.setLineDash([]);
       // dot at (t0, g(t0))
       ctx.fillStyle = C.accent;
-      ctx.shadowColor = C.accent; ctx.shadowBlur = 10;
       ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
-      CFG.label(ctx, `t₀=${tSlice.toFixed(2)}`, px + 6, py - 14, C.accent, { size: 10 });
-      CFG.label(ctx, `g(t₀)=${v.toFixed(2)}`, px + 6, py + 4, C.accent, { size: 10 });
+      CFG.label(ctx, `t₀ = ${tSlice.toFixed(2)}`, px + 8, py - 22, C.accent);
+      CFG.label(ctx, `g(t₀) = ${v.toFixed(2)}`, px + 8, py - 6, C.accent);
     }
 
     // ============ RIGHT: complex plane ============
@@ -230,11 +208,11 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(rightCx - R - 12, rightCy); ctx.lineTo(rightCx + R + 12, rightCy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(rightCx, rightCy - R - 12); ctx.lineTo(rightCx, rightCy + R + 12); ctx.stroke();
-    CFG.label(ctx, 'Re', rightCx + R + 14, rightCy - 6, C.muted, { size: 10 });
-    CFG.label(ctx, 'Im', rightCx + 6, rightCy - R - 14, C.muted, { size: 10 });
+    CFG.label(ctx, 'Re', rightCx + R + 16, rightCy, C.muted, { baseline: 'middle' });
+    CFG.label(ctx, 'Im', rightCx, rightCy - R - 14, C.muted, { align: 'center', baseline: 'bottom' });
 
     // reference unit circle (faint, only visible from stage 1 onward)
-    ctx.strokeStyle = `rgba(255,255,255,${0.18 * entered1})`;
+    ctx.strokeStyle = CFG.ink(0.3 * entered1);
     ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(rightCx, rightCy, Runit, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
@@ -264,17 +242,15 @@
       const px = rightCx + Runit * Math.cos(theta);
       const py = rightCy - Runit * Math.sin(theta);
       ctx.fillStyle = C.real;
-      ctx.shadowColor = C.real; ctx.shadowBlur = 12;
       ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
       // legend
-      CFG.label(ctx, 'e^{-j2πft} · radius 1', rightCx, rightCy + R + 18, C.real, { size: 10, align: 'center' });
+      CFG.label(ctx, 'exp(−j2πft), radius 1', rightCx, rightCy + R + 18, C.real, { align: 'center' });
       ctx.restore();
     }
 
-    // ---- Stage 2: scaled circle — radius = g(t0), with trail ----
+    // ---- Stage 2: scaled circle, radius = g(t0), with trail ----
     // As t₀ scrubs forward, the scaled point traces out what will become the
-    // wound signal — we lay that down here too, so the viewer sees stage 2
+    // wound signal, we lay that down here too, so the viewer sees stage 2
     // naturally building into stage 3.
     if (entered2 > 0.01 && u < 2.95) {
       const alpha = Math.min(1, (entered2 * 1.1) * (1 - Math.max(0, u - 2.7)));
@@ -301,7 +277,7 @@
         if (i === 0) { prevX = px_; prevY = py_; continue; }
         // fade the tail so the most recent stretch is brightest
         const ageFrac = i / Math.max(1, lastI); // 0..1 along the laid-down trail
-        const col = interpColor(C.time, C.accent, ageFrac);
+        const col = CFG.mix(C.time, C.accent, ageFrac);
         ctx.strokeStyle = col;
         ctx.beginPath();
         ctx.moveTo(prevX, prevY); ctx.lineTo(px_, py_);
@@ -310,11 +286,11 @@
       }
 
       // Scaled circle outline (the ghost of "where the point could be right now")
-      ctx.strokeStyle = `rgba(255,207,92,0.55)`; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = CFG.alpha(C.accent, 0.55); ctx.lineWidth = 1.5;
       ctx.setLineDash([3, 4]);
       ctx.beginPath(); ctx.arc(rightCx, rightCy, rad, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = `rgba(255,207,92,0.05)`;
+      ctx.fillStyle = CFG.alpha(C.accent, 0.08);
       ctx.beginPath(); ctx.arc(rightCx, rightCy, rad, 0, Math.PI * 2); ctx.fill();
 
       // Current point at angle -2πf*t0: g(t0) * e^{-j2πf t0}
@@ -322,17 +298,15 @@
       const px = rightCx + scale * Runit * Math.cos(theta);
       const py = rightCy - scale * Runit * Math.sin(theta);
       // radial line from origin
-      ctx.strokeStyle = `rgba(255,207,92,0.55)`;
+      ctx.strokeStyle = CFG.alpha(C.accent, 0.55);
       ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(rightCx, rightCy); ctx.lineTo(px, py); ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = C.accent;
-      ctx.shadowColor = C.accent; ctx.shadowBlur = 14;
       ctx.beginPath(); ctx.arc(px, py, 5.5, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
 
-      CFG.label(ctx, `radius = g(t₀) = ${gVal.toFixed(2)}`, rightCx, rightCy + R + 18, C.accent, { size: 10, align: 'center' });
-      CFG.label(ctx, `point = g(t₀)·e^{-j2πf t₀}`, rightCx, rightCy + R + 34, C.muted, { size: 10, align: 'center' });
+      CFG.label(ctx, `radius = g(t₀) = ${gVal.toFixed(2)}`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
+      CFG.label(ctx, 'point = g(t₀)·exp(−j2πft₀)', rightCx, rightCy + R + 36, C.muted, { align: 'center' });
       ctx.restore();
     }
 
@@ -396,7 +370,7 @@
 
         if (i === 0) { prevX = fx; prevY = fy; continue; }
         // gradient along the signal: green → accent
-        const col = interpColor(C.time, C.accent, frac);
+        const col = CFG.mix(C.time, C.accent, frac);
         ctx.strokeStyle = col;
         ctx.beginPath();
         ctx.moveTo(prevX, prevY); ctx.lineTo(fx, fy);
@@ -404,27 +378,25 @@
         prevX = fx; prevY = fy;
       }
 
-      CFG.label(ctx, `g(t)·e^{-j2πft} · f = ${fVal.toFixed(2)}`, rightCx, rightCy + R + 18, C.accent, { size: 10, align: 'center' });
-      CFG.label(ctx, `total turns = f·T = ${(fVal * Tmax).toFixed(2)}`, rightCx, rightCy + R + 34, C.muted, { size: 10, align: 'center' });
+      CFG.label(ctx, `g(t)·exp(−j2πft), f = ${fVal.toFixed(2)} Hz`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
+      CFG.label(ctx, `turns = f·T = ${(fVal * Tmax).toFixed(2)}`, rightCx, rightCy + R + 36, C.muted, { align: 'center' });
       ctx.restore();
     }
 
     // Section headers
     ctx.save();
-    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.font = CFG.FONT;
     ctx.fillStyle = C.muted;
     ctx.textAlign = 'center';
-    ctx.fillText('time domain', (leftX0 + leftX1) / 2, padT - 12);
-    ctx.globalAlpha = clamp01(u);
-    ctx.fillText('complex plane', rightCx, padT - 12);
+    ctx.fillText('time domain', (leftX0 + leftX1) / 2, padT - 14);
     ctx.restore();
 
     // Stage caption
     let cap = '';
-    if (u < 0.4) cap = 'stage 1 · the signal g(t) on a straight time axis';
-    else if (u < 1.3) cap = 'stage 2 · e^{-j2πft} traces the unit circle';
-    else if (u < 2.3) cap = 'stage 3 · multiplying by g(t₀) scales that circle';
-    else cap = 'stage 4 · let t advance · the scaled circle becomes a wound trace';
+    if (u < 0.4) cap = 'Stage 1: the signal g(t) on a linear time axis';
+    else if (u < 1.3) cap = 'Stage 2: exp(−j2πft) traces the unit circle';
+    else if (u < 2.3) cap = 'Stage 3: multiplication by g(t₀) scales the radius';
+    else cap = 'Stage 4: as t advances, the scaled point traces the wound curve';
     sub.textContent = cap;
   }
 
@@ -464,7 +436,7 @@
         u = 3; wrapProgress = 1; setStage(3);
       } else {
         playing = false;
-        playBtn.textContent = 'play sequence';
+        playBtn.textContent = 'Play sequence';
         u = 3; wrapProgress = 1; setStage(3);
       }
     } else {

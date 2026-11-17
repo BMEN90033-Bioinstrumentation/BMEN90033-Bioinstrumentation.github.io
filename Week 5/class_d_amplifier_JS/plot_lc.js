@@ -39,8 +39,8 @@
         if (!k) return;
         var C = window.CLD, hi = C.pwmSignal(C.clock.th) === 1;
         k.setFlow('ind', hi ? '--c-hi' : '--c-lo', 0.7);
-        k.setFlow('load', '--c-hi', 0.4);
-        k.setFlow('cap', '--c-car', hi ? 0.5 : 0.2);
+        k.setFlow('load', '--c-out', 0.4);
+        k.setFlow('cap', '--c-rip', hi ? 0.5 : 0.2);
     }
 
     window.CLD.onRender(render);

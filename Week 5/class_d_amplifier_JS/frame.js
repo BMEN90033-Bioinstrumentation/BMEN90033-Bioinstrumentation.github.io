@@ -14,6 +14,12 @@
         return { svg: svg, g: g, W: W, H: H, m: m, iw: iw, ih: ih };
     };
 
+    // Shared axis styling with 13 px tick text.
+    window.CLD.styleAxis = function (a) {
+        window.CMP.styleAxis(a);
+        a.selectAll('text').attr('font-size', 13);
+    };
+
     // Grid, axes and titles for panel group g of height ph at vertical offset
     // oy (relative to the inner area). xTitle is drawn only when given;
     // t.xTicks / t.yTicks override the default tick values.
@@ -24,7 +30,7 @@
             .call(d3.axisBottom(x).tickValues(xt).tickSizeOuter(0)
                 .tickFormat(t.xTitle ? (t.xFormat || null) : function () { return ''; }));
         var ya = g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0).tickFormat(t.yFormat || null));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(window.CLD.styleAxis);
         window.renderKatex(f.svg, t.yTitle, 22, f.m.top + oy + ph / 2,
             { width: 200, height: 22, rotate: -90, size: 16 });
         if (t.xTitle) {

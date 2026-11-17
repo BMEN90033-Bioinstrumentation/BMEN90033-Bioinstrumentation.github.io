@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · BJT Semiconductor Operation</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · BJT semiconductor operation</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -47,10 +41,10 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 4 · TRANSISTORS</div>
-            <h1 class="hero">Inside the bipolar <em>junction transistor</em></h1>
-            <p class="sub">A bipolar junction transistor is two pn junctions that share a thin, lightly doped middle
+            <h1 class="hero">Semiconductor operation of the BJT</h1>
+            <p class="sub">A bipolar junction transistor consists of two pn junctions that share a thin, lightly doped middle
                 region. Forward bias on one junction injects carriers into that region, and the reverse-biased second
-                junction collects almost all of them. This page follows the carriers through the device: the doping
+                junction collects almost all of them. This page traces the carriers through the device: the doping
                 structure, the equilibrium and injected carrier concentrations, and the bias conditions that define
                 each region of operation.</p>
             <div class="tags">
@@ -178,8 +172,8 @@
                 so $n_B(W_B)$ is effectively zero and the density falls linearly to zero across the base. Its gradient
                 drives the diffusion current that becomes the collector current. On the logarithmic axis this linear
                 fall appears as a sharp drop at the collector edge. In saturation both junctions are forward biased,
-                both edge densities are raised, and the base holds the excess stored charge. With no bias at all, both
-                edges sit at $n_{B0}$ and the profile is flat.</p>
+                both edge densities are raised, and the base holds the excess stored charge. With no applied bias, both
+                edges equal $n_{B0}$ and the profile is flat.</p>
 
             <div class="callout">
                 On the linear axis the minority concentrations, up to 18 orders of magnitude below the emitter
@@ -212,6 +206,8 @@
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-electron)"></span>electrons $n(x)$</span>
                     <span><span class="sw" style="background:var(--c-hole)"></span>holes $p(x)$</span>
+                    <span><span class="blk" style="background:var(--c-ntype)"></span>n-type</span>
+                    <span><span class="blk" style="background:var(--c-ptype)"></span>p-type</span>
                     <span><span class="blk dep"></span>depletion region</span>
                     <span><span class="sw dash"></span>metallurgical junction</span>
                 </div>

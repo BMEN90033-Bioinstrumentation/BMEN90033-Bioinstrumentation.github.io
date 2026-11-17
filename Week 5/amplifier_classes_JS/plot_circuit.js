@@ -109,11 +109,11 @@
             texL('\\text{' + (npn ? 'E' : 'C') + '}', bx + 6, bot + 6, small);
             texR('\\text{B}', bx - r - 4, by - 12, small);
         }
-        // Flow overlay: faint glow plus round-capped dashes that read as dots.
+        // Flow overlay: a translucent track plus round-capped dashes that read as dots.
         function flow(name, pts) {
             var d = d3.line()(pts);
             flows[name] = {
-                glow: svg.append('path').attr('d', d).attr('fill', 'none').attr('stroke-width', 5)
+                track: svg.append('path').attr('d', d).attr('fill', 'none').attr('stroke-width', 5)
                     .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('stroke-opacity', 0),
                 dots: svg.append('path').attr('d', d).attr('fill', 'none').attr('stroke-width', 4.5)
                     .attr('stroke-linecap', 'round').attr('stroke-dasharray', '0 18').attr('stroke-opacity', 0)
@@ -214,7 +214,7 @@
         var f = flows[name];
         if (!f) return;
         var a = Math.max(0, Math.min(1, alpha)), c = css(colVar);
-        f.glow.attr('stroke', c).attr('stroke-opacity', a * 0.3);
+        f.track.attr('stroke', c).attr('stroke-opacity', a * 0.3);
         f.dots.attr('stroke', c).attr('stroke-opacity', a)
             .attr('stroke-dashoffset', -(window.AMP.clock.t * 80) % 18);
     }
@@ -261,8 +261,13 @@
         }
         var st = document.querySelector('[data-out="state"]');
         if (st) {
-            var txt = (s.key === 'quiet' || s.key === 'dead' ? 'v_in ≈ 0: ' : n > 0 ? 'v_in > 0: ' : 'v_in < 0: ') + s.text;
-            if (st.textContent !== txt) st.textContent = txt;
+            var rel = s.key === 'quiet' || s.key === 'dead' ? '\\approx' : n > 0 ? '>' : '<';
+            var txt = '$v_\\text{in} ' + rel + ' 0$: ' + s.text;
+            if (st.dataset.txt !== txt && window.renderMathInElement) {
+                st.dataset.txt = txt;
+                st.textContent = txt;
+                window.renderMathInElement(st, { delimiters: [{ left: '$', right: '$', display: false }], throwOnError: false });
+            }
         }
     }
 

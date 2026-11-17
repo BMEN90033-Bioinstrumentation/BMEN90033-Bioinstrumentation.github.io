@@ -45,7 +45,12 @@
             xTitle: 't \\, [\\mathrm{s}]',
             yTitle: '\\text{amplitude}',
             xTicks: [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
-            yTicks: [-1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5]
+            yTicks: [-1.5, -1.0, -0.5, 0, 0.5, 1.0, 1.5],
+            legend: [
+                { color: getColor('--c-noisy'),    label: 'noisy input',     show: state.showNoisy },
+                { color: getColor('--c-clean'),    label: 'clean reference', show: state.showTruth, dashed: true },
+                { color: getColor('--c-filtered'), label: 'low-pass output' }
+            ]
         });
 
         var x = H.x, y = H.y;
@@ -66,13 +71,6 @@
         var filt = S.filtfiltLPF(noisy, state.fc, fs);
         H.g.append('path').datum(filt)
             .attr('class', 'trace filtered').attr('d', line);
-
-        // Inline legend in top-right corner of plot
-        drawLegend(H, [
-            { cls: 'noisy',    label: 'noisy input',     show: state.showNoisy },
-            { cls: 'clean faint', label: 'clean signal', show: state.showTruth },
-            { cls: 'filtered', label: 'low-pass output', show: true }
-        ]);
     }
 
     function renderMag() {
@@ -85,7 +83,7 @@
             yTitle: '|H(f)|^2',
             xTicks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
             yTicks: [0, 0.25, 0.5, 0.707, 1.0],
-            margin: { top: 80, right: 36, bottom: 50, left: 60 }
+            margin: { top: 80, right: 36, bottom: 50, left: 78 }
         });
 
         var x = H.x, y = H.y;
@@ -125,7 +123,7 @@
                 .attr('stroke-dasharray', '3 3')
                 .attr('opacity', 0.7);
             window.renderKatex(H.g, label, xc, -46,
-                { width: 80, height: 16, size: 11, color: color });
+                { width: 80, height: 16, size: 13, color: color });
         }
         vmark(1.5,  '1.5\\,\\mathrm{Hz}', 'clean');
         vmark(50,   '50\\,\\mathrm{Hz}',  'noisy');
@@ -139,47 +137,12 @@
                 .attr('y1', 0).attr('y2', H.innerH);
             var fcLabelX = Math.min(Math.max(xc, 24), H.innerW - 24);
             window.renderKatex(H.g, 'f_c', fcLabelX, -18,
-                { width: 50, height: 16, size: 12, color: getColor('--c-mark') });
+                { width: 50, height: 16, size: 14, color: getColor('--c-mark') });
         }
     }
 
     function getColor(varName) {
         return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-    }
-
-    function drawLegend(H, items) {
-        var visible = items.filter(function (it) { return it.show; });
-        var pad = 8;
-        var rowH = 14;
-        var w = 150;
-        var h = pad * 2 + rowH * visible.length;
-        var x0 = H.innerW - w - 8;
-        var y0 = 8;
-        var grp = H.g.append('g');
-        grp.append('rect')
-            .attr('x', x0).attr('y', y0)
-            .attr('width', w).attr('height', h)
-            .attr('rx', 6).attr('ry', 6)
-            .attr('fill', window.T.panelBg)
-            .attr('stroke', window.T.gridStrong);
-        visible.forEach(function (it, i) {
-            var yy = y0 + pad + 6 + i * rowH;
-            var color = '';
-            if (it.cls.indexOf('noisy') >= 0)    color = 'var(--c-noisy)';
-            if (it.cls.indexOf('clean') >= 0)    color = 'var(--c-clean)';
-            if (it.cls.indexOf('filtered') >= 0) color = 'var(--c-filtered)';
-            grp.append('line')
-                .attr('x1', x0 + pad).attr('x2', x0 + pad + 18)
-                .attr('y1', yy - 3).attr('y2', yy - 3)
-                .attr('stroke', color).attr('stroke-width', 2.2)
-                .attr('stroke-dasharray', it.cls.indexOf('faint') >= 0 ? '4 4' : null)
-                .attr('opacity', it.cls.indexOf('faint') >= 0 ? 0.5 : 1);
-            grp.append('text')
-                .attr('x', x0 + pad + 24).attr('y', yy)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10).attr('fill', window.T.text)
-                .text(it.label);
-        });
     }
 
     function renderAll() { renderTime(); renderMag(); }
@@ -208,7 +171,6 @@
             pillNoisy.classList.toggle('active', state.showNoisy);
             renderAll();
         });
-        window.addEventListener('themechange', renderAll);
         window.addEventListener('resize', renderAll);
     }
 

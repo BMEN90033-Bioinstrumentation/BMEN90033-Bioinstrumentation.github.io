@@ -5,6 +5,11 @@
 // when the reset goes high the MOSFET shorts C through R_on, emptying it
 // before the next window begins.
 (function () {
+    // SVG label with a subscript: sub('v', 'out') renders v with a lowered 'out'.
+    function sub(a, b, c) {
+        return a + '<tspan dy="4" font-size="10">' + b + '</tspan>' + (c ? '<tspan dy="-4">' + c + '</tspan>' : '');
+    }
+
     var winI = document.getElementById('pp-a-win');
     var rstI = document.getElementById('pp-a-rst');
     var fcI  = document.getElementById('pp-a-fc');
@@ -70,7 +75,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 54, left: 56 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -119,8 +124,8 @@
         g.append('circle').attr('cx', out.x - 14).attr('cy', out.y).attr('r', 4)
             .attr('fill', 'var(--c-output)');
         g.append('text').attr('x', out.x).attr('y', out.y + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--c-output)').text('v_out');
+            .style('font-size', '13px')
+            .style('fill', 'var(--c-output)').html(sub('v', 'out'));
 
         // Reset signal source block, drawn to the right of the mosfet
         var rstBoxX = mosX + 70;       // left edge of the block
@@ -142,8 +147,8 @@
             .attr('fill', 'none')
             .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 1.6);
         g.append('text').attr('x', pCx).attr('y', rstY + 38).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--muted)').text('φ_rst');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').html(sub('φ', 'rst'));
 
         // Gate wire from the mosfet gate pin (mosX + 38, mosY) to the reset block left edge
         wire(g, mosX + 38, rstY, rstBoxX, rstY);
@@ -154,12 +159,12 @@
                 .attr('fill', 'var(--text-dim)');
         });
 
-        source(g, src.x, src.y, 'v_in');
+        source(g, src.x, src.y, sub('v', 'in'));
 
         g.append('text').attr('x', (dIn.x + dOut.x) / 2).attr('y', dIn.y - 26)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('D1');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('D1');
     }
 
     function source(g, x, y, label) {
@@ -169,8 +174,8 @@
         g.append('path').attr('d', 'M ' + (x - 14) + ',' + y + ' Q ' + (x - 7) + ',' + (y - 12) + ' ' + x + ',' + y + ' T ' + (x + 14) + ',' + y)
             .attr('fill', 'none').attr('stroke', 'var(--c-input)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x).attr('y', y + 46).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text(label);
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').html(label);
     }
 
     function wire(g, x1, y1, x2, y2) {
@@ -209,8 +214,8 @@
         g.append('line').attr('x1', x).attr('y1', midY + 5).attr('x2', x).attr('y2', gy)
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x - 22).attr('y', midY + 4).attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('C');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('C');
     }
 
     function mosfetVertical(g, x, y) {
@@ -235,8 +240,8 @@
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         // Label
         g.append('text').attr('x', x - 22).attr('y', y - 10).attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--muted)').text('M1');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('M1');
     }
 
     function ground(g, x, y) {
@@ -286,10 +291,10 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[2]); }));
 
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
-                .tickFormat(function (d) { return (d * 1000).toFixed(0) + ' ms'; })
-                .tickSize(0).tickPadding(8));
+                .tickFormat(function (d) { return (d * 1000).toFixed(0); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(-Math.floor(yMax), Math.floor(yMax) + 1, 1))
@@ -298,23 +303,16 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
-            .attr('text-anchor', 'middle').text('Time');
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
+            .attr('text-anchor', 'middle').text('Time (ms)');
         f.g.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
 
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('v_out(t)');
     }
 
     function drawReset(rstPts) {
-        var f = makeFrame(rstSvg, { minH: 110, margin: { top: 18, right: 28, bottom: 32, left: 56 } });
+        var f = makeFrame(rstSvg, { minH: 110, margin: { top: 36, right: 36, bottom: 50, left: 56 } });
         f.g.selectAll('*').remove();
 
         var x = d3.scaleLinear().domain([0, T_VIEW]).range([0, f.iw]);
@@ -339,21 +337,21 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
         f.g.append('text').attr('x', -8).attr('y', y(1) + 4).attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--muted)').text('RESET');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('reset');
         f.g.append('text').attr('x', -8).attr('y', y(0) + 4).attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--muted)').text('HOLD');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('hold');
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
-                .tickFormat(function (d) { return (d * 1000).toFixed(0) + ' ms'; })
-                .tickSize(0).tickPadding(8));
+                .tickFormat(function (d) { return (d * 1000).toFixed(0); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 28)
-            .attr('text-anchor', 'middle').text('Time');
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
+            .attr('text-anchor', 'middle').text('Time (ms)');
     }
 
     function highlightMosfet(active) {
@@ -403,7 +401,6 @@
             fcL.textContent = state.fc.toFixed(1) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', function () { drawCircuit(); refresh(); });
         window.addEventListener('resize', function () { drawCircuit(); refresh(); });
         refresh();
     }

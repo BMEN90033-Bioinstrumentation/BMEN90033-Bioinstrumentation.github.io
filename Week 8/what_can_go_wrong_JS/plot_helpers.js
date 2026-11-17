@@ -202,13 +202,15 @@
         var rect = root.node().getBoundingClientRect();
         var W = rect.width || 720;
         var H = rect.height || 380;
-        var margin = opts.margin || { top: 40, right: 70, bottom: 56, left: 70 };
+        var margin = Object.assign({}, opts.margin || { top: 40, right: 70, bottom: 56, left: 70 });
+        var svg = root.append('svg').attr('width', W).attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
+        if (opts.legend) margin.top = legend(svg, opts.legend, W) + (opts.topPad || 0);
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
-        var svg = root.append('svg').attr('width', W).attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
         var x = (opts.xScale || d3.scaleLinear()).domain(opts.xDomain || [0, 1]).range([0, innerW]);
         var y = (opts.yScale || d3.scaleLinear()).domain(opts.yDomain || [-1, 1]).range([innerH, 0]);
         var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        addClip(g, innerW, innerH);
         drawGrid(g, x, y, innerW, innerH, C, opts);
         var xAxis = d3.axisBottom(x).ticks(opts.xTicks || 6).tickFormat(opts.xFormat || null).tickSizeOuter(0);
         var yAxis = d3.axisLeft(y).ticks(opts.yTicks || 5).tickFormat(opts.yFormat || null).tickSizeOuter(0);
@@ -228,11 +230,12 @@
         var rect = root.node().getBoundingClientRect();
         var W = rect.width || 720;
         var H = rect.height || 520;
-        var margin = opts.margin || { top: 40, right: 70, bottom: 56, left: 70 };
-        var gap = opts.gap || 24;
+        var margin = Object.assign({}, opts.margin || { top: 40, right: 70, bottom: 56, left: 70 });
+        var gap = opts.gap || 36;
+        var svg = root.append('svg').attr('width', W).attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
+        if (opts.legend) margin.top = legend(svg, opts.legend, W);
         var innerW = W - margin.left - margin.right;
         var innerH = (H - margin.top - margin.bottom - gap) / 2;
-        var svg = root.append('svg').attr('width', W).attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
         var xTop = (opts.xScale || d3.scaleLinear()).domain(opts.xTopDomain || opts.xDomain || [0, 1]).range([0, innerW]);
         var xBottom = (opts.xBottomScale || opts.xScale || d3.scaleLinear()).domain(opts.xBottomDomain || opts.xDomain || [0, 1]).range([0, innerW]);
         var yTop = d3.scaleLinear().domain(opts.yTopDomain || [-1, 1]).range([innerH, 0]);
@@ -245,14 +248,24 @@
         if (opts.topLabel) window.renderKatex(svg, opts.topLabel, 22, margin.top + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
         if (opts.bottomLabel) window.renderKatex(svg, opts.bottomLabel, 22, bottomTop + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
         if (opts.xLabel) window.renderKatex(svg, opts.xLabel, margin.left + innerW / 2, H - 14, { width: 220, height: 24, size: 14 });
+        if (opts.xTopLabel) window.renderKatex(svg, opts.xTopLabel, margin.left + innerW / 2, margin.top + innerH + 38, { width: 220, height: 24, size: 14 });
         return { svg: svg, gTop: gTop, gBottom: gBottom, x: xTop, xTop: xTop, xBottom: xBottom, yTop: yTop, yBottom: yBottom, W: W, H: H, innerW: innerW, innerH: innerH, margin: margin, bottomTop: bottomTop, colors: C };
     }
 
     function drawPanel(g, x, y, innerW, innerH, C, opts) {
+        addClip(g, innerW, innerH);
         drawGrid(g, x, y, innerW, innerH, C, opts);
         styleAxis(g.append('g').attr('transform', 'translate(0,' + innerH + ')').call(d3.axisBottom(x).ticks(opts.xTicks || 6).tickSizeOuter(0)), C);
         styleAxis(g.append('g').call(d3.axisLeft(y).ticks(opts.yTicks || 5).tickSizeOuter(0)), C);
         g.append('rect').attr('width', innerW).attr('height', innerH).attr('fill', 'none').attr('stroke', C.gridStrong);
+    }
+
+    // Traces drawn with drawLine are clipped to the plot frame.
+    var clipCount = 0;
+    function addClip(g, innerW, innerH) {
+        var id = 'wcgw-clip-' + (++clipCount);
+        g.append('clipPath').attr('id', id).append('rect').attr('width', innerW).attr('height', innerH);
+        g.attr('data-clip', id);
     }
 
     function drawGrid(g, x, y, innerW, innerH, C, opts) {
@@ -270,6 +283,8 @@
             xDomain: opts.xDomain || [-2, 2],
             yDomain: opts.yDomain || [-2, 2],
             margin: { top: 56, right: 56, bottom: 56, left: 56 },
+            legend: opts.legend,
+            topPad: 24,
             xTicks: 5,
             yTicks: 5
         });
@@ -277,14 +292,14 @@
         P.g.append('rect').attr('class', 'splane-rhp').attr('x', x0).attr('y', 0).attr('width', P.innerW - x0).attr('height', P.innerH);
         P.g.append('line').attr('class', 'axis-line').attr('x1', 0).attr('x2', P.innerW).attr('y1', y0).attr('y2', y0).attr('stroke', P.colors.axis);
         P.g.append('line').attr('class', 'axis-line').attr('x1', x0).attr('x2', x0).attr('y1', 0).attr('y2', P.innerH).attr('stroke', P.colors.axis);
-        window.renderKatex(P.svg, '\\operatorname{Im}\\{s\\}', P.margin.left + x0, 22, { width: 180, height: 24, size: 14 });
-        window.renderKatex(P.svg, '\\operatorname{Re}\\{s\\}', P.margin.left + P.innerW + 18, P.margin.top + y0, { width: 140, height: 24, size: 14 });
+        window.renderKatex(P.svg, '\\operatorname{Im}\\{s\\}', P.margin.left + x0, P.margin.top - 14, { width: 180, height: 24, size: 14 });
+        window.renderKatex(P.svg, '\\operatorname{Re}\\{s\\}', P.margin.left + P.innerW + 30, P.margin.top + y0, { width: 60, height: 24, size: 14 });
         return P;
     }
 
     function styleAxis(ax, C) {
         ax.selectAll('path,line').attr('stroke', C.axis);
-        ax.selectAll('text').attr('fill', C.fg).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace");
+        ax.selectAll('text').attr('fill', C.fg).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace");
     }
 
     function drawLine(panel, data, xAccessor, yAccessor, cls, yScale, gTarget) {
@@ -292,23 +307,59 @@
             .x(function (d) { return panel.x(xAccessor(d)); })
             .y(function (d) { return yScale(yAccessor(d)); })
             .curve(d3.curveCatmullRom.alpha(0.35));
-        return (gTarget || panel.g).append('path')
+        var host = gTarget || panel.g;
+        return host.append('path')
             .datum(data)
             .attr('class', 'trace ' + cls)
+            .attr('clip-path', host.attr('data-clip') ? 'url(#' + host.attr('data-clip') + ')' : null)
             .attr('fill', 'none')
             .attr('d', line);
     }
 
-    function legend(svg, items, x, y) {
-        var C = colors();
-        var g = svg.append('g').attr('transform', 'translate(' + x + ',' + y + ')');
-        items.forEach(function (it, i) {
-            var row = g.append('g').attr('transform', 'translate(0,' + i * 18 + ')');
-            row.append('line').attr('x1', 0).attr('x2', 22).attr('y1', 0).attr('y2', 0)
-                .attr('stroke', it.color || C[it.key]).attr('stroke-width', 2.6);
-            row.append('text').attr('x', 30).attr('y', 4).attr('fill', C.fg)
-                .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text(it.label);
+    // SVG text with subscripts: "f_c" and "R_{in}" are drawn with the part
+    // after the underscore lowered and reduced.
+    function label(sel, str) {
+        sel.text(null);
+        var lowered = false;
+        String(str).split(/(_\{[^}]*\}|_[A-Za-z0-9]+)/).forEach(function (part) {
+            if (!part) return;
+            var sub = part.charAt(0) === '_';
+            var t = sel.append('tspan').text(sub ? part.replace(/^_\{?|\}$/g, '') : part);
+            if (sub) t.attr('dy', 3).attr('font-size', '0.8em');
+            else if (lowered) t.attr('dy', -3);
+            lowered = sub;
         });
+    }
+
+    // Legend rows in the top margin, below the plot-box label and wrapped to
+    // the box width. Items: { key | color, label } draws a line swatch;
+    // dash: true a dashed marker swatch; band: true a filled swatch; an item
+    // with neither key nor color is a plain note. Returns the top margin
+    // that clears the rows.
+    function legend(svg, items, W) {
+        var C = colors();
+        var left = 16, top = 44, rowH = 20, x = 0, row = 0;
+        var g = svg.append('g').attr('class', 'plot-legend');
+        items.forEach(function (it) {
+            var col = it.color || C[it.key];
+            var e = g.append('g');
+            if (col && it.band) {
+                e.append('rect').attr('x', 0).attr('y', -6).attr('width', 22).attr('height', 12)
+                    .attr('fill', col).attr('opacity', 0.18);
+            } else if (col) {
+                e.append('line').attr('x1', 0).attr('x2', 22).attr('y1', 0).attr('y2', 0)
+                    .attr('stroke', col).attr('stroke-width', it.dash ? 1.6 : 2.6)
+                    .attr('stroke-dasharray', it.dash ? '5 4' : null).attr('opacity', it.opacity || 1);
+            }
+            var tx = col ? 30 : 0;
+            var t = e.append('text').attr('x', tx).attr('y', 4.5).attr('fill', it.textColor || C.fg)
+                .attr('font-size', 13).call(label, it.label);
+            var w = tx + t.node().getComputedTextLength();
+            if (x > 0 && x + w > W - 2 * left) { x = 0; row++; }
+            e.attr('transform', 'translate(' + (left + x) + ',' + (top + row * rowH) + ')');
+            x += w + 22;
+        });
+        return top + row * rowH + 18;
     }
 
     function debounceResize(draw) {
@@ -339,6 +390,7 @@
     WCGW.setupSPlane = setupSPlane;
     WCGW.drawLine = drawLine;
     WCGW.legend = legend;
+    WCGW.label = label;
     WCGW.debounceResize = debounceResize;
     WCGW.styleAxis = styleAxis;
 

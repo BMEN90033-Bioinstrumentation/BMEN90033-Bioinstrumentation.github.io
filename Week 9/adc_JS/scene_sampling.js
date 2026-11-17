@@ -10,12 +10,13 @@
     var rdNyq = document.getElementById('smp-nyq');
     var rdRat = document.getElementById('smp-ratio');
     var rdAls = document.getElementById('smp-alias');
+    var rdApp = document.getElementById('smp-fapp');
 
     var state = { fin: 2.0, fs: 20 };
     var T_VIEW = 1.0;  // seconds shown on the x-axis
 
-    var traceSvg = d3.select('#plot-smp-trace').classed('ov', true);
-    var reconSvg = d3.select('#plot-smp-recon').classed('ov', true);
+    var traceSvg = d3.select('#plot-smp-trace').classed('bode', true);
+    var reconSvg = d3.select('#plot-smp-recon').classed('bode', true);
 
     function makeFrame(svg, opts) {
         opts = opts || {};
@@ -23,7 +24,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 200, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 22, right: 28, bottom: 38, left: 56 };
+        var m = { top: 34, right: 28, bottom: 48, left: 66 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -82,7 +83,7 @@
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(6).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(6).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
@@ -93,14 +94,14 @@
         // Axis titles
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('Time (s)');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-40) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-48) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude');
+            .text('Amplitude');
     }
 
     function drawRecon() {
@@ -177,24 +178,29 @@
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(6).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(6).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
+        var ay = f.g.append('g').attr('class', 'axis')
+            .call(d3.axisLeft(y).tickValues([-1, 0, 1]).tickFormat(function (d) { return d.toFixed(0); })
+                .tickSize(0).tickPadding(8));
+        ay.select('.domain').remove();
 
-        // Title and apparent-frequency annotation
+        // Axis titles
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('Time (s)');
 
         f.g.append('text')
-            .attr('x', f.iw - 6).attr('y', 14)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .attr('fill', 'var(--c-output2)')
-            .text('apparent f = ' + Math.abs(fApparent).toFixed(2) + ' Hz' + (fApparent < 0 ? ' (inverted)' : ''));
+            .attr('class', 'axis-title')
+            .attr('transform', 'translate(' + (-48) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .text('Amplitude');
+
+        // The apparent frequency is reported in the readout beneath the plot.
+        rdApp.textContent = Math.abs(fApparent).toFixed(2) + ' Hz' + (fApparent < 0 ? ' (inverted)' : '');
     }
 
     function updateReadout() {
@@ -203,7 +209,7 @@
         rdNyq.textContent = fNyq.toFixed(1) + ' Hz';
         rdRat.textContent = ratio.toFixed(2);
         var alias = state.fin > fNyq;
-        rdAls.textContent = alias ? 'YES' : 'no';
+        rdAls.textContent = alias ? 'Yes' : 'No';
         rdAls.className = 'v ' + (alias ? 'warn' : 'on');
     }
 
@@ -224,7 +230,6 @@
             fsL.textContent = state.fs.toFixed(1) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

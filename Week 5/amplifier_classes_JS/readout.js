@@ -11,11 +11,11 @@
         }
         if (st.clipping) return '<strong>Clipping.</strong> The output is limited by the supply rails, $\\pm(V_{CC} - V_{CE(\\text{sat})})$.';
         if (p.cls === 'B') {
-            if (drive > 0 && dz / drive > 0.1) return '<strong>Crossover distortion.</strong> The dead zone of $\\pm 0.6$ V at the bases is a large fraction of the drive amplitude, so neither device conducts for a visible part of each zero crossing.';
-            return '<strong>Near half-cycle conduction.</strong> Each device conducts for just under $180^\\circ$ and the maximum efficiency is $\\pi/4 \\approx 78.5$ %. The dead zone still distorts every zero crossing.';
+            if (drive > 0 && dz / drive > 0.1) return '<strong>Crossover distortion.</strong> The dead zone of $\\pm 0.6$ V at the bases is a large fraction of the drive amplitude, so neither device conducts for a visible interval about each zero crossing.';
+            return '<strong>Near half-cycle conduction.</strong> Each device conducts for slightly less than $180^\\circ$ and the maximum efficiency is $\\pi/4 \\approx 78.5$ %. The dead zone still distorts every zero crossing.';
         }
-        if (dz > 0) return '<strong>Residual dead zone.</strong> Each diode lifts its base by $V_D = ' + p.vd.toFixed(2) + '$ V, which is ' + Math.round(dz * 1000) + ' mV short of $V_{BE(\\text{on})} = 0.6$ V, so a dead zone of $\\pm' + Math.round(dz * 1000) + '$ mV remains at the bases.';
-        return '<strong>No dead zone.</strong> With $V_D = V_{BE(\\text{on})}$ both devices sit at the edge of conduction, and the output follows the drive through zero. A slightly larger diode drop would bias both into conduction and extend each conduction angle beyond $180^\\circ$.';
+        if (dz > 0) return '<strong>Residual dead zone.</strong> Each diode offsets its base by $V_D = ' + p.vd.toFixed(2) + '$ V, which is ' + Math.round(dz * 1000) + ' mV short of $V_{BE(\\text{on})} = 0.6$ V, so a dead zone of $\\pm' + Math.round(dz * 1000) + '$ mV remains at the bases.';
+        return '<strong>No dead zone.</strong> With $V_D = V_{BE(\\text{on})}$ both devices are biased at the threshold of conduction, and the output follows the drive through zero. A slightly larger diode drop would bias both into conduction and extend each conduction angle beyond $180^\\circ$.';
     }
 
     // Conduction angle of one push-pull device: the drive exceeds the dead

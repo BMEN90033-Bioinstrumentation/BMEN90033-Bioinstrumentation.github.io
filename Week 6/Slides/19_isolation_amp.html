@@ -3,42 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide 20: Isolation Amplifier</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Slide 19: Isolation amplifier</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    (function () {
-      var qp = new URLSearchParams(location.search);
-      var qt = qp.get('theme');
-      var ss = null;
-      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { }
-      var pick = (qt === 'dark' || qt === 'light') ? qt
-        : (ss === 'dark' || ss === 'light') ? ss
-          : null;
-      if (pick) document.documentElement.setAttribute('data-theme', pick);
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { }
-      });
-      if (window.parent !== window) {
-        var style = document.createElement('style');
-        style.textContent = '#theme-toggle{display:none !important;}';
-        document.head.appendChild(style);
-      }
-    })();
-  </script>
   <style>
-    /* ── Section 2 RHS: Safety Demo Panel ── */
+    /* manim-web sets an inline 1280 x 720 px size on its canvas; scale it to the stage */
+    .manim-stage > canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Section 2, right half: leakage current plot and controls */
     .safety-panel {
       position: absolute;
       top: 0;
       right: 0;
-      width: 50%;
+      width: 47%;
       height: calc(100% - 50px);
       z-index: 4;
       display: none;
@@ -49,6 +30,7 @@
     #safetyCanvas {
       width: 100%;
       flex: 1;
+      min-height: 0;
       display: block;
     }
 
@@ -57,8 +39,8 @@
       z-index: 6;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: 10px 16px;
+      gap: 10px;
+      padding: 12px 16px;
       background: var(--slide-surface);
       border-top: 1px solid var(--slide-border);
       flex-shrink: 0;
@@ -66,78 +48,76 @@
 
     .safety-slider-row {
       display: flex;
-      align-items: center;
-      gap: 20px;
+      flex-wrap: wrap;
+      gap: 10px 24px;
     }
 
     .safety-slider-group {
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex: 1;
+      gap: 10px;
+      flex: 1 1 280px;
     }
-    .safety-slider-group label {
-      font-family: 'IBM Plex Mono', monospace;
+    .safety-slider-group label,
+    .safety-readout .k {
+      font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--slide-text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--slide-text);
       white-space: nowrap;
     }
     .safety-slider-group input[type="range"] {
-      width: 90px;
-      accent-color: var(--slide-accent);
       flex: 1;
+      min-width: 60px;
+    }
+    .safety-slider-group .slider-val,
+    .safety-readout .v {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--slide-text);
+      font-variant-numeric: tabular-nums;
     }
     .safety-slider-group .slider-val {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      color: var(--slide-text);
-      min-width: 52px;
-      font-variant-numeric: tabular-nums;
+      min-width: 68px;
+      text-align: right;
     }
 
     .safety-readout {
       display: grid;
       grid-template-columns: auto 1fr;
-      gap: 2px 10px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
+      align-items: baseline;
+      gap: 4px 10px;
       border-top: 1px solid var(--slide-border);
-      padding-top: 6px;
+      padding-top: 8px;
     }
-    .safety-readout .k { color: var(--slide-text-dim); }
-    .safety-readout .v {
-      text-align: right;
-      color: var(--slide-text);
-      font-weight: 500;
-      font-variant-numeric: tabular-nums;
-    }
+    .safety-readout .v { text-align: right; }
 
+    /* State is given by the text; the tint repeats the trace colour */
     .safety-status {
       grid-column: 1 / -1;
       margin-top: 4px;
-      border-radius: 4px;
-      padding: 6px 8px;
+      border-radius: var(--radius-3);
+      padding: 6px 10px;
       line-height: 1.4;
-      font-size: 10px;
-      border-left: 3px solid var(--slide-accent);
-      background: rgba(106, 170, 142, 0.12);
-      color: var(--slide-accent);
-      transition: all 0.3s;
+      font-size: 13px;
+      color: var(--slide-text);
+      border: 1px solid var(--d-green);
+      background: var(--d-green-soft);
     }
     .safety-status.danger {
-      border-left-color: var(--slide-red, #e06050);
-      background: rgba(224, 96, 80, 0.12);
-      color: var(--slide-red, #e06050);
+      border-color: var(--d-pink);
+      background: var(--d-pink-soft);
     }
   </style>
 </head>
 <body class="slide">
   <header class="slide-header">
-    <span class="slide-num">18 / 19</span>
+    <span class="slide-num">19 / 20</span>
   </header>
 
   <div id="stage" class="manim-stage">
-    <div class="stage-fallback">Loading manim-web scene…</div>
+    <div class="stage-fallback">Loading scene</div>
 
     <!-- Section 2 RHS: Safety Demo -->
     <div class="safety-panel" id="safetyPanel">
@@ -145,29 +125,29 @@
       <div class="safety-controls">
         <div class="safety-slider-row">
           <div class="safety-slider-group">
-            <label>C<sub>barrier</sub></label>
+            <label for="capSlider">Barrier capacitance</label>
             <input type="range" id="capSlider" min="0" max="1000" step="1" value="300">
             <span class="slider-val" id="capVal">4.0 pF</span>
           </div>
           <div class="safety-slider-group">
-            <label>Frequency</label>
+            <label for="freqSlider">Frequency</label>
             <input type="range" id="freqSlider" min="0" max="1000" step="1" value="0">
             <span class="slider-val" id="freqVal">50 Hz</span>
           </div>
         </div>
         <div class="safety-readout">
-          <span class="k">X<sub>C</sub> (barrier)</span><span class="v" id="xcVal">799.6 MΩ</span>
-          <span class="k">I<sub>leakage</sub></span><span class="v" id="ileakVal">0.30 µA</span>
-          <span class="k">Threshold</span><span class="v">10 µA (IEC 60601)</span>
-          <div class="safety-status" id="safetyStatus">SAFE: Leakage current within IEC 60601 limits</div>
+          <span class="k">Barrier reactance</span><span class="v" id="xcVal">799.6 MΩ</span>
+          <span class="k">Leakage current</span><span class="v" id="ileakVal">0.30 µA</span>
+          <span class="k">Limit (IEC 60601), dashed</span><span class="v">10 µA</span>
+          <div class="safety-status" id="safetyStatus">Safe: the leakage current is within the IEC 60601 limit.</div>
         </div>
       </div>
     </div>
 
     <div class="stepper-row" id="stepper" style="display:none">
-      <button type="button" class="stepper-btn" id="sec-prev" disabled>← Prev Section</button>
+      <button type="button" class="stepper-btn" id="sec-prev" disabled>Previous section</button>
       <span class="step-indicator" id="sec-indicator">Section 1 · Circuit</span>
-      <button type="button" class="stepper-btn" id="sec-next">Next Section →</button>
+      <button type="button" class="stepper-btn" id="sec-next">Next section</button>
     </div>
   </div>
 
@@ -179,25 +159,28 @@
     } from 'https://esm.sh/manim-web@0.3.18';
 
     const FONT_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/fonts/KaTeX_Main-Regular.ttf';
-    const IS_LIGHT = document.documentElement.getAttribute('data-theme') === 'light';
-    const BG     = IS_LIGHT ? '#f5f5f7' : '#0a0e14';
-    const FG     = IS_LIGHT ? '#1a1a1e' : '#ffffff';
-    const MUTED  = IS_LIGHT ? '#6a6a72' : '#8892a4';
-    const MUTED2 = IS_LIGHT ? '#b0b0b6' : '#505868';
-    const ACCENT = IS_LIGHT ? '#3d8b6e' : '#6aaa8e';
-    const YELLOW = IS_LIGHT ? '#b8860b' : '#ffcc44';
-    const RED    = IS_LIGHT ? '#c74034' : '#e06050';
-    const BLUE   = IS_LIGHT ? '#3a68c8' : '#5a8dee';
-    const MAG    = IS_LIGHT ? '#a050a0' : '#d070d0';
-    const CYAN   = IS_LIGHT ? '#3d8ea0' : '#58c0d8';
-    window.addEventListener('themechange', () => location.reload());
+    // manim-web needs literal hex strings; read once from the theme.css data palette
+    const BG      = T.plotBg;
+    const FG      = T.c('ink');
+    const MUTED   = T.c('slate');   // secondary labels
+    const MUTED2  = T.c('grey');    // op-amp outline, zero line
+    const BLUE    = T.c('blue');    // signal: V_IN, signal dot, equipment
+    const VOUT    = T.c('orange');  // V_OUT
+    const RED     = T.c('pink');    // inverting input, electrodes, 10 uA limit
+    const ACCENT  = T.c('green');   // non-inverting input, input domain, patient side
+    const MAG     = T.c('violet');  // R_F
+    const BARRIER = T.c('olive');   // isolation barrier and the coupled signal crossing it
+    const CYAN    = T.c('slate');   // output domain, modulator and demodulator
+    const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const FONT_MONO = cssVar('--font-mono');
+    const FONT_TEXT = cssVar('--font-text');
 
     const stage = document.getElementById('stage');
     stage.querySelector('.stage-fallback')?.remove();
     const scene = new Scene(stage, { width: 1280, height: 720, backgroundColor: BG });
 
     // ── Title ──
-    const title = new Text({ text: 'Isolation Amplifier', fontSize: 40, color: FG, fontUrl: FONT_URL });
+    const title = new Text({ text: 'Isolation amplifier', fontSize: 40, color: FG, fontUrl: FONT_URL });
     await title.loadGlyphs?.();
     title.moveTo([-3.5, 3.5, 0]);
     if (typeof title.getLeft === 'function') {
@@ -205,14 +188,14 @@
     }
 
     // ═══════════════════════════════════════════════
-    //  SECTION 1: CIRCUIT DIAGRAM — left half
+    //  SECTION 1: CIRCUIT DIAGRAM: left half
     // ═══════════════════════════════════════════════
 
     const TRI_HALF_H = 0.55;
     const TRI_HALF_W = 0.5;
     const R_W = 0.6, R_H = 0.22;
 
-    // Op-amp positions — compact layout, shifted left to leave room for RHS bullets
+    // Op-amp positions: compact layout, shifted left to leave room for RHS bullets
     const A1_CX = -5.1, A1_CY = 0.5;
     const A2_CX = 0.1, A2_CY = 0.5;
 
@@ -234,8 +217,8 @@
     // +/- symbols
     async function mkTerminals(cx, cy) {
       const pY = cy - 0.25, mY = cy + 0.25;
-      const p = new Text({ text: '+', fontSize: 14, color: ACCENT, fontUrl: FONT_URL });
-      const m = new Text({ text: '−', fontSize: 14, color: RED, fontUrl: FONT_URL });
+      const p = new Text({ text: '+', fontSize: 16, color: ACCENT, fontUrl: FONT_URL });
+      const m = new Text({ text: '−', fontSize: 16, color: RED, fontUrl: FONT_URL });
       await Promise.all([p.loadGlyphs?.(), m.loadGlyphs?.()]);
       p.moveTo([cx - TRI_HALF_W + 0.22, pY, 0]);
       m.moveTo([cx - TRI_HALF_W + 0.22, mY, 0]);
@@ -246,8 +229,8 @@
     const t2 = await mkTerminals(A2_CX, A2_CY);
 
     // Op-amp labels
-    const a1Lbl = new Text({ text: 'A₁', fontSize: 12, color: MUTED, fontUrl: FONT_URL });
-    const a2Lbl = new Text({ text: 'A₂', fontSize: 12, color: MUTED, fontUrl: FONT_URL });
+    const a1Lbl = new Text({ text: 'A₁', fontSize: 14, color: MUTED, fontUrl: FONT_URL });
+    const a2Lbl = new Text({ text: 'A₂', fontSize: 14, color: MUTED, fontUrl: FONT_URL });
     await Promise.all([a1Lbl.loadGlyphs?.(), a2Lbl.loadGlyphs?.()]);
     a1Lbl.moveTo([A1_CX - 0.05, A1_CY, 0]);
     a2Lbl.moveTo([A2_CX - 0.05, A2_CY, 0]);
@@ -287,7 +270,7 @@
     const MOD_CX = -3.4, MOD_W = 0.8, MOD_H = 0.6;
     const modBox = new Rectangle({ width: MOD_W, height: MOD_H, color: CYAN, strokeWidth: 2, fillOpacity: 0.08 });
     modBox.moveTo([MOD_CX, A1_CY, 0]);
-    const modLbl = new Text({ text: 'MOD', fontSize: 10, color: CYAN, fontUrl: FONT_URL });
+    const modLbl = new Text({ text: 'MOD', fontSize: 13, color: CYAN, fontUrl: FONT_URL });
     await modLbl.loadGlyphs?.();
     modLbl.moveTo([MOD_CX, A1_CY, 0]);
     const modWireIn = new Line({ start: [TAP1_X, A1_CY, 0], end: [MOD_CX - MOD_W / 2, A1_CY, 0], color: FG, strokeWidth: 1.8 });
@@ -297,9 +280,9 @@
     const barrierDashes = [];
     for (let i = 0; i < 14; i++) {
       const y0 = -2.4 + i * 0.38;
-      barrierDashes.push(new Line({ start: [BARRIER_X, y0, 0], end: [BARRIER_X, y0 + 0.18, 0], color: YELLOW, strokeWidth: 3 }));
+      barrierDashes.push(new Line({ start: [BARRIER_X, y0, 0], end: [BARRIER_X, y0 + 0.18, 0], color: BARRIER, strokeWidth: 3 }));
     }
-    const barrierLbl = new Text({ text: 'Isolation Barrier', fontSize: 12, color: YELLOW, fontUrl: FONT_URL });
+    const barrierLbl = new Text({ text: 'Isolation barrier', fontSize: 15, color: BARRIER, fontUrl: FONT_URL });
     await barrierLbl.loadGlyphs?.();
     barrierLbl.moveTo([BARRIER_X, 2.8, 0]);
 
@@ -311,8 +294,8 @@
     // Secondary coil (right)
     const coilR1 = new Line({ start: [TX_X + 0.22, TX_Y + 0.25, 0], end: [TX_X + 0.22, TX_Y - 0.25, 0], color: CYAN, strokeWidth: 2.5 });
     // Core lines
-    const core1 = new Line({ start: [TX_X - 0.07, TX_Y + 0.30, 0], end: [TX_X - 0.07, TX_Y - 0.30, 0], color: YELLOW, strokeWidth: 1.2 });
-    const core2 = new Line({ start: [TX_X + 0.07, TX_Y + 0.30, 0], end: [TX_X + 0.07, TX_Y - 0.30, 0], color: YELLOW, strokeWidth: 1.2 });
+    const core1 = new Line({ start: [TX_X - 0.07, TX_Y + 0.30, 0], end: [TX_X - 0.07, TX_Y - 0.30, 0], color: BARRIER, strokeWidth: 1.2 });
+    const core2 = new Line({ start: [TX_X + 0.07, TX_Y + 0.30, 0], end: [TX_X + 0.07, TX_Y - 0.30, 0], color: BARRIER, strokeWidth: 1.2 });
 
     // Wire from MOD to transformer
     const modToTx = new Line({ start: [MOD_CX + MOD_W / 2, A1_CY, 0], end: [TX_X - 0.22, A1_CY, 0], color: FG, strokeWidth: 1.8 });
@@ -321,7 +304,7 @@
     const DEMOD_CX = -1.6, DEMOD_W = 0.8, DEMOD_H = 0.6;
     const demodBox = new Rectangle({ width: DEMOD_W, height: DEMOD_H, color: CYAN, strokeWidth: 2, fillOpacity: 0.08 });
     demodBox.moveTo([DEMOD_CX, A2_CY, 0]);
-    const demodLbl = new Text({ text: 'DEMOD', fontSize: 8, color: CYAN, fontUrl: FONT_URL });
+    const demodLbl = new Text({ text: 'DEMOD', fontSize: 11, color: CYAN, fontUrl: FONT_URL });
     await demodLbl.loadGlyphs?.();
     demodLbl.moveTo([DEMOD_CX, A2_CY, 0]);
 
@@ -357,8 +340,8 @@
     const outW2 = new Line({ start: [A2_OUT_X, A2_CY, 0], end: [TAP2_X, A2_CY, 0], color: FG, strokeWidth: 1.8 });
     const tap2Dot = new Dot({ point: [TAP2_X, A2_CY, 0], color: FG, radius: 0.05 });
     const outWire = new Line({ start: [TAP2_X, A2_CY, 0], end: [OUT_X, A2_CY, 0], color: FG, strokeWidth: 1.8 });
-    const outPort = new Circle({ radius: 0.07, color: FG, strokeWidth: 2, fillColor: '#000000', fillOpacity: 1 }).moveTo([OUT_X, A2_CY, 0]);
-    const voutLbl = new MathTex({ latex: 'V_{OUT}', color: YELLOW });
+    const outPort = new Circle({ radius: 0.07, color: FG, strokeWidth: 2, fillColor: FG, fillOpacity: 1 }).moveTo([OUT_X, A2_CY, 0]);
+    const voutLbl = new MathTex({ latex: 'V_{OUT}', color: VOUT });
     await voutLbl.waitForRender?.();
     voutLbl.scale(0.55).nextTo([OUT_X, A2_CY, 0], RIGHT, 0.1);
 
@@ -373,7 +356,7 @@
     const gnd1a = new Line({ start: [GND1_X - 0.25, GND1_Y, 0], end: [GND1_X + 0.25, GND1_Y, 0], color: ACCENT, strokeWidth: 3 });
     const gnd1b = new Line({ start: [GND1_X - 0.15, GND1_Y - 0.10, 0], end: [GND1_X + 0.15, GND1_Y - 0.10, 0], color: ACCENT, strokeWidth: 2 });
     const gnd1c = new Line({ start: [GND1_X - 0.06, GND1_Y - 0.19, 0], end: [GND1_X + 0.06, GND1_Y - 0.19, 0], color: ACCENT, strokeWidth: 1 });
-    const gnd1Lbl = new Text({ text: 'Gnd₁', fontSize: 10, color: ACCENT, fontUrl: FONT_URL });
+    const gnd1Lbl = new Text({ text: 'Gnd₁', fontSize: 13, color: ACCENT, fontUrl: FONT_URL });
     await gnd1Lbl.loadGlyphs?.();
     gnd1Lbl.moveTo([GND1_X, GND1_Y - 0.34, 0]);
 
@@ -386,11 +369,11 @@
     const gnd2a = new Line({ start: [GND2_X - 0.25, GND2_Y, 0], end: [GND2_X + 0.25, GND2_Y, 0], color: CYAN, strokeWidth: 3 });
     const gnd2b = new Line({ start: [GND2_X - 0.15, GND2_Y - 0.10, 0], end: [GND2_X + 0.15, GND2_Y - 0.10, 0], color: CYAN, strokeWidth: 2 });
     const gnd2c = new Line({ start: [GND2_X - 0.06, GND2_Y - 0.19, 0], end: [GND2_X + 0.06, GND2_Y - 0.19, 0], color: CYAN, strokeWidth: 1 });
-    const gnd2Lbl = new Text({ text: 'Gnd₂', fontSize: 10, color: CYAN, fontUrl: FONT_URL });
+    const gnd2Lbl = new Text({ text: 'Gnd₂', fontSize: 13, color: CYAN, fontUrl: FONT_URL });
     await gnd2Lbl.loadGlyphs?.();
     gnd2Lbl.moveTo([GND2_X, GND2_Y - 0.34, 0]);
 
-    // ── Domain highlight boxes — enclose V_IN / V_OUT, symmetric gap from barrier ──
+    // ── Domain highlight boxes: enclose V_IN / V_OUT, symmetric gap from barrier ──
     const DOM_GAP = 0.15;
     const DOM_H = 4.0;
     const DOM_Y = 0.1;
@@ -417,21 +400,21 @@
     });
     outputHL.moveTo([OUTPUT_HL_CX, DOM_Y, 0]);
 
-    // Domain labels — large, centered on each box, positioned below
+    // Domain labels: large, centered on each box, positioned below
     const DOM_LBL_Y = DOM_Y - DOM_H / 2 - 0.35;
-    const inputDomLbl = new Text({ text: 'Input Domain', fontSize: 20, color: ACCENT, fontUrl: FONT_URL });
-    const outputDomLbl = new Text({ text: 'Output Domain', fontSize: 20, color: CYAN, fontUrl: FONT_URL });
+    const inputDomLbl = new Text({ text: 'Input domain', fontSize: 20, color: ACCENT, fontUrl: FONT_URL });
+    const outputDomLbl = new Text({ text: 'Output domain', fontSize: 20, color: CYAN, fontUrl: FONT_URL });
     await Promise.all([inputDomLbl.loadGlyphs?.(), outputDomLbl.loadGlyphs?.()]);
     inputDomLbl.moveTo([INPUT_HL_CX, DOM_LBL_Y, 0]);
     outputDomLbl.moveTo([OUTPUT_HL_CX, DOM_LBL_Y, 0]);
 
     // ═══════════════════════════════════════════════
-    //  RHS INFO PANEL — explanation bullets
+    //  RHS INFO PANEL: explanation bullets
     // ═══════════════════════════════════════════════
 
     const BS = 0.36;
-    const RX = 4.0;
-    const DX = 3.8;
+    const RX = 3.8;
+    const DX = 3.6;
 
     async function mkMath(latex, color, scale, xL, y) {
       const o = new MathTex({ latex, color });
@@ -458,26 +441,26 @@
 
     // Bullet 1
     const d1 = mkDot(DX, Y);
-    const b1l1 = await mkMath('\\text{Provides galvanic isolation}', FG, BS, RX, Y);
-    const b1l2 = await mkMath('\\text{between input and output circuits.}', FG, BS, RX, Y - LS);
+    const b1l1 = await mkMath('\\text{Galvanically isolates the input}', FG, BS, RX, Y);
+    const b1l2 = await mkMath('\\text{circuit from the output circuit.}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 2
     const d2 = mkDot(DX, Y);
-    const b2l1 = await mkMath('\\text{Signal crosses barrier without}', FG, BS, RX, Y);
-    const b2l2 = await mkMath('\\text{direct electrical path.}', FG, BS, RX, Y - LS);
+    const b2l1 = await mkMath('\\text{The signal crosses the barrier}', FG, BS, RX, Y);
+    const b2l2 = await mkMath('\\text{without a direct electrical path.}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 3
     const d3 = mkDot(DX, Y);
-    const b3l1 = await mkMath('\\text{Critical for patient safety in}', FG, BS, RX, Y);
+    const b3l1 = await mkMath('\\text{Required for patient safety in}', FG, BS, RX, Y);
     const b3l2 = await mkMath('\\text{medical equipment (IEC 60601).}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 4
     const d4 = mkDot(DX, Y);
-    const b4l1 = await mkMath('\\text{Prevents dangerous leakage}', FG, BS, RX, Y);
-    const b4l2 = await mkMath('\\text{currents reaching the patient.}', FG, BS, RX, Y - LS);
+    const b4l1 = await mkMath('\\text{Prevents hazardous leakage}', FG, BS, RX, Y);
+    const b4l2 = await mkMath('\\text{current reaching the patient.}', FG, BS, RX, Y - LS);
 
     // ── Equation box ──
     Y -= LS + 0.5;
@@ -492,11 +475,11 @@
     });
     eqBox.moveTo([EQ_BOX_CX, EQ_BOX_CY, 0]);
 
-    const eqn1 = new MathTex({ latex: `I_{leak} < 10\\,\\mu A`, color: FG });
+    const eqn1 = new MathTex({ latex: `I_{\\text{leak}} < 10\\,\\mu\\text{A}`, color: FG });
     await eqn1.waitForRender?.();
     eqn1.scale(0.5).moveTo([EQ_BOX_CX, EQ_BOX_CY + 0.18, 0]);
 
-    const eqn2 = new MathTex({ latex: `V_{iso} = 5000\\,V_{rms}`, color: MUTED });
+    const eqn2 = new MathTex({ latex: `V_{\\text{iso}} = 5000\\,\\text{V}_{\\text{rms}}`, color: MUTED });
     await eqn2.waitForRender?.();
     eqn2.scale(0.45).moveTo([EQ_BOX_CX, EQ_BOX_CY - 0.22, 0]);
 
@@ -565,7 +548,7 @@
     }
 
     // Section 2 title
-    const s2Title = new Text({ text: 'Patient Safety Demo', fontSize: 40, color: FG, fontUrl: FONT_URL });
+    const s2Title = new Text({ text: 'Patient leakage current', fontSize: 40, color: FG, fontUrl: FONT_URL });
     await s2Title.loadGlyphs?.();
     s2Title.moveTo([-3.5, 3.5, 0]);
     if (typeof s2Title.getLeft === 'function') {
@@ -580,18 +563,18 @@
     // Equipment box
     const equipBox = new Rectangle({ width: 2.4, height: 2.0, color: BLUE, strokeWidth: 2, fillOpacity: 0.08 });
     equipBox.moveTo([-5.0, 0.0, 0]);
-    const equipLbl = new Text({ text: 'Medical Equipment', fontSize: 11, color: BLUE, fontUrl: FONT_URL });
+    const equipLbl = new Text({ text: 'Medical equipment', fontSize: 14, color: BLUE, fontUrl: FONT_URL });
     await equipLbl.loadGlyphs?.();
     equipLbl.moveTo([-5.0, 0.7, 0]);
-    const mainsLbl = new Text({ text: '240V AC Mains', fontSize: 9, color: MUTED, fontUrl: FONT_URL });
+    const mainsLbl = new Text({ text: '240 V AC mains', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
     await mainsLbl.loadGlyphs?.();
     mainsLbl.moveTo([-5.0, -0.7, 0]);
     s2ManimObjs.push(equipBox, equipLbl, mainsLbl);
 
     // Isolation barrier (in section 2 context)
-    const s2BarrierBox = new Rectangle({ width: 0.6, height: 2.0, color: YELLOW, strokeWidth: 2, fillOpacity: 0.12 });
+    const s2BarrierBox = new Rectangle({ width: 0.6, height: 2.0, color: BARRIER, strokeWidth: 2, fillOpacity: 0.12 });
     s2BarrierBox.moveTo([-2.5, 0.0, 0]);
-    const s2BarrierLbl = new Text({ text: 'ISO', fontSize: 11, color: YELLOW, fontUrl: FONT_URL });
+    const s2BarrierLbl = new Text({ text: 'ISO', fontSize: 13, color: BARRIER, fontUrl: FONT_URL });
     await s2BarrierLbl.loadGlyphs?.();
     s2BarrierLbl.moveTo([-2.5, 0.0, 0]);
     s2ManimObjs.push(s2BarrierBox, s2BarrierLbl);
@@ -622,28 +605,28 @@
     s2ManimObjs.push(elecDot1, elecDot2);
 
     // Ground path labels
-    const s2Gnd1Lbl = new Text({ text: 'Equipment Ground', fontSize: 9, color: MUTED, fontUrl: FONT_URL });
+    const s2Gnd1Lbl = new Text({ text: 'Equipment ground', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
     await s2Gnd1Lbl.loadGlyphs?.();
     s2Gnd1Lbl.moveTo([-5.0, -1.4, 0]);
-    const s2Gnd2Lbl = new Text({ text: 'Patient Ground', fontSize: 9, color: MUTED, fontUrl: FONT_URL });
+    const s2Gnd2Lbl = new Text({ text: 'Patient ground', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
     await s2Gnd2Lbl.loadGlyphs?.();
     s2Gnd2Lbl.moveTo([-0.5, -1.2, 0]);
     s2ManimObjs.push(s2Gnd1Lbl, s2Gnd2Lbl);
 
     // Safe current label
-    const safeLabel = new Text({ text: 'Signal path (isolated)', fontSize: 11, color: ACCENT, fontUrl: FONT_URL });
+    const safeLabel = new Text({ text: 'Signal path (isolated)', fontSize: 14, color: ACCENT, fontUrl: FONT_URL });
     await safeLabel.loadGlyphs?.();
     safeLabel.moveTo([-1.8, -1.8, 0]);
     s2ManimObjs.push(safeLabel);
 
     // Leakage current annotation
-    const leakAnnot = new Text({ text: 'Leakage current through barrier capacitance', fontSize: 10, color: YELLOW, fontUrl: FONT_URL });
+    const leakAnnot = new Text({ text: 'Leakage current through barrier capacitance', fontSize: 14, color: BARRIER, fontUrl: FONT_URL });
     await leakAnnot.loadGlyphs?.();
     leakAnnot.moveTo([-2.5, -2.3, 0]);
     s2ManimObjs.push(leakAnnot);
 
     // Frequency warning
-    const freqWarn = new Text({ text: 'Higher frequency = more leakage!', fontSize: 10, color: RED, fontUrl: FONT_URL });
+    const freqWarn = new Text({ text: 'Leakage current increases with frequency', fontSize: 14, color: RED, fontUrl: FONT_URL });
     await freqWarn.loadGlyphs?.();
     freqWarn.moveTo([-2.5, -2.7, 0]);
     s2ManimObjs.push(freqWarn);
@@ -685,10 +668,10 @@
       ileakValEl.textContent = formatCurrent(Ileak);
 
       if (ileakUA > THRESHOLD_UA) {
-        safetyStatusEl.textContent = 'DANGER: Leakage current exceeds patient safety threshold';
+        safetyStatusEl.textContent = 'Unsafe: the leakage current exceeds the IEC 60601 limit.';
         safetyStatusEl.classList.add('danger');
       } else {
-        safetyStatusEl.textContent = 'SAFE: Leakage current within IEC 60601 limits';
+        safetyStatusEl.textContent = 'Safe: the leakage current is within the IEC 60601 limit.';
         safetyStatusEl.classList.remove('danger');
       }
     }
@@ -733,8 +716,8 @@
       ctx.fillStyle = BG;
       ctx.fillRect(0, 0, cw, ch);
 
-      // Draw grid
-      const PAD_L = 50, PAD_R = 16, PAD_T = 24, PAD_B = 24;
+      // Plot area
+      const PAD_L = 92, PAD_R = 16, PAD_T = 34, PAD_B = 34;
       const plotW = cw - PAD_L - PAD_R;
       const plotH = ch - PAD_T - PAD_B;
       const plotCY = PAD_T + plotH / 2;
@@ -742,11 +725,19 @@
       // Y-axis scale: auto-scale to show threshold or signal, whichever is bigger
       const yMax = Math.max(THRESHOLD_UA * 1.5, ileakUA * 1.3, 15);
 
-      // Grid lines
+      // Axes
+      ctx.strokeStyle = FG;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, PAD_T);
+      ctx.lineTo(PAD_L, PAD_T + plotH);
+      ctx.lineTo(PAD_L + plotW, PAD_T + plotH);
+      ctx.stroke();
+
+      // Zero line
       ctx.strokeStyle = MUTED2;
       ctx.lineWidth = 0.5;
       ctx.setLineDash([4, 4]);
-      // Zero line
       ctx.beginPath();
       ctx.moveTo(PAD_L, plotCY);
       ctx.lineTo(PAD_L + plotW, plotCY);
@@ -767,22 +758,37 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Threshold label
-      ctx.fillStyle = RED;
-      ctx.font = '9px "IBM Plex Mono", monospace';
+      // Tick labels: full scale and zero in ink, the two limits in the limit colour
+      const collapsed = threshY_bot - threshY_top < 34;
+      ctx.font = '13px ' + FONT_MONO;
       ctx.textAlign = 'right';
-      ctx.fillText('10 µA', PAD_L - 4, threshY_top + 3);
-      ctx.fillText('-10 µA', PAD_L - 4, threshY_bot + 3);
-
-      // Zero label
-      ctx.fillStyle = MUTED;
-      ctx.fillText('0', PAD_L - 4, plotCY + 3);
-
-      // Title
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = FG;
-      ctx.font = '11px "IBM Plex Sans", sans-serif';
+      ctx.fillText(yMax.toFixed(0), PAD_L - 8, PAD_T + 6);
+      ctx.fillText('\u2212' + yMax.toFixed(0), PAD_L - 8, PAD_T + plotH - 6);
+      if (!collapsed) ctx.fillText('0', PAD_L - 8, plotCY);
+      ctx.fillStyle = RED;
+      if (collapsed) {
+        ctx.fillText('\u00B110', PAD_L - 8, plotCY);
+      } else {
+        ctx.fillText('10', PAD_L - 8, threshY_top);
+        ctx.fillText('\u221210', PAD_L - 8, threshY_bot);
+      }
+      ctx.fillStyle = FG;
+
+      // Axis titles
+      ctx.font = '13px ' + FONT_TEXT;
       ctx.textAlign = 'center';
-      ctx.fillText('Leakage Current Waveform', PAD_L + plotW / 2, 16);
+      ctx.fillText('Time (not to scale)', PAD_L + plotW / 2, PAD_T + plotH + 18);
+      ctx.save();
+      ctx.translate(18, plotCY);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Leakage current (\u00B5A)', 0, 0);
+      ctx.restore();
+
+      // Plot title; the dashed lines are the 10 uA limit listed in the readout
+      ctx.textAlign = 'left';
+      ctx.fillText('Leakage current waveform', PAD_L, 16);
 
       // Draw waveform
       ctx.lineWidth = 2;
@@ -800,11 +806,11 @@
       }
       ctx.stroke();
 
-      // Amplitude label
-      ctx.fillStyle = isDanger ? RED : ACCENT;
-      ctx.font = 'bold 12px "IBM Plex Mono", monospace';
+      // Amplitude readout, top right margin
+      ctx.fillStyle = FG;
+      ctx.font = '13px ' + FONT_MONO;
       ctx.textAlign = 'right';
-      ctx.fillText(ileakUA.toFixed(2) + ' µA', PAD_L + plotW, PAD_T + 16);
+      ctx.fillText(ileakUA.toFixed(2) + ' \u00B5A peak', PAD_L + plotW, 16);
     }
 
     capSlider.addEventListener('input', updateReadouts);
@@ -837,10 +843,10 @@
         // Signal dot loop will resume on its own (checks currentSection)
         sigAnimActive = true;
       } else {
-        secIndicator.textContent = 'Section 2 \u00B7 Safety Demo';
+        secIndicator.textContent = 'Section 2 \u00B7 Leakage current';
         prevBtn.disabled = false;
         nextBtn.disabled = true;
-        // Stop signal dot animation — loop will pause via sigAnimActive check
+        // Stop signal dot animation: loop will pause via sigAnimActive check
         sigAnimActive = false;
         // Dots are created fresh each cycle, no persistent refs to clean up
         // Hide section 1 info + highlights
@@ -984,7 +990,7 @@
       new Write(eqn2, { duration: 0.6 }),
     );
 
-    // 15. Continuous signal dot — pure manim async loop
+    // 15. Continuous signal dot: pure manim async loop
     // Build Line paths for each segment, then loop MoveAlongPath forever.
 
     let sigAnimActive = true;
@@ -1039,7 +1045,7 @@
 
         // Create fresh dots each cycle (FadeOut leaves opacity at 0, can't reuse)
         const dot1 = new Dot({ point: [VIN_X + 0.3, t1.plusY, 0], color: BLUE, radius: 0.1 });
-        const dotPh = new Dot({ point: [MOD_CX, A1_CY, 0], color: YELLOW, radius: 0.08 });
+        const dotPh = new Dot({ point: [MOD_CX, A1_CY, 0], color: BARRIER, radius: 0.08 });
         const dot2 = new Dot({ point: [DEMOD_CX, A2_CY, 0], color: BLUE, radius: 0.1 });
 
         // ── Phase 1: Blue dot travels V_IN → through A1 → into MOD center ──
@@ -1057,7 +1063,7 @@
 
         if (!sigAnimActive || currentSection !== 'circuit') continue;
 
-        // ── Phase 3: Yellow photon wiggles from MOD to DEMOD with visible wave trail ──
+        // ── Phase 3: Coupled-signal dot oscillates from MOD to DEMOD with visible wave trail ──
         scene.add(dotPh);
         await scene.play(new FadeIn(dotPh, { duration: 0.12 }));
         const photonDur = 0.8 / PHOTON_STEPS;
@@ -1067,7 +1073,7 @@
           // Draw trail segment behind the dot
           const seg = photonSegs[si];
           const s = seg.getStart(), e = seg.getEnd();
-          const trail = new Line({ start: [s[0], s[1], 0], end: [e[0], e[1], 0], color: YELLOW, strokeWidth: 2 });
+          const trail = new Line({ start: [s[0], s[1], 0], end: [e[0], e[1], 0], color: BARRIER, strokeWidth: 2 });
           scene.add(trail);
           waveTrail.push(trail);
           await scene.play(new MoveAlongPath(dotPh, { path: seg, duration: photonDur, rateFunc: linear }));
@@ -1105,7 +1111,7 @@
       }
     }
 
-    // Fire and forget — runs forever in background
+    // Fire and forget: runs forever in background
     signalLoop();
   </script>
 </body>

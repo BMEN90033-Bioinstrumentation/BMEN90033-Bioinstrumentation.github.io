@@ -19,13 +19,13 @@
         var y = d3.scaleLinear().domain([0, 100]).range([ih, 0]);
         var yt = [0, 20, 40, 60, 80, 100];
         window.CMP.drawGrid(g, d3.scaleLinear(), y, iw, ih, { xTicks: [], yTicks: yt });
-        window.CMP.styleAxis(g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0)));
-        window.CMP.styleAxis(g.append('g').attr('transform', 'translate(0,' + ih + ')')
+        window.CLD.styleAxis(g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0)));
+        window.CLD.styleAxis(g.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(d3.axisBottom(x).tickSizeOuter(0).tickFormat(function () { return ''; })));
         CLS.forEach(function (c, i) {
             var bx = x(i), bw = x.bandwidth(), d = c.lo !== undefined;
             g.append('rect').attr('x', bx).attr('y', y(c.v)).attr('width', bw).attr('height', ih - y(c.v)).attr('rx', 3)
-                .attr('fill', css(d ? '--c-hi' : '--c-lo')).attr('fill-opacity', d ? 0.85 : 0.45);
+                .attr('fill', css(d ? '--c-out' : '--c-lin')).attr('fill-opacity', d ? 0.85 : 0.6);
             var top = y(c.v);
             if (d) {
                 var cx = bx + bw / 2;

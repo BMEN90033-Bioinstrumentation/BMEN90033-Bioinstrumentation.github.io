@@ -9,7 +9,7 @@
         dopant: function (v) { return Math.round(v) + ' %'; },
         volt:   function (v) { return v.toFixed(1) + ' V'; },
         temp:   function (v) { return Math.round(v) + ' K'; },
-        logN:   function (v) { return Math.pow(10, v).toExponential(1).replace('e+', 'e') + ' cm⁻³'; }
+        logN:   function (v) { return window.DOP.fmtSci(Math.pow(10, v)) + '\\,\\text{cm}^{-3}'; }
     };
 
     function sync() {
@@ -19,7 +19,10 @@
         });
         document.querySelectorAll('.val[data-param]').forEach(function (el) {
             var k = el.dataset.param;
-            el.textContent = fmt[k] ? fmt[k](p[k]) : p[k];
+            var s = fmt[k] ? fmt[k](p[k]) : p[k];
+            // The concentration is typeset; the other values are plain text.
+            if (k === 'logN' && window.katex) window.katex.render(s, el, { throwOnError: false });
+            else el.textContent = s;
         });
         document.querySelectorAll('button[data-param]').forEach(function (el) {
             el.classList.toggle('active', p[el.dataset.param] === el.dataset.value);

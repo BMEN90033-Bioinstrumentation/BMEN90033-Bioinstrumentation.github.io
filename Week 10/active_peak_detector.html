@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Active and Precision Peak Detectors</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Active and precision peak detectors</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="passive_peak_detector_JS/passive_peak_detector.css">
@@ -47,11 +41,11 @@
 
     <div class="deck" id="deck" data-next="digital_logic.html" data-prev="passive_peak_detector.html">
 
-        <!-- ═════════════ SLIDE 0 · TITLE ═════════════ -->
+        <!-- SLIDE 0 · TITLE -->
         <section class="slide title-slide active" data-slide="0">
             <div class="copy">
-                <div class="meta">BMEN90033 · WEEK 10 · ACTIVE PEAK DETECTORS</div>
-                <h1 class="slide-hero">Active peak <em>detection</em>.</h1>
+                <div class="meta">BMEN90033 · Week 10 · Active peak detectors</div>
+                <h1 class="slide-hero">Active peak detection</h1>
                 <div class="brief-box">
                     <div class="brief-label">Overview</div>
                     <p class="brief-body">The passive peak detector of the preceding chapter is limited by
@@ -76,11 +70,11 @@
             </div>
         </section>
 
-        <!-- ═════════════ SLIDE 1 · PRECISION RECTIFIER ═════════════ -->
+        <!-- SLIDE 1 · PRECISION RECTIFIER -->
         <section class="slide" data-slide="1" id="sec-precrect">
             <div class="copy">
-                <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the precision half-wave rectifier</span></div>
-                <h2>Eliminating $V_F$ with <em class="output">negative feedback</em>.</h2>
+                <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>The precision half-wave rectifier</span></div>
+                <h2>Eliminating $V_F$ with negative feedback</h2>
 
                 <p class="lead">The active counterpart of the diode rectifier places the diode inside the
                     feedback path of an operational amplifier. The input drives the non-inverting terminal; the
@@ -121,13 +115,13 @@
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">V<sub>F</sub></span>
+                            <span class="lab">$V_F$</span>
                             <input type="range" id="ap-r-vf" min="0" max="1.0" step="0.01" value="0.65">
                             <span class="val" id="ap-r-vf-val">0.65 V</span>
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">f</span>
+                            <span class="lab">frequency $f$</span>
                             <input type="range" id="ap-r-f" min="0.5" max="4" step="0.1" value="1.2">
                             <span class="val" id="ap-r-f-val">1.2 Hz</span>
                         </span>
@@ -137,24 +131,24 @@
                         <svg id="plot-ap-r-circ"></svg>
                     </div>
                     <div class="plot-box trace-box">
-                        <div class="label">figure 1.2 · output <b>v<sub>out</sub>(t)</b> of the passive and precision rectifiers for a common input <b>v<sub>in</sub>(t)</b></div>
+                        <div class="label">figure 1.2 · output $v_\mathrm{out}(t)$ of the passive and precision rectifiers for a common input $v_\mathrm{in}(t)$</div>
                         <svg id="plot-ap-r-trace"></svg>
                     </div>
                     <div class="readout">
-                        <div class="item"><span class="k">peak v<sub>in</sub></span><span class="v" id="ap-r-vp">1.40 V</span></div>
+                        <div class="item"><span class="k">peak $v_\mathrm{in}$</span><span class="v" id="ap-r-vp">1.40 V</span></div>
                         <div class="item"><span class="k">passive peak</span><span class="v" id="ap-r-vp-pas">0.75 V</span></div>
                         <div class="item"><span class="k">precision peak</span><span class="v" id="ap-r-vp-pre">1.40 V</span></div>
-                        <div class="item"><span class="k">small signal</span><span class="v" id="ap-r-small">passes</span></div>
+                        <div class="item"><span class="k">passive diode</span><span class="v" id="ap-r-small">conducts</span></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ═════════════ SLIDE 2 · ACTIVE PEAK DETECTOR ═════════════ -->
+        <!-- SLIDE 2 · ACTIVE PEAK DETECTOR -->
         <section class="slide" data-slide="2" id="sec-active">
             <div class="copy">
-                <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>the precision peak detector</span></div>
-                <h2>Three modes of operation: <em class="output">acquire, hold, reset</em>.</h2>
+                <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>The precision peak detector</span></div>
+                <h2>Three modes of operation: acquire, hold and reset</h2>
 
                 <p class="lead">The precision peak detector comprises four functional blocks. The super
                     diode of Section 01, formed by $A_1$ and $D_1$, drives a storage capacitor $C$ at its
@@ -205,7 +199,7 @@
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">V<sub>F</sub></span>
+                            <span class="lab">$V_F$</span>
                             <input type="range" id="ap-a-vf" min="0" max="1.0" step="0.01" value="0.60">
                             <span class="val" id="ap-a-vf-val">0.60 V</span>
                         </span>
@@ -217,7 +211,7 @@
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">f<sub>carrier</sub></span>
+                            <span class="lab">carrier frequency</span>
                             <input type="range" id="ap-a-fc" min="4" max="40" step="0.5" value="14">
                             <span class="val" id="ap-a-fc-val">14 Hz</span>
                         </span>
@@ -227,15 +221,15 @@
                         <svg id="plot-ap-a-circ"></svg>
                     </div>
                     <div class="plot-box trace-box">
-                        <div class="label">figure 2.2 · held output <b>v<sub>out</sub>(t)</b> of the passive and precision detectors for a common input <b>v<sub>in</sub>(t)</b></div>
+                        <div class="label">figure 2.2 · held output $v_\mathrm{out}(t)$ of the passive and precision detectors for a common input $v_\mathrm{in}(t)$</div>
                         <svg id="plot-ap-a-trace"></svg>
                     </div>
                     <div class="plot-box short-box">
-                        <div class="label">figure 2.3 · reset waveform <b>φ<sub>rst</sub>(t)</b></div>
+                        <div class="label">figure 2.3 · reset waveform $\phi_\mathrm{rst}(t)$</div>
                         <svg id="plot-ap-a-rst"></svg>
                     </div>
                     <div class="readout">
-                        <div class="item"><span class="k">peak v<sub>in</sub></span><span class="v" id="ap-a-vp">0.30 V</span></div>
+                        <div class="item"><span class="k">peak $v_\mathrm{in}$</span><span class="v" id="ap-a-vp">0.30 V</span></div>
                         <div class="item"><span class="k">passive output</span><span class="v" id="ap-a-pas">0.00 V</span></div>
                         <div class="item"><span class="k">precision output</span><span class="v" id="ap-a-pre">0.30 V</span></div>
                         <div class="item"><span class="k">window</span><span class="v" id="ap-a-w">300 ms</span></div>
@@ -244,11 +238,11 @@
             </div>
         </section>
 
-        <!-- ═════════════ SLIDE 3 · COMPARISON ON A REAL SIGNAL ═════════════ -->
+        <!-- SLIDE 3 · COMPARISON ON A REAL SIGNAL -->
         <section class="slide" data-slide="3" id="sec-cmp">
             <div class="copy">
-                <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>comparison on a representative input</span></div>
-                <h2>Three detectors on a <em class="output">common waveform</em>.</h2>
+                <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>Comparison on a representative input</span></div>
+                <h2>Three detectors on a common waveform</h2>
 
                 <p class="lead">The test waveform combines three features common in biopotential
                     measurement: a slow baseline drift; a sequence of small spikes with amplitude comparable
@@ -293,13 +287,13 @@
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">V<sub>F</sub></span>
+                            <span class="lab">$V_F$</span>
                             <input type="range" id="ap-c-vf" min="0" max="1.0" step="0.01" value="0.55">
                             <span class="val" id="ap-c-vf-val">0.55 V</span>
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">τ (RC)</span>
+                            <span class="lab">$\tau$ (RC)</span>
                             <input type="range" id="ap-c-tau" min="20" max="2000" step="10" value="400">
                             <span class="val" id="ap-c-tau-val">400 ms</span>
                         </span>
@@ -311,7 +305,7 @@
                         </span>
                     </div>
                     <div class="plot-box trace-box">
-                        <div class="label">figure 3.1 · test input <b>v<sub>in</sub>(t)</b> comprising small spikes followed by a decaying spike train</div>
+                        <div class="label">figure 3.1 · test input $v_\mathrm{in}(t)$; the dashed line marks the diode threshold $V_F$</div>
                         <svg id="plot-ap-c-input"></svg>
                     </div>
                     <div class="plot-box trace-box">
@@ -319,20 +313,20 @@
                         <svg id="plot-ap-c-out"></svg>
                     </div>
                     <div class="readout">
-                        <div class="item"><span class="k">small spikes seen</span><span class="v" id="ap-c-small">0 / 4</span></div>
-                        <div class="item"><span class="k">passive simple</span><span class="v" id="ap-c-simple">latched</span></div>
-                        <div class="item"><span class="k">passive RC</span><span class="v" id="ap-c-rc">lags</span></div>
-                        <div class="item"><span class="k">precision active</span><span class="v" id="ap-c-act">tracking</span></div>
+                        <div class="item"><span class="k">small spikes detected</span><span class="v" id="ap-c-small">0 / 4</span></div>
+                        <div class="item"><span class="k">diode-capacitor</span><span class="v" id="ap-c-simple">latched</span></div>
+                        <div class="item"><span class="k">RC envelope</span><span class="v" id="ap-c-rc">lags</span></div>
+                        <div class="item"><span class="k">precision peak</span><span class="v" id="ap-c-act">tracking</span></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ═════════════ SLIDE 4 · BACK TO THE CASE STUDY ═════════════ -->
+        <!-- SLIDE 4 · BACK TO THE CASE STUDY -->
         <section class="slide" data-slide="4" id="sec-casestudy">
             <div class="copy">
-                <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>application to the seizure case study</span></div>
-                <h2>Resolving the <em class="output">amplitude branch</em>.</h2>
+                <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>Application to the seizure case study</span></div>
+                <h2>The amplitude branch of the case study</h2>
 
                 <p class="lead">The case study introduced earlier in Week 10 specified a circuit chain that
                     must <strong>detect</strong>, <strong>measure</strong>, and <strong>track</strong> a
@@ -350,7 +344,7 @@
                         recording peak at a few millivolts, and scalp EEG spikes are smaller, tens to hundreds of
                         microvolts, whereas a silicon diode requires $V_F \approx
                         0.6\,\mathrm{V}$ before conduction begins. The earliest pre-state spikes, which carry
-                        the greatest predictive value, are exactly those the passive circuit discards.</li>
+                        the greatest predictive value, are those the passive circuit fails to register.</li>
                     <li><strong>The held value droops between events.</strong> The leak resistor needed to
                         release the previous hold also discharges the capacitor during the inter-spike
                         interval. The amplitude reported is the peak minus a time-dependent offset rather than
@@ -363,7 +357,7 @@
 
                 <p>The precision peak detector developed in the preceding sections substitutes for the passive
                     block one-for-one and removes all three failure modes. The diode sits within the op-amp
-                    feedback loop, so a millivolt-scale early spike charges the <em>storage capacitor</em>
+                    feedback loop, so a millivolt-scale early spike charges the storage capacitor
                     without the $V_F$ floor. The unity-gain buffer behind the storage capacitor isolates it
                     from the downstream load, so the held value remains constant within a measurement window.
                     The reset MOSFET across the storage capacitor clears the stored charge between windows, so
@@ -383,13 +377,15 @@
                     until the next reset pulse arrives.
                 </div>
 
-                <a class="case-link" href="case_study.html">
-                    <span class="cl-eye">// open the case study</span>
-                    <span class="cl-h">Detecting pre-seizure spikes in clinical EEG</span>
-                    <span class="cl-sub">Slides 04 and 05 of the case study specify the passive peak block.
-                        Substituting the precision peak detector developed here for that block satisfies the
-                        brief.</span>
-                    <span class="cl-arr">→</span>
+                <a class="cta-card case-link" href="case_study.html">
+                    <span class="tag-s">Case study</span>
+                    <span>
+                        <h3 class="headline-4 cta-card_title">Detecting pre-seizure spikes in clinical EEG</h3>
+                        <span class="cl-sub">Slides 04 and 05 of the case study specify the passive peak block.
+                            Substituting the precision peak detector developed here for that block satisfies
+                            the brief.</span>
+                    </span>
+                    <span class="cta_icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1.5 12H21M12.99 3.51L21.47 12l-8.48 8.49" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/></svg></span>
                 </a>
             </div>
 
@@ -397,13 +393,13 @@
                 <div class="plot-stack">
                     <div class="toolbar">
                         <span class="slider-group">
-                            <span class="lab">V<sub>F</sub></span>
+                            <span class="lab">$V_F$</span>
                             <input type="range" id="ap-cs-vf" min="0" max="1.0" step="0.01" value="0.60">
                             <span class="val" id="ap-cs-vf-val">0.60 V</span>
                         </span>
                         <span class="divider"></span>
                         <span class="slider-group">
-                            <span class="lab">τ<sub>leak</sub></span>
+                            <span class="lab">$\tau_\mathrm{leak}$</span>
                             <input type="range" id="ap-cs-tau" min="200" max="4000" step="20" value="900">
                             <span class="val" id="ap-cs-tau-val">900 ms</span>
                         </span>
@@ -415,18 +411,18 @@
                         </span>
                     </div>
                     <div class="plot-box trace-box">
-                        <div class="label">figure 4.1 · pre-state input <b>v<sub>in</sub>(t)</b> with rising-amplitude spikes</div>
+                        <div class="label">figure 4.1 · pre-state input $v_\mathrm{in}(t)$ with peak amplitudes in volts; the dashed line marks $V_F$</div>
                         <svg id="plot-ap-cs-input"></svg>
                     </div>
                     <div class="plot-box trace-box">
-                        <div class="label">figure 4.2 · held output of the passive detector (<b>D + C ∥ R<sub>leak</sub></b>) and of the precision detector (<b>storage capacitor, buffer, reset</b>)</div>
+                        <div class="label">figure 4.2 · held output of the passive ($D + C \parallel R_\mathrm{leak}$) and precision detectors</div>
                         <svg id="plot-ap-cs-out"></svg>
                     </div>
                     <div class="readout">
                         <div class="item"><span class="k">spikes presented</span><span class="v" id="ap-cs-pres">8</span></div>
                         <div class="item"><span class="k">passive captured</span><span class="v warn" id="ap-cs-pas">0 / 8</span></div>
                         <div class="item"><span class="k">precision captured</span><span class="v on" id="ap-cs-pre">8 / 8</span></div>
-                        <div class="item"><span class="k">envelope on screen</span><span class="v on" id="ap-cs-env">visible</span></div>
+                        <div class="item"><span class="k">rising envelope</span><span class="v on" id="ap-cs-env">resolved</span></div>
                     </div>
                 </div>
             </div>
@@ -434,7 +430,7 @@
 
     </div>
 
-    <!-- ═════════════ DECK NAV ═════════════ -->
+    <!-- DECK NAV -->
     <div class="nav-hint">Use the dots or the arrow keys to advance through the slides.</div>
     <div class="deck-nav">
         <span class="arrow" id="nav-prev" aria-label="previous slide">

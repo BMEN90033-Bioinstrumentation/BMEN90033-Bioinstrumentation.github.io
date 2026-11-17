@@ -1,7 +1,7 @@
 // Section 04 · Plain comparator response to a noisy biosignal.
 // Two stacked panels share a common time axis:
-//   top    — clean ECG-like input plus broadband noise, with the threshold
-//   bottom — plain comparator output, showing chatter when the signal
+//   top:    clean ECG-like input plus broadband noise, with the threshold
+//   bottom: plain comparator output, showing chatter when the signal
 //            grazes the threshold.
 (function () {
     var sel = '#plot-noise-comparator';
@@ -37,10 +37,10 @@
         var W = rect.width;
         var H = rect.height || 420;
 
-        var margin = { top: 30, right: 28, bottom: 56, left: 76 };
+        var margin = { top: 56, right: 28, bottom: 56, left: 76 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
-        var gap = 10;
+        var gap = 34;   // holds the output panel label
         // Signal panel taller than output panel.
         var hSig = (innerH - gap) * 0.62;
         var hOut = innerH - gap - hSig;
@@ -66,6 +66,10 @@
             xTicks: d3.range(0, Tend + 0.5, 0.5),
             yTicks: [-1, 0, 1]
         });
+
+        // Clip the signal panel so noise excursions stay clear of the labels
+        svg.append('clipPath').attr('id', 'noise-sig-clip')
+            .append('rect').attr('width', innerW).attr('height', hSig);
 
         // Threshold line on signal panel
         gSig.append('line')
@@ -97,6 +101,7 @@
         gSig.append('path')
             .datum(sig)
             .attr('class', 'trace input')
+            .attr('clip-path', 'url(#noise-sig-clip)')
             .attr('stroke-width', 1.4)
             .attr('d', lineSig);
 
@@ -126,21 +131,21 @@
 
         // Panel labels
         window.renderKatex(svg, '\\text{biosignal} + \\text{noise} + V_\\text{ref}',
-            margin.left + innerW - 110, margin.top + 12,
-            { width: 220, height: 18, size: 11, color: window.T.textDim, align: 'right' });
+            margin.left + innerW - 110, margin.top - 12,
+            { width: 220, height: 18, size: 13, color: window.T.textDim, align: 'right' });
         window.renderKatex(svg,
-            '\\text{comparator output} \\;\\;\\;' + transitions + '\\text{ transitions}',
-            margin.left + innerW - 110, margin.top + hSig + gap + 12,
-            { width: 240, height: 18, size: 11,
+            '\\text{comparator output: }' + transitions + '\\text{ transitions}',
+            margin.left + innerW - 120, margin.top + hSig + gap - 13,
+            { width: 240, height: 18, size: 13,
               color: window.CMP.cssVar('--c-output'), align: 'right' });
 
         // Axis titles
         window.renderKatex(svg, 'v(t) \\, [\\mathrm{V}]',
             22, margin.top + hSig / 2,
-            { width: 140, height: 22, rotate: -90, size: 13 });
+            { width: 140, height: 22, rotate: -90, size: 14 });
         window.renderKatex(svg, 'v_\\text{out}',
             22, margin.top + hSig + gap + hOut / 2,
-            { width: 100, height: 22, rotate: -90, size: 13 });
+            { width: 100, height: 22, rotate: -90, size: 14 });
         window.renderKatex(svg, 't \\, [\\mathrm{s}]',
             margin.left + innerW / 2, H - 14,
             { width: 100, height: 22, size: 14 });
@@ -165,7 +170,6 @@
 
     function init() {
         bind();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

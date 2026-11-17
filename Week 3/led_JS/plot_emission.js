@@ -18,9 +18,9 @@
             .attr('fill', T.overlay05);
         L.axes(f, g, x, y, { xTitle: '\\lambda\\;[\\mathrm{nm}]', yTitle: 'E\\;[\\mathrm{eV}]' });
         g.append('text').attr('x', x(565)).attr('y', 18).attr('text-anchor', 'middle')
-            .attr('fill', T.textDim).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+            .attr('fill', T.textDim).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
             .text('visible');
-        var placed = [[x(565) - 30, 4, x(565) + 30, 24]];
+        var placed = [[x(565) - 34, 4, x(565) + 34, 24]];
 
         var pts = d3.range(0, 301).map(function (i) {
             var lam = LMIN + (LMAX - LMIN) * i / 300; return [x(lam), y(L.HC / lam)];

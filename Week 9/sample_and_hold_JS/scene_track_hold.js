@@ -26,7 +26,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 22, right: 28, bottom: 38, left: 56 };
+        var m = opts.margin || { top: 34, right: 40, bottom: 48, left: 66 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -81,7 +81,7 @@
                 f.g.append('rect')
                     .attr('x', x(t0)).attr('y', 0)
                     .attr('width', x(t1) - x(t0)).attr('height', f.ih)
-                    .attr('fill', 'var(--accent)')
+                    .attr('fill', 'var(--fg)')
                     .attr('opacity', 0.05);
             }
             n++;
@@ -127,29 +127,18 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
             .text('time');
         f.g.append('text')
             .attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-40) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude');
-
-        // Legend
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',6)');
-        lg.append('text')
-            .attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text')
-            .attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('v_C(t)');
+            .text('normalised amplitude');
     }
 
     function drawClock() {
-        var f = makeFrame(clockSvg, { minH: 110, margin: { top: 18, right: 28, bottom: 32, left: 56 } });
+        var f = makeFrame(clockSvg, { minH: 110, margin: { top: 30, right: 40, bottom: 46, left: 66 } });
         f.g.selectAll('*').remove();
 
         var x = d3.scaleLinear().domain([0, T_VIEW]).range([0, f.iw]);
@@ -174,7 +163,7 @@
         f.g.append('path')
             .datum(pts)
             .attr('fill', 'none')
-            .attr('stroke', 'var(--c-thresh)')
+            .attr('stroke', 'var(--c-clock)')
             .attr('stroke-width', 2.0)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
@@ -182,13 +171,11 @@
         f.g.append('text')
             .attr('x', -8).attr('y', y(1) + 4)
             .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--muted)').text('TRACK');
+            .attr('fill', 'var(--muted)').text('track');
         f.g.append('text')
             .attr('x', -8).attr('y', y(0) + 4)
             .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--muted)').text('HOLD');
+            .attr('fill', 'var(--muted)').text('hold');
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
@@ -199,7 +186,7 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 28)
+            .attr('x', f.iw / 2).attr('y', f.ih + 38)
             .attr('text-anchor', 'middle')
             .text('time');
     }
@@ -225,7 +212,7 @@
         });
         fsI.addEventListener('input', function () {
             state.fs = parseFloat(fsI.value);
-            fsL.textContent = state.fs.toFixed(1) + ' Hz';
+            fsL.textContent = state.fs.toFixed(0) + ' Hz';
             refresh();
         });
         dutyI.addEventListener('input', function () {
@@ -233,7 +220,6 @@
             dutyL.textContent = state.duty.toFixed(2);
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

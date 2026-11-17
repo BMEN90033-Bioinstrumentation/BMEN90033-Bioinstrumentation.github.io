@@ -4,7 +4,7 @@
 // promoted from the valence shell come from BANDS.state (E_g(T) and n_i(T),
 // see model.js); promoted electrons
 // hop between atoms along arcs at the conduction-shell radius.
-// Colours come from the page CSS variables and are re-read on rebuild.
+// Colours come from the page CSS variables.
 // Shells are identified by the HTML legend; the only in-scene text is the
 // + on each nucleus.
 import * as THREE from 'three';
@@ -46,16 +46,11 @@ dirLight.position.set(15, 20, 20);
 scene.add(dirLight);
 scene.add(new THREE.DirectionalLight(white, 0.15).translateX(-10).translateY(8));
 
-let grid = null;
-function applyTheme() {
-    const T = window.T;
-    scene.background = new THREE.Color(T.sceneBg);
-    scene.fog = new THREE.FogExp2(T.sceneBg, 0.004);
-    if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
-    grid = new THREE.GridHelper(80, 40, col('--c-grid3d'), col('--c-grid3d-2'));
-    grid.position.y = -7;
-    scene.add(grid);
-}
+scene.background = new THREE.Color(window.T.sceneBg);
+scene.fog = new THREE.FogExp2(window.T.sceneBg, 0.004);
+const grid = new THREE.GridHelper(80, 40, col('--c-grid3d'), col('--c-grid3d-2'));
+grid.position.y = -7;
+scene.add(grid);
 
 function resize() {
     const r = host.getBoundingClientRect();
@@ -109,7 +104,7 @@ function buildScene() {
     clearScene();
     const cfg = B.MATERIALS[B.p.mode];
     const startX = -(NUM_ATOMS - 1) * ATOM_SPACING / 2;
-    const cNuc = col(cfg.nucleusVar), cInner = col('--c-inner'), cCond = col('--c-conduction');
+    const cNuc = col('--c-nucleus'), cInner = col('--c-inner'), cCond = col('--c-conduction');
     cValence = col('--c-valence'); cFree = col('--c-free');
     cValEm = cValence.clone().multiplyScalar(0.25); cFreeEm = cFree.clone().multiplyScalar(0.35);
 
@@ -125,11 +120,7 @@ function buildScene() {
             color: cNuc, emissive: cNuc, emissiveIntensity: 0.3, transparent: true, opacity: 0.85 }));
         nucleus.position.set(ax, 0, 0);
         sceneGroup.add(nucleus);
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 16),
-            new THREE.MeshBasicMaterial({ color: cNuc, transparent: true, opacity: 0.05, depthWrite: false }));
-        glow.position.set(ax, 0, 0);
-        sceneGroup.add(glow);
-        const plus = label('+', window.T.text, 'plus');
+        const plus = label('+', window.T.onAccent, 'plus');
         plus.position.set(ax, 0, 0);
         sceneGroup.add(plus);
 
@@ -334,10 +325,8 @@ function start() { if (!raf) { clock.getDelta(); raf = requestAnimationFrame(fra
 function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
 new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? start() : stop())), { threshold: 0.05 }).observe(box);
 
-applyTheme();
 buildScene();
 resize();
 renderer.render(scene, camera);
 
 window.addEventListener('bandschange', (e) => { if (e.detail && e.detail.key === 'mode') buildScene(); });
-window.addEventListener('themechange', () => { applyTheme(); buildScene(); });

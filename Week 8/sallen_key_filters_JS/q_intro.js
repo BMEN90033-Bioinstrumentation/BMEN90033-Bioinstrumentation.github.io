@@ -64,7 +64,7 @@
         var W = rect.width;
         var H = rect.height || W;
 
-        var margin = { top: 36, right: 56, bottom: 32, left: 36 };
+        var margin = { top: 54, right: 56, bottom: 26, left: 46 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
 
@@ -109,13 +109,10 @@
             .attr('stroke', T.fg(0.45))
             .attr('stroke-width', 1.2)
             .attr('stroke-dasharray', '4 3');
-        g.append('text')
-            .attr('x', xs(-Math.SQRT1_2) - 4)
-            .attr('y', ys(Math.SQRT1_2) - 4)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.6)).attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('|s| = ω0');
+        // Labelled in the right half-plane, which never holds a pole.
+        window.renderKatex(g, '|s| = \\omega_0',
+            xs(Math.SQRT1_2) + 40, ys(Math.SQRT1_2) - 12,
+            { width: 70, height: 18, size: 14, color: T.textDim });
 
         // Axes through origin
         g.append('line')
@@ -127,27 +124,27 @@
             .attr('y1', oy).attr('y2', oy + plotH)
             .attr('stroke', T.gridStrong).attr('stroke-width', 1.4);
 
-        // Tick labels (along the axes through origin)
-        sigTicks.filter(function (v) { return v !== 0; }).forEach(function (v) {
+        // Tick labels on the left and bottom edges, clear of the unit circle
+        sigTicks.forEach(function (v) {
             g.append('text')
-                .attr('x', xs(v)).attr('y', ys(0) + 14)
+                .attr('x', xs(v)).attr('y', oy + plotH + 18)
                 .attr('text-anchor', 'middle')
                 .attr('fill', T.fg(0.7))
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .text(v.toFixed(1));
         });
-        jTicks.filter(function (v) { return v !== 0; }).forEach(function (v) {
+        jTicks.forEach(function (v) {
             g.append('text')
-                .attr('x', xs(0) - 6).attr('y', ys(v) + 4)
+                .attr('x', ox - 7).attr('y', ys(v) + 4)
                 .attr('text-anchor', 'end')
                 .attr('fill', T.fg(0.7))
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .text(v.toFixed(1));
         });
 
-        // Axis titles, four-quadrant rule from CLAUDE.md.
+        // Axis titles, four-quadrant rule.
         // y-axis title (jω) above plot, centred on σ = 0.
         window.renderKatex(svg, 'j\\omega',
             margin.left + xs(0), margin.top - 16,
@@ -233,12 +230,6 @@
             .attr('y1', y(1)).attr('y2', y(1))
             .attr('stroke', T.fg(0.45)).attr('stroke-width', 1.2)
             .attr('stroke-dasharray', '4 3');
-        g.append('text')
-            .attr('x', innerW - 4).attr('y', y(1) - 4)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.65)).attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('y = 1');
 
         // Axes
         var xAx = d3.axisBottom(x).tickValues(xTicks).tickSizeOuter(0);
@@ -248,7 +239,7 @@
         [xg, yg].forEach(function (ax) {
             ax.selectAll('path,line').attr('stroke', T.gridAxis);
             ax.selectAll('text').attr('fill', T.text)
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace");
         });
 
@@ -291,8 +282,8 @@
                     .attr('fill', 'none').attr('stroke', T.text)
                     .attr('stroke-width', 1.4);
                 g.append('text')
-                    .attr('x', px + 8).attr('y', py - 6)
-                    .attr('fill', T.text).attr('font-size', 11)
+                    .attr('x', px + 12).attr('y', Math.max(py - 8, 14))
+                    .attr('fill', T.text).attr('font-size', 13)
                     .attr('font-family', "'JetBrains Mono', monospace")
                     .text('overshoot ' + (Mp * 100).toFixed(1) + '%');
             }
@@ -339,7 +330,6 @@
         } else {
             render();
         }
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

@@ -25,7 +25,7 @@
             xDomain: [0.01, 100],
             magDomain: [-80, 6],
             phaseDomain: [-200, 10],
-            magTicks: [-80, -60, -40, -20, -3, 0],
+            magTicks: [-80, -60, -40, -20, 0],
             phaseTicks: [-180, -135, -90, -45, 0]
         });
 
@@ -81,7 +81,7 @@
             .attr('class', 'trace ideal').attr('d', lineMag);
         H.gPhase.append('path').datum(idealPts)
             .attr('class', 'trace ideal').attr('d', linePhase);
-        // Real traces (red, drawn on top)
+        // Real traces (orange, drawn on top)
         H.gMag.append('path').datum(realPts)
             .attr('class', 'trace real').attr('d', lineMag);
         H.gPhase.append('path').datum(realPts)
@@ -104,10 +104,13 @@
                 .attr('stroke', T.fg(0.55))
                 .attr('stroke-width', 1)
                 .attr('stroke-dasharray', '3 3');
+            // Label below and to the left of the gap, where no trace passes.
             H.gMag.append('text')
-                .attr('x', xAt + 8).attr('y', (yIdeal + yReal) / 2 + 4)
+                .attr('x', xAt - (yReal + 20 > H.innerH - 28 ? 50 : 12))
+                .attr('y', Math.min(yReal + 20, H.innerH - 28))
+                .attr('text-anchor', 'end')
                 .attr('fill', T.text)
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .text('Δ = ' + maxDelta.toFixed(2) + ' dB');
         }
@@ -128,25 +131,26 @@
             { name: 'real',  cssClass: 'real',  pts: realPts  }
         ]);
 
-        // ── Legend (top-right of magnitude panel) ────────────────
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
+        // ── Legend (bottom-left of magnitude panel, clear of the traces) ─
+        var lg = H.gMag.append('g').attr('transform', 'translate(12,' + (H.innerH - 10 - 2 * 18) + ')');
         var entries = [
             { c: 'ideal', label: 'ideal product' },
-            { c: 'real',  label: 'k = ' + fmtK(state.k) + '  (loaded)' }
+            { c: 'real',  label: 'loaded, k = ' + fmtK(state.k) }
         ];
         entries.forEach(function (e, idx) {
             var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
             row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8)
+                .attr('x1', 0).attr('x2', 28)
                 .attr('y1', 8).attr('y2', 8);
             row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
+                .attr('x', 34).attr('y', 12)
+                .attr('text-anchor', 'start')
                 .attr('fill', T.text)
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(e.label);
         });
+        if (entries.length) window.legendBacking(lg);
     }
 
     function onSlider() {
@@ -164,7 +168,6 @@
         } else {
             render();
         }
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

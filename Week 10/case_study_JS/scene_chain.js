@@ -9,7 +9,7 @@
     var WINDOW = 10;          // seconds of trace shown
     var COMPUTE_WINDOW = 26;  // seconds of history fed into the peak detector
                               // so the leftmost visible sample has had ~16 s of
-                              // warm-up — long enough that τ_leak ≤ 8 s decays
+                              // warm-up, long enough that τ_leak ≤ 8 s decays
                               // any earlier transient to ~0 before it scrolls
                               // into view, eliminating the rollover jitter.
     var EEG_DOMAIN = [-1.0, 3.4];
@@ -28,11 +28,13 @@
 
     var svg = d3.select(SVG).classed('ov', true);
     var W = 700, H = 460;
-    var margin = { top: 44, right: 26, bottom: 44, left: 60 };
+    var margin = { top: 52, right: 48, bottom: 50, left: 60 };
 
     var gRoot = svg.append('g');
     var gAxisX = gRoot.append('g').attr('class', 'axis');
     var gTitles = gRoot.append('g');
+    var gLegEeg = gRoot.append('g');
+    var gLegOut = gRoot.append('g');
     var gPanel = {
         eeg: gRoot.append('g'),
         out: gRoot.append('g')
@@ -61,8 +63,8 @@
         var ih = H - margin.top - margin.bottom;
         gRoot.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-        var hEeg = ih * 0.50;
-        var hOut = ih * 0.42;
+        var hEeg = ih * 0.49;
+        var hOut = ih * 0.41;
         var gap = ih - hEeg - hOut;
 
         L.iw = iw; L.ih = ih;
@@ -105,10 +107,9 @@
         gPanel.eeg.append('g').attr('class', 'axis')
             .call(d3.axisLeft(L.eeg.y).tickValues([-1, 0, 1, 2, 3]).tickSize(0).tickPadding(8))
             .select('.domain').remove();
-        gPanel.eeg.append('text').attr('class', 'axis-title')
+        EEG.label(gPanel.eeg.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (L.eeg.h / 2) + ') rotate(-90)')
-            .attr('text-anchor', 'middle')
-            .text('v_in (mV)');
+            .attr('text-anchor', 'middle'), 'v_{in}, mV');
 
         gPanel.out.selectAll('.grid').remove();
         var outGrid = gPanel.out.append('g').attr('class', 'grid');
@@ -121,10 +122,18 @@
         gPanel.out.append('g').attr('class', 'axis')
             .call(d3.axisLeft(L.out.y).tickValues([0, 1, 2, 3]).tickSize(0).tickPadding(8))
             .select('.domain').remove();
-        gPanel.out.append('text').attr('class', 'axis-title')
+        EEG.label(gPanel.out.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (L.out.h / 2) + ') rotate(-90)')
-            .attr('text-anchor', 'middle')
-            .text('V_held (V)');
+            .attr('text-anchor', 'middle'), 'V_{held}, V');
+
+        // Panel keys sit above each panel, clear of the moving traces.
+        EEG.legend(gLegEeg, [
+            { c: 'var(--c-input)', text: 'input v_{in} (filtered EEG)' }
+        ], -8);
+        gLegOut.attr('transform', 'translate(0,' + L.out.top + ')');
+        EEG.legend(gLegOut, [
+            { c: 'var(--c-output2)', text: 'output V_{held} (peak envelope)' }
+        ], -8);
 
         gAxisX.attr('transform', 'translate(0,' + (L.out.top + L.out.h) + ')');
         gAxisX.call(d3.axisBottom(L.x).tickValues([-10, -8, -6, -4, -2, 0])
@@ -132,7 +141,7 @@
             .select('.domain').remove();
         gTitles.append('text').attr('class', 'axis-title')
             .attr('x', L.iw / 2)
-            .attr('y', L.out.top + L.out.h + 30)
+            .attr('y', L.out.top + L.out.h + 40)
             .attr('text-anchor', 'middle')
             .text('time relative to now, s');
     }
@@ -190,12 +199,11 @@
         var dynEeg = gPanel.eeg.append('g').attr('class', 'dyn');
 
         // Threshold lines on the input panel
-        dynEeg.append('line').attr('class', 'thresh-line')
+        dynEeg.append('line').attr('class', 'th-line th-upper')
             .attr('x1', 0).attr('x2', L.iw)
             .attr('y1', L.eeg.y(state.vtp)).attr('y2', L.eeg.y(state.vtp));
         var vtm = Math.max(0, state.vtp - state.hw);
-        dynEeg.append('line').attr('class', 'thresh-line')
-            .attr('stroke', 'var(--c-output2)')
+        dynEeg.append('line').attr('class', 'th-line th-lower')
             .attr('x1', 0).attr('x2', L.iw)
             .attr('y1', L.eeg.y(vtm)).attr('y2', L.eeg.y(vtm));
 
@@ -204,23 +212,13 @@
             .attr('stroke-width', 1.6)
             .attr('opacity', 0.9)
             .attr('d', lineEEG);
-        dynEeg.append('text')
-            .attr('x', 6).attr('y', 14)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-input)')
-            .text('input · v_in (filtered EEG)');
-        dynEeg.append('text')
-            .attr('x', L.iw - 6).attr('y', L.eeg.y(state.vtp) - 4)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output)')
-            .text('V_T+');
-        dynEeg.append('text')
-            .attr('x', L.iw - 6).attr('y', L.eeg.y(vtm) + 12)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output2)')
-            .text('V_T−');
+        // Threshold labels sit in the right margin so the trace never crosses them.
+        EEG.label(dynEeg.append('text').attr('class', 'note')
+            .attr('x', L.iw + 6).attr('y', L.eeg.y(state.vtp) - 1)
+            .style('fill', 'var(--c-thresh)'), 'V_{T+}');
+        EEG.label(dynEeg.append('text').attr('class', 'note')
+            .attr('x', L.iw + 6).attr('y', L.eeg.y(vtm) + 15)
+            .style('fill', 'var(--c-vtm)'), 'V_{T−}');
 
         var hd = data.map(function (d, i) { return { t: d.t, v: heldVis[i] }; });
         var lineHold = d3.line()
@@ -232,11 +230,6 @@
             .attr('class', 'trace output2')
             .attr('stroke-width', 2.4)
             .attr('d', lineHold);
-        dynOut.append('text')
-            .attr('x', 6).attr('y', 14)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output2)')
-            .text('output · V_held (peak envelope)');
 
         // Readouts use rises that fall in the last 4 s
         var pulses4s = ev.rises.filter(function (t) { return t >= nowT - 4; }).length;
@@ -258,12 +251,12 @@
     function bindControls() {
         ui.th.addEventListener('input', function () {
             state.vtp = parseFloat(ui.th.value);
-            ui.thVal.textContent = state.vtp.toFixed(2);
+            ui.thVal.textContent = state.vtp.toFixed(2) + ' mV';
             drawFrame();
         });
         ui.hw.addEventListener('input', function () {
             state.hw = parseFloat(ui.hw.value);
-            ui.hwVal.textContent = state.hw.toFixed(2);
+            ui.hwVal.textContent = state.hw.toFixed(2) + ' mV';
             drawFrame();
         });
         ui.tau.addEventListener('input', function () {
@@ -278,7 +271,6 @@
         drawStatic();
         bindControls();
         EEG.onTick(drawFrame);
-        window.addEventListener('themechange', function () { drawStatic(); drawFrame(); });
         window.addEventListener('resize', function () { layout(); drawStatic(); drawFrame(); });
     }
 

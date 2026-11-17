@@ -18,6 +18,11 @@
     function buildPlot() {
         var signals = makeSignals();
         var time = window.WCGW.setupPlot('#plot-noise-time', {
+            legend: [
+                { key: 'clean', label: 'clean EMG' },
+                { key: 'noise', label: '50 Hz contaminated' },
+                { key: 'fixed', label: 'notch output' }
+            ],
             xDomain: [0, duration],
             yDomain: [-0.75, 0.75],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -25,6 +30,11 @@
             yTicks: 5
         });
         var spectrum = window.WCGW.setupPlot('#plot-noise-spectrum', {
+            legend: [
+                { key: 'clean', label: 'clean EMG', opacity: 0.45, dash: true },
+                { key: 'fixed', label: 'notch output' },
+                { key: 'mark', dash: true, label: '50 Hz' }
+            ],
             xDomain: [0, 160],
             yDomain: [-78, -18],
             xLabel: 'f\\,[\\mathrm{Hz}]',
@@ -32,6 +42,10 @@
             yTicks: 5
         });
         var bode = window.WCGW.setupPlot('#plot-noise-bode', {
+            legend: [
+                { key: 'fixed', label: 'notch response' },
+                { key: 'mark', dash: true, label: '50 Hz' }
+            ],
             xDomain: [0, 160],
             yDomain: [-55, 3],
             xLabel: 'f\\,[\\mathrm{Hz}]',
@@ -45,14 +59,6 @@
         spectrum.g.append('line').attr('class', 'marker-line').attr('x1', spectrum.x(50)).attr('x2', spectrum.x(50)).attr('y1', 0).attr('y2', spectrum.innerH);
         bode.g.append('line').attr('class', 'marker-line').attr('x1', bode.x(50)).attr('x2', bode.x(50)).attr('y1', 0).attr('y2', bode.innerH);
 
-        window.WCGW.legend(time.svg, [
-            { key: 'clean', label: 'clean EMG' },
-            { key: 'noise', label: '50 Hz contaminated' },
-            { key: 'fixed', label: 'notch output' }
-        ], time.margin.left + 12, time.margin.top + 18);
-        window.WCGW.legend(bode.svg, [
-            { key: 'fixed', label: 'notch response' }
-        ], bode.W - 170, 18);
 
         state = {
             time: time,
@@ -107,7 +113,6 @@
         readout = document.getElementById('noise-q-val');
         if (!slider) return;
         slider.addEventListener('input', update);
-        window.addEventListener('themechange', buildPlot);
         window.addEventListener('resize', window.WCGW.debounceResize(buildPlot));
         buildPlot();
     });

@@ -34,7 +34,7 @@
         // Band names.
         function name(txt, y, col) {
             g.append('text').attr('x', 12).attr('y', y).attr('dominant-baseline', 'middle')
-                .attr('fill', col).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace").text(txt);
+                .attr('fill', col).attr('font-size', 13).text(txt);
         }
         name('conduction band', Math.min(cbBot / 2, 22), cC);
         name('valence band', ih - 16, cV);
@@ -82,7 +82,9 @@
         }
 
         var lab = document.getElementById('band-label');
-        if (lab) lab.innerHTML = 'energy band diagram · <b>' + cfg.label + '</b> · T = ' + Math.round(p.temp) + ' K';
+        // The chemical formula keeps its case inside the uppercase label.
+        var mat = cfg.label.replace(/\((.+)\)/, '(<span style="text-transform:none">$1</span>)');
+        if (lab) lab.innerHTML = 'energy band diagram · <b>' + mat + '</b> · T = ' + Math.round(p.temp) + ' K';
     }
 
     window.BANDS.onRender(render);

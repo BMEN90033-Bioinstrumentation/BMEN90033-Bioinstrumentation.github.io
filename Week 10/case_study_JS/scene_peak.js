@@ -5,7 +5,7 @@
 // (1 mV in = 1 V out). The capacitor charges to V_in - V_D
 // when the input is rising and the diode conducts; otherwise the held
 // voltage decays through the leak resistor. Spikes smaller than V_D produce
-// no held output at all — the failure mode that motivates the gain stage on
+// no held output at all, the failure mode that motivates the gain stage on
 // slide 5.
 (function () {
     var SVG = '#plot-pk-trace';
@@ -14,7 +14,7 @@
 
     var svg = d3.select(SVG).classed('ov', true);
     var W = 700, H = 360;
-    var margin = { top: 48, right: 26, bottom: 42, left: 56 };
+    var margin = { top: 52, right: 44, bottom: 50, left: 56 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -23,6 +23,7 @@
     var gHold = gRoot.append('g');
     var gAxis = gRoot.append('g').attr('class', 'axis');
     var gTitles = gRoot.append('g');
+    var gLegend = gRoot.append('g');
 
     var ui = {
         tau: document.getElementById('pk-tau'),
@@ -71,13 +72,19 @@
             .call(xAxis).select('.domain').remove();
 
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 32)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
             .text('time relative to now, s');
         gTitles.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-42) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
             .text('pre-amp output, V');
+
+        // Series key in the top margin, clear of the moving traces.
+        EEG.legend(gLegend, [
+            { c: 'var(--c-input)', text: 'pre-amp output' },
+            { c: 'var(--c-output2)', text: 'V_{held} ≈ V_{peak} − V_{D}' }
+        ], -8);
     }
 
     // Passive peak detector model (diode + capacitor + leak resistor):
@@ -124,26 +131,17 @@
             .attr('class', 'trace output2')
             .attr('stroke-width', 2.4)
             .attr('d', hLine);
-        gHold.append('text')
-            .attr('x', 4).attr('y', y(0) - 6)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output2)')
-            .text('V_held ≈ V_peak − V_D');
 
         // Diode threshold marker
         gHold.append('line')
             .attr('x1', 0).attr('x2', iw)
             .attr('y1', y(state.vd)).attr('y2', y(state.vd))
-            .attr('stroke', 'var(--c-thresh)')
-            .attr('stroke-width', 1.0)
-            .attr('stroke-dasharray', '4 4')
-            .attr('opacity', 0.6);
-        gHold.append('text')
-            .attr('x', iw - 6).attr('y', y(state.vd) - 4)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-thresh)')
-            .text('V_D = ' + state.vd.toFixed(2) + ' V');
+            .attr('class', 'th-line th-upper');
+        // Label in the right margin; the value is shown beside the slider.
+        EEG.label(gHold.append('text').attr('class', 'note')
+            .attr('x', iw + 6).attr('y', y(state.vd) + 4)
+            .style('fill', 'var(--c-thresh)'),
+            'V_{D}');
 
         var lastHeld = state.held[data.length - 1];
         ui.rVal.textContent = lastHeld.toFixed(2) + ' V';
@@ -152,7 +150,7 @@
         if (sp.length) {
             ui.rLast.textContent = sp[sp.length - 1].amp.toFixed(2) + ' V';
         } else {
-            ui.rLast.textContent = '— V';
+            ui.rLast.textContent = 'n/a';
         }
 
         // Envelope slope: simple linear regression on the held trace, downsampled.
@@ -195,7 +193,6 @@
             drawFrame();
         });
         EEG.onTick(drawFrame);
-        window.addEventListener('themechange', function () { drawStatic(); drawFrame(); });
         window.addEventListener('resize', function () { layout(); drawStatic(); drawFrame(); });
     }
 

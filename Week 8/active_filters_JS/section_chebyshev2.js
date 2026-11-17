@@ -17,7 +17,7 @@
         return {
             pole: window.AFPlots.getCssVar('--c-cheb2'),
             zero: window.AFPlots.getCssVar('--c-cheb2'),
-            ref:  window.AFPlots.getCssVar('--c-mark'),
+            ref:  window.AFPlots.getCssVar('--c-ref'),
             butter: window.AFPlots.getCssVar('--c-butter')
         };
     }
@@ -64,23 +64,17 @@
         zPos.sort(function (a, b) { return a.im - b.im; });
         if (zPos.length) {
             var z0 = zPos[0];
-            SP.g.append('text')
-                .attr('x', SP.x(0) + 10).attr('y', SP.y(z0.im) + 4)
-                .attr('fill', T.text)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .text('ω_z = ' + z0.im.toFixed(2));
+            window.renderKatex(SP.g, '\\omega_z = ' + z0.im.toFixed(2),
+                SP.x(0) + 14 + 50, SP.y(z0.im),
+                { width: 100, height: 20, size: 13, align: 'start', pill: true }).attr('class', 'af-note');
         }
 
         var entries = [
-            { color: col.pole, label: 'cheb-II poles' },
-            { color: col.zero, label: 'imaginary-axis zeros' },
-            { color: col.ref, label: '|H(s)| = 1 contour' }
+            { color: col.pole, label: 'Chebyshev II poles', marker: 'pole' },
+            { color: col.zero, label: 'Imaginary-axis zeros', marker: 'zero' },
+            { color: col.ref, label: 'Unity-gain contour', marker: 'dash' }
         ];
-        window.AFPlots.drawLegend(SP.g,
-            SP.innerW - 8,
-            SP.innerH - 8 - 18 * (entries.length - 1) - 12,
-            entries, T);
+        window.AFPlots.drawLegend(SP.g, SP.legendX, SP.legendY, entries, T);
     }
 
     function renderBode() {
@@ -103,19 +97,18 @@
         // Stopband floor: -20·log10(1/ε) approximately.
         // Stopband edge at ω = 1 in this normalisation.
         var floorDb = -20 * Math.log10(1 / state.eps);
-        // Shade the stopband floor band from ω = 1 to the right edge
-        var xL = BD.x(1);
-        var xR = BD.x(BD.x.domain()[1]);
+        // Floor level drawn across the panel. Its two-line label sits
+        // below the line and left of ω = 1, where the trace is above the
+        // floor and the region is empty.
         BD.gMag.append('line').attr('class', 'ref-line')
-            .attr('x1', xL).attr('x2', xR)
+            .attr('x1', 0).attr('x2', BD.innerW)
             .attr('y1', BD.yMag(floorDb)).attr('y2', BD.yMag(floorDb));
-        BD.gMag.append('text')
-            .attr('x', xR - 8).attr('y', BD.yMag(floorDb) - 4)
-            .attr('text-anchor', 'end')
+        var floorLabel = BD.gMag.append('text')
             .attr('fill', T.fg(0.6))
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('stopband floor: ' + floorDb.toFixed(1) + ' dB');
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 13);
+        floorLabel.append('tspan').attr('x', 8).attr('y', BD.yMag(floorDb) + 18).text('Stopband floor');
+        floorLabel.append('tspan').attr('x', 8).attr('dy', 16).text(floorDb.toFixed(1).replace('-', '−') + ' dB');
 
         // Stopband edge marker
         var xc = BD.x(1);
@@ -193,7 +186,6 @@
             });
         }
         onSlider();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('af-d3-ready', render3D);
     }

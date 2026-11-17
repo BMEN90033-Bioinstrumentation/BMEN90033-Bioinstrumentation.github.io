@@ -37,12 +37,11 @@
         p: p, PRESETS: PRESETS, amp: amp, combined: combined, thd: thd, ordinal: ordinal,
         COL: { 1: '--c-fund', 2: '--c-h2', 3: '--c-h3', 4: '--c-h4', 5: '--c-h5' },
         CYCLES: 3,   // fundamental cycles shown in the time plots
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('thdchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

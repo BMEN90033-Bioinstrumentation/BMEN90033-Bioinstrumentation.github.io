@@ -21,7 +21,7 @@
         var W = rect.width;
         var H = rect.height || 360;
 
-        var margin = { top: 96, right: 28, bottom: 72, left: 76 };
+        var margin = { top: 118, right: 28, bottom: 72, left: 76 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
 
@@ -122,7 +122,10 @@
         var yAxisG = g.append('g')
             .call(d3.axisLeft(y).tickValues([0, 0.25, 0.5, 0.75, 1.0])
                 .tickFormat(d3.format('.2f')).tickSizeOuter(0));
-        [xAxisG, yAxisG].forEach(window.CMP.styleAxis);
+        [xAxisG, yAxisG].forEach(function (a) {
+            window.CMP.styleAxis(a);
+            a.selectAll('text').attr('font-size', 13);
+        });
 
         // ── Legend (above the plot, right-aligned to the plot frame) ─
         var legendItems = [
@@ -134,7 +137,7 @@
         var swatchLen = 22;
         var legendBoxW = 220;
         var legendX = margin.left + innerW - legendBoxW;
-        var legendY = 14;
+        var legendY = 38;
         legendItems.forEach(function (item, idx) {
             var ly = legendY + idx * rowH;
             var active = (emph === item.key);
@@ -147,7 +150,7 @@
                 .attr('opacity', rowOp);
             window.renderKatex(svg, item.label,
                 legendX + swatchLen + 8 + 100, ly,
-                { width: 200, height: 20, size: 12, color: window.T.text,
+                { width: 200, height: 20, size: 13, color: window.T.text,
                   align: 'left' })
                 .attr('opacity', rowOp);
         });
@@ -157,12 +160,12 @@
         var annX = margin.left + innerW - annW / 2 - 8;
         window.renderKatex(svg, '|\\beta| = \\tfrac{1}{3}',
             annX, margin.top + y(1 / 3) - 14,
-            { width: annW, height: 22, size: 12, color: resColor });
+            { width: annW, height: 22, size: 13, color: resColor });
 
         // omega_0 marker label, just above the top of the plot near u = 1
         window.renderKatex(svg, '\\omega_0 = 1/RC',
             margin.left + x(1), margin.top - 18,
-            { width: 160, height: 22, size: 12, color: resColor });
+            { width: 160, height: 22, size: 13, color: resColor });
 
         // Axis titles · single-quadrant rule (x>=0 freq, y>=0 magnitude)
         window.renderKatex(svg, '|H(j\\omega)|',
@@ -175,7 +178,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('wienmodechange', render);
     }

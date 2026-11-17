@@ -73,9 +73,16 @@
         var angle = +slider.value;
         var pair = polePair(angle);
         var stable = pair.sigma < 0;
-        readout.textContent = angle.toFixed(0) + ' deg, Re = ' + pair.sigma.toFixed(2);
+        readout.textContent = angle.toFixed(0) + '°, Re(p) = ' + pair.sigma.toFixed(2);
 
-        var P = window.WCGW.setupSPlane('#plot-instability-splane', { xDomain: [-1.6, 1.6], yDomain: [-1.6, 1.6] });
+        var P = window.WCGW.setupSPlane('#plot-instability-splane', {
+            xDomain: [-1.6, 1.6],
+            yDomain: [-1.6, 1.6],
+            legend: [
+                { key: stable ? 'stable' : 'unstable', label: stable ? 'LHP poles' : 'RHP poles' },
+                { color: window.T.c('orange'), band: true, label: 'right half-plane' }
+            ]
+        });
         P.g.append('circle')
             .attr('cx', P.x(0)).attr('cy', P.y(0)).attr('r', Math.abs(P.x(radius) - P.x(0)))
             .attr('fill', 'none').attr('stroke', C.gridStrong).attr('stroke-dasharray', '4 4');
@@ -84,9 +91,6 @@
             g.append('line').attr('class', 'pole-x ' + (stable ? 'stable' : 'unstable')).attr('x1', -7).attr('x2', 7).attr('y1', -7).attr('y2', 7);
             g.append('line').attr('class', 'pole-x ' + (stable ? 'stable' : 'unstable')).attr('x1', -7).attr('x2', 7).attr('y1', 7).attr('y2', -7);
         });
-        P.g.append('text').attr('x', P.x(pair.sigma) + 12).attr('y', P.y(pair.omega) - 10)
-            .attr('fill', stable ? C.clean : C.distort).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
-            .text(stable ? 'LHP poles' : 'RHP poles');
 
         P.g.append('rect')
             .attr('x', 0).attr('y', 0)
@@ -102,6 +106,10 @@
         yMin = Math.max(-4, Math.min(-0.2, yMin * 1.05));
         yMax = Math.min(8, Math.max(1.4, yMax * 1.05));
         var R = window.WCGW.setupPlot('#plot-instability-step', {
+            legend: [
+                { key: stable ? 'stable' : 'unstable', label: 'step response' },
+                { key: 'mark', dash: true, label: 'unit input level' }
+            ],
             xDomain: [0, 8],
             yDomain: [yMin, yMax],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -118,7 +126,6 @@
         readout = document.getElementById('instability-angle-val');
         if (!slider) return;
         slider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

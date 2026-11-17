@@ -53,9 +53,9 @@
 
         // labels at top
         f.g.append('text').attr('x', aBusX).attr('y', topY - 4)
-            .attr('text-anchor', 'middle').attr('class', 'lbl' + (a ? ' lit' : '')).text('A = ' + a);
+            .attr('text-anchor', 'middle').attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A = ' + a);
         f.g.append('text').attr('x', bBusX).attr('y', topY - 4)
-            .attr('text-anchor', 'middle').attr('class', 'lbl' + (b ? ' lit' : '')).text('B = ' + b);
+            .attr('text-anchor', 'middle').attr('class', 'lbl' + (b ? ' lit' : '')).call(DL.sub, 'B = ' + b);
 
         // A bus
         DL.wire(f.g, aBusX, topY, aBusX, and.inA.y, !!a);
@@ -73,10 +73,10 @@
         var outX = 480;
         DL.wire(f.g, xor.out.x, xor.out.y, outX, xor.out.y, !!ha.s);
         f.g.append('text').attr('x', outX + 8).attr('y', xor.out.y + 4)
-            .attr('class', 'lbl' + (ha.s ? ' lit' : '')).text('S = A ⊕ B = ' + ha.s);
+            .attr('class', 'lbl' + (ha.s ? ' lit' : '')).call(DL.sub, 'S = A ⊕ B = ' + ha.s);
         DL.wire(f.g, and.out.x, and.out.y, outX, and.out.y, !!ha.c);
         f.g.append('text').attr('x', outX + 8).attr('y', and.out.y + 4)
-            .attr('class', 'lbl' + (ha.c ? ' lit' : '')).text('C_out = A · B = ' + ha.c);
+            .attr('class', 'lbl' + (ha.c ? ' lit' : '')).call(DL.sub, 'C_out = A · B = ' + ha.c);
     }
 
     // ---------------- full adder ----------------
@@ -98,9 +98,9 @@
         // A and B fan out from bus columns at the far left.
         var aBusX = 70, bBusX = 140, topY = 30;
         f.g.append('text').attr('x', aBusX).attr('y', topY - 4)
-            .attr('text-anchor', 'middle').attr('class', 'lbl' + (a ? ' lit' : '')).text('A = ' + a);
+            .attr('text-anchor', 'middle').attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A = ' + a);
         f.g.append('text').attr('x', bBusX).attr('y', topY - 4)
-            .attr('text-anchor', 'middle').attr('class', 'lbl' + (b ? ' lit' : '')).text('B = ' + b);
+            .attr('text-anchor', 'middle').attr('class', 'lbl' + (b ? ' lit' : '')).call(DL.sub, 'B = ' + b);
 
         // A bus from top down to and1.inA.y, with horizontal taps at the
         // XOR1 row and the AND1 row.
@@ -130,7 +130,7 @@
         var ciY = 320;
         var ciBusX = 340;
         f.g.append('text').attr('x', 50).attr('y', ciY + 4)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (ci ? ' lit' : '')).text('C_in = ' + ci);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (ci ? ' lit' : '')).call(DL.sub, 'C_in = ' + ci);
         DL.wire(f.g, 56, ciY, ciBusX, ciY, !!ci);
         DL.wire(f.g, ciBusX, ciY, ciBusX, xor2.inB.y, !!ci);
         DL.wire(f.g, ciBusX, xor2.inB.y, xor2.inB.x, xor2.inB.y, !!ci);
@@ -152,12 +152,12 @@
         // S = XOR2.out
         DL.wire(f.g, xor2.out.x, xor2.out.y, 640, xor2.out.y, !!fa.s);
         f.g.append('text').attr('x', 648).attr('y', xor2.out.y + 4)
-            .attr('class', 'lbl' + (fa.s ? ' lit' : '')).text('S = ' + fa.s);
+            .attr('class', 'lbl' + (fa.s ? ' lit' : '')).call(DL.sub, 'S = ' + fa.s);
 
         // C_out = OR.out
         DL.wire(f.g, orG.out.x, orG.out.y, 640, orG.out.y, !!fa.c);
         f.g.append('text').attr('x', 648).attr('y', orG.out.y + 4)
-            .attr('class', 'lbl' + (fa.c ? ' lit' : '')).text('C_out = ' + fa.c);
+            .attr('class', 'lbl' + (fa.c ? ' lit' : '')).call(DL.sub, 'C_out = ' + fa.c);
     }
 
     // ---------------- 4-bit ripple-carry ----------------
@@ -195,23 +195,23 @@
             // FA box
             f.g.append('rect').attr('x', x).attr('y', boxY)
                 .attr('width', boxW).attr('height', boxH)
-                .attr('rx', 8).attr('fill', 'var(--bg-panel)')
-                .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+                .attr('rx', 8).attr('fill', 'var(--hydro-blue-100)')
+                .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + 30)
                 .attr('text-anchor', 'middle').attr('class', 'gate-title')
-                .text('FA' + bit);
+                .call(DL.sub, 'FA' + bit);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + 50)
                 .attr('text-anchor', 'middle').attr('class', 'gate-expr')
-                .text('A_' + bit + ' B_' + bit + ' C_in');
+                .call(DL.sub, 'A_' + bit + ' B_' + bit + ' C_in');
 
             // A_i, B_i input stubs from above
             var aPinX = x + 30, bPinX = x + boxW - 30;
             f.g.append('text').attr('x', aPinX).attr('y', boxY - 30)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (aBit ? ' lit' : ''))
-                .text('A' + bit + '=' + aBit);
+                .call(DL.sub, 'A_' + bit + '=' + aBit);
             f.g.append('text').attr('x', bPinX).attr('y', boxY - 30)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (bBit ? ' lit' : ''))
-                .text('B' + bit + '=' + bBit);
+                .call(DL.sub, 'B_' + bit + '=' + bBit);
             DL.wire(f.g, aPinX, boxY - 18, aPinX, boxY, !!aBit);
             DL.wire(f.g, bPinX, boxY - 18, bPinX, boxY, !!bBit);
 
@@ -219,21 +219,21 @@
             DL.wire(f.g, x + boxW / 2, boxY + boxH, x + boxW / 2, boxY + boxH + 22, !!sBit);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + boxH + 38)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (sBit ? ' lit' : ''))
-                .text('S' + bit + '=' + sBit);
+                .call(DL.sub, 'S_' + bit + '=' + sBit);
 
             // C_in label centred above the carry-in stub on the rightmost stage.
             if (bit === 0) {
                 DL.wire(f.g, x + boxW, carryY, x + boxW + 22, carryY, !!cInBit);
                 f.g.append('text').attr('x', x + boxW + 11).attr('y', carryY - 6)
                     .attr('text-anchor', 'middle').attr('class', 'lbl' + (cInBit ? ' lit' : ''))
-                    .text('C_in=' + cInBit);
+                    .call(DL.sub, 'C_in=' + cInBit);
             }
             // C_out (final): the leftmost stage exports it on its left edge.
             if (bit === 3) {
                 DL.wire(f.g, x - 22, carryY, x, carryY, !!cOutBit);
                 f.g.append('text').attr('x', x - 26).attr('y', carryY + 4)
                     .attr('text-anchor', 'end').attr('class', 'lbl' + (cOutBit ? ' lit' : ''))
-                    .text('C_out=' + cOutBit);
+                    .call(DL.sub, 'C_out=' + cOutBit);
             }
             // Inter-stage carry: this stage's left edge connects to the right
             // edge of the box to the LEFT (which holds bit + 1).  Only valid
@@ -246,7 +246,7 @@
                 f.g.append('text').attr('x', (leftBoxRight + x) / 2)
                     .attr('y', carryY - 6)
                     .attr('text-anchor', 'middle').attr('class', 'lbl' + (cOutBit ? ' lit' : ''))
-                    .text('C' + (bit + 1) + '=' + cOutBit);
+                    .call(DL.sub, 'C_' + (bit + 1) + '=' + cOutBit);
             }
         }
 
@@ -270,7 +270,6 @@
     function init() {
         btns.forEach(function (b) { DL.bindBitButton(b, drawAll); });
         drawAll();
-        window.addEventListener('themechange', drawAll);
         window.addEventListener('resize', drawAll);
     }
 

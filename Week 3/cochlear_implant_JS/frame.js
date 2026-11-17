@@ -29,6 +29,7 @@
                 .tickFormat(t.xTitle ? (t.xFmt || (t.xTicks ? d3.format('~g') : null)) : function () { return ''; }));
         var ya = g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0).tickFormat(t.yFmt || (t.yTicks ? d3.format('~g') : null)));
         [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(function (a) { a.selectAll('text').attr('font-size', 13); });
         window.renderKatex(f.svg, t.yTitle, 22, f.m.top + oy + ph / 2,
             { width: 220, height: 22, rotate: -90, size: 16 });
         if (t.xTitle) {

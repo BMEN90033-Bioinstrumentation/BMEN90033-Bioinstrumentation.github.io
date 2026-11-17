@@ -1,7 +1,7 @@
 // Section 03 · Monostable scope. Three stacked panels share a time axis:
 // trigger pulses (manual button, plus an automatic prime), capacitor
 // voltage v_C with the +V_TH and -V_TL thresholds, and the digital output.
-// In the stable state the capacitor is clamped just below 0 V; on a
+// In the stable state the capacitor is clamped at +V_D; on a
 // negative trigger it is released and discharges toward -V_sat through
 // R until it crosses -beta V_sat, when the output flips back.
 (function () {
@@ -142,12 +142,12 @@
         var cTrig  = window.CMP.cssVar('--c-trigger');
         var cCap   = window.CMP.cssVar('--c-cap');
         var cOut   = window.CMP.cssVar('--c-output');
-        var cTh    = window.CMP.cssVar('--c-thresh-h');
+        var cTh    = window.CMP.cssVar('--c-thresh');
 
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, dims.w, dims.h);
 
-        var marL = 64, marR = 30, marT = 28, marB = 38;
+        var marL = 64, marR = 58, marT = 28, marB = 46;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
         var gap = 10;
@@ -161,13 +161,13 @@
         var outY0  = vcY0 + hVc + gap;
 
         function yToPxTrig(v) {
-            return trigY0 + (1 - (v - (-1.2)) / (0.4 - (-1.2))) * hTrig;
+            return trigY0 + (1 - (v - (-1.2)) / (1.2 - (-1.2))) * hTrig;
         }
         function yToPxVc(v) {
             return vcY0 + (1 - (v - (-1.3)) / (1.3 - (-1.3))) * hVc;
         }
         function yToPxOut(v) {
-            return outY0 + (1 - (v - (-1.4)) / (1.4 - (-1.4))) * hOut;
+            return outY0 + (1 - (v - (-2.0)) / (2.0 - (-2.0))) * hOut;
         }
 
         // ── Trigger panel ──
@@ -199,58 +199,57 @@
 
         // ── Tick labels ──
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'center';
         for (var s = 0; s <= WINDOW_SECS; s++) {
             var px = marL + (s / WINDOW_SECS) * innerW;
-            var lab = (s === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - s) + 's';
+            var lab = (s === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - s);
             ctx.fillText(lab, px, outY0 + hOut + 6);
         }
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText('0',  marL - 6, yToPxTrig(0));
-        ctx.fillText('-1', marL - 6, yToPxTrig(-1));
-        [-1, 0, 1].forEach(function (v) { ctx.fillText(v.toFixed(0), marL - 6, yToPxVc(v)); });
-        [-1, 1].forEach(function (v) { ctx.fillText(v.toFixed(0), marL - 6, yToPxOut(v)); });
+        ctx.fillText('\u22121', marL - 6, yToPxTrig(-1));
+        [-1, 0, 1].forEach(function (v) { ctx.fillText(String(v).replace('-', '\u2212'), marL - 6, yToPxVc(v)); });
+        [-1, 1].forEach(function (v) { ctx.fillText(String(v).replace('-', '\u2212'), marL - 6, yToPxOut(v)); });
 
         // ── Axis titles ──
         ctx.save();
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "400 13px 'Inter', sans-serif";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText('time (relative, s)', marL + innerW / 2, outY0 + hOut + 24);
+        ctx.fillText('Time relative to present (s)', marL + innerW / 2, outY0 + hOut + 34);
         function vTitle(label, panelY, panelH) {
             ctx.save();
             ctx.translate(18, panelY + panelH / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.fillText(label, 0, 0);
+            window.MV.text(ctx, label, 0, 0, 'center');
             ctx.restore();
         }
-        vTitle('trig', trigY0, hTrig);
-        vTitle('v_C (V)', vcY0, hVc);
-        vTitle('v_out (V)', outY0, hOut);
+        vTitle([['V', 'trig']], trigY0, hTrig);
+        vTitle([['v', 'C'], ' (V)'], vcY0, hVc);
+        vTitle([['v', 'out'], ' (V)'], outY0, hOut);
         ctx.restore();
 
         // ── Panel labels ──
         ctx.fillStyle = cTrig;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'right';
-        ctx.fillText('trigger pulse', marL + innerW - 8, trigY0 + 4);
+        ctx.fillText('Trigger pulse', marL + innerW - 8, trigY0 + 4);
         ctx.fillStyle = cCap;
-        ctx.fillText('capacitor voltage', marL + innerW - 8, vcY0 + 6);
+        ctx.fillText('Capacitor voltage', marL + innerW - 8, vcY0 + 6);
         ctx.fillStyle = cOut;
-        ctx.fillText('comparator output', marL + innerW - 8, outY0 + 6);
+        ctx.fillText('Comparator output', marL + innerW - 8, outY0 + 6);
 
         // V_TL label at right edge of vc panel
         ctx.fillStyle = cTh;
-        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-        ctx.fillText('−β·Vsat', marL + innerW + 4, yToPxVc(-state.beta));
+        window.MV.text(ctx, ['−β', ['V', 'sat']], marL + innerW + 4, yToPxVc(-state.beta), 'left');
     }
 
     var running = false;
@@ -291,7 +290,7 @@
         btn.addEventListener('click', function () { triggerForce = true; });
         update();
 
-        // Auto-fire one trigger so the user sees the pulse on first arrival.
+        // Auto-fire one trigger so a pulse is visible on first arrival.
         setTimeout(function () { triggerForce = true; }, 1500);
         setInterval(function () { if (Math.random() < 0.4) triggerForce = true; }, 4000);
     }
@@ -309,7 +308,6 @@
         }, { threshold: 0.15 });
         io.observe(canvas);
 
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { setupCanvas(); draw(); });
     }
 

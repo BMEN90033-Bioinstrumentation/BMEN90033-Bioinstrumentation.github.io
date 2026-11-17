@@ -1,4 +1,4 @@
-// Scene 4 — Fourier fails on growing signal.
+// Scene 4, Fourier fails on growing signal.
 (function () {
   const cSig = document.getElementById('g_sig');
   const cWnd = document.getElementById('g_wound');
@@ -18,11 +18,14 @@
     CFG.clear(ctx, w, h);
     const a = parseFloat(aEl.value);
     const f = parseFloat(fEl.value);
-    const padL = 14, padR = 12, padT = 34, padB = 14;
+    const padL = 34, padR = 12, padT = 56, padB = 26;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const mid = (y0 + y1) / 2;
-    ctx.strokeStyle = C.grid;
+    ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
+    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
+    CFG.label(ctx, 'g(t)', 14, mid, C.time, { rotate: true, align: 'center', baseline: 'middle' });
 
     const Tmax = 8;
     let maxV = 0;
@@ -41,7 +44,7 @@
       if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
     ctx.stroke();
-    CFG.label(ctx, `a = ${a.toFixed(2)}  ·  f = ${f.toFixed(2)} Hz  (${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'flat'})`, x1 - 6, y0 + 6, a > 0 ? C.imag : a < 0 ? C.time : C.muted, { align: 'right', size: 11 });
+    CFG.label(ctx, `a = ${a.toFixed(2)}, f = ${f.toFixed(2)} Hz (${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'constant amplitude'})`.replace('-', '−'), x0 + 6, y0 - 22, a > 0 ? C.imag : a < 0 ? C.time : C.muted);
   }
 
   function drawWound(tAnim) {
@@ -57,8 +60,11 @@
       ctx.beginPath(); ctx.arc(cx, cy, r * 22, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.strokeStyle = C.gridStrong;
-    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+    // Axes stop short of the titles, which sit beyond the axis ends.
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
+    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle' });
+    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center' });
 
     // progressive reveal
     const Tmax = 8;
@@ -93,14 +99,12 @@
       if (isFinite(cmx) && isFinite(cmy)) {
         const offscreen = cmx < 0 || cmx > w || cmy < 0 || cmy > h;
         ctx.fillStyle = offscreen ? C.imag : C.accent;
-        ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
         const xx = CFG.clamp(cmx, 8, w - 8), yy = CFG.clamp(cmy, 8, h - 8);
         ctx.beginPath(); ctx.arc(xx, yy, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
       }
     }
 
-    sub.textContent = a > 0 ? 'shape flies outward · integral diverges' : a < 0 ? 'converges · Fourier works' : 'on the edge · marginal';
+    sub.textContent = a > 0 ? 'Curve unbounded: the integral diverges' : a < 0 ? 'Curve bounded: the integral converges' : 'Constant amplitude: marginal case';
   }
 
   function drawAll(t) {

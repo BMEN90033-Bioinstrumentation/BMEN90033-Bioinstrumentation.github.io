@@ -50,12 +50,11 @@
         MATERIALS: MATERIALS, ETA: ETA, DELTA: DELTA, vbi: vbi, P_MAX_UW: P_MAX_UW,
         p: p, mat: mat, deplFrac: deplFrac, bands: bands,
         responsivity: responsivity, photocurrent: photocurrent,
-        // Run fn after DOM ready and on every parameter, theme or size change.
+        // Run fn after DOM ready and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('pdchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

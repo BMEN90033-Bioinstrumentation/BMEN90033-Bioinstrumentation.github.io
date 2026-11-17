@@ -1,4 +1,4 @@
-// Section 02 · Time-domain comparator plot.
+// Section 03 · Time-domain comparator plot.
 // Top panel: sinusoidal input with adjustable amplitude / frequency, plus a
 // horizontal threshold V_ref. Bottom panel: comparator output saturating to
 // the rails on each crossing of V_ref. Single-quadrant in t (t >= 0).
@@ -18,7 +18,7 @@
         var W = rect.width;
         var H = rect.height || 420;
 
-        var margin = { top: 36, right: 28, bottom: 60, left: 76 };
+        var margin = { top: 36, right: 124, bottom: 60, left: 76 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
         var gap = 12;
@@ -122,22 +122,21 @@
 
         [xAxisTop, yAxisTop, xAxisBot, yAxisBot].forEach(window.CMP.styleAxis);
 
-        // Threshold label on top panel, anchored just inside the right edge
-        // and offset vertically so it never overlaps the line.
+        // Threshold label in the right margin, level with the line, so it
+        // tracks the threshold without crossing the input trace.
         var refY = yTop(state.vref);
-        var labelDy = (state.vref >= 0) ? -10 : 14;
         window.renderKatex(svg,
             'V_\\text{ref} = ' + state.vref.toFixed(2) + '\\,\\text{V}',
-            margin.left + innerW - 70, margin.top + refY + labelDy,
-            { width: 150, height: 18, size: 11, color: window.CMP.cssVar('--c-thresh') });
+            margin.left + innerW + 8 + 55, margin.top + refY,
+            { width: 110, height: 18, size: 13, color: window.CMP.cssVar('--c-thresh'), align: 'left' });
 
-        // Rail labels on bottom panel
+        // Rail labels in the right margin, level with each rail
         window.renderKatex(svg, '+V_\\text{sat}',
-            margin.left + 36, margin.top + panelH + gap + yBot(Vsat) - 10,
-            { width: 80, height: 18, size: 11, color: window.T.textDim });
+            margin.left + innerW + 8 + 55, margin.top + panelH + gap + yBot(Vsat),
+            { width: 110, height: 18, size: 13, color: window.T.textDim, align: 'left' });
         window.renderKatex(svg, '-V_\\text{sat}',
-            margin.left + 36, margin.top + panelH + gap + yBot(-Vsat) + 12,
-            { width: 80, height: 18, size: 11, color: window.T.textDim });
+            margin.left + innerW + 8 + 55, margin.top + panelH + gap + yBot(-Vsat),
+            { width: 110, height: 18, size: 13, color: window.T.textDim, align: 'left' });
 
         // Axis titles · single-quadrant rule
         // y-axis (top panel): rotated -90, centred on top panel
@@ -177,7 +176,6 @@
 
     function init() {
         bind();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

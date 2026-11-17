@@ -30,8 +30,8 @@ guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hin
 
 const nucleusMat = new THREE.MeshBasicMaterial();
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), nucleusMat));
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+scene.add(new THREE.AmbientLight(window.T.sceneBg, 0.5));
+const dirLight = new THREE.DirectionalLight(window.T.sceneBg, 0.8);
 dirLight.position.set(5, 5, 5);
 scene.add(dirLight);
 
@@ -43,14 +43,9 @@ const clouds = {};      // key -> THREE.Points
 const isos = {};        // key -> THREE.Mesh
 const isoGeoCache = {}; // key_Zeff -> BufferGeometry
 
-// ── Theme-dependent colours. The light theme darkens the orbital colour and
-// uses normal blending, since additive blending vanishes on a light ground. ──
-const dark = function () { return window.T.isDark; };
-function baseColour(key) {
-    const c = new THREE.Color(css('--c-o-' + key));
-    if (!dark()) c.offsetHSL(0, 0.1, -0.22);
-    return c;
-}
+// Orbital colours come from the page CSS (--c-o-<key>, mapped onto the data
+// palette). Normal blending is used because the ground is white.
+function baseColour(key) { return new THREE.Color(css('--c-o-' + key)); }
 let posC = new THREE.Color(), negC = new THREE.Color();
 function readSignColours() { posC = new THREE.Color(css('--c-pos')); negC = new THREE.Color(css('--c-neg')); }
 
@@ -62,8 +57,6 @@ function paint(cloud) {
         col.array[i * 3] = c.r; col.array[i * 3 + 1] = c.g; col.array[i * 3 + 2] = c.b;
     }
     col.needsUpdate = true;
-    cloud.material.blending = dark() ? THREE.AdditiveBlending : THREE.NormalBlending;
-    cloud.material.needsUpdate = true;
 }
 
 function makeCloud(key, Zeff, numPoints) {
@@ -120,7 +113,7 @@ function ensureIsos() {
 
 // Opacity per orbital. With log brightness, concentrated inner orbitals
 // (small n^2 / Zeff) are dimmed and diffuse outer ones brightened, on a log
-// scale from 0.15 to 0.9, so that additive blending does not saturate.
+// scale from 0.15 to 0.9, so that the inner orbitals do not hide the outer ones.
 function updateVisibility() {
     const base = p.opacity / 100, map = {};
     if (p.logb && p.config.length) {
@@ -203,7 +196,7 @@ function animateCloud() {
     });
 }
 
-function applyTheme() {
+function applyColours() {
     scene.background = new THREE.Color(window.T.sceneBg);
     nucleusMat.color.set(css('--c-nucleus'));
     readSignColours();
@@ -245,7 +238,7 @@ function resize() {
     renderer.render(scene, camera);
 }
 
-applyTheme();
+applyColours();
 resize();
 fitCamera();
 new ResizeObserver(resize).observe(host);
@@ -257,7 +250,6 @@ new IntersectionObserver(function (es) {
 }, { threshold: 0.05 }).observe(host);
 regenerate(false);
 
-window.addEventListener('themechange', applyTheme);
 window.addEventListener('eochange', function (e) {
     const k = e.detail && e.detail.key;
     if (k === 'element' || k === 'config') {

@@ -2,31 +2,17 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-ib:   #cca855;   /* base current, I_B curves, saturation limit */
-    --c-ic:   #5a9aba;   /* collector current, exact output */
-    --c-vout: #c96b5a;   /* Q-point, Shockley curve */
-    --c-vce:  #6aaa8e;   /* V_CE, tangent (linear) output */
-    --c-vbe:  #c96b5a;   /* V_BE bracket */
-    --c-vin:  #c8a8ff;   /* input signal */
-    --c-tan:  rgba(255, 255, 255, 0.8);   /* tangent line */
-    --c-guide: rgba(255, 255, 255, 0.45); /* v_BE input trace */
-    --c-load: rgba(255, 255, 255, 0.55);
-    --c-sat-band: rgba(255, 180, 60, 0.08);
-    --hero-a: var(--c-ic);
-    --hero-b: var(--c-vce);
-}
-
-[data-theme="light"] {
-    --c-ib:   #9a7410;
-    --c-ic:   #1d6fa5;
-    --c-vout: #b0442f;
-    --c-vce:  #2f8f5f;
-    --c-vbe:  #b0442f;
-    --c-vin:  #7c3aed;
-    --c-tan:  rgba(0, 0, 0, 0.75);
-    --c-guide: rgba(0, 0, 0, 0.45);
-    --c-load: rgba(0, 0, 0, 0.5);
-    --c-sat-band: rgba(184, 130, 0, 0.10);
+    --c-ib:   var(--d-orange);   /* base current, I_B curves, saturation limit */
+    --c-ic:   var(--d-blue);     /* collector current, exact output */
+    --c-vout: var(--d-pink);     /* Q-point, exponential characteristic */
+    --c-vce:  var(--d-green);    /* collector-emitter voltage */
+    --c-vbe:  var(--d-pink);     /* V_BE bracket */
+    --c-vin:  var(--d-violet);   /* input signal */
+    --c-tan:  var(--d-ink);      /* tangent line */
+    --c-lin:  var(--d-ink);      /* linear (tangent) response, drawn dashed */
+    --c-guide: var(--d-grey);    /* v_BE input trace */
+    --c-load: var(--d-grey);
+    --c-sat-band: var(--d-orange-soft);
 }
 
 .plot-box.circuit  { aspect-ratio: 1.6 / 1; }

@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Myelinated and Unmyelinated Conduction</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Myelinated and unmyelinated conduction</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -56,7 +50,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 2 · BIOPOTENTIALS</div>
-            <h1 class="hero">Myelination and <em>saltatory</em> conduction</h1>
+            <h1 class="hero">Myelination and saltatory conduction</h1>
             <p class="sub">In an unmyelinated axon the action potential is regenerated at every point of the
                 membrane and the wavefront moves continuously. In a myelinated axon the membrane is covered by
                 insulating myelin except at the nodes of Ranvier, so excitation is regenerated only at the nodes and
@@ -92,7 +86,7 @@
                 superposed extracellular field of the two dipoles.</p>
 
             <ul class="bullets">
-                <li>nodes are drawn yellow at rest, red while active, and orange, fading, once depolarised;</li>
+                <li>nodes are drawn slate at rest, pink while active, and orange, fading, once depolarised;</li>
                 <li>with currents shown, the myelinated axon marks the internodes on either side of the active node,
                     and the unmyelinated axon marks the region near the front;</li>
                 <li>the cross-section view compares the insulated internode with the exposed membrane of the
@@ -147,11 +141,12 @@
                 </div>
                 <div class="legend">
                     <span><span class="sw band" style="background:var(--c-myelin)"></span>myelin sheath</span>
-                    <span><span class="sw ring" style="background:var(--c-node)"></span>node of Ranvier</span>
+                    <span><span class="sw ring" style="background:var(--c-node)"></span>resting node of Ranvier</span>
+                    <span><span class="sw ring" style="background:var(--c-node-active)"></span>active node</span>
                     <span><span class="sw band" style="background:var(--c-depol)"></span>depolarised membrane</span>
                     <span><span class="sw ring" style="background:var(--c-dipole)"></span>dipole</span>
-                    <span><span class="sw ring" style="background:var(--c-plus)"></span>$+$ resting membrane ahead</span>
-                    <span><span class="sw ring" style="background:var(--c-minus)"></span>$-$ depolarised membrane behind</span>
+                    <span>$+$ resting membrane ahead</span>
+                    <span>$-$ depolarised membrane behind</span>
                     <span><span class="sw" style="background:var(--c-intra)"></span>intracellular current</span>
                     <span><span class="sw grad"></span>field magnitude</span>
                     <span><span class="sw ring" style="background:var(--c-rec)"></span>recording point</span>
@@ -265,7 +260,7 @@
             <p>The readout gives the time at which each front reaches the recording point, and their ratio.</p>
 
             <div class="callout">
-                The waveform shape is prescribed, not computed from membrane dynamics. The membrane equations that
+                The waveform shape is prescribed; it is not computed from membrane dynamics. The membrane equations that
                 produce the action potential are developed on the <a href="biopotentials.html">membrane patch</a>
                 page.
             </div>

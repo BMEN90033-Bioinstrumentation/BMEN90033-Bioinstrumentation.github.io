@@ -62,8 +62,8 @@
         if (slider) {
             slider.addEventListener('input', function () {
                 state.omega = parseFloat(slider.value);
-                // Touching the slider implies the user wants to see the
-                // probe; auto-promote out of 'off' so the marker appears.
+                // Moving the slider implies the probe should be shown;
+                // auto-promote out of 'off' so the marker appears.
                 if (state.mode === 'off') state.mode = 'mag';
                 updateButtons();
                 updateLabel();
@@ -112,13 +112,16 @@
         }
         sp.g.selectAll('.mag-unity-contour')
             .style('display', state.mode === 'mag' ? null : 'none');
+        // Static annotations give way to the moving probe labels.
+        sp.g.selectAll('.af-note')
+            .style('display', state.mode === 'off' ? null : 'none');
 
         if (state.mode === 'off') return;
 
         var T = window.T;
         var probeColor = window.AFPlots.getCssVar('--c-mark');
-        var posAngleColor = window.AFPlots.getCssVar('--c-cheb2');
-        var negAngleColor = window.AFPlots.getCssVar('--c-cheb1');
+        var posAngleColor = window.AFPlots.getCssVar('--c-angle-pos');
+        var negAngleColor = window.AFPlots.getCssVar('--c-angle-neg');
         var w = state.omega;
 
         var layer = sp.g.append('g').attr('class', 'jw-probe-layer');
@@ -187,7 +190,7 @@
                 renderZoomFixedKatex(layer, len.toFixed(2),
                     (x1 + x2) / 2,
                     (y1 + y2) / 2,
-                    { width: 56, height: 20, size: 10.5, pill: true, color: '#1a1a1e' });
+                    { width: 56, height: 20, size: 12, pill: true });
             } else if (state.mode === 'angle') {
                 // The math angle ang is measured CCW from +Re. SVG y is
                 // flipped, so on screen the same vector points at angle
@@ -206,7 +209,7 @@
                 var py = y1 + pillR * Math.sin(screenAng / 2);
                 renderZoomFixedKatex(layer, formatSignedAngleDeg(contribution) + '^{\\circ}',
                     px, py,
-                    { width: 60, height: 20, size: 10.5, pill: true, color: '#1a1a1e' });
+                    { width: 60, height: 20, size: 12, pill: true });
             }
         }
 
@@ -228,12 +231,9 @@
             .attr('stroke', T.text).attr('stroke-width', 1.2)
             .attr('opacity', 0.95);
         // Numeric ω label, anchored just to the right of the disc.
-        layer.append('text')
-            .attr('x', pxJ + 11).attr('y', pyJ + 4)
-            .attr('fill', T.text)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('jω = ' + w.toFixed(2));
+        window.renderKatex(layer, 'j\\omega = ' + w.toFixed(2),
+            pxJ + 11 + 50, pyJ,
+            { width: 100, height: 20, size: 13, align: 'start' });
 
         // ─── Linked Bode cursor and readout ──────────────────────
         // All cursor visuals (line + pill) live inside a single g.jw-cursor
@@ -276,11 +276,11 @@
                 window.renderKatex(magCursor,
                     '|H| = ' + magDb.toFixed(1) + '\\,\\mathrm{dB}',
                     pillX + pillW / 2, 14,
-                    { width: pillW, height: 20, size: 10.5, pill: true, color: '#1a1a1e' });
+                    { width: pillW, height: 20, size: 12, pill: true });
                 window.renderKatex(phCursor,
                     '\\angle H = ' + formatAngleDeg(phDeg) + '^{\\circ}',
                     pillX + pillW / 2, 14,
-                    { width: pillW, height: 20, size: 10.5, pill: true, color: '#1a1a1e' });
+                    { width: pillW, height: 20, size: 12, pill: true });
             }
         }
     }
@@ -354,7 +354,7 @@
 
         renderZoomFixedKatex(layer, label,
             sp.innerW - width / 2 - 8, 14,
-            { width: width, height: 22, size: 10.5, pill: true, color: '#1a1a1e' });
+            { width: width, height: 22, size: 12, pill: true });
     }
 
     function renderZoomFixedKatex(parent, latex, x, y, opts) {

@@ -77,7 +77,7 @@
             resistor(335, 70, 80, 'R_2', 46);
             svg.append('circle').attr('cx', 500).attr('cy', 180).attr('r', 3.5).attr('fill', ink);
             path('M300,210 H280 V300'); ground(280, 300);
-            tex('A_{CL} = -\\dfrac{R_2}{R_\\text{in}}', 450, 312, { width: 200, height: 40, size: 15, color: T.textDim });
+            tex('A_\\text{CL} = -\\dfrac{R_2}{R_\\text{in}}', 450, 312, { width: 200, height: 40, size: 15, color: T.textDim });
         }
 
         var lab = document.getElementById('opamp-label');

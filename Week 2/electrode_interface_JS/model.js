@@ -206,12 +206,11 @@
         E0: E0, RT_F: RT_F,
         p: p, spawn: spawn, step: step, current: current, potential: potential, nernst: nernst,
         overpotential: overpotential, rct: rct,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('elichange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

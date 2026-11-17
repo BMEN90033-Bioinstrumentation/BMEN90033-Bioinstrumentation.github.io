@@ -107,14 +107,14 @@
         var fg     = window.CMP.cssVar('--fg');
         var cIn    = window.CMP.cssVar('--c-cap');
         var cOut   = window.CMP.cssVar('--c-output');
-        var cTh    = window.CMP.cssVar('--c-thresh');
-        var cThH   = window.CMP.cssVar('--c-thresh-h');
+        var cZero  = window.CMP.cssVar('--c-rail');
+        var cThH   = window.CMP.cssVar('--c-thresh');
         var cBand  = window.CMP.cssVar('--c-band');
 
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, dims.w, dims.h);
 
-        var marL = 64, marR = 24, marT = 28, marB = 38;
+        var marL = 64, marR = 58, marT = 28, marB = 46;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
         var gap = 12;
@@ -124,11 +124,11 @@
         var sigY0 = marT;
         var outY0 = sigY0 + hSig + gap;
 
-        var sigMin = -1.3, sigMax = 1.3;
+        var sigMin = -1.5, sigMax = 1.5;
         function yToPxSig(v) {
             return sigY0 + (1 - (v - sigMin) / (sigMax - sigMin)) * hSig;
         }
-        var outMin = -1.4, outMax = 1.4;
+        var outMin = -2.0, outMax = 2.0;
         function yToPxOut(v) {
             return outY0 + (1 - (v - outMin) / (outMax - outMin)) * hOut;
         }
@@ -149,7 +149,7 @@
         strokeLine(ctx, marL, yToPxSig(-state.beta), marL + innerW, yToPxSig(-state.beta),
             cThH, 1.2, [4, 4]);
         strokeLine(ctx, marL, yToPxSig(0), marL + innerW, yToPxSig(0),
-            cTh, 1, [2, 4]);
+            cZero, 1, [2, 4]);
 
         ctx.strokeStyle = cIn;
         ctx.lineWidth = 1.8;
@@ -165,58 +165,57 @@
 
         // ── Tick labels ──
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'center';
         for (var s = 0; s <= WINDOW_SECS; s++) {
             var px = marL + (s / WINDOW_SECS) * innerW;
-            var lab = (s === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - s) + 's';
+            var lab = (s === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - s);
             ctx.fillText(lab, px, outY0 + hOut + 6);
         }
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         [-1, 0, 1].forEach(function (v) {
-            ctx.fillText(v.toFixed(0), marL - 6, yToPxSig(v));
+            ctx.fillText(String(v).replace('-', '\u2212'), marL - 6, yToPxSig(v));
         });
         [-1, 1].forEach(function (v) {
-            ctx.fillText(v.toFixed(0), marL - 6, yToPxOut(v));
+            ctx.fillText(String(v).replace('-', '\u2212'), marL - 6, yToPxOut(v));
         });
 
         // ── Axis titles ──
         ctx.save();
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "400 13px 'Inter', sans-serif";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText('time (relative, s)', marL + innerW / 2, outY0 + hOut + 24);
+        ctx.fillText('Time relative to present (s)', marL + innerW / 2, outY0 + hOut + 34);
         function vTitle(label, panelY, panelH) {
             ctx.save();
             ctx.translate(18, panelY + panelH / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.textAlign = 'center';
-            ctx.fillText(label, 0, 0);
+            window.MV.text(ctx, label, 0, 0, 'center');
             ctx.restore();
         }
-        vTitle('input v_in (V)', sigY0, hSig);
-        vTitle('output v_out (V)', outY0, hOut);
+        vTitle([['v', 'in'], ' (V)'], sigY0, hSig);
+        vTitle([['v', 'out'], ' (V)'], outY0, hOut);
         ctx.restore();
 
         // ── Panel labels ──
-        ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.fillStyle = cIn;
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'right';
-        ctx.fillText('input + thresholds', marL + innerW - 8, sigY0 + 6);
+        ctx.fillText('Input', marL + innerW - 8, sigY0 + 6);
         ctx.fillStyle = cOut;
-        ctx.fillText('latched output', marL + innerW - 8, outY0 + 6);
+        ctx.fillText('Latched output', marL + innerW - 8, outY0 + 6);
 
         // Threshold value labels at right edge of signal panel
         ctx.fillStyle = cThH;
-        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-        ctx.fillText('+β·Vsat', marL + innerW + 4, yToPxSig(+state.beta));
-        ctx.fillText('−β·Vsat', marL + innerW + 4, yToPxSig(-state.beta));
+        window.MV.text(ctx, ['+β', ['V', 'sat']], marL + innerW + 4, yToPxSig(+state.beta), 'left');
+        window.MV.text(ctx, ['−β', ['V', 'sat']], marL + innerW + 4, yToPxSig(-state.beta), 'left');
     }
 
     var running = false;
@@ -268,7 +267,6 @@
         }, { threshold: 0.15 });
         io.observe(canvas);
 
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { setupCanvas(); draw(); });
     }
 

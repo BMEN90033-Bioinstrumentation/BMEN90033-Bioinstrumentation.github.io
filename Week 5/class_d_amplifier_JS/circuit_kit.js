@@ -41,7 +41,7 @@
             o = o || {};
             return svg.append('text').attr('x', x).attr('y', y).attr('text-anchor', o.anchor || 'middle')
                 .attr('dominant-baseline', 'middle').attr('fill', o.color || T.textDim)
-                .attr('font-size', (o.size || 12) * fs).attr('font-weight', o.weight || 400)
+                .attr('font-size', (o.size || 13) * fs).attr('font-weight', o.weight || 400)
                 .attr('font-family', "'JetBrains Mono', monospace").text(s);
         };
         k.dot = function (x, y) { svg.append('circle').attr('cx', x).attr('cy', y).attr('r', 3).attr('fill', ink); };
@@ -101,12 +101,12 @@
             k.path([[cx, cy], [rx, cy], [rx, n ? cy + 12 : cy - 12]], ink, 1.8);
             var a = n ? [[cx + 1, cy], [cx + 9, cy - 4], [cx + 9, cy + 4]] : [[cx + 15, cy], [cx + 7, cy - 4], [cx + 7, cy + 4]];
             svg.append('polygon').attr('points', a.map(function (q) { return q.join(','); }).join(' ')).attr('fill', ink);
-            var o = { width: 16, size: 12, color: T.textDim };
-            k.tex('\\text{G}', cx - 16, cy - 11, { width: 16, height: 16, size: 12, color: T.textDim });
+            var o = { width: 16, size: 13, color: T.textDim };
+            k.tex('\\text{G}', cx - 16, cy - 11, { width: 16, height: 16, size: 13, color: T.textDim });
             k.texL('\\text{' + (n ? 'D' : 'S') + '}', rx + 5, cy - 24, o);
             k.texL('\\text{' + (n ? 'S' : 'D') + '}', rx + 5, cy + 24, o);
         };
-        // Flow overlay (glow plus moving dots), driven by k.setFlow from tick().
+        // Flow overlay (translucent path highlight plus moving dots), driven by k.setFlow from tick().
         k.flow = function (name, pts) {
             var d = d3.line()(pts);
             k.flows[name] = {

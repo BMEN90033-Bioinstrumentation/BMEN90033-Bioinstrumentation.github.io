@@ -4,62 +4,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide 9: Gain-Bandwidth Tradeoff with Feedback</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <title>Slide 12: Gain-bandwidth trade-off with feedback</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    (function () {
-      var qp = new URLSearchParams(location.search);
-      var qt = qp.get('theme');
-      var ss = null;
-      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { /* ignore */ }
-      var pick = (qt === 'dark' || qt === 'light') ? qt
-        : (ss === 'dark' || ss === 'light') ? ss
-          : null;
-      if (pick) document.documentElement.setAttribute('data-theme', pick);
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { /* ignore */ }
-      });
-      if (window.parent !== window) {
-        var style = document.createElement('style');
-        style.textContent = '#theme-toggle{display:none !important;}';
-        document.head.appendChild(style);
-      }
-    })();
-  </script>
   <style>
-    /* ── Interactive slider card (steps 4 & 5) ────────────────── */
+    /* manim-web sets an inline 1280 x 720 px size on its canvas; scale it to the stage */
+    .manim-stage > canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Interactive slider card (steps 4 and 5). Sized in cqw so that it scales
+       with the canvas and stays clear of the plots at every stage width. */
+    .manim-stage {
+      container-type: inline-size;
+    }
+
     .gbp-panel {
       position: absolute;
       top: 50%;
-      right: 14px;
+      right: 1cqw;
       transform: translateY(-50%);
       z-index: 7;
-      width: 268px;
-      padding: 14px 16px 16px;
+      width: 20.2cqw;
+      padding: 1.2cqw;
       background: var(--slide-surface);
       border: 1px solid var(--slide-border);
-      border-radius: 12px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
-      font-family: 'IBM Plex Sans', 'IBM Plex Mono', sans-serif;
+      border-radius: var(--radius-container);
       color: var(--slide-text);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       display: none;
       flex-direction: column;
-      gap: 10px;
-    }
-
-    [data-theme="light"] .gbp-panel {
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+      gap: 1cqw;
     }
 
     .gbp-panel.visible {
@@ -67,70 +43,58 @@
     }
 
     .gbp-panel .gbp-title {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1.6px;
+      font-family: var(--font-mono);
+      font-size: clamp(8px, 0.75cqw, 10px);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--slide-accent);
-      font-weight: 500;
+    }
+
+    .gbp-panel .gbp-title sub {
+      text-transform: none;
     }
 
     .gbp-panel input[type="range"] {
       width: 100%;
-      accent-color: var(--slide-accent);
-      cursor: pointer;
-      height: 18px;
     }
 
     .gbp-panel .gbp-readout {
       display: grid;
       grid-template-columns: auto 1fr;
-      gap: 3px 12px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      color: var(--slide-text);
+      gap: 3px 0.8cqw;
+      font-family: var(--font-mono);
+      font-size: clamp(9px, 0.98cqw, 13px);
       line-height: 1.5;
     }
 
     .gbp-panel .gbp-readout .k {
       color: var(--slide-text-dim);
-      font-size: 11px;
     }
 
     .gbp-panel .gbp-readout .v {
       text-align: right;
-      color: var(--slide-text);
       font-variant-numeric: tabular-nums;
-      font-weight: 500;
     }
 
+    /* Orange is the colour of the GBP markers in the plots */
     .gbp-panel .gbp-readout .invariant {
       grid-column: 1 / -1;
       margin-top: 6px;
-      padding: 7px 10px;
-      background: rgba(251, 191, 36, 0.10);
-      border-left: 3px solid var(--slide-yellow);
-      border-radius: 4px;
-      color: var(--slide-yellow);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.2px;
+      padding: 0.5cqw 0.7cqw;
+      background: var(--d-orange-soft);
+      border-radius: var(--radius-4);
+      font-size: clamp(8.5px, 0.9cqw, 12px);
       line-height: 1.4;
-    }
-
-    [data-theme="light"] .gbp-panel .gbp-readout .invariant {
-      background: rgba(217, 119, 6, 0.08);
     }
   </style>
 </head>
 
 <body class="slide">
   <header class="slide-header">
-    <span class="slide-num">11 / 19</span>
+    <span class="slide-num">12 / 20</span>
   </header>
 
   <div id="stage" class="manim-stage">
-    <div class="stage-fallback">Loading manim-web scene…</div>
+    <div class="stage-fallback">Loading scene</div>
 
     <div class="gbp-panel" id="gbpPanel" aria-hidden="true">
       <div class="gbp-title">Closed-loop gain A<sub>CL</sub></div>
@@ -144,9 +108,9 @@
     </div>
 
     <div class="stepper-row" id="stepper">
-      <button type="button" class="stepper-btn" id="step-prev">← Prev Step</button>
-      <span class="step-indicator" id="step-indicator">Step 1/5</span>
-      <button type="button" class="stepper-btn" id="step-next">Next Step →</button>
+      <button type="button" class="stepper-btn" id="step-prev">Previous step</button>
+      <span class="step-indicator" id="step-indicator">Step 1 / 5</span>
+      <button type="button" class="stepper-btn" id="step-next">Next step</button>
     </div>
   </div>
 
@@ -156,27 +120,19 @@
       Create, Write, FadeIn, FadeToColor
     } from 'https://esm.sh/manim-web@0.3.18';
 
-    // ── Theme + modern colour palette ──
-    // Dark: deep indigo-black with mint accent, cool categorical hues.
-    // Light: off-white with saturated-but-soft versions of the same hues.
+    // manim-web needs literal hex strings; read once from the theme.css data palette.
     const FONT_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/fonts/KaTeX_Main-Regular.ttf';
-    const IS_LIGHT = document.documentElement.getAttribute('data-theme') === 'light';
-    // Match slide.css's --slide-bg exactly so the canvas blends seamlessly
-    // into the surrounding iframe body — otherwise the stage looks like a
-    // lighter card floating on a different-shaded background.
-    const BG = IS_LIGHT ? '#f5f5f7' : '#0a0e14';
-    const SURFACE = IS_LIGHT ? '#ffffff' : '#141a26';
-    const FG = IS_LIGHT ? '#0f172a' : '#e8ecf3';
-    const MUTED = IS_LIGHT ? '#64748b' : '#8a94a7';   // body-muted text
-    const MUTED2 = IS_LIGHT ? '#cbd5e1' : '#2a3243';   // grid lines / subtle borders
-    const AXIS = IS_LIGHT ? '#475569' : '#a9b4c6';   // axis strokes + tick labels
-    const ACCENT = IS_LIGHT ? '#10b981' : '#5eead4';   // primary mint/teal
-    const YELLOW = IS_LIGHT ? '#d97706' : '#fbbf24';   // warm amber for GBP/invariant
-    const RED = IS_LIGHT ? '#dc2626' : '#f87171';
-    const BLUE = IS_LIGHT ? '#2563eb' : '#5b9cf8';   // open-loop
-    const MAG = IS_LIGHT ? '#7c3aed' : '#c77dff';   // DC gain highlight
-    const CYAN = IS_LIGHT ? '#0891b2' : '#22d3ee';   // bandwidth highlight
-    window.addEventListener('themechange', () => location.reload());
+    const BG = T.plotBg;
+    const FG = T.c('ink');
+    const MUTED = T.c('slate');    // subtitles, section headers, axis titles
+    const MUTED2 = T.c('grey');    // grid lines, subtle borders, plot surface tint
+    const AXIS = T.c('slate');     // axis strokes and tick labels
+    const BLUE = T.c('blue');      // open-loop response a(f), A_OL
+    const YELLOW = T.c('orange');  // f_p, f_unity and GBP
+    const ACCENT = T.c('pink');    // closed-loop response A_CL(f), op-amp output
+    const MAG = T.c('violet');     // closed-loop DC gain
+    const CYAN = T.c('green');     // closed-loop bandwidth and pole
+    const SURF = 0.08;             // fill opacity of the plot surface tint
 
     // ── Stage + scene ──
     const stage = document.getElementById('stage');
@@ -184,7 +140,7 @@
     const scene = new Scene(stage, { width: 1280, height: 720, backgroundColor: BG });
 
     // ── Slide title (persistent across all steps) ──
-    const title = new Text({ text: 'Gain-Bandwidth Tradeoff with Feedback', fontSize: 30, color: FG, fontUrl: FONT_URL });
+    const title = new Text({ text: 'Gain-bandwidth trade-off with feedback', fontSize: 30, color: FG, fontUrl: FONT_URL });
     await title.loadGlyphs?.();
     title.moveTo([-3.5, 3.40, 0]);
     const TITLE_LEFT_X = -6.2;
@@ -193,11 +149,11 @@
     }
     scene.add(title);
 
-    // Thin accent underline beneath the title for a modern section-heading look.
+    // Thin ink rule beneath the title.
     const titleRule = new Line({
       start: [TITLE_LEFT_X, 3.05, 0],
       end: [TITLE_LEFT_X + 1.4, 3.05, 0],
-      color: ACCENT, strokeWidth: 2.4
+      color: FG, strokeWidth: 2.4
     });
     scene.add(titleRule);
 
@@ -265,7 +221,7 @@
         height: frame.y1 - frame.y0,
         color: MUTED2,
         strokeWidth: 0,
-        fillOpacity: IS_LIGHT ? 0.25 : 0.18
+        fillOpacity: SURF
       });
       surfaceRect.moveTo([(frame.x0 + frame.x1) / 2, (frame.y0 + frame.y1) / 2, 0]);
 
@@ -348,11 +304,11 @@
     // STEP SUBTITLES
     // ───────────────────────────────────────────────────
     const stepSubtitleText = {
-      1: 'Step 1: The op-amp\'s open-loop response is fixed by its internal compensation capacitor.',
-      2: 'Step 2: Apply feedback and re-derive A_CL(f). The pole moves to a higher frequency.',
-      3: 'Step 3: Multiply DC gain × bandwidth. The product is constant.',
-      4: 'Step 4: Drag the slider. Every gain choice lands on the same open-loop asymptote.',
-      5: 'Step 5: Time-domain consequence. Higher closed-loop gain reduces bandwidth.'
+      1: 'Step 1: The open-loop response of the op-amp is fixed by its internal compensation capacitor.',
+      2: 'Step 2: With feedback applied, A_CL(f) is derived again. The pole moves to a higher frequency.',
+      3: 'Step 3: The product of DC gain and bandwidth is constant.',
+      4: 'Step 4: Drag the slider. Every closed-loop gain setting meets the same open-loop asymptote.',
+      5: 'Step 5: In the time domain, a higher closed-loop gain reduces the bandwidth available to the signal.'
     };
     const stepSubtitle = {};
     for (const k of Object.keys(stepSubtitleText)) {
@@ -366,7 +322,7 @@
     }
 
     // ═══════════════════════════════════════════════════
-    // STEP 1 — "The open-loop response is fixed"
+    // STEP 1, "The open-loop response is fixed"
     // ═══════════════════════════════════════════════════
     //
     // Layout plan: narrow Bode plot pushed to the right (x ≈ 0.4 → 6.3),
@@ -444,10 +400,10 @@
 
       const aolLbl = new MathTex({ latex: 'A_{OL}\\approx 10^{5}\\;(100\\,\\text{dB})', color: BLUE });
       await aolLbl.waitForRender?.();
-      aolLbl.scale(0.46).moveTo([mapF(5.2), aolY, 0]);
+      aolLbl.scale(0.40).moveTo([mapF(5.2), aolY, 0]);
       if (typeof aolLbl.getLeft === 'function') aolLbl.shift([mapF(4.30) - aolLbl.getLeft()[0], 0, 0]);
 
-      // ── Left column — two hero bullets + a callout card ──
+      // ── Left column, two hero bullets + a callout card ──
       const LEFT_X = -6.15;
       const bulletX = LEFT_X + 0.25;
 
@@ -462,34 +418,36 @@
       };
 
       const [b1dot, b1txt] = await makeBulletTex(
-        '\\text{High DC gain, but only up to } f_p \\approx 10\\,\\text{Hz.}',
-        2.25, ACCENT
+        '\\text{The DC gain is high only up to } f_p \\approx 10\\,\\text{Hz.}',
+        2.25, FG
       );
       const [b2dot, b2txt] = await makeBulletTex(
-        '\\text{Above } f_p\\text{: } -20\\,\\text{dB/dec until } f_{unity} = \\text{GBP.}',
-        1.70, ACCENT
+        '\\text{Above } f_p\\text{, the gain falls at } {-}20\\,\\text{dB/decade}',
+        1.70, FG
       );
+      // Second line of the same bullet; its dot is not used.
+      const [, b2txtB] = await makeBulletTex('\\text{until } f_{unity} = \\text{GBP.}', 1.28, FG);
 
-      // Callout card — Miller cap story
+      // Callout card, Miller cap story
       const calloutBox = new Rectangle({
         width: 4.6, height: 1.85,
-        color: ACCENT, strokeWidth: 1.0, fillOpacity: IS_LIGHT ? 0.07 : 0.09
+        color: FG, strokeWidth: 1.0, fillOpacity: 0.03
       });
-      calloutBox.moveTo([-3.25, 0.35, 0]);
-      const calloutHdr = new Text({ text: 'WHY IT\'S FIXED', fontSize: 10, color: ACCENT, fontUrl: FONT_URL });
+      calloutBox.moveTo([-3.25, 0.05, 0]);
+      const calloutHdr = new Text({ text: 'WHY THE RESPONSE IS FIXED', fontSize: 12, color: MUTED, fontUrl: FONT_URL });
       await calloutHdr.loadGlyphs?.();
-      calloutHdr.moveTo([-5.45, 1.05, 0]);
+      calloutHdr.moveTo([-5.45, 0.75, 0]);
       if (typeof calloutHdr.getLeft === 'function') calloutHdr.shift([-5.45 - calloutHdr.getLeft()[0], 0, 0]);
 
-      const c1 = new MathTex({ latex: 'GBP = A_{OL}\\,f_p = \\dfrac{g_m}{2\\pi\\,C_c}', color: ACCENT });
+      const c1 = new MathTex({ latex: 'GBP = A_{OL}\\,f_p = \\dfrac{g_m}{2\\pi\\,C_c}', color: YELLOW });
       await c1.waitForRender?.();
-      c1.scale(0.62).moveTo([-3.25, 0.50, 0]);
-      const c2 = new MathTex({ latex: '\\text{Set inside the chip by the Miller compensation}', color: FG });
+      c1.scale(0.62).moveTo([-3.25, 0.20, 0]);
+      const c2 = new MathTex({ latex: '\\text{Set within the integrated circuit by the Miller}', color: FG });
       await c2.waitForRender?.();
-      c2.scale(0.38).moveTo([-3.25, -0.05, 0]);
-      const c3 = new MathTex({ latex: '\\text{capacitor } C_c', color: FG });
+      c2.scale(0.38).moveTo([-3.25, -0.35, 0]);
+      const c3 = new MathTex({ latex: '\\text{compensation capacitor } C_c', color: FG });
       await c3.waitForRender?.();
-      c3.scale(0.38).moveTo([-3.25, -0.40, 0]);
+      c3.scale(0.38).moveTo([-3.25, -0.70, 0]);
 
       // Bottom takeaway strip
       const takeawayRule = new Line({
@@ -506,12 +464,12 @@
       const items = [
         ...bode.items,
         fpDrop, fpLbl, fuDrop, fuLbl, slopeArrow, slopeLbl, aolLeader, aolLbl,
-        b1dot, b1txt, b2dot, b2txt,
+        b1dot, b1txt, b2dot, b2txt, b2txtB,
         calloutBox, calloutHdr, c1, c2, c3,
         takeawayRule, takeaway, takeaway2
       ];
       const animated = [
-        b1dot, b1txt, b2dot, b2txt,
+        b1dot, b1txt, b2dot, b2txt, b2txtB,
         calloutBox, calloutHdr, c1, c2, c3,
         takeawayRule, takeaway, takeaway2
       ];
@@ -519,15 +477,15 @@
     };
 
     // ═══════════════════════════════════════════════════
-    // STEP 2 — "Apply feedback, re-derive A_CL(f)"
+    // STEP 2, "Apply feedback, re-derive A_CL(f)"
     // ═══════════════════════════════════════════════════
     //
     // Layout: top row = substitution equations side-by-side. Middle row =
-    // mini Bode of |a(f)| (left) + s-plane pole diagram (right) — two views
+    // mini Bode of |a(f)| (left) + s-plane pole diagram (right), two views
     // of the same "single pole" object. Simplify strip + result cards below.
     const buildStep2 = async () => {
       const makeSectionHdr = async (text, x, y, color) => {
-        const t = new Text({ text, fontSize: 10, color, fontUrl: FONT_URL });
+        const t = new Text({ text, fontSize: 12, color, fontUrl: FONT_URL });
         await t.loadGlyphs?.();
         t.moveTo([x, y, 0]);
         if (typeof t.getLeft === 'function') t.shift([x - t.getLeft()[0], 0, 0]);
@@ -538,19 +496,19 @@
       const startHdr = await makeSectionHdr('START WITH', -6.05, 2.30, MUTED);
       const startingEq = new MathTex({ latex: 'A_{CL}(f)=\\dfrac{a(f)}{1+a(f)\\,\\beta}', color: FG });
       await startingEq.waitForRender?.();
-      startingEq.scale(0.45).moveTo([-3.3, 2, 0]);
+      startingEq.scale(0.45).moveTo([-2.6, 2, 0]);
 
       const subHdr = await makeSectionHdr('SUBSTITUTE  (dominant-pole model)', 0.25, 2.30, MUTED);
       const subEq = new MathTex({ latex: 'a(f)=\\dfrac{A_{OL}}{1 + j\\,f/f_p}', color: BLUE });
       await subEq.waitForRender?.();
-      subEq.scale(0.45).moveTo([3.3, 2, 0]);
+      subEq.scale(0.45).moveTo([2.9, 2, 0]);
 
       // ── Row 2a: mini Bode of |a(f)| (left side) ──
-      const bodeFrame = { x0: -6.00, x1: -0.30, y0: 0.05, y1: 1.45 };
+      const bodeFrame = { x0: -5.75, x1: -0.30, y0: 0.22, y1: 1.45 };
       const bSurface = new Rectangle({
         width: bodeFrame.x1 - bodeFrame.x0,
         height: bodeFrame.y1 - bodeFrame.y0,
-        color: MUTED2, strokeWidth: 0, fillOpacity: IS_LIGHT ? 0.25 : 0.18
+        color: MUTED2, strokeWidth: 0, fillOpacity: SURF
       });
       bSurface.moveTo([(bodeFrame.x0 + bodeFrame.x1) / 2, (bodeFrame.y0 + bodeFrame.y1) / 2, 0]);
       const bBorder = new Rectangle({
@@ -563,7 +521,7 @@
       const { mapF: bMapF, mapDb: bMapDb } = makeBodeMap(bodeFrame);
       const logFp = Math.log10(F_P);
 
-      // Open-loop curve — single pole, sampled then stitched.
+      // Open-loop curve, single pole, sampled then stitched.
       const bodeCurveSegs = [];
       {
         const N = 70;
@@ -603,7 +561,7 @@
         end: [bMapF(5.4), bMapDb(14) + 0.10, 0],
         color: BLUE, strokeWidth: 1.4, tipLength: 0.12
       });
-      const slopeLbl = new Text({ text: '−20 dB/dec', fontSize: 13, color: BLUE, fontUrl: FONT_URL });
+      const slopeLbl = new Text({ text: '−20 dB / decade', fontSize: 13, color: BLUE, fontUrl: FONT_URL });
       await slopeLbl.loadGlyphs?.();
       slopeLbl.moveTo([bMapF(4.25), bMapDb(40) + 0.32, 0]);
 
@@ -612,26 +570,24 @@
       await aolLbl.waitForRender?.();
       aolLbl.scale(0.50).moveTo([bMapF(0.6), bMapDb(A_OL_DB) - 0.22, 0]);
 
-      // Axis cue labels — larger and placed in empty regions of the plot.
-      // Y-axis label in the top-right (curve has already rolled off there).
+      // Axis titles sit outside the frame: y rotated on the left, x centred below.
       const bYAxisLbl = new Text({ text: '|a(f)|  (dB)', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
       await bYAxisLbl.loadGlyphs?.();
-      bYAxisLbl.moveTo([bodeFrame.x1 - 0.75, bodeFrame.y1 - 0.18, 0]);
-      // X-axis label along the bottom edge of the frame, centered.
-      const bXAxisLbl = new Text({ text: 'frequency  (log)  →', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
+      bYAxisLbl.rotate(Math.PI / 2).moveTo([bodeFrame.x0 - 0.20, (bodeFrame.y0 + bodeFrame.y1) / 2, 0]);
+      const bXAxisLbl = new Text({ text: 'Frequency  (log scale)', fontSize: 13, color: MUTED, fontUrl: FONT_URL });
       await bXAxisLbl.loadGlyphs?.();
-      bXAxisLbl.moveTo([(bodeFrame.x0 + bodeFrame.x1) / 2, bodeFrame.y0 + 0.20, 0]);
+      bXAxisLbl.moveTo([(bodeFrame.x0 + bodeFrame.x1) / 2, bodeFrame.y0 - 0.16, 0]);
 
-      const bodeHdr = await makeSectionHdr('FREQUENCY DOMAIN: one knee at f_p', -6.05, 1.68, MUTED);
+      const bodeHdr = await makeSectionHdr('FREQUENCY DOMAIN: one corner at the pole frequency', -6.05, 1.68, MUTED);
 
       // ── Row 2b: s-plane pole diagram (right side) ──
-      const spFrame = { x0: 0.30, x1: 6.00, y0: 0.05, y1: 1.45 };
+      const spFrame = { x0: 0.30, x1: 5.85, y0: 0.22, y1: 1.45 };
       const spCx = (spFrame.x0 + spFrame.x1) / 2;
       const spCy = (spFrame.y0 + spFrame.y1) / 2;
       const spSurface = new Rectangle({
         width: spFrame.x1 - spFrame.x0,
         height: spFrame.y1 - spFrame.y0,
-        color: MUTED2, strokeWidth: 0, fillOpacity: IS_LIGHT ? 0.25 : 0.18
+        color: MUTED2, strokeWidth: 0, fillOpacity: SURF
       });
       spSurface.moveTo([spCx, spCy, 0]);
       const spBorder = new Rectangle({
@@ -657,12 +613,12 @@
       });
       const spSigmaLbl = new MathTex({ latex: '\\sigma', color: MUTED });
       await spSigmaLbl.waitForRender?.();
-      spSigmaLbl.scale(0.55).moveTo([spFrame.x1 - 0.18, spOriginY - 0.30, 0]);
+      spSigmaLbl.scale(0.55).moveTo([spFrame.x1 + 0.20, spOriginY, 0]);
       const spJwLbl = new MathTex({ latex: 'j\\omega', color: MUTED });
       await spJwLbl.waitForRender?.();
-      spJwLbl.scale(0.55).moveTo([spOriginX + 0.32, spFrame.y1 - 0.28, 0]);
+      spJwLbl.scale(0.55).moveTo([spOriginX, spFrame.y1 + 0.20, 0]);
 
-      // Open-loop pole marker (X on negative real axis, YELLOW — matches
+      // Open-loop pole marker (X on negative real axis, YELLOW, matches
       // the Bode f_p dropline colour to tie the two views together).
       const poleX = spOriginX - 1.20;
       const poleY = spOriginY;
@@ -678,10 +634,10 @@
       });
       const spPoleLbl = new MathTex({ latex: 's=-2\\pi f_p', color: YELLOW });
       await spPoleLbl.waitForRender?.();
-      spPoleLbl.scale(0.46).moveTo([poleX + 0.05, poleY - 0.38, 0]);
+      spPoleLbl.scale(0.46).moveTo([poleX + 0.05, poleY - 0.35, 0]);
 
       // Preview: where feedback pushes the pole in Step 3.
-      // Closed-loop pole lands at s = -2π f_p (1 + A_OL β) — same shape,
+      // Closed-loop pole lands at s = -2π f_p (1 + A_OL β), same shape,
       // same real axis, just further from the origin. Drawn dimmer/CYAN
       // to match the "NEW CLOSED-LOOP POLE" card below.
       const clPoleX = spOriginX - 3.30;
@@ -698,7 +654,7 @@
       });
       const spClPoleLbl = new MathTex({ latex: 's=-2\\pi f_p(1{+}A_{OL}\\beta)', color: CYAN });
       await spClPoleLbl.waitForRender?.();
-      spClPoleLbl.scale(0.38).moveTo([clPoleX + 0.05, clPoleY - 0.38, 0]);
+      spClPoleLbl.scale(0.38).moveTo([clPoleX + 0.25, clPoleY - 0.35, 0]);
 
       // Shift arrow: from the open-loop X to the closed-loop X, above both
       // markers so it doesn't collide with the X lines or their labels.
@@ -707,12 +663,10 @@
         end: [clPoleX + 0.22, poleY + 0.32, 0],
         color: CYAN, strokeWidth: 1.4, tipLength: 0.14
       });
-      const spShiftLbl = new Text({
-        text: 'feedback ×(1 + A_OL β)',
-        fontSize: 11, color: CYAN, fontUrl: FONT_URL
-      });
-      await spShiftLbl.loadGlyphs?.();
-      spShiftLbl.moveTo([(poleX + clPoleX) / 2, poleY + 0.58, 0]);
+      const spShiftLbl = new MathTex({ latex: '\\text{feedback } \\times(1+A_{OL}\\beta)', color: CYAN });
+      await spShiftLbl.waitForRender?.();
+      spShiftLbl.scale(0.32);
+      spShiftLbl.moveTo([(poleX + clPoleX) / 2, poleY + 0.53, 0]);
 
       const spHdr = await makeSectionHdr('s-PLANE: one pole on the negative real axis', 0.25, 1.68, MUTED);
 
@@ -721,7 +675,7 @@
       // Header sits INSIDE the card at top-left; equation fills the body.
       const algCard = new Rectangle({
         width: 12.0, height: 1.25,
-        color: ACCENT, strokeWidth: 1.4, fillOpacity: IS_LIGHT ? 0.05 : 0.07
+        color: ACCENT, strokeWidth: 1.4, fillOpacity: 0.05
       });
       algCard.moveTo([0, -0.82, 0]);
       const algHdr = await makeSectionHdr('SIMPLIFY', -5.85, -0.40, ACCENT);
@@ -734,7 +688,7 @@
 
       const observation = new Text({
         text: 'The response remains single-pole, with lower DC gain and a higher pole frequency.',
-        fontSize: 11, color: MUTED, fontUrl: FONT_URL
+        fontSize: 13, color: MUTED, fontUrl: FONT_URL
       });
       await observation.loadGlyphs?.();
       observation.moveTo([0, -1.68, 0]);
@@ -745,7 +699,7 @@
       // fraction's vertical reach.
       const boxA = new Rectangle({
         width: 5.9, height: 1.30,
-        color: MAG, strokeWidth: 1.8, fillOpacity: IS_LIGHT ? 0.06 : 0.09
+        color: MAG, strokeWidth: 1.8, fillOpacity: 0.06
       });
       boxA.moveTo([-3.15, -2.62, 0]);
       const boxAHdr = await makeSectionHdr('NEW DC GAIN', -5.95, -1.85, MAG);
@@ -758,7 +712,7 @@
 
       const boxB = new Rectangle({
         width: 5.9, height: 1.30,
-        color: CYAN, strokeWidth: 1.8, fillOpacity: IS_LIGHT ? 0.06 : 0.09
+        color: CYAN, strokeWidth: 1.8, fillOpacity: 0.06
       });
       boxB.moveTo([3.15, -2.62, 0]);
       const boxBHdr = await makeSectionHdr('NEW CLOSED-LOOP POLE', 0.22, -1.85, CYAN);
@@ -794,7 +748,7 @@
     };
 
     // ═══════════════════════════════════════════════════
-    // STEP 3 — "Multiply them: the invariant"
+    // STEP 3, "Multiply them: the invariant"
     // ═══════════════════════════════════════════════════
     //
     // Layout: full-width Bode plot showing the open-loop curve + three example
@@ -835,7 +789,7 @@
       const curveB = makeClCurve(3, ACCENT); // A_CL ≈ 1k
       const curveC = makeClCurve(4, CYAN);   // A_CL ≈ 10k
 
-      // Plateau labels — a small "A_CL = X" tag at the flat region of each.
+      // Plateau labels, a small "A_CL = X" tag at the flat region of each.
       const mkPlateauLbl = async (latex, logA, color) => {
         const t = new MathTex({ latex, color });
         await t.waitForRender?.();
@@ -846,7 +800,7 @@
       const lblB = await mkPlateauLbl('A_{CL}=1{,}000', 3, ACCENT);
       const lblC = await mkPlateauLbl('A_{CL}=10{,}000', 4, CYAN);
 
-      // Shared f_unity = GBP dropline — all three CL curves end here.
+      // Shared f_unity = GBP dropline, all three CL curves end here.
       const fuLogF = Math.log10(GBP);
       const fuX = mapF(fuLogF);
       const fuDropSegs = [];
@@ -864,7 +818,7 @@
       const fuDrop = new VGroup(...fuDropSegs);
       const fuLbl = new MathTex({ latex: 'f_{unity}=GBP', color: YELLOW });
       await fuLbl.waitForRender?.();
-      fuLbl.scale(0.44).moveTo([fuX, frame.y1 - 0.22, 0]);
+      fuLbl.scale(0.44).moveTo([fuX - 0.90, frame.y1 - 0.22, 0]);
 
       // Caption above the plot that frames the visual reading.
       const plotCaption = new Text({
@@ -885,7 +839,7 @@
       // Hero invariant strip (same yellow card as before, compressed).
       const invBox = new Rectangle({
         width: 11.0, height: 1.30,
-        color: YELLOW, strokeWidth: 2.4, fillOpacity: IS_LIGHT ? 0.10 : 0.13
+        color: YELLOW, strokeWidth: 2.4, fillOpacity: 0.10
       });
       invBox.moveTo([0, -2.62, 0]);
       const invEq = new MathTex({
@@ -895,7 +849,7 @@
       await invEq.waitForRender?.();
       invEq.scale(0.72).moveTo([0, -2.45, 0]);
       const invSub = new Text({
-        text: 'Every factor of gain you give up buys the same factor of bandwidth.',
+        text: 'Reducing the closed-loop gain by a given factor increases the bandwidth by the same factor.',
         fontSize: 18, color: YELLOW, fontUrl: FONT_URL
       });
       await invSub.loadGlyphs?.();
@@ -917,11 +871,11 @@
     };
 
     // ═══════════════════════════════════════════════════
-    // STEP 4 — Interactive Bode plot
+    // STEP 4, Interactive Bode plot
     // ═══════════════════════════════════════════════════
     const buildStep4 = async () => {
-      // Use the full-width Bode frame; the slider panel lives over the top-right.
-      const frame = { x0: -5.3, x1: 5.2, y0: -2.55, y1: 2.05 };
+      // The frame stops left of the slider panel (panel left edge at world x of about 4.0).
+      const frame = { x0: -5.3, x1: 3.85, y0: -2.55, y1: 2.05 };
       const bode = await makeBodeStatics(frame, true);
       const asympLbl = new MathTex({
         latex: '\\text {The slider shows that each closed-loop asymptote meets the open-loop line at} \\; f_{unity}.',
@@ -934,7 +888,7 @@
     };
 
     // ═══════════════════════════════════════════════════
-    // STEP 5 — ECG biosignal panel
+    // STEP 5, ECG biosignal panel
     // ═══════════════════════════════════════════════════
     //
     // Layout: small Bode plot on the left (x ≈ -6.1 → -0.6) + two stacked
@@ -944,7 +898,7 @@
       // Both graph frames are shifted left so their right edges stop before
       // the slider panel's left edge (panel lives at world x ≈ [3.98, 6.96]
       // in the top-right corner of the canvas). Nothing renders under the
-      // panel — both the Bode plot and the ECG frames clear it horizontally.
+      // panel, both the Bode plot and the ECG frames clear it horizontally.
       const bodeFrame = { x0: -5.70, x1: -1.10, y0: -2.55, y1: 2.05 };
       const bode = await makeBodeStatics(bodeFrame, true);
 
@@ -955,7 +909,7 @@
         const surface = new Rectangle({
           width: f.x1 - f.x0, height: f.y1 - f.y0,
           color: MUTED2, strokeWidth: 0,
-          fillOpacity: IS_LIGHT ? 0.25 : 0.18
+          fillOpacity: SURF
         });
         surface.moveTo([(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2, 0]);
         const border = new Rectangle({
@@ -981,7 +935,7 @@
         await lbl.waitForRender?.();
         lbl.scale(0.48).moveTo([f.x0 + 0.22, f.y1 + 0.36, 0]);
         if (typeof lbl.getLeft === 'function') lbl.shift([f.x0 + 0.22 - lbl.getLeft()[0], 0, 0]);
-        // Optional subtitle — smaller, in MUTED, sits directly below the title.
+        // Optional subtitle, smaller, in MUTED, sits directly below the title.
         let sub = null;
         if (subtitleLatex) {
           sub = new MathTex({ latex: subtitleLatex, color: MUTED });
@@ -997,13 +951,13 @@
         ecgOut,
         '\\text{Op-amp output}',
         ACCENT,
-        '(\\text{1st-order LPF},\\;f_c=\\text{GBP}/A_{CL})'
+        '(\\text{first-order low-pass},\\;f_c=\\text{GBP}/A_{CL})'
       );
 
       // x-axis label (common to both panels)
-      const tLbl = new Text({ text: 'compressed time  →', fontSize: 16, color: MUTED, fontUrl: FONT_URL });
+      const tLbl = new Text({ text: 'Compressed time', fontSize: 15, color: MUTED, fontUrl: FONT_URL });
       await tLbl.loadGlyphs?.();
-      tLbl.moveTo([(ecgOut.x0 + ecgOut.x1) / 2 + 1.5, ecgOut.y0 - 0.2, 0]);
+      tLbl.moveTo([(ecgOut.x0 + ecgOut.x1) / 2, ecgOut.y0 - 0.22, 0]);
 
       // Draw the clean ECG once; it's constant across slider updates.
       const drawEcg = (frame, samples) => {
@@ -1058,7 +1012,7 @@
     ]);
     const stepData = { 1: s1, 2: s2, 3: s3, 4: s4, 5: s5 };
 
-    // Everything that can be shown on any step — the reset wipes all of it.
+    // Everything that can be shown on any step, the reset wipes all of it.
     const allDynamic = [
       ...Object.values(stepSubtitle),
       ...s1.items, ...s2.items, ...s3.items, ...s4.items, ...s5.items
@@ -1136,7 +1090,7 @@
         }));
       }
 
-      // Dashed dropline at corner — composed of short segments.
+      // Dashed dropline at corner, composed of short segments.
       const dropSegs = [];
       const dropX = mapF(cornerLogF);
       const dropTop = yCl;
@@ -1208,7 +1162,7 @@
     // ═══════════════════════════════════════════════════
     // STEPPER STATE MACHINE  (slide 08 pattern)
     // ═══════════════════════════════════════════════════
-    const stepTitles = { 1: 'Step 1/5', 2: 'Step 2/5', 3: 'Step 3/5', 4: 'Step 4/5', 5: 'Step 5/5' };
+    const stepTitles = { 1: 'Step 1 / 5', 2: 'Step 2 / 5', 3: 'Step 3 / 5', 4: 'Step 4 / 5', 5: 'Step 5 / 5' };
     const stepIndicator = document.getElementById('step-indicator');
     const prevBtn = document.getElementById('step-prev');
     const nextBtn = document.getElementById('step-next');

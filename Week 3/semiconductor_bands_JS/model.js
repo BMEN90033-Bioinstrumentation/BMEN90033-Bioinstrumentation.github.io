@@ -29,8 +29,7 @@
     var MATERIALS = {
         insulator: {
             label: 'Insulator (SiO₂)',
-            bandGapEV: '~9 eV',
-            colorVar: '--c-ins', nucleusVar: '--c-nucleus',
+            bandGapEV: '≈ 9 eV',
             innerShellElectrons: 4,
             valenceElectrons: 4,
             valenceRadius: 2.8,
@@ -41,8 +40,7 @@
         },
         semiconductor: {
             label: 'Semiconductor (Si)',
-            bandGapEV: '~1.1 eV',
-            colorVar: '--c-semi', nucleusVar: '--c-nucleus-sc',
+            bandGapEV: '≈ 1.1 eV',
             innerShellElectrons: 4,
             valenceElectrons: 4,
             valenceRadius: 2.8,
@@ -54,7 +52,6 @@
         conductor: {
             label: 'Conductor (Cu)',
             bandGapEV: 'none',
-            colorVar: '--c-cond', nucleusVar: '--c-nucleus-m',
             innerShellElectrons: 6,
             valenceElectrons: 1,
             valenceRadius: 2.8,
@@ -112,7 +109,6 @@
             function go() {
                 fn();
                 window.addEventListener('bandschange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

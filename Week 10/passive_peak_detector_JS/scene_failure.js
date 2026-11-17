@@ -7,6 +7,11 @@
 //   tx-reset  : diode + capacitor with a transistor that resets every T_win
 // All three traces are overlaid so the failure modes are visible side by side.
 (function () {
+    // SVG label with a subscript: sub('v', 'out') renders v with a lowered 'out'.
+    function sub(a, b, c) {
+        return a + '<tspan dy="4" font-size="10">' + b + '</tspan>' + (c ? '<tspan dy="-4">' + c + '</tspan>' : '');
+    }
+
     var ampI = document.getElementById('pp-f-amp');
     var vfI  = document.getElementById('pp-f-vf');
     var tauI = document.getElementById('pp-f-tau');
@@ -118,7 +123,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 54, left: 56 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -142,8 +147,8 @@
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
-                .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickFormat(function (d) { return d.toFixed(1); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(0, Math.floor(yMax) + 1, 1))
@@ -152,8 +157,8 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
-            .attr('text-anchor', 'middle').text('Time');
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
+            .attr('text-anchor', 'middle').text('Time (s)');
         f.g.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
@@ -176,10 +181,10 @@
             .attr('stroke', 'var(--c-thresh)').attr('stroke-dasharray', '4 3')
             .attr('stroke-width', 1.2).attr('opacity', 0.7);
         f.g.append('text')
-            .attr('x', 6).attr('y', y(state.vf) - 6)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-thresh)')
-            .text('V_F · diode does not conduct below here');
+            .attr('x', f.iw + 8).attr('y', y(state.vf) + 4)
+            .style('font-size', '13px')
+            .style('fill', 'var(--c-thresh)')
+            .html(sub('V', 'F'));
 
         commonAxes(f, x, y, yMax);
 
@@ -208,22 +213,22 @@
             .attr('stroke', 'var(--c-input)').attr('stroke-width', 1.2).attr('opacity', 0.35)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
-        // Simple detector (amber, latches)
+        // Diode-capacitor detector (latches)
         f.g.append('path')
             .datum(sim.pts)
             .attr('fill', 'none')
             .attr('stroke', 'var(--c-amber)').attr('stroke-width', 2.4)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[2]); }));
 
-        // RC detector (red dashed, droops)
+        // RC detector (dashed, droops)
         f.g.append('path')
             .datum(sim.pts)
             .attr('fill', 'none')
-            .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 2.0)
+            .attr('stroke', 'var(--c-output2)').attr('stroke-width', 2.0)
             .attr('stroke-dasharray', '6 3')
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[3]); }));
 
-        // Transistor-reset detector (green)
+        // Transistor-reset detector
         f.g.append('path')
             .datum(sim.pts)
             .attr('fill', 'none')
@@ -234,24 +239,10 @@
         for (var t = state.winReset; t < T_VIEW; t += state.winReset) {
             f.g.append('line').attr('x1', x(t)).attr('x2', x(t))
                 .attr('y1', 0).attr('y2', f.ih)
-                .attr('stroke', 'var(--c-output)').attr('stroke-width', 1.0)
-                .attr('stroke-dasharray', '2 4').attr('opacity', 0.35);
+                .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 1.0)
+                .attr('stroke-dasharray', '2 4').attr('opacity', 0.6);
         }
 
-        // Legend (top right, in two rows for legibility)
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('input');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-amber)').text('simple D + C');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)').text('RC envelope');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 58)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('transistor reset');
     }
 
     function updateReadout(sim) {
@@ -290,7 +281,7 @@
             rdRc.textContent = 'ripples';
             rdRc.className = 'v warn';
         } else {
-            rdRc.textContent = 'ok';
+            rdRc.textContent = 'tracks';
             rdRc.className = 'v on';
         }
     }
@@ -318,7 +309,6 @@
             tauL.textContent = parseFloat(tauI.value).toFixed(0) + ' ms';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

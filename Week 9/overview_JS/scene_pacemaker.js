@@ -1,6 +1,6 @@
 // Scene 04 · Pacemaker pulse generator (astable timer).
 // A timer fires a fixed-width pulse at a chosen rate. The trace shows a 4-second
-// window of the pacing waveform; a small heart indicator pulses with each fire.
+// window of the pacing waveform; a readout indicates each pulse.
 (function () {
     var svgSel = '#plot-pacer-trace';
     var rateInp = document.getElementById('pacer-rate');
@@ -22,7 +22,7 @@
 
     var svg = d3.select(svgSel).classed('ov', true);
     var W = 600, H = 280;
-    var margin = { top: 22, right: 30, bottom: 38, left: 56 };
+    var margin = { top: 26, right: 30, bottom: 48, left: 62 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -55,19 +55,21 @@
                 .attr('x1', 0).attr('x2', iw)
                 .attr('y1', y(v)).attr('y2', y(v));
         });
-        var yAxis = d3.axisLeft(y).tickValues([0, 1]).tickFormat(function (d) { return d === 0 ? '0' : 'V_cc'; }).tickSize(0).tickPadding(8);
+        var yAxis = d3.axisLeft(y).tickValues([0]).tickFormat(d3.format('d')).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([-4, -3, -2, -1, 0]).tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        window.renderKatex(gAxis, 'V_{cc}', -8 - 20, y(1),
+            { size: 14, color: 'var(--muted)', align: 'right', width: 40, height: 18 });
+        var xAxis = d3.axisBottom(x).tickValues([-4, -3, -2, -1, 0]).tickFormat(function (d) { return d + ''; }).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')').call(xAxis).select('.domain').remove();
 
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 30)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time (relative to now), s');
+            .text('Time relative to present (s)');
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-46) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('pacing output');
+            .text('Pacing output');
     }
 
     function drawTrace() {
@@ -104,12 +106,12 @@
             .attr('class', 'trace output')
             .attr('d', line);
 
-        // "now" cursor
+        // present-time cursor
         gNow.selectAll('*').remove();
         gNow.append('line')
             .attr('x1', x(0)).attr('x2', x(0))
             .attr('y1', 0).attr('y2', ih)
-            .style('stroke', 'var(--c-thresh)').attr('stroke-width', 1.0)
+            .style('stroke', 'var(--c-now)').attr('stroke-width', 1.0)
             .attr('opacity', 0.45).attr('stroke-dasharray', '3 3');
     }
 
@@ -119,13 +121,11 @@
         var duty = (w / T) * 100;
         rdPeriod.textContent = (T * 1000).toFixed(0) + ' ms';
         rdDuty.textContent = duty.toFixed(2) + ' %';
-        // Heart beats on pulse: light when phase < w
+        // Output indicator: held for at least 50 ms so that each pulse is visible.
         var phase = ((state.t % T) + T) % T;
-        var firing = phase < Math.max(w, 0.05); // give a visible flash
-        rdHeart.textContent = firing ? '●' : '○';
+        var firing = phase < Math.max(w, 0.05);
+        rdHeart.textContent = firing ? 'Pulse' : 'Idle';
         rdHeart.className = 'v ' + (firing ? 'on' : 'off');
-        rdHeart.style.transform = firing ? 'scale(1.25)' : 'scale(1.0)';
-        rdHeart.style.transition = 'transform 0.08s ease';
     }
 
     function tick(now) {
@@ -146,13 +146,12 @@
 
         rateInp.addEventListener('input', function () {
             state.rate = parseFloat(rateInp.value);
-            rateLab.textContent = state.rate.toFixed(0) + ' ppm';
+            rateLab.textContent = state.rate.toFixed(0) + ' /min';
         });
         widthInp.addEventListener('input', function () {
             state.widthMs = parseFloat(widthInp.value);
             widthLab.textContent = state.widthMs.toFixed(2) + ' ms';
         });
-        window.addEventListener('themechange', function () { drawStatic(); drawTrace(); });
         window.addEventListener('resize', function () {
             layout(); drawStatic(); drawTrace();
         });

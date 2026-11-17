@@ -2,41 +2,18 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-input:   #d5d4d0;   /* input waveform */
-    --c-rect:    #cca855;   /* rectified signal */
-    --c-env:     #6aaa8e;   /* envelope */
-    --c-voc:     #5a9aba;   /* vocoded output */
-    --c-comp:    #ff8ad0;   /* compression curve */
-    --c-rec:     #c96b5a;   /* recording, playback cursor */
-    --c-guide:   rgba(255, 255, 255, 0.45);
-    --ch-sat:    40%;       /* channel colour, hsl saturation */
-    --ch-light:  62%;       /* channel colour, hsl lightness */
+    --c-input:   var(--d-blue);     /* input waveform */
+    --c-rect:    var(--d-orange);   /* rectified signal */
+    --c-comp:    var(--d-pink);     /* compression curve */
+    --c-env:     var(--d-green);    /* envelope */
+    --c-voc:     var(--d-violet);   /* vocoded output */
+    --c-rec:     var(--d-ink);      /* live recording trace, playback cursor */
+    --c-guide:   var(--d-slate);    /* reference curves and dashed bounds */
     /* 3D scene materials */
-    --c-bone:     #e8d4b8;
-    --c-membrane: #f0a0a0;
-    --c-implant:  #f0f0f0;
-    --c-contact:  #cccccc;
-    --c-light-key:  #fff5e6;
-    --c-light-cool: #4fc3f7;
-    --c-light-amb:  #505060;
-    --hero-a: var(--c-env);
-    --hero-b: var(--c-voc);
-}
-
-[data-theme="light"] {
-    --c-input:   #3a3a40;
-    --c-rect:    #9a7410;
-    --c-env:     #2f7f5f;
-    --c-voc:     #1f6f9a;
-    --c-comp:    #be185d;
-    --c-rec:     #b0442f;
-    --c-guide:   rgba(0, 0, 0, 0.45);
-    --ch-sat:    55%;
-    --ch-light:  40%;
-    --c-bone:     #b89a74;
-    --c-membrane: #d06060;
-    --c-implant:  #d8d8dc;
-    --c-light-amb:  #9090a0;
+    --c-bone:     var(--d-grey);
+    --c-membrane: var(--d-pink);
+    --c-implant:  var(--d-slate);
+    --c-contact:  var(--calcium-white-800);
 }
 
 .plot-box.cochlea   { aspect-ratio: 1.35 / 1; }
@@ -48,25 +25,32 @@
 .plot-box.vocoder   { aspect-ratio: 1.7 / 1; }
 .plot-box.mulaw     { aspect-ratio: 2 / 1; }
 
-/* CSS2D electrode labels over the 3D scene */
+/* CSS2D electrode labels over the 3D scene. The left edge carries the
+   channel colour (set in scene_cochlea.js); the text stays ink. */
 .cochlea-label {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    padding: 1px 5px; border-radius: 4px;
-    background: var(--bg-panel); border: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 13px; color: var(--fg);
+    padding: 1px 5px; border-radius: var(--radius-1);
+    background: var(--white); border: 1px solid var(--border);
+    border-left-width: 4px;
     white-space: nowrap; pointer-events: none;
 }
 .plot-box .css2d { position: absolute; inset: 0; pointer-events: none; }
 
 .plot-box .live-timer {
     position: absolute; top: 10px; right: 14px; z-index: 2;
-    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted);
+    font-family: var(--font-mono); font-size: 10px; color: var(--muted);
 }
-.seg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.seg-btn:disabled:hover { border-color: var(--border); color: var(--fg); }
-.legend .sw.grad {
-    width: 60px; height: 6px;
-    background: linear-gradient(90deg, hsl(0, 50%, 55%), hsl(75, 50%, 55%), hsl(150, 50%, 55%), hsl(225, 50%, 55%), hsl(300, 50%, 55%));
-}
+
+/* Legend key for the channel colour ramp: its six palette stops, apical to
+   basal, in the order used by channelColor() in model.js. */
+.legend .ramp { display: inline-flex; vertical-align: middle; margin-right: 6px; }
+.legend .ramp i { width: 10px; height: 6px; }
+.legend .ramp i:nth-child(1) { background: var(--d-pink); }
+.legend .ramp i:nth-child(2) { background: var(--d-orange); }
+.legend .ramp i:nth-child(3) { background: var(--d-olive); }
+.legend .ramp i:nth-child(4) { background: var(--d-green); }
+.legend .ramp i:nth-child(5) { background: var(--d-blue); }
+.legend .ramp i:nth-child(6) { background: var(--d-violet); }
 .legend .sw.dash { border-top-color: var(--c-guide); }
-/* KaTeX size inside buttons (case is handled by lecture_page.css). */
+/* KaTeX size inside buttons (case is handled by theme.css). */
 .seg-btn .katex { font-size: 13px !important; }

@@ -19,6 +19,11 @@
         var filtered = window.WCGW.filterValues(vals, hp1, vals[0]);
         var out = clean.map(function (p, i) { return { t: p.t, clean: p.y, y: filtered[i] }; });
         var P = window.WCGW.setupPlot('#plot-hp-st', {
+            legend: [
+                { key: 'clean', label: 'true ST elevation', opacity: 0.45, dash: true },
+                { key: fc <= 0.05 ? 'fixed' : 'distort', label: 'high-pass output' },
+                { key: 'mark', band: true, label: 'ST segment' }
+            ],
             xDomain: [0, 5],
             yDomain: [-0.65, 1.35],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -30,12 +35,6 @@
             P.g.append('rect').attr('x', P.x(t)).attr('y', P.y(0.42)).attr('width', P.x(t + 0.10) - P.x(t)).attr('height', P.y(0.06) - P.y(0.42))
                 .attr('fill', P.colors.mark).attr('opacity', 0.08);
         });
-        P.g.append('text').attr('x', P.x(0.58)).attr('y', P.y(0.56)).attr('fill', P.colors.mark)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('ST segment');
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'true ST elevation' },
-            { key: fc <= 0.05 ? 'fixed' : 'distort', label: 'high-pass output' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -43,7 +42,6 @@
         readout = document.getElementById('hp-cutoff-val');
         if (!slider) return;
         slider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

@@ -25,7 +25,10 @@
                 .tickFormat(t.xFormat || null));
         var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0)
             .tickFormat(t.yFormat || null));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(function (a) {
+            window.CMP.styleAxis(a);
+            a.selectAll('text').attr('font-size', 13);
+        });
         window.renderKatex(f.svg, t.yTitle, 22, f.m.top + oy + ph / 2,
             { width: 240, height: 22, rotate: -90, size: 16 });
         window.renderKatex(f.svg, t.xTitle, f.m.left + f.iw / 2, f.H - 18,

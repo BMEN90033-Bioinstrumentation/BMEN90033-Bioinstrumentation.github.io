@@ -75,10 +75,10 @@
                 Math.min(H.innerW - 60, xc));
             window.renderKatex(H.gMag, '\\omega_c \\to -3\\,\\mathrm{dB}',
                 pillCx, 14,
-                { width: 200, height: 22, size: 9, pill: true, pillPad: '1px 6px' });
+                { width: 200, height: 22, size: 12, pill: true, pillPad: '2px 6px' });
             window.renderKatex(H.gPhase, '\\omega_c \\to -45^{\\circ}',
                 pillCx, 14,
-                { width: 200, height: 22, size: 9, pill: true, pillPad: '1px 6px' });
+                { width: 200, height: 22, size: 12, pill: true, pillPad: '2px 6px' });
         }
 
         // ── Asymptote dashed lines ─────────────────────────────────
@@ -112,7 +112,6 @@
         } else {
             render();
         }
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

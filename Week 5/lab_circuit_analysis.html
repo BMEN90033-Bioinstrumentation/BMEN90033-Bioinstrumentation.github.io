@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Lab Circuit Analysis</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Laboratory circuit analysis</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -46,8 +40,8 @@
     <!-- ================= LANDING ================= -->
     <section class="landing">
         <div>
-            <div class="meta">BMEN90033 · WEEK 5 · LAB</div>
-            <h1 class="hero">Lab circuit <em>analysis</em></h1>
+            <div class="meta">BMEN90033 · WEEK 5 · LABORATORY</div>
+            <h1 class="hero">Laboratory circuit analysis</h1>
             <p class="sub">Analysis of a voltage-divider biased common-emitter BJT amplifier: its DC operating point,
                 AC small-signal model, transfer function $H(s) = V_o/V_s$, poles and zero, Bode plot and Nyquist
                 plot.</p>
@@ -94,7 +88,7 @@
             </table>
 
             <div class="callout">
-                Node labels from the lab schematic: node 7 is the source input, 5 the node after $R_S$, 1 the base,
+                Node labels from the laboratory schematic: node 7 is the source input, 5 the node after $R_S$, 1 the base,
                 3 the collector, 4 the $V_{CC}$ rail, 2 the emitter, 0 ground and 6 the output side of $C_{C2}$.
             </div>
         </div>
@@ -102,12 +96,12 @@
         <div>
             <div class="plot-stack">
                 <div class="plot-box circuit">
-                    <div class="label">schematic · <b>voltage-divider biased common-emitter amplifier</b></div>
+                    <div class="label">Schematic · <b>voltage-divider biased common-emitter amplifier</b></div>
                     <svg class="bode" id="plot-circuit"></svg>
                 </div>
                 <div class="legend">
-                    <span>numbered badges: schematic node numbers</span>
-                    <span>capacitor, $R_C$, $R_L$ and $\beta$ values follow the sliders in sections 02 to 05</span>
+                    <span>Numbered badges: schematic node numbers</span>
+                    <span>Capacitor, $R_C$, $R_L$ and $\beta$ values follow the sliders in sections 02 to 05</span>
                 </div>
             </div>
         </div>
@@ -122,7 +116,7 @@
             <p class="lead">At DC every capacitor is an open circuit. The bias network then fixes $I_C$, $V_{CE}$ and
                 the small-signal transconductance $g_m$.</p>
 
-            <p>The divider $R_{B1}$, $R_{B2}$ is replaced by its Thevenin equivalent:</p>
+            <p>The divider $R_{B1}$, $R_{B2}$ is replaced by its Thévenin equivalent:</p>
 
             <div class="eq-block">$$\begin{aligned}
                 V_{BB} &= V_{CC}\,\frac{R_{B2}}{R_{B1} + R_{B2}} = 5 \cdot \frac{100\,\text{k}}{300\,\text{k}} = 1.667\,\text{V} \\[4pt]
@@ -145,7 +139,7 @@
                 \qquad r_\pi = \frac{\beta}{g_m} = 4.48\,\text{k}\Omega$$</div>
 
             <div class="callout">
-                $I_C$ is set by the base divider and $R_E$, not by $R_C$. Raising $R_C$ steepens the load line until
+                $I_C$ is set by the base divider and $R_E$ and is independent of $R_C$. Raising $R_C$ steepens the load line until
                 the operating point reaches $V_{CE(\text{sat})}$ at
                 $R_{C,\max} = (V_{CC} - V_{CE(\text{sat})})/I_C - R_E$. Beyond that the stage is saturated and has no
                 linear gain; the model reports it as saturated and evaluates every small-signal quantity ($A_\text{mid}$,
@@ -201,7 +195,7 @@
                     parallel as $R_{BB}$ and $R_C$ returns to ground.</li>
                 <li><strong>BJT to hybrid-π</strong>: $r_\pi$ between base and emitter, and a current source
                     $g_m v_\pi$ from collector to emitter.</li>
-                <li><strong>capacitors retained</strong> as $Z_C = 1/(sC)$.</li>
+                <li><strong>Capacitors retained</strong> as $Z_C = 1/(sC)$.</li>
             </ul>
 
             <p>The equivalent circuit has three capacitor-dependent paths. At the input, $v_s$ drives
@@ -245,7 +239,7 @@
                     </span>
                 </div>
                 <div class="plot-box ac">
-                    <div class="label">small-signal model · <b>hybrid-π equivalent</b></div>
+                    <div class="label">Small-signal model · <b>hybrid-π equivalent</b></div>
                     <svg class="bode" id="plot-ac"></svg>
                 </div>
                 <div class="readout">
@@ -356,7 +350,7 @@
                     <span class="seg"><button class="seg-btn" data-reset>reset values</button></span>
                 </div>
                 <div class="plot-box pair">
-                    <div class="label">bode plot · <b>magnitude and phase of $A_V(j\omega)$</b></div>
+                    <div class="label">Bode plot · <b>magnitude and phase of $A_V(j\omega)$</b></div>
                     <svg class="bode" id="plot-bode"></svg>
                 </div>
                 <div class="legend">
@@ -364,7 +358,7 @@
                     <span><span class="sw" style="background:var(--c-phase)"></span>$\angle A_V$</span>
                     <span><span class="sw dash" style="border-top-color:var(--c-lf)"></span>coupling poles</span>
                     <span><span class="sw dash" style="border-top-color:var(--c-hf)"></span>Miller pole</span>
-                    <span>dots: cursor frequency</span>
+                    <span>Dots: cursor frequency</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$A_\text{mid}$</span><span class="v" data-out="amiddb"></span></div>
@@ -411,7 +405,7 @@
                 The faint curve is its mirror image for negative frequencies.</p>
 
             <p>The cursor frequency marks the same point on the Bode and Nyquist plots. Its vector has length
-                $|A_V|$ and makes the angle $\angle A_V$, measured from $0^\circ$ to $360^\circ$ counter-clockwise from
+                $|A_V|$ and makes the angle $\angle A_V$, measured from $0^\circ$ to $360^\circ$ anticlockwise from
                 the positive real axis.</p>
 
             <div class="callout">
@@ -442,7 +436,7 @@
                     <span class="seg"><button class="seg-btn" data-reset>reset values</button></span>
                 </div>
                 <div class="plot-box nyquist">
-                    <div class="label">nyquist plot · <b>$A_V(j\omega)$, $\omega$ from 1 to $10^{10}\,\text{rad/s}$</b></div>
+                    <div class="label">Nyquist plot · <b>$A_V(j\omega)$, $\omega$ from 1 to $10^{10}\,\text{rad/s}$</b></div>
                     <svg class="bode" id="plot-nyquist"></svg>
                 </div>
                 <div class="legend">
@@ -455,7 +449,7 @@
                 <div class="readout">
                     <div class="item"><span class="k">$|A_V|$</span><span class="v" data-out="mag"></span></div>
                     <div class="item"><span class="k">$\angle A_V$</span><span class="v" data-out="phase"></span></div>
-                    <div class="item"><span class="k">angle, 0 to 360</span><span class="v" data-out="a360"></span></div>
+                    <div class="item"><span class="k">angle, 0° to 360°</span><span class="v" data-out="a360"></span></div>
                     <div class="item"><span class="k">Re</span><span class="v" data-out="re"></span></div>
                     <div class="item"><span class="k">Im</span><span class="v" data-out="im"></span></div>
                 </div>

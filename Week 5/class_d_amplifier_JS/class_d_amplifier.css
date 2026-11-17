@@ -1,26 +1,17 @@
-/* class_d_amplifier.html · page palette and plot sizes. Layout comes from
-   ../components/lecture_page.css. */
+/* class_d_amplifier.html · trace palette and plot sizes. Layout comes from
+   ../components/lecture_page.css; colours map onto the --d-* data palette. */
 
 :root {
-    --c-vin:  #eef0f5;   /* input signal */
-    --c-car:  #ffcf5c;   /* triangle carrier */
-    --c-hi:   #7be089;   /* PWM high, PMOS conducting, filtered output */
-    --c-lo:   #58a6ff;   /* PWM low, NMOS conducting */
-    --c-off:  #ff5c7a;   /* device off */
-    --c-heat: #ff7a6b;
-    --c-dc:   #58a6ff;
-    --hero-a: var(--c-hi);
-    --hero-b: var(--c-car);
-}
-
-[data-theme="light"] {
-    --c-vin:  #1a1a1e;
-    --c-car:  #b88200;
-    --c-hi:   #2f8f3f;
-    --c-lo:   #1d4ed8;
-    --c-off:  #dc2626;
-    --c-heat: #c2410c;
-    --c-dc:   #1d4ed8;
+    --c-vin:  var(--d-blue);     /* input signal */
+    --c-car:  var(--d-orange);   /* triangle carrier */
+    --c-hi:   var(--d-pink);     /* PWM high, switching node, PMOS conducting */
+    --c-lo:   var(--d-green);    /* PWM low, NMOS conducting */
+    --c-out:  var(--d-violet);   /* filter output, load voltage, load power */
+    --c-rip:  var(--d-olive);    /* switching ripple: capacitor current, ripple power */
+    --c-heat: var(--d-slate);    /* device and drive losses */
+    --c-dc:   var(--d-ink);      /* supply power */
+    --c-off:  var(--d-grey);     /* device off */
+    --c-lin:  var(--d-grey);     /* linear output stages */
 }
 
 .plot-box.input   { aspect-ratio: 2 / 1; }

@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · The Cochlear Implant</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The cochlear implant</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -56,7 +50,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · CASE STUDY</div>
-            <h1 class="hero">The <em>cochlear implant</em> as a signal processor</h1>
+            <h1 class="hero">The cochlear implant as a signal processor</h1>
             <p class="sub">A cochlear implant bypasses the missing or damaged hair cells of the inner ear and
                 stimulates the auditory nerve through an electrode array in the scala tympani. The sound processor
                 divides the microphone signal into frequency bands, extracts the slowly varying envelope of each band,
@@ -149,8 +143,8 @@
                 </div>
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-guide)"></span>Greenwood map</span>
-                    <span><span class="sw grad"></span>electrodes, apical to basal</span>
-                    <span>contact glow: stimulation level during playback</span>
+                    <span><span class="ramp"><i></i><i></i><i></i><i></i><i></i><i></i></span>electrodes, apical to basal</span>
+                    <span>contact brightness and ring size: stimulation level during playback</span>
                 </div>
             </div>
         </div>
@@ -280,7 +274,7 @@
                     <svg class="bode" id="plot-bank"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw grad"></span>channel, apical to basal</span>
+                    <span><span class="ramp"><i></i><i></i><i></i><i></i><i></i><i></i></span>channel, apical to basal</span>
                     <span><span class="sw dash"></span>$-3\,\text{dB}$</span>
                 </div>
             </div>
@@ -310,7 +304,7 @@
             <p>All envelopes are then divided by the largest value across all channels, so the loudest band reaches
                 1 and the level differences between bands are preserved.</p>
 
-            <p>The cutoff decides which temporal cues survive. With the vowel input, harmonics of the 125 Hz
+            <p>The cutoff determines which temporal cues are retained. With the vowel input, harmonics of the 125 Hz
                 fundamental beat within each band, and the voice periodicity appears as ripple on the envelopes at
                 $f_\text{env} = 200\,\text{Hz}$. At 50 Hz the second-order filter attenuates the 125 Hz ripple by
                 about 16 dB, leaving mainly the syllabic envelope.</p>
@@ -344,7 +338,7 @@
                     <canvas id="plot-strip"></canvas>
                 </div>
                 <div class="legend">
-                    <span><span class="sw grad"></span>band-pass $y_i$</span>
+                    <span><span class="ramp"><i></i><i></i><i></i><i></i><i></i><i></i></span>band-pass $y_i$</span>
                     <span><span class="sw" style="background:var(--c-rect)"></span>rectified $r_i$</span>
                     <span><span class="sw" style="background:var(--c-env)"></span>envelope $e_i$</span>
                     <span><span class="sw" style="background:var(--c-rec)"></span>playback position</span>

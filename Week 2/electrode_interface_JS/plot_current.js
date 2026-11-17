@@ -1,6 +1,6 @@
 // Section 02 · Scrolling electrode-current trace over the last 6 s, and the
 // live electrode-potential readout. The frame (axes, titles) is rebuilt on
-// theme or size change; each animation frame only rewrites the trace path.
+// size change; each animation frame only rewrites the trace path.
 // IUPAC sign convention: anodic (oxidation) current positive, cathodic
 // (reduction) current negative.
 (function () {
@@ -79,7 +79,6 @@
         build();
         modeOut();
         readout(0);
-        window.addEventListener('themechange', build);
         window.addEventListener('resize', build);
         window.addEventListener('elichange', function (e) {
             var k = e.detail && e.detail.key;

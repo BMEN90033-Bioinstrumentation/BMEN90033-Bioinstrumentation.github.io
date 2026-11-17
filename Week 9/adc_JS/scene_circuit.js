@@ -15,7 +15,7 @@
     var stepI = null, stepL = null;
 
     // ─── viewBox layout (fixed; SVG scales via plot-box aspect ratio) ───
-    var VBW = 960, VBH = 600;
+    var VBW = 960, VBY = 30, VBH = 510;   // cropped to the drawn extent
     var WAVE = { x: 35,  y: 125, w: 130, h: 140 };
     var SH   = { x: 195, y: 155, w: 80,  h: 80 };
     var CMP  = { lx: 320, rx: 410, ty: 160, by: 300, oy: 230, pinHi: 195, pinLo: 265 };
@@ -25,7 +25,7 @@
     var CLK  = { x: 480, y: 70, w: 180, h: 40 };
     // Side panel that makes the comparator's two inputs (V_in, V_DAC) explicit
     // so it is obvious what the comparator decides on each cycle.
-    var CMPI = { x: 90, y: 320, w: 285, h: 80 };
+    var CMPI = { x: 35, y: 320, w: 245, h: 80 };
     // Cap-array cell row inside the DAC. Each cell maps to one binary-weighted
     // capacitor; "filled" = capacitor connected to V_ref (bit = 1).
     var CAP_ROW = (function () {
@@ -33,7 +33,7 @@
         var total = N * cw + (N - 1) * gap;
         return {
             x0: 480 + (180 - total) / 2,   // centred inside DAC
-            y:  380 + 18,                  // ~y=398 inside DAC
+            y:  380 + 10,                  // y = 390 inside DAC
             w:  cw,
             h:  20,
             gap: gap
@@ -153,7 +153,7 @@
     var gStatic, gDyn;
 
     function setupSvg() {
-        svg.attr('viewBox', '0 0 ' + VBW + ' ' + VBH)
+        svg.attr('viewBox', '0 ' + VBY + ' ' + VBW + ' ' + VBH)
            .attr('preserveAspectRatio', 'xMidYMid meet');
         svg.selectAll('*').remove();
         gStatic = svg.append('g').attr('class', 'static-layer');
@@ -205,7 +205,7 @@
             .attr('stroke', 'var(--c-output)').attr('stroke-width', 1.5);
         w.append('text')
             .attr('x', SAR_BUS_X + 11).attr('y', (SAR.y + SAR.h + DAC.y) / 2 + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', 'var(--c-output)').text('N');
 
         // SAR → digital output panel (parallel bus)
@@ -218,7 +218,7 @@
             .attr('stroke', 'var(--c-output)').attr('stroke-width', 1.5);
         w.append('text')
             .attr('x', (SAR.x + SAR.w + DIG.x) / 2 + 4).attr('y', DIG_OUT_Y - 9)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', 'var(--c-output)').text('N');
 
         // Clock signal panel above SAR. One full cycle drives one bit decision,
@@ -240,15 +240,14 @@
             .attr('opacity', 0.85);
 
         gStatic.append('text')
-            .attr('x', clkBgX).attr('y', clkBgY - 18)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-thresh)').text('clock');
+            .attr('x', clkBgX).attr('y', clkBgY - 21)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
+            .attr('fill', 'var(--c-clock)').text('clock');
         gStatic.append('text')
             .attr('x', clkBgX).attr('y', clkBgY - 6)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9.5)
-            .attr('fill', muted).attr('letter-spacing', '0.05em')
-            .text('one cycle drives one bit decision');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', muted)
+            .text('one cycle resolves one bit');
 
         // Square-wave path
         var clkPts = [];
@@ -264,7 +263,7 @@
                 return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1];
             }).join(''))
             .attr('fill', 'none')
-            .attr('stroke', 'var(--c-thresh)')
+            .attr('stroke', 'var(--c-clock)')
             .attr('stroke-width', 1.6);
 
         // Cycle dividers + index numerals
@@ -279,29 +278,29 @@
             }
             gStatic.append('text')
                 .attr('x', clkBgX + (ck + 0.5) * (CLK.w / N))
-                .attr('y', clkBgY + CLK.h + 11)
+                .attr('y', clkBgY + CLK.h + 12)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9)
+                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
                 .attr('fill', subtle)
                 .text(ck + 1);
         }
 
         // Dotted feed from clock panel to SAR top
         var clkFeedX = clkBgX + CLK.w / 2;
-        line(clkFeedX, clkBgY + CLK.h + 14, clkFeedX, SAR.y, { sw: 1.2, dash: '3 3' });
+        line(clkFeedX, clkBgY + CLK.h + 17, clkFeedX, SAR.y, { sw: 1.2, dash: '3 3' });
 
-        // V_ref into DAC from below — constant reference, value shown explicitly
+        // V_ref into DAC from below: constant reference, value shown explicitly
         line(DAC.x + DAC.w - 22, DAC.y + DAC.h + 28, DAC.x + DAC.w - 22, DAC.y + DAC.h);
         w.append('text')
             .attr('x', DAC.x + DAC.w - 22).attr('y', VREF_TXT_Y)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', label).text('V_ref = 1.000');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
+            .attr('fill', label).call(window.adcSub, 'V_ref = 1.000');
         w.append('text')
-            .attr('x', DAC.x + DAC.w - 22).attr('y', VREF_TXT_Y + 14)
+            .attr('x', DAC.x + DAC.w - 22).attr('y', VREF_TXT_Y + 16)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9)
-            .attr('fill', subtle).attr('letter-spacing', '0.14em')
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', subtle).attr('letter-spacing', '0.12em')
             .text('CONSTANT');
 
         // ---- Components ----
@@ -317,15 +316,15 @@
             .attr('opacity', 0.9);
         c.append('text')
             .attr('x', WAVE.x).attr('y', WAVE.y - 7)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', muted).text('analog input v(t)');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
+            .attr('fill', muted).text('analogue input v(t)');
 
         // V_in label
         c.append('text')
             .attr('x', 6).attr('y', SH_MID_Y - 8)
             .attr('text-anchor', 'start')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--c-input)').text('V_in');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
+            .attr('fill', 'var(--c-input)').call(window.adcSub, 'V_in');
 
         // S/H block
         c.append('rect')
@@ -336,18 +335,18 @@
         c.append('text')
             .attr('x', SH.x + SH.w / 2).attr('y', SH.y - 7)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', muted).text('S / H');
         c.append('text')
             .attr('x', SH.x + SH.w / 2).attr('y', SH.y + 22)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', muted).text('hold');
         c.append('text')
             .attr('x', SH.x + SH.w / 2).attr('y', SH.y + 38)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9)
-            .attr('fill', subtle).attr('letter-spacing', '0.10em').text('× V_ref');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', subtle).call(window.adcSub, '× V_ref');
 
         // Comparator triangle
         c.append('polygon')
@@ -365,7 +364,7 @@
             .attr('fill', label).text('−');
         c.append('text')
             .attr('x', CMP.lx + 36).attr('y', CMP.oy + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', muted).text('CMP');
 
         // SAR register box
@@ -376,7 +375,7 @@
             .attr('stroke', stroke).attr('stroke-width', 1.4);
         c.append('text')
             .attr('x', SAR.x + 12).attr('y', SAR.y + 22)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
             .attr('fill', label).text('SAR register');
 
         // DAC box
@@ -385,18 +384,18 @@
             .attr('rx', 6)
             .attr('fill', 'var(--bg-2)')
             .attr('stroke', stroke).attr('stroke-width', 1.4);
-        // Title moved outside the box (above) so the interior can host the cap
-        // cell row plus the V_DAC fill bar without crowding.
+        // Title sits below the box, left of the V_ref feed, clear of the
+        // SAR-to-DAC bus that enters from above.
         c.append('text')
-            .attr('x', DAC.x + 8).attr('y', DAC.y - 7)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', muted).text('DAC · binary-weighted cap array');
+            .attr('x', DAC.x + 8).attr('y', DAC.y + DAC.h + 16)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
+            .attr('fill', muted).text('capacitor-array DAC');
 
         // "decision" wire label
         c.append('text')
             .attr('x', (CMP.rx + SAR.x) / 2).attr('y', CMP.oy - 8)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', 'var(--c-output)').text('decision');
 
         // ---- Comparator-inputs panel ----
@@ -412,10 +411,10 @@
             .attr('stroke', stroke).attr('stroke-width', 1.0)
             .attr('opacity', 0.9);
         c.append('text')
-            .attr('x', CMPI.x + 12).attr('y', CMPI.y + 14)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
+            .attr('x', CMPI.x + 12).attr('y', CMPI.y + 16)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('letter-spacing', '0.10em')
-            .attr('fill', muted).text('COMPARATOR · V_in  vs  V_DAC');
+            .attr('fill', muted).text('COMPARATOR INPUTS');
 
         // ---- Digital output panel ----
         c.append('rect')
@@ -428,16 +427,15 @@
             .attr('x', DIG.x + DIG.w / 2).attr('y', DIG.y + 24)
             .attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('font-weight', 600)
-            .attr('letter-spacing', '0.18em')
-            .attr('fill', 'var(--c-output)').text('DIGITAL OUT');
-        c.append('text')
-            .attr('x', DIG.x + DIG.w / 2).attr('y', DIG.y + 39)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9.5)
-            .attr('fill', muted)
             .attr('letter-spacing', '0.12em')
-            .text('N = 8 bits · MSB → LSB');
+            .attr('fill', 'var(--c-output)').text('DIGITAL OUTPUT');
+        c.append('text')
+            .attr('x', DIG.x + DIG.w / 2).attr('y', DIG.y + 41)
+            .attr('text-anchor', 'middle')
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', muted)
+            .attr('letter-spacing', '0.06em')
+            .text('N = 8 bits · MSB first');
 
         // separator
         c.append('line')
@@ -448,14 +446,14 @@
 
         c.append('text')
             .attr('x', DIG.x + 18).attr('y', DIG_BITS.y + DIG_BITS.h + 36)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('letter-spacing', '0.14em')
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('letter-spacing', '0.12em')
             .attr('fill', muted).text('DECIMAL');
         c.append('text')
             .attr('x', DIG.x + 18).attr('y', DIG_BITS.y + DIG_BITS.h + 86)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('letter-spacing', '0.14em')
-            .attr('fill', muted).text('VOLTAGE  (× V_ref)');
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('letter-spacing', '0.12em')
+            .attr('fill', muted).call(window.adcSub, 'VOLTAGE (× V_ref)');
     }
 
     // ─── Dynamic update ───
@@ -485,7 +483,7 @@
             gDyn.append('rect')
                 .attr('x', CLK.x + st.k * cycleW).attr('y', CLK.y)
                 .attr('width', cycleW).attr('height', CLK.h)
-                .attr('fill', 'var(--c-thresh)')
+                .attr('fill', 'var(--c-clock)')
                 .attr('opacity', 0.22);
         }
 
@@ -515,7 +513,7 @@
         gDyn.append('line')
             .attr('x1', WAVE.x).attr('x2', WAVE.x + WAVE.w)
             .attr('y1', heldY).attr('y2', heldY)
-            .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 1.4)
+            .attr('stroke', 'var(--c-input)').attr('stroke-width', 1.4)
             .attr('stroke-dasharray', '4 3').attr('opacity', 0.9);
 
         gDyn.append('path')
@@ -544,17 +542,10 @@
                 .attr('cy', heldY)
                 .attr('r', pulseR)
                 .attr('fill', 'none')
-                .attr('stroke', 'var(--c-thresh)')
+                .attr('stroke', 'var(--c-input)')
                 .attr('stroke-width', 1.5)
                 .attr('opacity', 0.6 * (1 - phaseT));
         }
-
-        // V_in numeric label
-        gDyn.append('text')
-            .attr('x', WAVE.x + WAVE.w + 4).attr('y', heldY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)')
-            .text(st.vin.toFixed(2));
 
         // Held-value readout inside S/H block
         var sampleFlash = (phase === 'sample') ? (1 - phaseT) : 0;
@@ -564,15 +555,14 @@
             .attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace")
             .attr('font-size', 20)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-thresh)')
+            .attr('fill', 'var(--c-input)')
             .text(st.vin.toFixed(3));
         if (sampleFlash > 0) {
             gDyn.append('rect')
                 .attr('x', SH.x).attr('y', SH.y)
                 .attr('width', SH.w).attr('height', SH.h)
                 .attr('rx', 5)
-                .attr('fill', 'var(--c-thresh)')
+                .attr('fill', 'var(--c-input)')
                 .attr('opacity', 0.14 * sampleFlash);
         }
 
@@ -584,7 +574,7 @@
         // SAR status line
         var statusText;
         if (phase === 'sample') {
-            statusText = 'sample → hold V_in';
+            statusText = 'sample and hold V_in';
         } else if (phase === 'trial') {
             statusText = 'k=' + (st.k + 1) + '/' + N + '  trial b' + (N - 1 - st.k) + ' = 1';
         } else if (phase === 'compare') {
@@ -602,7 +592,7 @@
             .attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', 'var(--muted)')
-            .text(statusText);
+            .call(window.adcSub, statusText);
 
         // ── 3. DAC interior: cap-array + V_DAC fill bar ──
         // Animated current trial value (used both in DAC and in the comparator
@@ -614,7 +604,7 @@
         }
 
         // 3a. Cap-array row. Each cell maps to one binary-weighted capacitor;
-        // a "filled" cell means that cap is currently connected to V_ref and is
+        // a "filled" cell means that capacitor is currently connected to V_ref and is
         // contributing its weight (1/2, 1/4, ...) to V_DAC. The active trial
         // bit is highlighted with the accent ring.
         for (var ci = 0; ci < N; ci++) {
@@ -657,28 +647,27 @@
                 .attr('x', cellX + CAP_ROW.w / 2)
                 .attr('y', cellY + CAP_ROW.h / 2 + 3)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 8)
-                .attr('font-weight', 600)
+                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
                 .attr('fill', isTrial ? 'var(--accent)'
                                        : (effectiveBit ? 'var(--c-output2)' : 'var(--muted)'))
                 .text('b' + (N - 1 - ci));
         }
         gDyn.append('text')
-            .attr('x', CAP_ROW.x0).attr('y', CAP_ROW.y + CAP_ROW.h + 9)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 8.5)
+            .attr('x', CAP_ROW.x0).attr('y', CAP_ROW.y + CAP_ROW.h + 14)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', 'var(--muted)')
-            .text('filled = cap → V_ref (bit = 1)');
+            .text('filled: bit = 1');
 
         // 3b. V_DAC fill bar (now sits below the cap row inside the DAC).
-        var barX = DAC.x + 12;
-        var barW = DAC.w - 60;
-        var barY = DAC.y + 60;
+        var barX = DAC.x + 54;
+        var barW = DAC.w - 106;
+        var barY = DAC.y + 62;
         var barH = 14;
         gDyn.append('text')
-            .attr('x', barX).attr('y', barY - 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9)
-            .attr('fill', 'var(--muted)')
-            .text('V_DAC / V_ref');
+            .attr('x', DAC.x + 12).attr('y', barY + barH - 3)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', 'var(--c-output2)')
+            .call(window.adcSub, 'V_DAC');
         gDyn.append('rect')
             .attr('x', barX).attr('y', barY)
             .attr('width', barW).attr('height', barH)
@@ -693,7 +682,7 @@
             .attr('opacity', 0.55);
         gDyn.append('text')
             .attr('x', barX + barW + 6).attr('y', barY + barH - 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', 'var(--c-output2)')
             .text(dacShown.toFixed(3));
 
@@ -701,17 +690,16 @@
         // Twin bars showing the two voltages the comparator actually sees, plus
         // the rule it applies. This is what generates the bit each cycle.
         var ciRowH = 12;
-        var ciBarX = CMPI.x + 75;
-        var ciBarW = 145;
+        var ciBarX = CMPI.x + 70;
+        var ciBarW = 120;
         var ciValX = ciBarX + ciBarW + 6;
 
         // V_in row
-        var ciY1 = CMPI.y + 24;
+        var ciY1 = CMPI.y + 25;
         gDyn.append('text')
             .attr('x', CMPI.x + 12).attr('y', ciY1 + 9)
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-thresh)').text('V_in');
+            .attr('fill', 'var(--c-input)').call(window.adcSub, 'V_in');
         gDyn.append('rect')
             .attr('x', ciBarX).attr('y', ciY1)
             .attr('width', ciBarW).attr('height', ciRowH)
@@ -720,19 +708,18 @@
         gDyn.append('rect')
             .attr('x', ciBarX).attr('y', ciY1)
             .attr('width', ciBarW * st.vin).attr('height', ciRowH)
-            .attr('rx', 2).attr('fill', 'var(--c-thresh)').attr('opacity', 0.55);
+            .attr('rx', 2).attr('fill', 'var(--c-input)').attr('opacity', 0.55);
         gDyn.append('text')
             .attr('x', ciValX).attr('y', ciY1 + 9)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-thresh)').text(st.vin.toFixed(3));
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('fill', 'var(--c-input)').text(st.vin.toFixed(3));
 
         // V_DAC row
-        var ciY2 = CMPI.y + 42;
+        var ciY2 = CMPI.y + 43;
         gDyn.append('text')
             .attr('x', CMPI.x + 12).attr('y', ciY2 + 9)
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('font-weight', 600)
-            .attr('fill', 'var(--c-output2)').text('V_DAC');
+            .attr('fill', 'var(--c-output2)').call(window.adcSub, 'V_DAC');
         gDyn.append('rect')
             .attr('x', ciBarX).attr('y', ciY2)
             .attr('width', ciBarW).attr('height', ciRowH)
@@ -744,7 +731,7 @@
             .attr('rx', 2).attr('fill', 'var(--c-output2)').attr('opacity', 0.55);
         gDyn.append('text')
             .attr('x', ciValX).attr('y', ciY2 + 9)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', 'var(--c-output2)').text(dacShown.toFixed(3));
 
         // Decision rule line
@@ -753,11 +740,10 @@
         var bitOut = winning ? 1 : 0;
         var ruleColor = winning ? 'var(--c-output)' : 'var(--muted)';
         gDyn.append('text')
-            .attr('x', CMPI.x + 12).attr('y', CMPI.y + CMPI.h - 9)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10.5)
-            .attr('font-weight', 600)
+            .attr('x', CMPI.x + 12).attr('y', CMPI.y + CMPI.h - 8)
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', ruleColor)
-            .text('V_in ' + rel + ' V_DAC  →  bit = ' + bitOut);
+            .call(window.adcSub, 'V_in ' + rel + ' V_DAC: bit = ' + bitOut);
 
         // ── 4. Comparator decision LED ──
         var ledX = CMP.rx + 14;
@@ -777,7 +763,6 @@
             gDyn.append('text')
                 .attr('x', ledX + 12).attr('y', ledY + 5)
                 .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-                .attr('font-weight', 600)
                 .attr('fill', st.decision ? 'var(--c-output)' : 'var(--muted)')
                 .text(String(st.decision));
         }
@@ -796,8 +781,8 @@
         }
 
         // ── 5. Digital output panel content ──
-        // The panel mirrors the live SAR contents (so the user sees bits filling
-        // up as they commit), then latches with a highlight on conversion done.
+        // The panel mirrors the live SAR contents (bits fill in as they
+        // commit), then latches with a highlight on conversion done.
         var liveBits = st.bits.slice();
         var liveCode = st.committedCode;
         // While in 'commit' phase the freshly-committed bit has already been
@@ -813,8 +798,8 @@
         for (var i = 0; i < N; i++) if (liveBits[i] !== null) resolvedCount++;
         var decTxt, vTxt;
         if (resolvedCount === 0) {
-            decTxt = '—';
-            vTxt = '—';
+            decTxt = 'n/a';
+            vTxt = 'n/a';
         } else {
             decTxt = liveCode + ' / ' + Math.pow(2, N);
             vTxt = (liveCode / Math.pow(2, N)).toFixed(3);
@@ -823,35 +808,33 @@
             .attr('x', DIG.x + 18).attr('y', DIG_BITS.y + DIG_BITS.h + 60)
             .attr('font-family', "'JetBrains Mono', monospace")
             .attr('font-size', 22)
-            .attr('font-weight', 600)
             .attr('fill', isLatched ? 'var(--c-output)' : 'var(--text-dim)')
             .text(decTxt);
         gDyn.append('text')
             .attr('x', DIG.x + 18).attr('y', DIG_BITS.y + DIG_BITS.h + 110)
             .attr('font-family', "'JetBrains Mono', monospace")
             .attr('font-size', 22)
-            .attr('font-weight', 600)
             .attr('fill', isLatched ? 'var(--c-output2)' : 'var(--text-dim)')
             .text(vTxt);
 
         // Status pill
         var stTxt, stColor;
         if (phase === 'hold') {
-            stTxt = '● READY · code latched';
+            stTxt = 'READY · CODE LATCHED';
             stColor = 'var(--c-output)';
         } else if (phase === 'sample') {
-            stTxt = '○ SAMPLING';
-            stColor = 'var(--c-thresh)';
+            stTxt = 'SAMPLING';
+            stColor = 'var(--c-input)';
         } else {
-            stTxt = '○ CONVERTING · ' + (st.k + 1) + ' / ' + N;
+            stTxt = 'CONVERTING · ' + (st.k + 1) + ' / ' + N;
             stColor = 'var(--accent)';
         }
         gDyn.append('text')
             .attr('x', DIG.x + DIG.w / 2)
             .attr('y', DIG.y + DIG.h - 14)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('letter-spacing', '0.14em')
+            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
+            .attr('letter-spacing', '0.12em')
             .attr('fill', stColor)
             .text(stTxt);
 
@@ -933,7 +916,7 @@
             var isCommit   = (k === st.k && phase === 'commit');
             var isResolved = bitVal !== null;
 
-            var fill, strokeC, strokeW, vText, vColor;
+            var fill, strokeC, strokeW, vText, vColor, fillOp = 1;
             if (isActive) {
                 fill = 'var(--accent-soft)';
                 strokeC = 'var(--accent)';
@@ -941,14 +924,15 @@
                 vText = '1';
                 vColor = 'var(--accent)';
             } else if (isCommit) {
-                fill = st.decision ? 'rgba(52,211,153,' + (0.18 + 0.4 * (1 - phaseT)) + ')'
-                                   : 'rgba(139,144,163,' + (0.16 + 0.32 * (1 - phaseT)) + ')';
+                fill = st.decision ? 'var(--c-output)' : 'var(--c-low)';
+                fillOp = st.decision ? 0.18 + 0.4 * (1 - phaseT) : 0.16 + 0.32 * (1 - phaseT);
                 strokeC = st.decision ? 'var(--c-output)' : 'var(--muted)';
                 strokeW = 2;
                 vText = String(st.decision);
                 vColor = st.decision ? 'var(--c-output)' : 'var(--muted)';
             } else if (isResolved) {
-                fill = bitVal ? 'rgba(52,211,153,0.10)' : 'transparent';
+                fill = bitVal ? 'var(--c-output)' : 'transparent';
+                fillOp = 0.10;
                 strokeC = 'var(--border)';
                 strokeW = 1;
                 vText = String(bitVal);
@@ -965,22 +949,20 @@
                 .attr('x', cellX).attr('y', cellY)
                 .attr('width', BB.w).attr('height', BB.h)
                 .attr('rx', 3)
-                .attr('fill', fill)
+                .attr('fill', fill).attr('fill-opacity', fillOp)
                 .attr('stroke', strokeC).attr('stroke-width', strokeW);
             gDyn.append('text')
                 .attr('x', cellX + BB.w / 2).attr('y', cellY + 12)
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', big ? 9 : 8)
+                .attr('font-size', big ? 11 : 10)
                 .attr('fill', 'var(--muted)')
-                .attr('letter-spacing', '0.06em')
                 .text('b' + bitLabel);
             gDyn.append('text')
                 .attr('x', cellX + BB.w / 2).attr('y', cellY + BB.h - (big ? 14 : 12))
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .attr('font-size', big ? 22 : 16)
-                .attr('font-weight', 600)
                 .attr('fill', vColor)
                 .text(vText);
         }
@@ -991,18 +973,17 @@
             var bitLabel = N - 1 - k;
             var resolved = val !== null;
 
-            var fill, strokeC, strokeW, vText, vColor;
+            var fill, strokeC, strokeW, vText, vColor, fillOp = 1;
             if (latchedHighlight && resolved) {
-                var glow = 0.25 + 0.4 * (1 - pT);
-                fill = val
-                    ? 'rgba(52,211,153,' + (0.10 + 0.20 * (1 - pT)) + ')'
-                    : 'transparent';
+                fill = val ? 'var(--c-output)' : 'transparent';
+                fillOp = 0.10 + 0.20 * (1 - pT);
                 strokeC = val ? 'var(--c-output)' : 'var(--muted)';
                 strokeW = 1.6;
                 vText = String(val);
                 vColor = val ? 'var(--c-output)' : 'var(--muted)';
             } else if (resolved) {
-                fill = val ? 'rgba(52,211,153,0.12)' : 'transparent';
+                fill = val ? 'var(--c-output)' : 'transparent';
+                fillOp = 0.12;
                 strokeC = val ? 'var(--c-output)' : 'var(--border)';
                 strokeW = 1.2;
                 vText = String(val);
@@ -1019,22 +1000,20 @@
                 .attr('x', cellX).attr('y', cellY)
                 .attr('width', DIG_BITS.w).attr('height', DIG_BITS.h)
                 .attr('rx', 4)
-                .attr('fill', fill)
+                .attr('fill', fill).attr('fill-opacity', fillOp)
                 .attr('stroke', strokeC).attr('stroke-width', strokeW);
             gDyn.append('text')
                 .attr('x', cellX + DIG_BITS.w / 2).attr('y', cellY + 14)
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 9.5)
+                .attr('font-size', 11)
                 .attr('fill', 'var(--muted)')
-                .attr('letter-spacing', '0.06em')
                 .text('b' + bitLabel);
             gDyn.append('text')
                 .attr('x', cellX + DIG_BITS.w / 2).attr('y', cellY + DIG_BITS.h - 14)
                 .attr('text-anchor', 'middle')
                 .attr('font-family', "'JetBrains Mono', monospace")
                 .attr('font-size', 22)
-                .attr('font-weight', 600)
                 .attr('fill', vColor)
                 .text(vText);
         }
@@ -1246,7 +1225,6 @@
 
     function init() {
         rebuild();
-        window.addEventListener('themechange', rebuild);
         var rt = null;
         window.addEventListener('resize', function () {
             if (rt) clearTimeout(rt);

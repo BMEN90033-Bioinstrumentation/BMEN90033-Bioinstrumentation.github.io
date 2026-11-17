@@ -43,6 +43,7 @@
             .attr('stroke', css('--grid-line'));
         var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
         window.CMP.styleAxis(ya);
+        ya.selectAll('text').attr('font-size', 13);
         g.append('line').attr('x1', 0).attr('x2', iw).attr('y1', ih).attr('y2', ih)
             .attr('stroke', T.gridAxis).attr('stroke-width', 1.2);
         window.renderKatex(f.svg, 'E\\;[\\mathrm{eV}]', 18, f.m.top + ih / 2,
@@ -96,7 +97,7 @@
         [['p-type', 0.22, cH], ['n-type', 0.78, cE]].forEach(function (r) {
             g.append('text').attr('x', x(r[1])).attr('y', 16).attr('text-anchor', 'middle')
                 .attr('fill', r[2]).attr('font-size', 13).attr('font-family', 'Inter, sans-serif')
-                .attr('font-weight', 600).text(r[0]);
+                .attr('font-weight', 400).text(r[0]);
             placed.push([x(r[1]) - 28, 2, x(r[1]) + 28, 22]);
         });
         function free(b) {

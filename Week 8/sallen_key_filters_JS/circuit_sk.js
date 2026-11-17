@@ -28,9 +28,7 @@
             svg.append('rect').attr('class', 'resistor')
                 .attr('x', cx - w / 2).attr('y', cy - h / 2)
                 .attr('width', w).attr('height', h).attr('rx', 2.5);
-            svg.append('text')
-                .attr('x', cx).attr('y', cy - h / 2 - 6)
-                .attr('text-anchor', 'middle').attr('font-size', 12).text(label);
+            window.renderKatex(svg, label, cx, cy - h / 2 - 12, { width: 40, height: 18, size: 15 });
         }
         // Vertical capacitor (plates horizontal). Wires connect at top and bottom.
         function capacitorV(cx, cy, label, opts) {
@@ -43,9 +41,7 @@
             svg.append('line').attr('class', cls)
                 .attr('x1', cx - plate / 2 + 3).attr('x2', cx + plate / 2 - 3)
                 .attr('y1', cy + gap / 2).attr('y2', cy + gap / 2);
-            svg.append('text')
-                .attr('x', cx + plate / 2 + 6).attr('y', cy + 4)
-                .attr('text-anchor', 'start').attr('font-size', 12).text(label);
+            window.renderKatex(svg, label, cx + plate / 2 + 15, cy, { width: 24, height: 18, size: 15 });
         }
         // Horizontal capacitor (plates vertical). Wires connect at left and right.
         function capacitorH(cx, cy, label, opts) {
@@ -58,9 +54,7 @@
             svg.append('line').attr('class', cls)
                 .attr('x1', cx + gap / 2).attr('x2', cx + gap / 2)
                 .attr('y1', cy - plate / 2 + 2).attr('y2', cy + plate / 2 - 2);
-            svg.append('text')
-                .attr('x', cx).attr('y', cy - plate / 2 - 6)
-                .attr('text-anchor', 'middle').attr('font-size', 12).text(label);
+            window.renderKatex(svg, label, cx, cy - plate / 2 - 12, { width: 40, height: 18, size: 15 });
         }
         function gnd(cx, cy) {
             svg.append('line').attr('class', 'gnd')
@@ -84,12 +78,11 @@
             .attr('text-anchor', 'middle').attr('font-size', 12).text('+');
         svg.append('text').attr('x', srcX).attr('y', srcY + 12)
             .attr('text-anchor', 'middle').attr('font-size', 12).text('−');
-        svg.append('text').attr('x', srcX - 26).attr('y', srcY + 4)
-            .attr('text-anchor', 'end').attr('font-size', 12).text('Vin');
+        window.renderKatex(svg, 'V_{\\text{in}}', srcX - 38, srcY, { width: 28, height: 18, size: 15 });
 
         // ── R1: source to node A ─────────────────────────────────
         wire(srcX, railY, 118, railY);
-        resistor(140, railY, 'R1');
+        resistor(140, railY, 'R_1');
         wire(162, railY, 240, railY);
 
         // ── Node A junction ──────────────────────────────────────
@@ -101,24 +94,24 @@
         // C1 raised path leaves node A and returns to op-amp output.
         wire(240, railY, 240, fbY, 'feedback-hi');         // up from A
         wire(240, fbY, 372, fbY, 'feedback-hi');           // across to C1 left plate
-        capacitorH(378, fbY, 'C1', { highlight: true });
+        capacitorH(378, fbY, 'C_1', { highlight: true });
         wire(384, fbY, 510, fbY, 'feedback-hi');           // across to output rail
         wire(510, fbY, 510, railY, 'feedback-hi');         // down to output rail
 
         // Annotation: positive feedback through C1
-        svg.append('text').attr('x', 378).attr('y', fbY - 26)
+        svg.append('text').attr('x', 378).attr('y', fbY - 34)
             .attr('text-anchor', 'middle').attr('font-size', 11)
             .attr('fill', T.text).text('positive feedback');
 
         // ── R2: node A to op-amp non-inverting input ─────────────
         wire(240, railY, 268, railY);
-        resistor(290, railY, 'R2');
+        resistor(290, railY, 'R_2');
         wire(312, railY, 360, railY);
 
         // ── C2 junction (between R2 and V+) drops to ground ──────
         dot(360, railY);
         wire(360, railY, 360, 175);
-        capacitorV(360, 180, 'C2');                        // plates at y=178, y=183 approx
+        capacitorV(360, 180, 'C_2');                        // plates at y=178, y=183 approx
         wire(360, 184, 360, gndY);
 
         // ── Step-up from rail to V+ pin ──────────────────────────
@@ -150,8 +143,7 @@
         wire(510, railY, 610, railY);
         svg.append('circle').attr('class', 'node-dot')
             .attr('cx', 610).attr('cy', railY).attr('r', 4);
-        svg.append('text').attr('x', 622).attr('y', railY + 4)
-            .attr('text-anchor', 'start').attr('font-size', 12).text('Vout');
+        window.renderKatex(svg, 'V_{\\text{out}}', 640, railY, { width: 36, height: 18, size: 15 });
 
         // ── Ground rail across the bottom ────────────────────────
         wire(srcX, gndY, 610, gndY);
@@ -160,12 +152,11 @@
         // ── Caption strip at the top ─────────────────────────────
         svg.append('text').attr('x', 360).attr('y', 28)
             .attr('text-anchor', 'middle').attr('font-size', 13)
-            .attr('fill', T.text).text('Sallen-Key low-pass · op-amp as unity-gain buffer');
+            .attr('fill', T.text).text('Sallen-Key low-pass with a unity-gain op-amp buffer');
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

@@ -135,10 +135,13 @@
         }
 
         // Place a label at a given angle and pixel radius around the origin
-        function labelAtArc(parent, cx0, cy0, rPx, tMid, text, cls, color) {
+        // gap is the clearance between the arc and the label centre. In the
+        // division plot the result label takes a larger gap so that it clears
+        // the theta2 label when the two arcs share a mid-angle.
+        function labelAtArc(parent, cx0, cy0, rPx, tMid, text, cls, color, gap) {
             const a = -tMid;
-            const lx = cx0 + (rPx + 12) * Math.cos(a);
-            const ly = cy0 + (rPx + 12) * Math.sin(a);
+            const lx = cx0 + (rPx + (gap || 12)) * Math.cos(a);
+            const ly = cy0 + (rPx + (gap || 12)) * Math.sin(a);
             parent.append('text')
                 .attr('class', 'lbl ' + cls)
                 .attr('x', lx).attr('y', ly)
@@ -153,9 +156,11 @@
             g.selectAll('*').remove();
 
             const T = window.T;
-            const cssZ1 = getComputedStyle(root).getPropertyValue('--z1-color').trim() || '#58a6ff';
-            const cssZ2 = getComputedStyle(root).getPropertyValue('--z2-color').trim() || '#7be089';
-            const cssRes = getComputedStyle(root).getPropertyValue('--result-color').trim() || '#7be089';
+            // Trace colours are mapped onto the data palette in the page CSS.
+            const css = getComputedStyle(root);
+            const cssZ1 = css.getPropertyValue('--z1-color').trim() || T.c('blue');
+            const cssZ2 = css.getPropertyValue('--z2-color').trim() || T.c('orange');
+            const cssRes = css.getPropertyValue('--result-color').trim() || T.c('pink');
 
             // ── grid ──────────────────────────────────────────────
             const grid = g.append('g').attr('class', 'grid');
@@ -242,7 +247,7 @@
             labelAtArc(arcs, ox, oy, ARC_PX_1, t1 / 2, 'θ₁', 'z1', cssZ1);
             labelAtArc(arcs, ox, oy, ARC_PX_2, t2 / 2, 'θ₂', 'z2', cssZ2);
             labelAtArc(arcs, ox, oy, ARC_PX_R, tResRaw / 2,
-                (mode === 'mul') ? 'θ₁+θ₂' : 'θ₁−θ₂', 'result', cssRes);
+                (mode === 'mul') ? 'θ₁+θ₂' : 'θ₁−θ₂', 'result', cssRes, (mode === 'div') ? 30 : 12);
 
             // ── vectors ───────────────────────────────────────────
             const vecs = g.append('g').attr('class', 'vecs');
@@ -396,9 +401,7 @@
         render();
 
         const onResize = function () { setup(); render(); };
-        const onTheme = function () { render(); };
         window.addEventListener('resize', onResize);
-        window.addEventListener('themechange', onTheme);
 
         return { render: render, animate: animate };
     };

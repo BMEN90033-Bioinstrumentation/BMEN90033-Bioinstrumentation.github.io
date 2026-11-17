@@ -50,19 +50,25 @@
 
     function ratio(beta) { return beta / (1 - beta); }   // R_1 / R_2
 
-    function thresholds(s) {
-        var k = ratio(s.beta);
-        return { VTH: +Vsat * k, VTL: -Vsat * k };
-    }
     function fmt(v, digits) {
         digits = digits == null ? 2 : digits;
         var sign = v >= 0 ? '+' : '';
         return sign + v.toFixed(digits);
     }
+    // Plain-text form with a true minus sign, for the HTML overlay.
+    function txt(v, digits) { return fmt(v, digits).replace('-', '\u2212'); }
     function fmtR(kohm) {
         if (kohm < 1)  return (kohm * 1000).toFixed(0) + ' \\, \\mathrm{\\Omega}';
         if (kohm < 10) return kohm.toFixed(1) + ' \\, \\mathrm{k\\Omega}';
         return kohm.toFixed(0) + ' \\, \\mathrm{k\\Omega}';
+    }
+
+    // KaTeX markup for the overlay row names, rendered once per symbol.
+    var texCache = {};
+    function tex(src) {
+        if (!window.katex) return src;
+        return texCache[src] ||
+            (texCache[src] = window.katex.renderToString(src, { throwOnError: false }));
     }
 
     function render() {
@@ -79,12 +85,12 @@
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
         var wire   = window.T.wire;
-        var fill   = window.CMP.cssVar('--bg-2');
+        var fill   = window.T.plotBg;
         var text   = window.T.text;
         var dim    = window.T.textDim;
         var rcol   = window.CMP.cssVar('--c-resistor');
-        var cHigh  = window.CMP.cssVar('--c-output2');
-        var cLow   = window.CMP.cssVar('--c-thresh');
+        var cHigh  = window.CMP.cssVar('--c-high');
+        var cLow   = window.CMP.cssVar('--c-low');
         var stroke = 1.6;
         var outColor = s.branch > 0 ? cHigh : cLow;
 
@@ -111,14 +117,14 @@
             .attr('stroke-width', stroke)
             .attr('stroke-linejoin', 'round');
 
-        // +/− pin markers (inside the triangle, near the input edge)
+        // +/- pin markers (inside the triangle, near the input edge)
         // Plus marker (top, non-inverting input)
         ln(220 - 5, Y_PLUS, 220 + 5, Y_PLUS, text);
         ln(220, Y_PLUS - 5, 220, Y_PLUS + 5, text);
         // Minus marker (bottom, inverting input)
         ln(220 - 5, Y_MINUS, 220 + 5, Y_MINUS, text);
 
-        // ── v_in input path: dot ── R_1 ── node A ── (+) input pin ──
+        // ── v_in input path: dot, R_1, node A, (+) input pin ──
         ln(X_VIN_DOT, Y_PLUS, X_R1_L, Y_PLUS);
         ln(X_R1_R, Y_PLUS, X_PIN_PLUS, Y_PLUS);
         dot(X_VIN_DOT, Y_PLUS);
@@ -143,7 +149,7 @@
             .attr('fill', rcol)
             .attr('stroke', wire).attr('stroke-width', 1);
 
-        // ── Output wire (op-amp apex → output tap → V_out terminal) ──
+        // ── Output wire (op-amp apex, output tap, V_out terminal) ──
         ln(TRI.apex[0], TRI.apex[1], X_OUT_TAP, TRI.apex[1], outColor, 2.2);
         ln(X_OUT_TAP, TRI.apex[1], X_VOUT_DOT, TRI.apex[1], outColor, 2.2);
         dot(X_VOUT_DOT, TRI.apex[1], outColor);
@@ -160,36 +166,30 @@
         ln(X_GND - 9,  Y_GND + 5, X_GND + 9,  Y_GND + 5, wire, 1.6);
         ln(X_GND - 4,  Y_GND + 10, X_GND + 4, Y_GND + 10, wire, 1.4);
 
-        // ── Resistor labels (KaTeX) inside their rectangles ──
-        window.renderKatex(svg, 'R_1',
-            (X_R1_L + X_R1_R) / 2, Y_PLUS,
-            { width: 30, height: 18, size: 12, color: text });
-        window.renderKatex(svg, 'R_2',
-            (X_R2_L + X_R2_R) / 2, Y_R2,
-            { width: 30, height: 18, size: 12, color: text });
-        // Numeric resistor values (R_1 below its rect, R_2 below its rect)
-        window.renderKatex(svg, fmtR(R1k),
+        // ── Resistor names and live values (KaTeX), below each rectangle ──
+        window.renderKatex(svg, 'R_1 = ' + fmtR(R1k),
             (X_R1_L + X_R1_R) / 2, Y_PLUS + 22,
-            { width: 90, height: 18, size: 11, color: dim });
-        window.renderKatex(svg, fmtR(R2k),
+            { width: 100, height: 18, size: 13, color: text });
+        window.renderKatex(svg, 'R_2 = ' + fmtR(R2k),
             (X_R2_L + X_R2_R) / 2, Y_R2 + 22,
-            { width: 90, height: 18, size: 11, color: dim });
+            { width: 100, height: 18, size: 13, color: text });
 
         // ── Inline live values on the schematic ──
         // v_in label above its wire (combined symbol + value)
         window.renderKatex(svg,
             'v_\\text{in} = ' + fmt(s.probe) + '\\,\\text{V}',
-            75, Y_PLUS - 22,
-            { width: 130, height: 18, size: 13, color: text });
-        // v_out terminal symbol next to the right-hand dot. The numeric
-        // value is in the overlay panel.
+            80, Y_PLUS - 24,
+            { width: 130, height: 18, size: 14, color: text });
+        // v_out terminal symbol above the output wire, clear of the tap
+        // descender and the terminal dot. The numeric value is in the
+        // overlay panel.
         window.renderKatex(svg, 'v_\\text{out}',
-            X_VOUT_DOT + 14, TRI.apex[1],
-            { width: 28, height: 20, size: 13, color: outColor });
+            X_VOUT_DOT - 18, TRI.apex[1] - 16,
+            { width: 34, height: 20, size: 14, color: outColor });
         // V_+ tap label, just below node A so it does not collide with R_2
         window.renderKatex(svg, 'V_+',
-            X_NODE, Y_PLUS + 16,
-            { width: 28, height: 18, size: 11, color: dim });
+            X_NODE, Y_PLUS + 18,
+            { width: 28, height: 18, size: 13, color: dim });
 
         // ── HTML overlay with the four live values ──
         var box = root.node().closest('.plot-box');
@@ -202,14 +202,14 @@
             }
             var stateClass = s.branch > 0 ? 'high' : 'low';
             panel.innerHTML = '' +
-                '<div class="row"><span class="name">v<sub>in</sub></span>'   +
-                  '<span class="val">' + fmt(s.probe) + ' V</span></div>' +
-                '<div class="row"><span class="name">V<sub>+</sub></span>'   +
-                  '<span class="val">' + fmt(Vplus)   + ' V</span></div>' +
-                '<div class="row"><span class="name">v<sub>out</sub></span>' +
+                '<div class="row"><span class="name">' + tex('v_\\text{in}') + '</span>' +
+                  '<span class="val">' + txt(s.probe) + ' V</span></div>' +
+                '<div class="row"><span class="name">' + tex('V_+') + '</span>' +
+                  '<span class="val">' + txt(Vplus)   + ' V</span></div>' +
+                '<div class="row"><span class="name">' + tex('v_\\text{out}') + '</span>' +
                   '<span class="val ' + stateClass + '">' +
-                    fmt(Vout, 1) + ' V</span></div>' +
-                '<div class="row"><span class="name">R<sub>1</sub>/R<sub>2</sub></span>' +
+                    txt(Vout, 1) + ' V</span></div>' +
+                '<div class="row"><span class="name">' + tex('R_1/R_2') + '</span>' +
                   '<span class="val">' + ratio(s.beta).toFixed(2) + '</span></div>';
         }
     }
@@ -217,7 +217,6 @@
     function init() {
         render();
         window.addEventListener('sch-update', render);
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

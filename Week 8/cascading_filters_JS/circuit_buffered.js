@@ -138,13 +138,17 @@
                 wire(xC, stageY, x + stageW, stageY);
                 svg.append('circle').attr('class', 'node-dot')
                     .attr('cx', x + stageW).attr('cy', stageY).attr('r', 4);
+                // Terminal labels sit inside the viewBox, right-aligned to
+                // the terminals.
                 svg.append('text')
-                    .attr('x', x + stageW + 8).attr('y', stageY + 4)
+                    .attr('x', x + stageW + 4).attr('y', stageY - 10)
+                    .attr('text-anchor', 'end')
                     .attr('font-size', 12).attr('fill', T.text).text('Vout(+)');
                 svg.append('circle').attr('class', 'node-dot')
                     .attr('cx', x + stageW).attr('cy', rail).attr('r', 4);
                 svg.append('text')
-                    .attr('x', x + stageW + 8).attr('y', rail + 4)
+                    .attr('x', x + stageW + 4).attr('y', rail + 20)
+                    .attr('text-anchor', 'end')
                     .attr('font-size', 12).attr('fill', T.text).text('Vout(−)');
             }
         }
@@ -168,7 +172,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

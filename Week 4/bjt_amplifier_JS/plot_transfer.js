@@ -27,7 +27,7 @@
 
         var x = d3.scaleLinear().domain([VMIN, VMAX]).range([0, cw]);
         var y = d3.scaleLinear().domain([0, icMax]).range([ch, 0]);
-        var css2 = { curve: css('--c-vout'), tan: css('--c-tan'), ic: css('--c-ic'), lin: css('--c-vce'), sat: css('--c-ib'), vbe: css('--c-guide') };
+        var css2 = { curve: css('--c-vout'), tan: css('--c-tan'), ic: css('--c-ic'), lin: css('--c-lin'), sat: css('--c-ib'), vbe: css('--c-guide') };
 
         // Panel backgrounds and grid.
         g.append('rect').attr('x', 0).attr('y', inT).attr('width', cw).attr('height', inH).attr('fill', T.overlay02);

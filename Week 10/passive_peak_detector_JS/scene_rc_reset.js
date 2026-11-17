@@ -4,6 +4,11 @@
 // follows the input envelope, with ripple on the carrier scale and lag on
 // the envelope scale.
 (function () {
+    // SVG label with a subscript: sub('v', 'out') renders v with a lowered 'out'.
+    function sub(a, b, c) {
+        return a + '<tspan dy="4" font-size="10">' + b + '</tspan>' + (c ? '<tspan dy="-4">' + c + '</tspan>' : '');
+    }
+
     var tauI = document.getElementById('pp-r-tau');
     var fcI  = document.getElementById('pp-r-fc');
     var feI  = document.getElementById('pp-r-fe');
@@ -58,7 +63,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 54, left: 56 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -98,14 +103,14 @@
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         ground(g, gndX, gndY);
 
-        source(g, src.x, src.y, 'v_in');
+        source(g, src.x, src.y, sub('v', 'in'));
 
         // Output dot and label
         g.append('circle').attr('cx', out.x - 14).attr('cy', out.y).attr('r', 4)
             .attr('fill', 'var(--c-output)');
         g.append('text').attr('x', out.x).attr('y', out.y + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--c-output)').text('v_out');
+            .style('font-size', '13px')
+            .style('fill', 'var(--c-output)').html(sub('v', 'out'));
 
         // Junction dots where cap and resistor branch off the rail and join ground rail
         [[capX, src.y], [resX, src.y], [capX, gnd.y], [resX, gnd.y]].forEach(function (p) {
@@ -115,8 +120,8 @@
 
         g.append('text').attr('x', (dIn.x + dOut.x) / 2).attr('y', dIn.y - 26)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('D1');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('D1');
     }
 
     function source(g, x, y, label) {
@@ -126,8 +131,8 @@
         g.append('path').attr('d', 'M ' + (x - 14) + ',' + y + ' Q ' + (x - 7) + ',' + (y - 12) + ' ' + x + ',' + y + ' T ' + (x + 14) + ',' + y)
             .attr('fill', 'none').attr('stroke', 'var(--c-input)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x).attr('y', y + 46).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text(label);
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').html(label);
     }
 
     function wire(g, x1, y1, x2, y2) {
@@ -167,8 +172,8 @@
         g.append('line').attr('x1', x).attr('y1', midY + 5).attr('x2', x).attr('y2', gy)
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x - 22).attr('y', midY + 4).attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('C');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('C');
     }
 
     function resistor(g, x, y0, gx, gy) {
@@ -183,8 +188,8 @@
         g.append('line').attr('x1', x).attr('y1', botY).attr('x2', x).attr('y2', gy)
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x + 22).attr('y', (topY + botY) / 2 + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('R');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('R');
     }
 
     function ground(g, x, y) {
@@ -240,10 +245,10 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[2]); }));
 
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
-                .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickFormat(function (d) { return d.toFixed(1); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(-Math.floor(yMax), Math.floor(yMax) + 1, 1))
@@ -252,23 +257,12 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
-            .attr('text-anchor', 'middle').text('Time');
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
+            .attr('text-anchor', 'middle').text('Time (s)');
         f.g.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
 
-        // Legend
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('v_out(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-thresh)').text('true envelope');
 
         return pts;
     }
@@ -292,7 +286,7 @@
 
         var Te = 1 / state.fe;
         if (state.tau < 0.5 * Tc) {
-            rdLag.textContent = 'noisy';
+            rdLag.textContent = 'ripple-dominated';
             rdLag.className = 'v warn';
         } else if (state.tau > 0.5 * Te) {
             rdLag.textContent = 'severe';
@@ -328,7 +322,6 @@
             feL.textContent = state.fe.toFixed(1) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', function () { drawCircuit(); refresh(); });
         window.addEventListener('resize', function () { drawCircuit(); refresh(); });
         refresh();
     }

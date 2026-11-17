@@ -54,7 +54,7 @@
             var x0 = bx + 8, x1 = bx + bw * 0.66, cap = 2 * (2 * s.l + 1);
             var hot = s.name === focusShell;
             g.append('line').attr('x1', x0).attr('x2', x1).attr('y1', yy).attr('y2', yy)
-                .attr('stroke', hot ? css('--accent') : css('--c-level')).attr('stroke-width', hot ? 3 : 2)
+                .attr('stroke', hot ? T.text : css('--c-level')).attr('stroke-width', hot ? 3 : 2)
                 .attr('stroke-dasharray', s.src === 'measured' ? null : '6 4');
             // Capacity and occupancy, centred on the line just above it.
             var step = Math.min(9, (x1 - x0) / cap), cx0 = (x0 + x1) / 2 - step * (cap - 1) / 2;
@@ -67,7 +67,7 @@
             col.forEach(function (q) { if (Math.abs(ly - q) < 20) ly = q + 20; });
             col.push(ly); placed[s.l] = col;
             window.renderKatex(f.svg, '\\text{' + s.name + '}', f.m.left + x1 + 26, f.m.top + ly, {
-                width: 44, height: 20, size: 14, color: hot ? css('--accent') : T.textDim
+                width: 44, height: 20, size: 14, color: hot ? T.text : T.textDim
             });
         });
     }

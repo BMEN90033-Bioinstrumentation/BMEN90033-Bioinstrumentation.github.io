@@ -22,6 +22,13 @@
         inReadout.textContent = (inA * 1e12).toFixed(2) + ' pA/√Hz';
 
         var P = window.WCGW.setupPlot('#plot-noise-floor', {
+            legend: [
+                { key: 'clean', label: 'op-amp e_n' },
+                { key: 'noise', label: 'i_n · R' },
+                { key: 'fixed', label: 'Johnson √(4kTR)' },
+                { key: 'distort', label: 'total e_ni' },
+                { label: 'R_opt = e_n/i_n = ' + formatOhm(en / inA) }
+            ],
             xScale: d3.scaleLog(),
             yScale: d3.scaleLog(),
             xDomain: [1, 1e5],
@@ -50,17 +57,7 @@
         window.WCGW.drawLine(P, johnsonTrace, function (d) { return d.f; }, function (d) { return d.y; }, 'fixed thin', P.y);
         window.WCGW.drawLine(P, totalTrace, function (d) { return d.f; }, function (d) { return d.y; }, 'distort', P.y);
 
-        var Ropt = en / inA;
-        var info = 'R_opt = e_n/i_n = ' + formatOhm(Ropt);
-        P.g.append('text').attr('x', P.innerW - 8).attr('y', 16).attr('text-anchor', 'end').attr('fill', P.colors.fg)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text(info);
 
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'op-amp e_n' },
-            { key: 'noise', label: 'i_n · R' },
-            { key: 'fixed', label: 'Johnson √(4kTR)' },
-            { key: 'distort', label: 'total e_ni' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -74,7 +71,6 @@
         rSlider.addEventListener('input', draw);
         enSlider.addEventListener('input', draw);
         inSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

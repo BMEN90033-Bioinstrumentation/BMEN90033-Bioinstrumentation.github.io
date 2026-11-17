@@ -33,7 +33,7 @@
             .call(d3.axisBottom(x).ticks(6).tickSizeOuter(0));
         var ya = gB.append('g').call(d3.axisLeft(yN).tickValues([1, 1e5, 1e10, 1e15, 1e20])
             .tickFormat(function () { return ''; }).tickSizeOuter(0));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(B.styleAxis);
         [0, 5, 10, 15, 20].forEach(function (k) {
             window.renderKatex(f.svg, '10^{' + k + '}', f.m.left - 30, f.m.top + ph + gap + yN(Math.pow(10, k)),
                 { width: 40, height: 18, size: 13, color: T.text, align: 'right' });

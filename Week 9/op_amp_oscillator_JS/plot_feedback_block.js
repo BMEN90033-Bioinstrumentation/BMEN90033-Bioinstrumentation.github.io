@@ -25,9 +25,9 @@
         var fill = window.CMP.cssVar('--bg-2');
         var text = window.T.text;
         var dim  = window.T.textDim;
-        var accentSoft = window.CMP.cssVar('--accent-soft-faint');
-        var accentEdge = window.CMP.cssVar('--accent-soft-edge');
-        var stroke = 2;
+        var accentSoft = window.CMP.cssVar('--hydro-blue-100');
+        var accentEdge = wire;
+        var stroke = 1.5;
 
         // Arrow marker
         var defs = svg.append('defs');
@@ -155,20 +155,19 @@
         // Loop gain annotation along feedback path
         window.renderKatex(svg, 'A\\,\\beta(j\\omega)',
             (FB.x + FB.w / 2), FB.y + FB.h + 26,
-            { width: 140, height: 22, size: 13, color: dim });
+            { width: 140, height: 22, size: 14, color: dim });
 
         // Forward gain annotation above forward block
         window.renderKatex(svg, '\\text{forward gain}',
             AMP.x + AMP.w / 2, AMP.y - 14,
-            { width: 160, height: 18, size: 11, color: dim });
+            { width: 160, height: 18, size: 13, color: dim });
         window.renderKatex(svg, '\\text{feedback network}',
             FB.x + FB.w / 2, FB.y - 14,
-            { width: 180, height: 18, size: 11, color: dim });
+            { width: 180, height: 18, size: 13, color: dim });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

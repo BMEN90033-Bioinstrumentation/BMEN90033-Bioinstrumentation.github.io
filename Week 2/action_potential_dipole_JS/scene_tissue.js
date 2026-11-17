@@ -12,7 +12,8 @@ const css = (n) => window.CMP.cssVar(n);
 const col = (n) => new THREE.Color(css(n));
 const { TISSUE_LEN, TISSUE_W, TISSUE_H, HALF_LEN } = A;
 
-// Viridis colourmap, 16 stops.
+// Viridis colourmap, 16 stops. Kept as literal values: it encodes field
+// magnitude and is independent of the site palette.
 const VIRIDIS_STOPS = [
     [0.267004, 0.004874, 0.329415], [0.282327, 0.094955, 0.417331],
     [0.278826, 0.176998, 0.483397], [0.258965, 0.251537, 0.524736],
@@ -61,11 +62,12 @@ function resize() {
 new ResizeObserver(resize).observe(host);
 resize();
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+const WHITE = col('--white');   // neutral illuminant
+scene.add(new THREE.AmbientLight(WHITE, 0.4));
+const dirLight = new THREE.DirectionalLight(WHITE, 0.7);
 dirLight.position.set(20, 30, 20);
 scene.add(dirLight);
-const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
+const backLight = new THREE.DirectionalLight(WHITE, 0.2);
 backLight.position.set(-10, 10, -10);
 scene.add(backLight);
 
@@ -91,7 +93,7 @@ function makeBlob(rCore, rGlow, rGlow2, coreOpacity, lightI, lightD) {
     const glowMesh = new THREE.Mesh(new THREE.SphereGeometry(rGlow, 32, 32), glow);
     group.add(glowMesh);
     group.add(new THREE.Mesh(new THREE.SphereGeometry(rGlow2, 24, 24), glow2));
-    const light = new THREE.PointLight(0xffffff, lightI, lightD, 2);
+    const light = new THREE.PointLight(WHITE, lightI, lightD, 2);
     group.add(light);
     scene.add(group);
     return { group, core, glow, glow2, glowMesh, light };
@@ -99,7 +101,7 @@ function makeBlob(rCore, rGlow, rGlow2, coreOpacity, lightI, lightD) {
 const depBlob = makeBlob(1.8, 3.0, 4.5, 0.9, 1.5, 20);
 const repBlob = makeBlob(1.5, 2.5, 3.8, 0.85, 1.0, 15);
 
-// Text sprite on a canvas texture; redrawn on theme change.
+// Text sprite on a canvas texture.
 function makeSprite(text, cssVar, scale) {
     const canvas = document.createElement('canvas');
     canvas.width = 64; canvas.height = 64;
@@ -110,7 +112,7 @@ function makeSprite(text, cssVar, scale) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, 64, 64);
         ctx.fillStyle = css(cssVar);
-        ctx.font = 'bold 48px sans-serif';
+        ctx.font = '400 48px Inter, Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(text, 32, 32);
@@ -124,13 +126,13 @@ const sprites = [];
 function sprite(text, cssVar, scale) { const s = makeSprite(text, cssVar, scale || 2); sprites.push(s); return s; }
 
 // Depolarisation dipole (+x): + ahead, - behind. Repolarisation (-x): reversed.
-const plusSprite = sprite('+', '--c-plus');
-const minusSprite = sprite('−', '--c-minus');
-const repolPlusSprite = sprite('+', '--c-plus');
-const repolMinusSprite = sprite('−', '--c-minus');
+const plusSprite = sprite('+', '--c-pole');
+const minusSprite = sprite('−', '--c-pole');
+const repolPlusSprite = sprite('+', '--c-pole');
+const repolMinusSprite = sprite('−', '--c-pole');
 
 function makeArrow(dir, len, head, headW) {
-    const a = new THREE.ArrowHelper(dir, new THREE.Vector3(), len, 0xffffff, head, headW);
+    const a = new THREE.ArrowHelper(dir, new THREE.Vector3(), len, WHITE, head, headW);
     a.line.material.transparent = true; a.line.material.opacity = 0.5;
     a.cone.material.transparent = true; a.cone.material.opacity = 0.5;
     scene.add(a);
@@ -143,7 +145,7 @@ const repolDipoleArrow = makeArrow(new THREE.Vector3(-1, 0, 0), 4, 0.8, 0.5);
 const XPOS = new THREE.Vector3(1, 0, 0), XNEG = new THREE.Vector3(-1, 0, 0);
 const intraArrows = [];
 for (let x = -HALF_LEN + 1; x <= HALF_LEN - 1; x += 3) {
-    const arrow = new THREE.ArrowHelper(XPOS, new THREE.Vector3(x, 0, 0), 2.0, 0xffffff, 0.5, 0.3);
+    const arrow = new THREE.ArrowHelper(XPOS, new THREE.Vector3(x, 0, 0), 2.0, WHITE, 0.5, 0.3);
     arrow.line.material.transparent = true; arrow.line.material.opacity = 0.8;
     arrow.cone.material.transparent = true; arrow.cone.material.opacity = 0.8;
     arrow.userData = { baseX: x };
@@ -230,7 +232,7 @@ function buildGrid() {
     scene.add(grid);
 }
 
-// ── Theme colours ──
+// ── Colours from the page palette ──
 function recolour() {
     scene.background = new THREE.Color(window.T.sceneBg);
     scene.fog.color.set(window.T.sceneBg);
@@ -254,7 +256,6 @@ function recolour() {
     buildGrid();
 }
 recolour();
-window.addEventListener('themechange', recolour);
 window.addEventListener('apdchange', () => { if (A.p.density !== builtDensity) buildFieldArrows(A.p.density); });
 buildFieldArrows(A.p.density);
 

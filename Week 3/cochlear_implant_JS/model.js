@@ -45,11 +45,12 @@
         return bands;
     }
 
-    // Channel hue runs over 0..300 degrees, apical (low f) to basal (high f).
-    // Saturation and lightness come from the page CSS so both themes read.
-    function channelColor(i, n) {
-        var css = window.CMP.cssVar;
-        return 'hsl(' + ((i / n) * 300).toFixed(1) + ', ' + css('--ch-sat') + ', ' + css('--ch-light') + ')';
+    // Channel colour ramp, apical (low f) to basal (high f), interpolated
+    // through six stops of the --d-* data palette. The legend ramp in the
+    // page CSS lists the same stops in the same order.
+    var RAMP = ['pink', 'orange', 'olive', 'green', 'blue', 'violet'];
+    function channelRamp() {
+        return d3.interpolateRgbBasis(RAMP.map(function (k) { return window.T.c(k); }));
     }
 
     // Greenwood (1990) place map for the human cochlea: f = A (10^{a x} - k),
@@ -141,7 +142,8 @@
     // Channel configuration derived from p.
     function config() {
         var freqs = generateFreqs(p.nch, p.fmin, p.fmax);
-        var colors = freqs.map(function (_, i) { return channelColor(i, p.nch); });
+        var ramp = channelRamp(), n = freqs.length;
+        var colors = freqs.map(function (_, i) { return ramp(n > 1 ? i / (n - 1) : 0.5); });
         return { freqs: freqs, colors: colors, labels: freqs.map(formatFreq), bands: bandEdges(freqs, p.fmin, p.fmax, data.sr) };
     }
 
@@ -233,12 +235,11 @@
         config: config, formatFreq: formatFreq, freqToT: freqToT, greenwoodX: greenwoodX, greenwoodF: greenwoodF,
         lpCoef: lpCoef, hpCoef: hpCoef, biquadMag: biquadMag, compress: compress,
         reprocess: reprocess,
-        // Run fn now (after DOM ready) and on every processing, theme or size change.
+        // Run fn now (after DOM ready) and on every processing or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ciprocessed', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

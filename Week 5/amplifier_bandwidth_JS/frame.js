@@ -5,6 +5,12 @@
 (function () {
     var A = window.AMP;
 
+    // Shared axis style with tick text raised to 13 px.
+    A.styleAxis = function (ax) {
+        window.CMP.styleAxis(ax);
+        ax.selectAll('text').attr('font-size', 13);
+    };
+
     A.frame = function (sel, o) {
         var root = d3.select(sel);
         root.selectAll('*').remove();
@@ -34,7 +40,7 @@
             .call(d3.axisBottom(x).tickValues(xt).tickSizeOuter(0)
                 .tickFormat(log ? function () { return ''; } : null));
         var ya = g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(A.styleAxis);
         if (log) {
             var step = Math.max(1, Math.ceil(34 / (f.iw / Math.max(1, xt.length - 1))));
             xt.forEach(function (v, i) {

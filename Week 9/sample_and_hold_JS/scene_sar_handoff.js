@@ -19,7 +19,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(260, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 24, right: 28, bottom: 40, left: 56 };
+        var m = { top: 34, right: 40, bottom: 48, left: 66 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -98,25 +98,14 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('time');
         f.g.append('text')
             .attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-40) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude');
-
-        // Legend
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',6)');
-        lg.append('text')
-            .attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text')
-            .attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('held output to SAR');
+            .text('normalised amplitude');
 
         rdRate.textContent = state.fs.toFixed(0);
         rdWin.textContent = (Ts * 1000).toFixed(1) + ' ms';
@@ -130,10 +119,9 @@
         });
         fsI.addEventListener('input', function () {
             state.fs = parseFloat(fsI.value);
-            fsL.textContent = state.fs.toFixed(1) + ' Hz';
+            fsL.textContent = state.fs.toFixed(0) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

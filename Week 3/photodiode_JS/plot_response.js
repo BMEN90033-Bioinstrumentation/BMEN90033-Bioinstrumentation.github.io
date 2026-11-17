@@ -1,4 +1,4 @@
-// Section 04 · Ideal spectral responsivity R(lambda) = eta lambda / 1240 A/W
+// Section 04: ideal spectral responsivity R(lambda) = eta lambda / 1240 A/W
 // up to each material's cutoff wavelength, zero beyond. The three materials
 // share the rising line below their cutoffs, so the selected one is drawn
 // solid and the others as faint cutoff edges. Single quadrant.
@@ -21,7 +21,7 @@
             .attr('fill', T.overlay05);
         PD.axes(f, g, x, y, { xTitle: '\\lambda\\;[\\mathrm{nm}]', yTitle: '\\mathcal{R}\\;[\\mathrm{A/W}]' });
         g.append('text').attr('x', x(565)).attr('y', 18).attr('text-anchor', 'middle')
-            .attr('fill', T.textDim).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+            .attr('fill', T.textDim).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
             .text('visible');
         var placed = [[x(565) - 30, 4, x(565) + 30, 24]];
 

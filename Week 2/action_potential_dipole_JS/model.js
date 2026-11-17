@@ -96,12 +96,11 @@
         actions: {
             reset: function () { s.wf = WF_START; p.run = 'on'; }
         },
-        // Run fn after DOM ready and again on every parameter, theme or size change.
+        // Run fn after DOM ready and again on every parameter or size change.
         onRender: function (fn) {
             ready(function () {
                 fn();
                 window.addEventListener('apdchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             });
         },

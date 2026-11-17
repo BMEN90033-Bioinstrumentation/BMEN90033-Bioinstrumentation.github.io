@@ -17,7 +17,7 @@
         var y = d3.scaleLinear().domain([DB_MIN, DB_MAX]).range([ih, 0]);
         A.axes(f, x, y, {
             log: true, yTicks: d3.range(DB_MIN, DB_MAX + 1, 20),
-            yTitle: '|A_{CL}(j\\omega)|\\;[\\mathrm{dB}]',
+            yTitle: '|A_\\text{CL}(j\\omega)|\\;[\\mathrm{dB}]',
             xTitle: '\\omega\\;[\\mathrm{rad/s}]'
         });
 

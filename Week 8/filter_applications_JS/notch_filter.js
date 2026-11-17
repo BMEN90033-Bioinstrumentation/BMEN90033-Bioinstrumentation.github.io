@@ -40,7 +40,15 @@
             xTitle: 't \\, [\\mathrm{s}]',
             yTitle: '\\text{ECG amplitude} \\, [\\mathrm{mV}]',
             xTicks: [0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6],
-            yTicks: [-1.0, -0.5, 0, 0.5, 1.0, 1.5]
+            yTicks: [-1.0, -0.5, 0, 0.5, 1.0, 1.5],
+            legend: [
+                { color: getColor('--c-noisy'),    label: 'ECG + 50 Hz hum',  dashed: false,
+                  show: state.humOn },
+                { color: getColor('--c-noisy'),    label: 'ECG without hum',     dashed: false,
+                  show: !state.humOn },
+                { color: getColor('--c-clean'),    label: 'clean reference',  dashed: true },
+                { color: getColor('--c-filtered'), label: 'notch output',     dashed: false }
+            ]
         });
 
         var x = H.x, y = H.y;
@@ -62,14 +70,6 @@
         H.g.append('path').datum(filt)
             .attr('class', 'trace filtered').attr('d', line);
 
-        drawLegend(H, [
-            { color: getColor('--c-noisy'),    label: 'ECG + 50 Hz hum',  dashed: false, faint: false,
-              show: state.humOn },
-            { color: getColor('--c-noisy'),    label: 'ECG (no hum)',     dashed: false, faint: false,
-              show: !state.humOn },
-            { color: getColor('--c-clean'),    label: 'clean reference',  dashed: true,  faint: true },
-            { color: getColor('--c-filtered'), label: 'notch output',     dashed: false, faint: false }
-        ]);
     }
 
     function renderMag() {
@@ -82,7 +82,7 @@
             yTitle: '|H(f)|^2',
             xTicks: [0, 25, 50, 75, 100, 125, 150, 175, 200],
             yTicks: [0, 0.25, 0.5, 0.75, 1.0],
-            margin: { top: 80, right: 36, bottom: 50, left: 60 }
+            margin: { top: 80, right: 36, bottom: 50, left: 78 }
         });
 
         var x = H.x, y = H.y;
@@ -109,7 +109,7 @@
         var humLabelX = Math.min(Math.max(xHum, 60), H.innerW - 60);
         window.renderKatex(H.g, '50\\,\\mathrm{Hz}\\;\\text{hum}',
             humLabelX, -46,
-            { width: 110, height: 16, size: 11, color: getColor('--c-noisy') });
+            { width: 110, height: 16, size: 13, color: getColor('--c-noisy') });
 
         // Notch centre marker (lower label row to avoid the hum label).
         // If the slider lands on 50 Hz the two markers coincide; clamp the
@@ -121,38 +121,7 @@
             .attr('y1', 0).attr('y2', H.innerH);
         var f0LabelX = Math.min(Math.max(xn, 24), H.innerW - 24);
         window.renderKatex(H.g, 'f_0', f0LabelX, -18,
-            { width: 50, height: 16, size: 12, color: getColor('--c-mark') });
-    }
-
-    function drawLegend(H, items) {
-        var visible = items.filter(function (it) { return it.show !== false; });
-        var pad = 8;
-        var rowH = 14;
-        var w = 170;
-        var h = pad * 2 + rowH * visible.length;
-        var x0 = H.innerW - w - 8;
-        var y0 = 8;
-        var grp = H.g.append('g');
-        grp.append('rect')
-            .attr('x', x0).attr('y', y0)
-            .attr('width', w).attr('height', h)
-            .attr('rx', 6).attr('ry', 6)
-            .attr('fill', window.T.panelBg)
-            .attr('stroke', window.T.gridStrong);
-        visible.forEach(function (it, i) {
-            var yy = y0 + pad + 6 + i * rowH;
-            grp.append('line')
-                .attr('x1', x0 + pad).attr('x2', x0 + pad + 18)
-                .attr('y1', yy - 3).attr('y2', yy - 3)
-                .attr('stroke', it.color).attr('stroke-width', 2.2)
-                .attr('stroke-dasharray', it.dashed ? '4 4' : null)
-                .attr('opacity', it.faint ? 0.65 : 1);
-            grp.append('text')
-                .attr('x', x0 + pad + 24).attr('y', yy)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10).attr('fill', window.T.text)
-                .text(it.label);
-        });
+            { width: 50, height: 16, size: 14, color: getColor('--c-mark') });
     }
 
     function getColor(varName) {
@@ -168,7 +137,7 @@
     }
     function onSliderQ() {
         state.Q = parseFloat(sliderQ.value);
-        if (valQ) valQ.textContent = 'Q = ' + state.Q.toFixed(0);
+        if (valQ) valQ.textContent = state.Q.toFixed(0);
         renderAll();
     }
 
@@ -184,7 +153,6 @@
             renderAll();
         });
         renderAll();
-        window.addEventListener('themechange', renderAll);
         window.addEventListener('resize', renderAll);
     }
 

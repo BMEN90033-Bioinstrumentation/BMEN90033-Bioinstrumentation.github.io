@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Complex Multiplication and Division</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Complex multiplication and division</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="complex_arithmetic_JS/complex_arithmetic.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -48,7 +43,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 8 · COMPLEX ARITHMETIC</div>
-            <h1 class="hero">Multiplication and division of <em>complex numbers</em>.</h1>
+            <h1 class="hero">Multiplication and division of complex numbers</h1>
             <p class="sub">In polar form, the product and quotient of two complex numbers are obtained geometrically
                 rather than algebraically. The magnitude of the product equals the product of the input magnitudes, and
                 its argument equals the sum of the input arguments; division reverses the latter operation. The
@@ -57,7 +52,7 @@
             <div class="tags">
                 <span class="field-tag">argand plane</span>
                 <span class="field-tag">polar form</span>
-                <span class="field-tag">rotation + scaling</span>
+                <span class="field-tag">rotation and scaling</span>
             </div>
         </div>
         <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
@@ -67,7 +62,7 @@
     <section class="scene" id="sec-mul">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>multiplication</span></div>
-            <h2>Multiplication: magnitudes <em class="r">multiply</em>, arguments <em class="r">add</em>.</h2>
+            <h2>Multiplication: magnitudes multiply and arguments add</h2>
 
             <p class="lead">A complex number expressed in polar form is written $z = r\,e^{i\theta}$, where $r = |z|$
                 denotes its magnitude and $\theta = \arg z$ denotes its argument, measured anticlockwise from the
@@ -82,9 +77,9 @@
                 through the angle $\theta_2$ and a <strong>scaling</strong> by the factor $r_2$. These operations
                 commute, so the order in which they are applied does not affect the result.</p>
 
-            <h3>Geometric interpretation.</h3>
-            <p>The arc from the positive real axis to <em class="z1" style="color:var(--z1-color)">$z_1$</em> subtends
-                the angle $\theta_1$, and the arc to <em class="z2" style="color:var(--z2-color)">$z_2$</em> subtends
+            <h3>Geometric interpretation</h3>
+            <p>The arc from the positive real axis to <em class="z1">$z_1$</em> subtends
+                the angle $\theta_1$, and the arc to <em class="z2">$z_2$</em> subtends
                 $\theta_2$. The arc to the <em class="r">product</em> subtends $\theta_1 + \theta_2$, equal to the two
                 preceding arcs placed end to end. The length of the product vector equals $r_1 r_2$. When both inputs
                 lie on the unit circle, the product also lies on the unit circle, and multiplication reduces to a pure
@@ -115,15 +110,15 @@
         <div>
             <div class="plot-stack">
                 <div class="toolbar">
-                    <span class="pill" id="mul-animate">▶&nbsp;animate&nbsp;×&nbsp;z₂</span>
-                    <span class="pill" id="mul-unit">z₂&nbsp;on&nbsp;unit&nbsp;circle</span>
+                    <span class="pill" id="mul-animate">Animate $\times\, z_2$</span>
+                    <span class="pill" id="mul-unit">$z_2$ on unit circle</span>
                     <span class="divider"></span>
                     <span class="pill" id="mul-reset">reset</span>
-                    <span class="hint">drag the blue or green dot; vectors snap near grid lines</span>
+                    <span class="hint">Drag the blue handle ($z_1$) or the orange handle ($z_2$). Handles snap to nearby grid lines.</span>
                 </div>
 
                 <div class="plot-box">
-                    <div class="label">argand plane · <b>z₁ · z₂</b></div>
+                    <div class="label">argand plane · <b>$z_1 z_2$</b></div>
                     <svg class="argand" id="plot-mul"></svg>
                 </div>
             </div>
@@ -134,7 +129,7 @@
     <section class="scene" id="sec-div">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>division</span></div>
-            <h2>Division: magnitudes <em class="r">divide</em>, arguments <em class="r">subtract</em>.</h2>
+            <h2>Division: magnitudes divide and arguments subtract</h2>
 
             <p class="lead">Division of complex numbers in polar form follows from the same identity applied to the
                 reciprocal:</p>
@@ -147,7 +142,7 @@
                 <strong>scaling</strong> by $1/r_2$. Composition of the two operations returns $z_1$ to itself, since
                 $z_1 \cdot z_2 \cdot z_2^{-1} = z_1$.</p>
 
-            <h3>Geometric interpretation.</h3>
+            <h3>Geometric interpretation</h3>
             <p>The arc to the <em class="r">quotient</em> subtends $\theta_1 - \theta_2$. When $\theta_2 > \theta_1$,
                 this difference is negative and the quotient lies below the positive real axis even when both inputs
                 lie above it. The length of the quotient vector equals $r_1$ scaled by the factor $1/r_2$. A divisor of
@@ -181,15 +176,15 @@
         <div>
             <div class="plot-stack">
                 <div class="toolbar">
-                    <span class="pill" id="div-animate">▶&nbsp;animate&nbsp;÷&nbsp;z₂</span>
-                    <span class="pill" id="div-unit">z₂&nbsp;on&nbsp;unit&nbsp;circle</span>
+                    <span class="pill" id="div-animate">Animate $\div\, z_2$</span>
+                    <span class="pill" id="div-unit">$z_2$ on unit circle</span>
                     <span class="divider"></span>
                     <span class="pill" id="div-reset">reset</span>
-                    <span class="hint">drag the blue or green dot; vectors snap near grid lines</span>
+                    <span class="hint">Drag the blue handle ($z_1$) or the orange handle ($z_2$). Handles snap to nearby grid lines.</span>
                 </div>
 
                 <div class="plot-box">
-                    <div class="label">argand plane · <b>z₁ / z₂</b></div>
+                    <div class="label">argand plane · <b>$z_1 / z_2$</b></div>
                     <svg class="argand" id="plot-div"></svg>
                 </div>
             </div>
@@ -200,7 +195,7 @@
     <section class="scene" id="sec-transform">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>grid transformation</span></div>
-            <h2>Multiplication as a transformation of the plane.</h2>
+            <h2>Multiplication as a transformation of the plane</h2>
 
             <p class="lead">Multiplication by a fixed complex number $a$ defines a linear transformation of the plane
                 that maps the unit vector at $1$ to $a$. Every point $w$ is sent to $aw$, so the rotation and scaling
@@ -208,8 +203,8 @@
 
             <div class="eq-block">$$1 \mapsto a,\qquad w \mapsto aw,\qquad w \mapsto \frac{w}{a}.$$</div>
 
-            <p>Setting <em class="z1" style="color:var(--z1-color)">$z_1$</em> and
-                <em class="z2" style="color:var(--z2-color)">$z_2$</em> and dragging the transform handle away from $1$
+            <p>Setting <em class="z1">$z_1$</em> and
+                <em class="z2">$z_2$</em> and dragging the transform handle away from $1$
                 updates the overlay. When the handle is placed on $z_1$, the overlay displays the grid transformation
                 associated with multiplication by $z_1$, and the point $z_2$ is mapped to the corresponding product.
                 Selecting division displays the inverse transformation, in which each point is rotated through $-\arg a$
@@ -230,9 +225,9 @@
                     <span class="pill active" id="transform-mode-mul">multiply</span>
                     <span class="pill" id="transform-mode-div">divide</span>
                     <span class="divider"></span>
-                    <span class="pill" id="transform-snap-z1">place handle on z₁</span>
+                    <span class="pill" id="transform-snap-z1">Place handle on $z_1$</span>
                     <span class="pill" id="transform-reset">reset</span>
-                    <span class="hint">divide sets a on z₂; dragging z₂ then updates the grid map</span>
+                    <span class="hint">Divide places $a$ on $z_2$; dragging $z_2$ then updates the grid map.</span>
                 </div>
 
                 <div class="plot-box">

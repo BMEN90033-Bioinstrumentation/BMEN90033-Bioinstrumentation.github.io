@@ -23,16 +23,15 @@
                 .style('align-items', 'center')
                 .style('justify-content', 'center');
             var pill = holder.append('xhtml:div')
-                .style('color', opts.color || '#1a1a1e')
+                .style('color', opts.color || window.T.text)
                 .style('font-size', (opts.size || 14) + 'px')
                 .style('line-height', '1')
                 .style('white-space', 'nowrap')
                 .style('display', 'inline-block')
-                .style('background', opts.pillBg || 'rgba(255,255,255,0.96)')
-                .style('border', '1px solid rgba(0,0,0,0.18)')
-                .style('border-radius', '999px')
-                .style('padding', opts.pillPad || '2px 8px')
-                .style('box-shadow', '0 1px 2px rgba(0,0,0,0.18)');
+                .style('background', opts.pillBg || 'var(--white)')
+                .style('border', '1px solid var(--calcium-white-800)')
+                .style('border-radius', 'var(--radius-3)')
+                .style('padding', opts.pillPad || '2px 8px');
             if (window.katex) {
                 window.katex.render(latex, pill.node(), { throwOnError: false, displayMode: !!opts.display });
             } else {
@@ -56,5 +55,17 @@
             }
         }
         return fo;
+    };
+
+    // White backing behind an in-plot legend group, so grid and marker lines
+    // do not run through the legend text. Call after the rows are drawn.
+    window.legendBacking = function (lg) {
+        var bb = lg.node().getBBox();
+        lg.insert('rect', ':first-child')
+            .attr('x', bb.x - 6).attr('y', bb.y - 4)
+            .attr('width', bb.width + 12).attr('height', bb.height + 8)
+            .attr('rx', 3)
+            .attr('fill', window.T.plotBg)
+            .attr('stroke', window.T.gridStrong).attr('stroke-width', 1);
     };
 })();

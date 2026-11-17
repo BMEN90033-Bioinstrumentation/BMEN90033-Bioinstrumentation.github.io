@@ -114,7 +114,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 52, left: 68 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -139,7 +139,7 @@
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
                 .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(0, Math.floor(yMax) + 1, 1))
@@ -148,10 +148,10 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle').text('Time');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-54) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
     }
 
@@ -171,11 +171,12 @@
             .attr('y1', y(state.vf)).attr('y2', y(state.vf))
             .attr('stroke', 'var(--c-thresh)').attr('stroke-dasharray', '4 3')
             .attr('stroke-width', 1.2).attr('opacity', 0.7);
+        // Threshold label sits in the right margin, clear of the trace.
         f.g.append('text')
-            .attr('x', 6).attr('y', y(state.vf) - 6)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-thresh)')
-            .text('V_F · diode-drop floor for the passive variants');
+            .attr('x', f.iw + 5).attr('y', y(state.vf) + 4)
+            .attr('class', 't-thresh')
+            .text('V_F');
+        APD.sub(f.g);
 
         commonAxes(f, x, y, yMax);
 
@@ -186,7 +187,7 @@
     }
 
     function drawOutputs(sim) {
-        var f = makeFrame(outSvg);
+        var f = makeFrame(outSvg, { margin: { top: APD.legendTop(4), right: 36, bottom: 52, left: 68 } });
         f.g.selectAll('*').remove();
 
         var yMax = Math.max(2.6, d3.max(sim.pts, function (p) {
@@ -231,19 +232,12 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[4]); }));
 
         // Legend
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('input');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-passive)').text('passive simple');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-rc)').text('passive RC');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 58)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-precision)').text('precision active');
+        APD.legend(f.g, f.iw, [
+            { color: 'var(--c-input)', label: 'input' },
+            { color: 'var(--c-passive)', label: 'diode-capacitor' },
+            { color: 'var(--c-rc)', label: 'RC envelope', dash: '5 4' },
+            { color: 'var(--c-precision)', label: 'precision peak' }
+        ]);
     }
 
     function updateReadout(sim) {
@@ -274,7 +268,7 @@
             rdRc.textContent = 'ripples';
             rdRc.className = 'v warn';
         } else {
-            rdRc.textContent = 'ok';
+            rdRc.textContent = 'adequate';
             rdRc.className = 'v amber';
         }
 
@@ -310,7 +304,6 @@
             winL.textContent = parseFloat(winI.value).toFixed(0) + ' ms';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

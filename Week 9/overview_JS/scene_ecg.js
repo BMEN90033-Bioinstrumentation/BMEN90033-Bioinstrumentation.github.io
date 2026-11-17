@@ -14,7 +14,7 @@
 
     var WINDOW = 4.0; // seconds shown
     var FS = 250;     // sample rate
-    var Y_DOMAIN = [-0.5, 1.4];
+    var Y_DOMAIN = [-0.7, 1.4];   // the band below -0.4 carries the comparator output
 
     var state = {
         hr: 72,
@@ -64,7 +64,7 @@
 
     var svg = d3.select(svgSel).classed('ov', true);
     var W = 600, H = 280;
-    var margin = { top: 22, right: 78, bottom: 38, left: 56 };
+    var margin = { top: 26, right: 78, bottom: 48, left: 62 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -93,26 +93,26 @@
         gAxis.selectAll('*').remove();
         gTitles.selectAll('*').remove();
 
-        [-0.5, 0, 0.5, 1.0].forEach(function (v) {
+        [0, 0.5, 1.0].forEach(function (v) {
             gGrid.append('line')
                 .attr('class', v === 0 ? 'major' : '')
                 .attr('x1', 0).attr('x2', iw)
                 .attr('y1', y(v)).attr('y2', y(v));
         });
 
-        var yAxis = d3.axisLeft(y).tickValues([-0.5, 0, 0.5, 1.0]).tickSize(0).tickPadding(8);
+        var yAxis = d3.axisLeft(y).tickValues([0, 0.5, 1.0]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([-4, -3, -2, -1, 0]).tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([-4, -3, -2, -1, 0]).tickFormat(function (d) { return d + ''; }).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')').call(xAxis).select('.domain').remove();
 
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 30)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time (relative to now), s');
+            .text('Time relative to present (s)');
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-40) + ',' + (ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-46) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('amplitude, mV');
+            .text('Amplitude (mV)');
     }
 
     function drawTrace() {
@@ -133,7 +133,7 @@
 
         // Comparator output: high inside the small refractory window after each pulse.
         gOut.selectAll('*').remove();
-        var OUT_HI = -0.30, OUT_LO = -0.45;
+        var OUT_HI = -0.50, OUT_LO = -0.64;
         var outLine = d3.line()
             .x(function (d) { return x(d[0]); })
             .y(function (d) { return y(d[1]); })
@@ -155,11 +155,10 @@
             .attr('class', 'trace output')
             .attr('stroke-width', 2.0)
             .attr('d', outLine);
-        gOut.append('text')
-            .attr('x', 4).attr('y', y(OUT_HI) - 4)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output)')
-            .text('comparator out');
+        gOut.append('text').attr('class', 'halo')
+            .attr('x', 4).attr('y', y(OUT_HI) - 6)
+            .style('fill', 'var(--c-output)')
+            .text('Comparator output');
 
         // Threshold draggable
         gThresh.selectAll('*').remove();
@@ -173,21 +172,18 @@
             .attr('x', iw + 4).attr('y', yT - 11)
             .attr('width', 56).attr('height', 22)
             .attr('rx', 4)
-            .style('fill', 'var(--c-thresh)').attr('opacity', 0.18);
-        grab.append('text')
-            .attr('class', 'thresh-label')
-            .attr('x', iw + 32).attr('y', yT + 4)
-            .attr('text-anchor', 'middle')
-            .text('V_th');
+            .style('fill', 'var(--d-pink-soft)');
+        window.renderKatex(grab, 'V_\\mathrm{th}', iw + 32, yT,
+            { size: 14, color: 'var(--c-thresh)', width: 56, height: 22 });
         grab.append('circle')
             .attr('cx', iw).attr('cy', yT).attr('r', 5)
             .style('fill', 'var(--c-thresh)')
-            .style('stroke', 'var(--bg-2)').attr('stroke-width', 1.5);
+            .style('stroke', 'var(--white)').attr('stroke-width', 1.5);
         var dragH = d3.drag().on('drag', function (event) {
             var ny = Math.max(0, Math.min(ih, event.y));
             state.thresh = Math.max(-0.3, Math.min(1.3, y.invert(ny)));
             drawTrace();
-            rdThr.textContent = state.thresh.toFixed(2);
+            rdThr.textContent = state.thresh.toFixed(2) + ' mV';
         });
         grab.call(dragH);
         gThresh.select('line').style('cursor', 'ns-resize').call(dragH);
@@ -225,7 +221,7 @@
             count++;
         }
         var det = count >= 2 ? 60 * (count - 1) / (last - first) : 0;
-        rdDet.textContent = (count >= 2 ? Math.round(det) : '—') + ' bpm';
+        rdDet.textContent = count >= 2 ? Math.round(det) + ' bpm' : 'n/a';
 
         drawTrace();
         requestAnimationFrame(step);
@@ -244,7 +240,7 @@
         drawStatic();
         drawTrace();
         rdTrue.textContent = state.hr + ' bpm';
-        rdThr.textContent = state.thresh.toFixed(2);
+        rdThr.textContent = state.thresh.toFixed(2) + ' mV';
         nzLab.textContent = state.noise.toFixed(2);
 
         hrInp.addEventListener('input', function () {
@@ -256,7 +252,6 @@
             state.noise = parseFloat(nzInp.value);
             nzLab.textContent = state.noise.toFixed(2);
         });
-        window.addEventListener('themechange', function () { drawStatic(); drawTrace(); });
         window.addEventListener('resize', function () {
             layout(); drawStatic(); drawTrace();
         });

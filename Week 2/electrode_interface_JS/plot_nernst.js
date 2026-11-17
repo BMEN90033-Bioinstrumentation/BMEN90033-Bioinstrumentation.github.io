@@ -51,9 +51,11 @@
         refs.forEach(function (r) {
             var rx = x(r.a), ry = y(B.nernst(r.a));
             g.append('circle').attr('cx', rx).attr('cy', ry).attr('r', 4.5)
-                .attr('fill', css('--bg-2')).attr('stroke', T.text).attr('stroke-width', 1.4);
+                .attr('fill', T.plotBg).attr('stroke', T.text).attr('stroke-width', 1.4);
             var fo = window.renderKatex(f.svg, r.tex + ' = ' + B.nernst(r.a).toFixed(3) + '\\,\\text{V}', 0, 0,
                 { width: 300, height: 20, size: 14, color: T.textDim, align: 'left' });
+            // KaTeX may break at the relation signs once its fonts load; keep one line.
+            fo.select('div').style('white-space', 'nowrap');
             var kw = (fo.select('.katex').node().getBoundingClientRect().width || 200) + 4;
             var lh = 20;
             // Above-right, below-left, above-left, below-right of the point.

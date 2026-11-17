@@ -13,8 +13,6 @@
         };
         document.querySelectorAll('[data-out]').forEach(function (el) {
             el.textContent = out[el.dataset.out];
-            var k = el.dataset.out;
-            el.classList.toggle('on', (k === 'regime' && on) || (k === 'inv' && out.inv === 'yes'));
         });
     }
     window.LD.onRender(render);

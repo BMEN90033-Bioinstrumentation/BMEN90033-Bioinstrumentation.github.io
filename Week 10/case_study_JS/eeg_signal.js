@@ -1,11 +1,11 @@
 // eeg_signal.js
 // Shared EEG simulator. The signal follows a four-phase cycle that mirrors a
 // clinical seizure recording:
-//   • normal   — low-amplitude alpha/beta background
-//   • pre      — same background plus a small number of growing spikes (the
+//   • normal  , low-amplitude alpha/beta background
+//   • pre     , same background plus a small number of growing spikes (the
 //                feature the case study asks the student to detect)
-//   • seizure  — high-amplitude rhythmic activity with broadband content
-//   • recovery — post-ictal suppression
+//   • seizure , high-amplitude rhythmic activity with broadband content
+//   • recovery, post-ictal suppression
 // One rAF loop maintains a ring buffer of raw samples, a 2-pole low-pass
 // version, the ground-truth spike list, and a phase function. Per-scene
 // drawing functions register a tick callback and read window slices.
@@ -89,7 +89,7 @@
         }
     }
 
-    // Slow drift component (delta band) — present in every phase, always
+    // Slow drift component (delta band), present in every phase, always
     // small relative to the spikes and the seizure.
     function drift(t) {
         var v = 0;
@@ -143,7 +143,7 @@
         } else if (ph.id === 'seizure') {
             bgAmp = 1.40;
         } else {
-            // Post-ictal suppression — background scaled right down, then
+            // Post-ictal suppression, background scaled right down, then
             // recovers in the last second of the recovery phase.
             var recRamp = Math.max(0, ph.t - (P_REC - 1.5)) / 1.5;
             bgAmp = 0.18 + 0.37 * recRamp;
@@ -255,7 +255,40 @@
         return out;
     }
 
+    // Sets SVG text with subscripts written as 'V_{held}'.
+    function label(sel, s) {
+        sel.text(null);
+        s.split(/_\{([^}]*)\}/).forEach(function (part, i) {
+            if (!part) return;
+            var ts = sel.append('tspan').text(part);
+            if (i % 2) ts.attr('baseline-shift', 'sub').attr('font-size', '0.75em');
+        });
+        return sel;
+    }
+
+    // Draws a row of line swatches with labels, left to right from x = 0.
+    // items: [{ c: colour, text: 'V_{held}', dash: '5 4' or dot: true (optional) }]
+    function legend(g, items, y) {
+        g.selectAll('*').remove();
+        var x0 = 0;
+        items.forEach(function (it) {
+            if (it.dot) {
+                g.append('circle').attr('cx', x0 + 9).attr('cy', y - 4).attr('r', 3)
+                    .style('fill', it.c);
+            } else {
+                g.append('line')
+                    .attr('x1', x0).attr('x2', x0 + 18).attr('y1', y - 4).attr('y2', y - 4)
+                    .style('stroke', it.c).style('stroke-width', 2)
+                    .style('stroke-dasharray', it.dash || null);
+            }
+            var t = label(g.append('text').attr('class', 'note').attr('x', x0 + 24).attr('y', y), it.text);
+            x0 += 24 + t.node().getComputedTextLength() + 20;
+        });
+    }
+
     window.EEG = {
+        label: label,
+        legend: legend,
         FS: FS,
         HISTORY: HISTORY,
         CYCLE_LEN: CYCLE_LEN,

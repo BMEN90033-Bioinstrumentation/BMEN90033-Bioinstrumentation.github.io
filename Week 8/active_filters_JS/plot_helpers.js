@@ -4,7 +4,7 @@
 // poles, zeros, and traces on the returned panels.
 (function () {
 
-    // While the user is actively scrolling the page, wheel events that pass
+    // While the page is actively being scrolled, wheel events that pass
     // over a plot should keep scrolling instead of zooming. Once scrolling
     // stops, a fresh wheel on a plot zooms it.
     if (!window.__plotWheelGuard) {
@@ -25,6 +25,8 @@
             }
         };
     }
+
+    var MONO = getCssVar('--font-mono');
 
     function getCssVar(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -47,7 +49,7 @@
         var W = rect.width;
         var H = rect.height || 600;
 
-        var margin = { top: 40, right: 32, bottom: 56, left: 64 };
+        var margin = { top: 40, right: 28, bottom: 56, left: 76 };
         var gapBetween = 22;
         var innerW = W - margin.left - margin.right;
         var innerH_total = H - margin.top - margin.bottom - gapBetween;
@@ -87,10 +89,10 @@
 
         // Axis titles (single-quadrant rule)
         window.renderKatex(content, '|H(j\\omega)|\\,[\\mathrm{dB}]',
-            20, margin.top + innerH / 2,
+            16, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(content, '\\angle H(j\\omega)\\,[^\\circ]',
-            20, phaseTop + innerH / 2,
+            16, phaseTop + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(content, '\\omega\\,[\\mathrm{rad/s}]',
             margin.left + innerW / 2, H - 14,
@@ -121,7 +123,7 @@
         var W = rect.width;
         var H = rect.height || 360;
 
-        var margin = { top: 38, right: 28, bottom: 56, left: 64 };
+        var margin = { top: 38, right: 28, bottom: 56, left: 76 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
 
@@ -145,7 +147,7 @@
         ), T);
 
         window.renderKatex(content, '|H(j\\omega)|\\,[\\mathrm{dB}]',
-            20, margin.top + innerH / 2,
+            16, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(content, '\\omega\\,[\\mathrm{rad/s}]',
             margin.left + innerW / 2, H - 14,
@@ -187,10 +189,12 @@
         //   right = 64: Re{s} axis title sits at innerW + 24, centred on
         //     the real axis. ForeignObject width is 60 so it never
         //     overflows the SVG.
-        //   left = 16, bottom = 36: minimal, since both axes pass through
-        //     x = 0 / y = 0 in the middle of a square data window, so
-        //     in-plot tick labels do not need outer space.
-        var pad = { top: 72, right: 64, bottom: 36, left: 16 };
+        //   left = 16: minimal, since both axes pass through x = 0 / y = 0
+        //     in the middle of a square data window, so in-plot tick
+        //     labels do not need outer space.
+        //   bottom = 104: holds the legend (up to four rows of 18 px)
+        //     below the plot frame, clear of every pole, zero and locus.
+        var pad = { top: 72, right: 64, bottom: 104, left: 16 };
         var imTitleY = 50;
         var availW = W - pad.left - pad.right;
         var availH = H - pad.top - pad.bottom;
@@ -256,25 +260,33 @@
             .attr('x1', x(0)).attr('x2', x(0))
             .attr('stroke', T.gridAxis).attr('stroke-width', 1.4);
 
-        // Tick labels along in-plot axes
+        // Tick labels along in-plot axes. Each label sits beside its
+        // grid line on the side away from the origin, so neither the grid
+        // line nor a unit circle through the tick crosses the text. Ticks
+        // on the frame are not labelled, and a wide window labels every
+        // second tick so the labels stay clear of poles near the unit circle.
+        var labelStep = (xDomain[1] - xDomain[0]) >= 6 ? 2 : 1;
+        function labelled(v, dom) {
+            return v !== 0 && v % labelStep === 0 && v > dom[0] && v < dom[1];
+        }
         xTicks.forEach(function (v) {
-            if (v === 0) return;
+            if (!labelled(v, xDomain)) return;
             g.append('text')
-                .attr('x', x(v)).attr('y', y(0) + 14)
-                .attr('text-anchor', 'middle')
+                .attr('x', x(v) + (v > 0 ? 6 : -6)).attr('y', y(0) + 20)
+                .attr('text-anchor', v > 0 ? 'start' : 'end')
                 .attr('fill', T.fg(0.55))
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-family', MONO)
+                .attr('font-size', 13)
                 .text(v);
         });
         yTicks.forEach(function (v) {
-            if (v === 0) return;
+            if (!labelled(v, yDomain)) return;
             g.append('text')
-                .attr('x', x(0) - 6).attr('y', y(v) + 4)
+                .attr('x', x(0) - 10).attr('y', y(v) + (v > 0 ? -6 : 16))
                 .attr('text-anchor', 'end')
                 .attr('fill', T.fg(0.55))
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-family', MONO)
+                .attr('font-size', 13)
                 .text(v.toFixed(0));
         });
 
@@ -295,6 +307,7 @@
         return {
             svg: svg, g: g, x: x, y: y,
             innerW: innerW, innerH: innerH,
+            legendX: innerW, legendY: innerH + 8,
             margin: margin, W: W, H: H
         };
     }
@@ -458,11 +471,21 @@
     }
 
     function styleAxis(ax, T) {
+        // Drop a tick label that would touch the one above it (the −3 dB
+        // label beside 0 dB on a short panel); its grid line remains.
+        var lastY = null;
+        ax.selectAll('.tick').nodes().reverse().forEach(function (node) {
+            var m = /translate\(([^,]+),([^)]+)\)/.exec(node.getAttribute('transform') || '');
+            var ty = m ? parseFloat(m[2]) : 0;
+            if (!m || parseFloat(m[1]) !== 0) return;          // bottom axis: leave as is
+            if (lastY !== null && Math.abs(ty - lastY) < 14) d3.select(node).select('text').remove();
+            else lastY = ty;
+        });
         ax.selectAll('path,line').attr('stroke', T.gridAxis);
         ax.selectAll('text')
             .attr('fill', T.text)
-            .attr('font-size', 12)
-            .attr('font-family', "'JetBrains Mono', monospace");
+            .attr('font-size', 13)
+            .attr('font-family', MONO);
     }
 
     function installSvgZoom(svg, content, width, height) {
@@ -555,23 +578,30 @@
     }
 
     // ─── Legend ──────────────────────────────────────────────────
-    // Renders a small mono-font legend. Each entry has either a plain
-    // string `label` or a `{ subRow: true, label: '...' }` form which
-    // produces a sub-line under the previous entry without a line
-    // marker, suitable for parameter annotations.
+    // Renders a small mono-font legend, right-aligned on anchorX. The
+    // swatch of an entry is a solid line by default; `marker` selects a
+    // pole cross ('pole'), a zero circle ('zero') or a dashed line ('dash')
+    // so that entries sharing a colour remain distinguishable. A
+    // `{ subRow: true, label: '...' }` entry is a sub-line with no swatch.
     function drawLegend(g, anchorX, anchorY, entries, T) {
         var lg = g.append('g').attr('transform', 'translate(' + anchorX + ',' + anchorY + ')');
         entries.forEach(function (e, idx) {
             var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
-            if (!e.subRow) {
+            if (e.marker === 'pole') {
+                drawPole(row, -22, 8, e.color, 5);
+            } else if (e.marker === 'zero') {
+                drawZero(row, -22, 8, e.color, 5);
+            } else if (!e.subRow) {
                 row.append('line')
                     .attr('x1', -36).attr('x2', -8).attr('y1', 8).attr('y2', 8)
-                    .attr('stroke', e.color).attr('stroke-width', 2.4).attr('stroke-linecap', 'round');
+                    .attr('stroke', e.color).attr('stroke-width', e.marker === 'dash' ? 1.6 : 2.4)
+                    .attr('stroke-dasharray', e.marker === 'dash' ? '5 4' : null)
+                    .attr('stroke-linecap', e.marker === 'dash' ? null : 'round');
             }
             row.append('text')
                 .attr('x', -42).attr('y', 11).attr('text-anchor', 'end')
-                .attr('fill', T.text).attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', e.subRow ? 10 : 11)
+                .attr('fill', T.text).attr('font-family', MONO)
+                .attr('font-size', e.subRow ? 11 : 12)
                 .text(e.label);
         });
     }
@@ -587,6 +617,7 @@
         makeMagLine: makeMagLine,
         makePhaseLine: makePhaseLine,
         drawLegend: drawLegend,
-        getCssVar: getCssVar
+        getCssVar: getCssVar,
+        MONO: MONO
     };
 })();

@@ -1,8 +1,8 @@
-// Scene 6 — Fourier is a slice of Laplace.
+// Scene 6, Fourier is a slice of Laplace.
 // Main panel: |F(s)| surface over the s-plane, rendered as a back-to-front
 // filled wireframe (painter's algorithm on rows). A user-controlled σ-slice
 // highlights the cross section the side panel plots. The jω ridge (σ = 0) is
-// painted blue — that's exactly what Fourier sees.
+// painted blue, that's exactly what Fourier sees.
 //
 // Side panels:
 //   • 1D slice |F(σ + jω)| as a function of ω, at current σ
@@ -65,7 +65,7 @@
   // ─── Math ────────────────────────────────────────────────────────────────
   const spanS = 2.2;     // σ half-range
   const spanW = 2.4;     // ω half-range
-  const Z_CLAMP = 6;     // axis tripod height — intentionally shorter than tall
+  const Z_CLAMP = 6;     // axis tripod height, intentionally shorter than tall
                          //   peaks, which are allowed to shoot past the top of
                          //   the canvas.
   const Z_SKIP  = 120;   // threshold used to skip only quads at the singularity
@@ -115,7 +115,7 @@
       // pitch around x1
       const y2 =  y1 * cosX - z1 * sinX;
       // Split z2 so the height component keeps its foreshortening (0.55) while
-      // the in-plane ω component (y1·sinX) uses the full scale — otherwise at
+      // the in-plane ω component (y1·sinX) uses the full scale, otherwise at
       // top-down view ω would render at 55% of σ's scale and the plot looks
       // rectangular instead of square.
       const yFromPitch = y1 * sinX * scale;       // ω mapped to screen-y as pitch increases
@@ -154,7 +154,7 @@
       }
     }
 
-    // ── Ground floor (s-plane) behind surface — subtle ROC tint
+    // ── Ground floor (s-plane) behind surface, subtle ROC tint
     const sys = SYSTEMS[currentSys];
     const maxPoleRe = Math.max(...sys.poles.map(p => p.re));
     // ROC σ > max(Re(poles))
@@ -169,9 +169,9 @@
     ctx.moveTo(corners[0].x, corners[0].y);
     for (let k = 1; k < 4; k++) ctx.lineTo(corners[k].x, corners[k].y);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255,255,255,0.015)';
+    ctx.fillStyle = C.panel;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    ctx.strokeStyle = CFG.ink(0.2);
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -184,9 +184,9 @@
     ctx.moveTo(rA.x, rA.y); ctx.lineTo(rB.x, rB.y);
     ctx.lineTo(rC.x, rC.y); ctx.lineTo(rD.x, rD.y);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(123,224,137,0.06)';
+    ctx.fillStyle = CFG.alpha(C.time, 0.12);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(123,224,137,0.28)';
+    ctx.strokeStyle = CFG.alpha(C.time, 0.6);
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
     ctx.moveTo(rA.x, rA.y); ctx.lineTo(rD.x, rD.y);
@@ -195,7 +195,7 @@
 
     // Label ROC on the floor
     const rocLbl = project(maxPoleRe + 0.4, spanW * 0.85, 0);
-    CFG.label(ctx, 'ROC · σ > α', rocLbl.x, rocLbl.y, C.time, { size: 10 });
+    CFG.label(ctx, 'ROC: σ > α', Math.min(rocLbl.x, w - 8), rocLbl.y, C.time, { align: 'right' });
     ctx.restore();
 
     // ── Paint the surface: sort rows by depth (back to front)
@@ -222,12 +222,9 @@
         // Skip quads that are effectively infinite (clip near poles)
         if (near > Z_SKIP) continue;
 
-        // Fill shade — lighter with height, warm tint near peaks
+        // Fill shade: a grey ramp from the theme tokens that darkens with height.
         const t = Math.min(1, zAvg / 5.0);
-        const r = Math.round(12 + 60 * t);
-        const g = Math.round(14 + 30 * t);
-        const bl= Math.round(30 + 50 * (1 - t));
-        ctx.fillStyle = `rgba(${r},${g},${bl},${(0.55 + 0.35 * t) * surfAlpha})`;
+        ctx.fillStyle = CFG.alpha(CFG.mix(C.bg, C.grey, 0.12 + 0.5 * t), (0.8 + 0.15 * t) * surfAlpha);
         // Matching same-color stroke seals seams between adjacent quads
         ctx.strokeStyle = ctx.fillStyle;
         ctx.lineWidth = 0.6;
@@ -242,11 +239,11 @@
       }
     }
 
-    // ── Wireframe pass on top — every few lines only, so a denser surface
+    // ── Wireframe pass on top, every few lines only, so a denser surface
     // still reads as geometry without becoming a mesh of noise. Break the
     // polyline when we cross a clamped (pole) region.
     ctx.lineWidth = 1;
-    ctx.strokeStyle = bodeMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = bodeMode ? CFG.ink(0.06) : CFG.ink(0.22);
     // Grid line count scales with mesh density (sqrt-ish so it stays readable).
     // At Nw=24 → ~14 lines; at Nw=160 → ~53 lines.
     const targetLines = Math.round(9 + Math.sqrt(Nw) * 3.5);
@@ -278,10 +275,10 @@
     // same half-axis the Bode magnitude panel plots.
     const jStart = bodeMode ? Math.round(Nw / 2) : 0;
 
-    // ── Highlight 1: jω ridge (σ = 0) — Fourier slice (pen-lifted near poles)
+    // ── Highlight 1: jω ridge (σ = 0), Fourier slice (pen-lifted near poles)
     const iZero = Math.round((0 + spanS) / (2 * spanS) * Nsig);
     ctx.lineWidth = bodeMode ? 1.4 : 2.4;
-    ctx.strokeStyle = bodeMode ? 'rgba(88,166,255,0.45)' : C.real;
+    ctx.strokeStyle = bodeMode ? CFG.alpha(C.real, 0.45) : C.real;
     ctx.beginPath();
     {
       let penDown = false;
@@ -296,14 +293,13 @@
     // Label on ridge
     if (!bodeMode) {
       const ridgeLbl = pts[iZero][Nw];
-      CFG.label(ctx, `σ = 0  ·  ${fourierTag()}`, ridgeLbl.x + 8, ridgeLbl.y - 6, C.real, { size: 10 });
+      CFG.label(ctx, `σ = 0 (${fourierTag()})`, Math.min(ridgeLbl.sx, w - 8), ridgeLbl.sy - 26, C.real, { align: 'right' });
     }
 
-    // ── Highlight 2: current σ slice — accent colored (pen-lifted near poles)
+    // ── Highlight 2: current σ slice, accent colored (pen-lifted near poles)
     const iCur = Math.round(CFG.clamp((sigma0 + spanS) / (2 * spanS), 0, 1) * Nsig);
     ctx.lineWidth = bodeMode ? 3.2 : 2.4;
     ctx.strokeStyle = C.accent;
-    ctx.shadowColor = C.accent; ctx.shadowBlur = bodeMode ? 10 : 6;
     ctx.beginPath();
     {
       let penDown = false;
@@ -315,11 +311,10 @@
       }
     }
     ctx.stroke();
-    ctx.shadowBlur = 0;
     // In Bode mode anchor the label at the ω = 0 end of the slice curve so it
     // points to where the magnitude plot starts, not the −ω end.
     const curLbl = bodeMode ? pts[iCur][jStart] : pts[iCur][0];
-    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`, curLbl.x - 8, curLbl.y - 6, C.accent, { size: 10, align: 'right' });
+    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), Math.max(curLbl.sx, 8), curLbl.sy + 12, C.accent);
 
     // ── Pole spikes
     ctx.strokeStyle = C.imag;
@@ -332,30 +327,26 @@
       ctx.moveTo(base.x, base.y);
       ctx.lineTo(top.x, top.y);
       ctx.stroke();
-      ctx.shadowColor = C.imag; ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.arc(top.x, top.y, 4, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
-      const pLblAlign = top.x > w * 0.65 ? 'right' : 'left';
-      const pLblDx = pLblAlign === 'right' ? -8 : 8;
-      CFG.label(ctx, `× s = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} j${Math.abs(p.im).toFixed(2)}`,
-                top.x + pLblDx, top.y - 4, C.imag, { size: 10, align: pLblAlign });
+      CFG.label(ctx, `s = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} j${Math.abs(p.im).toFixed(2)}`.replace('-', '−'),
+                CFG.clamp(top.x, 80, w - 80), top.y - 10, C.imag, { align: 'center', baseline: 'bottom' });
     }
 
     // ── Zero markers: ring on floor + short mast showing the dip
-    // Height where the surface actually is at the zero — it's 0 by definition,
+    // Height where the surface actually is at the zero, it's 0 by definition,
     // so we plant the marker on the floor and draw a dashed guide tracing the
     // valley up to a short reference height so the eye picks it out.
     ctx.strokeStyle = C.time;
-    ctx.fillStyle = 'rgba(10,10,16,0.9)';
+    ctx.fillStyle = C.bg;
     ctx.lineWidth = 1.8;
     for (const z of (sys.zeros || [])) {
       const base = project(z.re, z.im, 0);
       const top  = project(z.re, z.im, 0.9);
-      // dashed mast going UP from floor — shows "the surface is pinned to 0 here"
+      // dashed mast going UP from floor, shows "the surface is pinned to 0 here"
       ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = 'rgba(123,224,137,0.55)';
+      ctx.strokeStyle = CFG.alpha(C.time, 0.7);
       ctx.beginPath();
       ctx.moveTo(base.x, base.y);
       ctx.lineTo(top.x, top.y);
@@ -363,16 +354,10 @@
       ctx.setLineDash([]);
       // ring at base
       ctx.strokeStyle = C.time;
-      ctx.shadowColor = C.time; ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(base.x, base.y, 5.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.shadowBlur = 0;
-      const zLblAlign = base.x > w * 0.65 ? 'right' : 'left';
-      const zLblDx = zLblAlign === 'right' ? -9 : 9;
-      CFG.label(ctx, `○ zero  s = ${z.re.toFixed(2)}${z.im === 0 ? '' : (z.im >= 0 ? ' + j' : ' − j') + Math.abs(z.im).toFixed(2)}`,
-                base.x + zLblDx, base.y + 4, C.time, { size: 10, align: zLblAlign });
     }
 
     // ── Axis tripod (origin arrows)
@@ -380,14 +365,14 @@
     const Ax = project(spanS * 0.9, 0, 0);
     const Ay = project(0, spanW * 0.9, 0);
     const Az = project(0, 0, Z_CLAMP * 0.75);
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.strokeStyle = CFG.ink(0.6);
     ctx.lineWidth = 1.2;
     [Ax, Ay, Az].forEach(A => {
       ctx.beginPath(); ctx.moveTo(O.x, O.y); ctx.lineTo(A.x, A.y); ctx.stroke();
     });
-    CFG.label(ctx, 'σ', Ax.x + 4, Ax.y,     C.muted, { size: 10 });
-    CFG.label(ctx, 'jω', Ay.x + 4, Ay.y,    C.muted, { size: 10 });
-    CFG.label(ctx, '|F(s)|', Az.x + 4, Az.y, C.muted, { size: 10 });
+    CFG.label(ctx, 'σ', Ax.x + 4, Ax.y,     C.muted);
+    CFG.label(ctx, 'jω', Ay.x + 4, Ay.y,    C.muted);
+    CFG.label(ctx, '|F(s)|', Az.x + 4, Az.y, C.muted);
 
     // sub text
     sub.textContent = SYSTEMS[currentSys].label;
@@ -400,8 +385,16 @@
     CFG.clear(ctx, w, h);
 
     const sigma0 = parseFloat(sigEl.value);
-    const padL = 40, padR = 14, padT = 36, padB = 28;
+    const padL = 56, padR = 14, padT = 78, padB = 46;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
+    const sliceLegend = () => {
+      CFG.legend(ctx, 14, 40, [
+        { mark: 'line', text: currentSys === 'unstable' ? 'σ = 0 (outside ROC)' : 'σ = 0 (Fourier)', color: C.real },
+      ]);
+      CFG.legend(ctx, 14, 58, [
+        { mark: 'line', text: `σ = ${sigma0.toFixed(2)} (slice)`.replace('-', '−'), color: C.accent },
+      ]);
+    };
 
     if (bodeMode) {
       // ── Bode-style: log ω on x, magnitude in dB on y, ω > 0 only ───────
@@ -431,13 +424,13 @@
       const xOfLogW = u => x0 + ((Math.log10(u) - logMin) / (logMax - logMin)) * (x1 - x0);
       const yOfDB   = d => y1 - ((d - dBMin) / (dBMax - dBMin)) * (y1 - y0);
 
-      // horizontal dB grid every 10 dB
+      // horizontal dB grid every 20 dB
       ctx.strokeStyle = C.grid;
       ctx.lineWidth = 1;
-      for (let d = Math.ceil(dBMin / 10) * 10; d <= dBMax; d += 10) {
+      for (let d = Math.ceil(dBMin / 20) * 20; d <= dBMax; d += 20) {
         const y = yOfDB(d);
         ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
-        CFG.label(ctx, `${d > 0 ? '+' : ''}${d} dB`, x0 - 4, y + 3, C.muted, { size: 9, align: 'right' });
+        CFG.label(ctx, `${d > 0 ? '+' : ''}${d}`.replace('-', '−'), x0 - 6, y, C.muted, { align: 'right', baseline: 'middle' });
       }
       // decade gridlines + minor log ticks
       const decadeStart = Math.ceil(logMin);
@@ -446,10 +439,10 @@
       for (let k = decadeStart; k <= decadeEnd; k++) {
         const xv = xOfLogW(Math.pow(10, k));
         ctx.beginPath(); ctx.moveTo(xv, y0); ctx.lineTo(xv, y1); ctx.stroke();
-        CFG.label(ctx, `10^${k}`, xv, y1 + 12, C.muted, { size: 10 });
+        CFG.label(ctx, String(Math.pow(10, k)), xv, y1 + 6, C.muted, { align: 'center' });
       }
       // minor ticks at 2,3,...,9 × 10^k
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.strokeStyle = window.T.gridFine;
       for (let k = decadeStart - 1; k <= decadeEnd; k++) {
         for (let m = 2; m <= 9; m++) {
           const v = m * Math.pow(10, k);
@@ -483,18 +476,15 @@
         }
         ctx.stroke();
       }
-      plotBode(0, 'rgba(88,166,255,0.55)', 1.2);  // Fourier reference
+      plotBode(0, CFG.alpha(C.real, 0.7), 1.4);  // Fourier reference
       plotBode(sigma0, C.accent, 2);              // current σ slice
 
       // axis labels
-      CFG.label(ctx, 'ω (rad/s, log)', x1, y1 + 14, C.muted, { size: 10, align: 'right' });
-      CFG.label(ctx, '|F| (dB)', x0 - 4, y0 - 6, C.muted, { size: 10, align: 'right' });
+      CFG.label(ctx, 'ω (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
+      CFG.label(ctx, '|F| (dB)', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
+      sliceLegend();
 
-      // legend
-      CFG.label(ctx, currentSys === 'unstable' ? '— σ=0 (outside ROC)' : '— Fourier (σ=0)', x0 + 6, y0 + 2,  C.real, { size: 10 });
-      CFG.label(ctx, `— slice σ=${sigma0.toFixed(2)}`, x0 + 6, y0 + 16, C.accent, { size: 10 });
-
-      sliceTitle.textContent = `Bode magnitude  ·  20 log₁₀|F(σ + jω)|  ·  σ = ${sigma0.toFixed(2)}`;
+      sliceTitle.textContent = 'Bode magnitude';
       return;
     }
 
@@ -526,19 +516,21 @@
       }
       ctx.stroke();
     }
-    plot(0, 'rgba(88,166,255,0.55)', 1.2);  // Fourier ghost
+    plot(0, CFG.alpha(C.real, 0.7), 1.4);  // Fourier ghost
     plot(sigma0, C.accent, 2);               // current slice
 
-    CFG.label(ctx, 'ω →', x1, y1 + 6, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, '|F|',  x0 - 4, y0 - 6, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, '−' + spanW.toFixed(1), x0, y1 + 6, C.muted, { size: 10 });
-    CFG.label(ctx, '+' + spanW.toFixed(1), x1, y1 + 6, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, '0', xMid + 3, y1 + 6, C.muted, { size: 10 });
+    CFG.label(ctx, 'ω (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
+    CFG.label(ctx, '|F(σ + jω)|', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
+    CFG.label(ctx, '−' + spanW.toFixed(1), x0, y1 + 6, C.muted);
+    CFG.label(ctx, '+' + spanW.toFixed(1), x1, y1 + 6, C.muted, { align: 'right' });
+    CFG.label(ctx, '0', xMid, y1 + 6, C.muted, { align: 'center' });
+    CFG.label(ctx, '0', x0 - 6, y1, C.muted, { align: 'right', baseline: 'middle' });
+    CFG.label(ctx, ymax.toFixed(1), x0 - 6, y0, C.muted, { align: 'right', baseline: 'middle' });
+    ctx.strokeStyle = C.gridStrong; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
+    sliceLegend();
 
-    CFG.label(ctx, currentSys === 'unstable' ? '— σ=0 (outside ROC)' : '— Fourier (σ=0)', x0, y0 + 2,  C.real, { size: 10 });
-    CFG.label(ctx, `— slice σ=${sigma0.toFixed(2)}`, x0, y0 + 16, C.accent, { size: 10 });
-
-    sliceTitle.textContent = `slice at σ = ${sigma0.toFixed(2)}  ·  |F(σ + jω)|`;
+    sliceTitle.textContent = 'Magnitude along the slice';
   }
 
   // ─── Side panel: top-down s-plane map ────────────────────────────────────
@@ -553,7 +545,7 @@
     const sys = SYSTEMS[currentSys];
     const maxPoleRe = Math.max(...sys.poles.map(p => p.re));
 
-    const padL = 18, padR = 18, padT = 32, padB = 22;
+    const padL = 14, padR = 30, padT = 50, padB = 30;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const bw = x1 - x0, bh = y1 - y0;
     const xOf = sig => x0 + (sig + spanS) / (2 * spanS) * bw;
@@ -564,9 +556,9 @@
 
     // ROC shade
     const xROC = xOf(maxPoleRe);
-    ctx.fillStyle = 'rgba(123,224,137,0.08)';
+    ctx.fillStyle = CFG.alpha(C.time, 0.12);
     ctx.fillRect(xROC, y0, x1 - xROC, bh);
-    ctx.strokeStyle = 'rgba(123,224,137,0.35)';
+    ctx.strokeStyle = CFG.alpha(C.time, 0.6);
     ctx.setLineDash([3,4]);
     ctx.beginPath(); ctx.moveTo(xROC, y0); ctx.lineTo(xROC, y1); ctx.stroke();
     ctx.setLineDash([]);
@@ -588,14 +580,14 @@
     ctx.lineWidth = 2;
     const xZero = xOf(0);
     ctx.beginPath(); ctx.moveTo(xZero, y0); ctx.lineTo(xZero, y1); ctx.stroke();
-    CFG.label(ctx, `jω · ${fourierTag()}`, xZero + 5, y0 + 4, C.real, { size: 10 });
+    CFG.label(ctx, 'jω', xZero, y0 - 6, C.real, { align: 'center', baseline: 'bottom' });
 
     // current σ slice line
     ctx.strokeStyle = C.accent;
     ctx.lineWidth = 2;
     const xSig = xOf(sigma0);
     ctx.beginPath(); ctx.moveTo(xSig, y0); ctx.lineTo(xSig, y1); ctx.stroke();
-    CFG.label(ctx, `σ=${sigma0.toFixed(2)}`, xSig + 5, y1 - 6, C.accent, { size: 10 });
+    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), xSig, y1 + 6, C.accent, { align: 'center' });
 
     // poles × (draggable)
     ctx.lineWidth = 2.4;
@@ -606,12 +598,10 @@
       const active = dragNode && dragNode.kind === 'pole' && (dragNode.idx === i || dragNode.mateIdx === i);
       ctx.strokeStyle = active ? C.accent : C.imag;
       ctx.lineWidth = active ? 3 : 2.4;
-      if (active) { ctx.shadowColor = C.accent; ctx.shadowBlur = 10; }
       ctx.beginPath();
       ctx.moveTo(px - r, py - r); ctx.lineTo(px + r, py + r);
       ctx.moveTo(px - r, py + r); ctx.lineTo(px + r, py - r);
       ctx.stroke();
-      ctx.shadowBlur = 0;
     }
 
     // zeros ○ (draggable)
@@ -621,15 +611,12 @@
       const active = dragNode && dragNode.kind === 'zero' && (dragNode.idx === i || dragNode.mateIdx === i);
       ctx.strokeStyle = active ? C.accent : C.time;
       ctx.lineWidth = active ? 3 : 2.4;
-      if (active) { ctx.shadowColor = C.accent; ctx.shadowBlur = 10; }
       ctx.beginPath();
       ctx.arc(px, py, 6, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.shadowBlur = 0;
     }
 
-    CFG.label(ctx, 'σ →', x1 - 4, yOf(0) - 6, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, 'drag × or ○ to reshape', x0, y1 + 6, C.muted, { size: 10 });
+    CFG.label(ctx, 'σ', x1 + 8, yOf(0), C.muted, { baseline: 'middle' });
   }
 
   // ─── Interaction ─────────────────────────────────────────────────────────
@@ -717,6 +704,7 @@
   canvas.addEventListener('pointerdown', (e) => {
     drag = { x: e.clientX, y: e.clientY, rotY, rotX };
     autoSpin = false;
+    btnSpin.classList.remove('on');
     canvas.setPointerCapture(e.pointerId);
     canvas.style.cursor = 'grabbing';
   });
@@ -728,8 +716,7 @@
     rotX = CFG.clamp(drag.rotX + dy, 0.05, MAX_ROT_X);
     if (topView) {
       topView = false;
-      btnTopView.style.borderColor = '';
-      btnTopView.style.color = '';
+      btnTopView.classList.remove('on');
     }
     drawSurface(0);
   });
@@ -775,15 +762,13 @@
   });
   btnSpin.addEventListener('click', () => {
     autoSpin = !autoSpin;
-    btnSpin.style.borderColor = autoSpin ? 'var(--accent)' : '';
-    btnSpin.style.color = autoSpin ? 'var(--accent)' : '';
+    btnSpin.classList.toggle('on', autoSpin);
   });
 
   if (btnBode) {
     btnBode.addEventListener('click', () => {
       bodeMode = !bodeMode;
-      btnBode.style.borderColor = bodeMode ? 'var(--accent)' : '';
-      btnBode.style.color       = bodeMode ? 'var(--accent)' : '';
+      btnBode.classList.toggle('on', bodeMode);
       drawAll();
     });
   }
@@ -791,10 +776,8 @@
   btnTopView.addEventListener('click', () => {
     topView = !topView;
     if (topView) autoSpin = false;
-    btnSpin.style.borderColor = autoSpin ? 'var(--accent)' : '';
-    btnSpin.style.color      = autoSpin ? 'var(--accent)' : '';
-    btnTopView.style.borderColor = topView ? 'var(--accent)' : '';
-    btnTopView.style.color       = topView ? 'var(--accent)' : '';
+    btnSpin.classList.toggle('on', autoSpin);
+    btnTopView.classList.toggle('on', topView);
 
     const startY = rotY, startX = rotX;
     const targetY = topView ? TOP_ROT_Y : DEFAULT_ROT_Y;

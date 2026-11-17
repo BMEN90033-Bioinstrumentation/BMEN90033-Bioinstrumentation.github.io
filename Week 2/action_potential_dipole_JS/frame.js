@@ -20,7 +20,7 @@
             .call(d3.axisBottom(x).ticks(6).tickSizeOuter(0)
                 .tickFormat(t.xTitle ? null : function () { return ''; }));
         var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(function (a) { window.CMP.styleAxis(a); a.selectAll('text').attr('font-size', 13); });
         window.renderKatex(f.svg, t.yTitle, 22, f.m.top + oy + ph / 2,
             { width: 200, height: 22, rotate: -90, size: 16 });
         if (t.xTitle) {

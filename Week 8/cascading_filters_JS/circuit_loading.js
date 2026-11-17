@@ -143,12 +143,11 @@
             .attr('x', W / 2).attr('y', 48)
             .attr('text-anchor', 'middle')
             .attr('font-size', 11).attr('fill', T.textMuted)
-            .text('R₁ = R,  C₁ = C    R₂ = kR,  C₂ = C/k');
+            .text('Stage 1: R₁ = R, C₁ = C. Stage 2: R₂ = kR, C₂ = C/k.');
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

@@ -4,13 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Case Study · Strain-Sensing Robotic Hand</title>
+    <title>BMEN90033 · Case study · Strain-sensing robotic hand</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="case_study_JS/case_study.css">
@@ -45,7 +40,7 @@
 
 <body>
 
-    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 10 · Case Study</span></div>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 10 · Case study</span></div>
     <a class="back-btn" href="../index.html">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -61,17 +56,16 @@
         <section class="slide title-slide active" data-slide="0">
             <div class="copy">
                 <div class="meta">BMEN90033 · WEEK 10 · CASE STUDY</div>
-                <h1 class="slide-hero">Driving a <em>five-finger robotic hand</em> from glove-mounted strain gauges.</h1>
+                <h1 class="slide-hero">Control of a <em>five-finger robotic hand</em> from glove-mounted strain gauges</h1>
                 <div class="brief-box">
-                    <div class="brief-label">The brief</div>
+                    <div class="brief-label">Design brief</div>
                     <p class="brief-body">A wearable glove carries one strain gauge across each finger,
                         wired into a Wheatstone bridge excited by an AC carrier, so that finger curl
-                        amplitude-modulates the bridge output. The clinical team asks for a benchtop
-                        demonstrator: five bridge channels in the millivolt range, conditioned to
-                        produce a per-finger drive that closes a corresponding finger on a desktop
-                        robotic hand. Live finger-curl data is captured from a webcam using ML5
-                        hand-pose tracking and treated as the simulated transducer input for each
-                        of the five sensors.</p>
+                        amplitude-modulates the bridge output. The clinical team requires a benchtop
+                        demonstrator: five bridge channels in the millivolt range, each conditioned to
+                        produce a drive signal that closes the corresponding finger of a desktop
+                        robotic hand. Finger curl is measured from a webcam by ML5 hand-pose tracking
+                        and serves as the simulated transducer input for each of the five sensors.</p>
                     <div class="brief-question">
                         <span class="brief-q-mark" aria-hidden="true">?</span>
                         <p>Which circuit blocks connect the strain gauge to the servo, and in what order?</p>
@@ -80,7 +74,7 @@
                 <div class="tags">
                     <span class="field-tag">strain gauge</span>
                     <span class="field-tag">Wheatstone bridge</span>
-                    <span class="field-tag">instrumentation amp</span>
+                    <span class="field-tag">instrumentation amplifier</span>
                     <span class="field-tag">filter chain</span>
                     <span class="field-tag">rectifier</span>
                     <span class="field-tag">comparator</span>
@@ -96,7 +90,7 @@
             <div class="lab-view">
                 <div class="lab-toolbar toolbar">
                     <span class="pill" id="hand-cam-btn">enable camera</span>
-                    <span class="lab" style="color: var(--accent); font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.10em;" id="hand-cam-status">camera off</span>
+                    <span class="slider-group"><span class="val" id="hand-cam-status">camera off</span></span>
                     <span class="divider"></span>
                     <span class="slider-group">
                         <span class="lab">carrier f<sub>c</sub></span>
@@ -107,14 +101,14 @@
                     <span class="pill" id="arm-pause">pause</span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">order</span>
+                        <span class="lab">chain order</span>
                         <span class="val" id="arm-orderok">empty</span>
                     </span>
                 </div>
 
                 <div class="lab-plots">
                     <div class="lab-plots-header">
-                        <div class="plot-toggle" id="arm-view" data-mode="overlay" role="button" tabindex="0" aria-label="toggle trace view">
+                        <div class="plot-toggle" id="arm-view" data-mode="overlay" role="button" tabindex="0" aria-label="Toggle trace view">
                             <span class="opt active" data-opt="overlay">overlay</span>
                             <span class="sep">/</span>
                             <span class="opt" data-opt="stacked">stacked</span>
@@ -142,7 +136,7 @@
                             <span class="status" id="hand-cam-status-2"></span>
                         </div>
                         <div class="frame" id="hand-webcam">
-                            <div class="placeholder">enable camera to capture finger curl</div>
+                            <div class="placeholder">Enable the camera to capture finger curl</div>
                         </div>
                     </div>
                     <div class="finger-controls" id="finger-controls"></div>
@@ -166,15 +160,15 @@
     <!-- ═════════════ DECK NAV ═════════════ -->
     <div class="nav-hint">Use the dots or the arrow keys to advance through the slides.</div>
     <div class="deck-nav">
-        <span class="arrow" id="nav-prev" aria-label="previous slide">
+        <span class="arrow" id="nav-prev" aria-label="Previous slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 18l-6-6 6-6" />
             </svg>
         </span>
         <span class="dots" id="nav-dots"></span>
-        <span class="counter"><b id="nav-cur">1</b> / <span id="nav-tot">3</span></span>
-        <span class="arrow" id="nav-next" aria-label="next slide">
+        <span class="counter"><b id="nav-cur">1</b> / <span id="nav-tot">2</span></span>
+        <span class="arrow" id="nav-next" aria-label="Next slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />

@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Amplifier Classes</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Power amplifier classes</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -47,12 +41,12 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
-            <h1 class="hero">Power amplifier <em>classes</em></h1>
+            <h1 class="hero">Power amplifier classes</h1>
             <p class="sub">An output stage is classified by its conduction angle, the fraction of each input cycle
                 during which an output device conducts. Class A conducts over the whole cycle and is linear but
                 inefficient. Class B splits the cycle between two complementary devices and is efficient but
-                distorts near zero. Class AB biases the two devices towards conduction to remove most of that distortion. This page
-                compares the three circuits, their operating points, their waveforms and their power budgets.</p>
+                distorts near each zero crossing. Class AB biases the two devices towards conduction to remove most
+                of that distortion. This page compares the three circuits, their operating points, their waveforms and their power budgets.</p>
             <div class="tags">
                 <span class="field-tag">conduction angle</span>
                 <span class="field-tag">Q-point</span>
@@ -75,17 +69,17 @@
                 carries current.</p>
 
             <ul class="bullets">
-                <li><strong>class A</strong>, $\theta_c = 360^\circ$: a single common-emitter transistor is biased
+                <li><strong>Class A</strong>, $\theta_c = 360^\circ$: a single common-emitter transistor is biased
                     in the active region by the divider $R_1$, $R_2$ and conducts for the entire cycle. It draws
                     supply current even with no input.</li>
-                <li><strong>class B</strong>, $\theta_c \approx 180^\circ$: a complementary NPN and PNP pair of
+                <li><strong>Class B</strong>, $\theta_c \approx 180^\circ$: a complementary NPN and PNP pair of
                     emitter followers with joined bases. The NPN conducts on the positive half-cycle and the PNP on
-                    the negative half-cycle; with no input both are off. Each device needs
+                    the negative half-cycle; with no input both are off. Each device requires
                     $V_{BE(\text{on})} = 0.6\,\text{V}$ before it conducts, so its conduction angle falls short of
                     $180^\circ$ by the dead zone about each zero crossing.</li>
-                <li><strong>class AB</strong>, $\theta_c$ at or slightly above $180^\circ$: the push-pull pair with
+                <li><strong>Class AB</strong>, $\theta_c$ at or slightly above $180^\circ$: the push-pull pair with
                     two diodes between the bases, fed by the bias current $I_\text{bias}$ through $R_{b1}$ and
-                    $R_{b2}$. Each diode lifts its base by its forward drop $V_D$, so the dead zone shrinks to
+                    $R_{b2}$. Each diode offsets its base by its forward drop $V_D$, so the dead zone shrinks to
                     $V_{BE(\text{on})} - V_D$ and vanishes when $V_D = V_{BE(\text{on})}$.</li>
             </ul>
 
@@ -180,9 +174,9 @@
                 $I_{CQ} = (V_{CC} - V_{CE(\text{sat})})/(2R_C + R_E) = 4.54\,\text{mA}$. Moving the Q-point either
                 way shortens the swing on one side, and the output then clips asymmetrically.</p>
 
-            <p>Classes B and AB idle at cutoff, $I_{CQ} = 0$. Each device swings along its own load line,
-                $I_C = (V_{CC} - V_{CE})/R_L$, towards saturation over its half-cycle and is idle for the other
-                half, which is the origin of their higher efficiency.</p>
+            <p>Classes B and AB are biased at cutoff, $I_{CQ} = 0$. Each device swings along its own load line,
+                $I_C = (V_{CC} - V_{CE})/R_L$, towards saturation over its half-cycle and carries no current for
+                the other half, which is the origin of their higher efficiency.</p>
 
             <div class="callout">
                 The bias slider applies to class A only. The readout gives the divider resistances that set the
@@ -219,7 +213,7 @@
                     <span><span class="sw dash"></span>DC load line (class A)</span>
                     <span><span class="sw" style="background:var(--c-load)"></span>AC load line</span>
                     <span><span class="sw" style="background:var(--c-npn)"></span>signal swing</span>
-                    <span><span class="sw" style="background:var(--c-dead)"></span>dot: Q-point; large dot: swing reaches an end of the line</span>
+                    <span><span class="sw dot" style="background:var(--c-dead)"></span>Q-point; larger dot where the swing reaches an end of the line</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I_{CQ}$</span><span class="v" data-out="icq"></span></div>
@@ -251,8 +245,8 @@
                 \max\left(0,\, V_{BE(\text{on})} - V_D\right), & \text{class AB} \end{cases}$$</div>
 
             <p>with $V_{BE(\text{on})} = 0.6\,\text{V}$, so the class B dead zone referred to the input is
-                $\pm 0.6/A = \pm 30\,\text{mV}$. The result is limited to $\pm(V_{CC} - V_{CE(\text{sat})})$. The flat step at each zero crossing is crossover
-                distortion. Its size is fixed, so it is a large fraction of a small signal and a small fraction of
+                $\pm 0.6/A = \pm 30\,\text{mV}$. The result is limited to $\pm(V_{CC} - V_{CE(\text{sat})})$. The
+                flat step at each zero crossing is crossover distortion. Its size is fixed, so it is a large fraction of a small signal and a small fraction of
                 a large one.</p>
 
             <p>The class A stage has no dead zone but clips at the limits set by its Q-point, shown dashed. The
@@ -261,8 +255,8 @@
 
             <div class="callout">
                 The bias diodes of class AB shrink the dead zone to $V_{BE(\text{on})} - V_D$. The diode drop slider
-                shows the residual step at the zero crossing narrowing to nothing as $V_D$ approaches
-                $V_{BE(\text{on})}$. Real designs set $V_D$ slightly above $V_{BE(\text{on})}$ and add small
+                shows the residual step at the zero crossing narrowing to zero as $V_D$ approaches
+                $V_{BE(\text{on})}$. Practical designs set $V_D$ slightly above $V_{BE(\text{on})}$ and add small
                 emitter resistors to fix a stable quiescent current; that region is outside this model.
             </div>
         </div>
@@ -330,9 +324,9 @@
                 P_L = \frac{\hat{v}_\text{out}^{\,2}}{2R_L}$$</div>
 
             <p><strong>Class A.</strong> The supply delivers the collector current and the current in $R_1$
-                whatever the signal, $P_\text{DC} = V_{CC}\left(I_{CQ} + I_{R1}\right)$ with
+                regardless of the signal, $P_\text{DC} = V_{CC}\left(I_{CQ} + I_{R1}\right)$ with
                 $I_{R1} = 11\,I_{CQ}/h_{FE}$. With the collector resistor as load the efficiency cannot exceed 25 %;
-                the divider current and the drop across $R_E$ lower the achievable value to about 20 % here. A
+                the divider current and the drop across $R_E$ lower the achievable value to about 20 % in this circuit. A
                 transformer-coupled load raises the ideal limit to 50 %. At zero input all of $P_\text{DC}$ is
                 dissipated in the circuit.</p>
 
@@ -345,13 +339,13 @@
             <p><strong>Class AB.</strong> The bias current $I_\text{bias} = 0.5\,\text{mA}$ flows from $+V_{CC}$
                 to $-V_{CC}$ through $R_{b1}$, the diodes and $R_{b2}$ at all times, so
                 $P_\text{DC} = 2 V_{CC}\left(\hat{\imath}/\pi + I_\text{bias}\right)$. Its efficiency therefore lies
-                below that of class B, by an amount that is largest at low output. Practical class AB stages also carry a quiescent collector current and
-                typically reach 50 % to 60 %.</p>
+                below that of class B, by an amount that is largest at low output. Practical class AB stages also
+                carry a quiescent collector current and typically reach 50 % to 60 %.</p>
 
             <div class="callout">
                 The efficiency of classes B and AB rises in proportion to the output amplitude, because the supply
                 current is drawn only in proportion to the signal. Class A draws its full supply current at all
-                amplitudes, so its efficiency is highest at full swing and zero at rest.
+                amplitudes, so its efficiency is highest at full swing and zero with no input.
             </div>
         </div>
 
@@ -396,7 +390,7 @@
                     <span><span class="sw" style="background:var(--c-pnp)"></span>class B</span>
                     <span><span class="sw" style="background:var(--c-npn)"></span>class AB</span>
                     <span><span class="sw dash"></span>25 % and 78.5 % limits</span>
-                    <span>dot: present operating point</span>
+                    <span><span class="sw dot" style="background:var(--muted)"></span>present operating point</span>
                 </div>
             </div>
         </div>

@@ -26,6 +26,12 @@
         var fCl = gbw / gain;
 
         var P = window.WCGW.setupPlot('#plot-gbw-mag', {
+            legend: [
+                { key: 'clean', label: 'ideal H(jω)·G', opacity: 0.38 },
+                { key: 'distort', label: 'with finite GBW' },
+                { key: 'mark', dash: true, label: 'design f_c = 100 Hz' },
+                { key: 'distort', dash: true, label: 'GBW/G = ' + formatHz(fCl) }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1e6],
             yDomain: [-60, 50],
@@ -46,19 +52,11 @@
         window.WCGW.drawLine(P, realised, function (d) { return d.f; }, function (d) { return d.db; }, 'distort', P.y);
 
         P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fcDesign)).attr('x2', P.x(fcDesign)).attr('y1', 0).attr('y2', P.innerH);
-        P.g.append('text').attr('x', P.x(fcDesign) + 6).attr('y', 14).attr('fill', P.colors.mark)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('design f_c = 100 Hz');
         if (fCl < 1e6) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fCl)).attr('x2', P.x(fCl)).attr('y1', 0).attr('y2', P.innerH)
                 .attr('stroke', P.colors.distort).attr('opacity', 0.6);
-            P.g.append('text').attr('x', P.x(fCl) + 6).attr('y', 30).attr('fill', P.colors.distort)
-                .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('GBW/G = ' + formatHz(fCl));
         }
 
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'ideal H(jω)·G' },
-            { key: 'distort', label: 'with finite GBW' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -69,7 +67,6 @@
         if (!gbwSlider) return;
         gbwSlider.addEventListener('input', draw);
         gainSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

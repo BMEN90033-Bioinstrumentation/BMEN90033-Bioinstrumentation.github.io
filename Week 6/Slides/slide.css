@@ -1,40 +1,31 @@
 /* ══════════════════════════════════════════════════════════
-   Week 6 — Operational Amplifiers slide deck
-   Shared styles for individual slide pages + presenter hub
+   Week 6: Operational Amplifiers slide deck
+   Shared styles for individual slide pages and the presenter hub.
+   Light only. Every --slide-* name maps onto a theme.css token
+   or a --d-* data colour; theme.css must be linked first.
    ══════════════════════════════════════════════════════════ */
 
 :root {
-    --slide-bg: #0a0e14;
-    --slide-surface: rgba(16, 20, 28, 0.92);
-    --slide-border: rgba(255, 255, 255, 0.07);
-    --slide-border-hover: rgba(255, 255, 255, 0.18);
-    --slide-text: #e2e8f0;
-    --slide-text-dim: #8892a4;
-    --slide-text-muted: #505868;
-    --slide-accent: #6aaa8e;
-    --slide-yellow: #ffcc44;
-    --slide-red: #e06050;
-    --slide-blue: #5a8dee;
-    --slide-magenta: #d070d0;
-    --slide-cyan: #58c0d8;
-}
-
-[data-theme="light"] {
-    --slide-bg: #f5f5f7;
-    --slide-surface: rgba(255, 255, 255, 0.92);
-    --slide-border: rgba(0, 0, 0, 0.1);
-    --slide-border-hover: rgba(0, 0, 0, 0.2);
-    --slide-text: #1a1a1e;
-    --slide-text-dim: #555555;
-    --slide-text-muted: #888888;
-    --slide-accent: #3d8b6e;
-    --slide-yellow: #b8860b;
+    --slide-bg: var(--white);
+    --slide-surface: var(--white);
+    --slide-border: var(--calcium-white-800);
+    --slide-border-hover: var(--carbon-black-500);
+    --slide-text: var(--carbon-black-500);
+    --slide-text-dim: var(--text-muted);
+    --slide-text-muted: var(--text-muted);
+    --slide-accent: var(--carbon-black-500);
+    --slide-yellow: var(--d-orange);
+    --slide-red: var(--d-pink);
+    --slide-blue: var(--d-blue);
+    --slide-magenta: var(--d-violet);
+    --slide-cyan: var(--d-green);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-text);
+    font-weight: 300;
     background: var(--slide-bg);
     color: var(--slide-text);
     min-height: 100vh;
@@ -52,31 +43,40 @@ body.slide {
 .slide-header {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
 }
 
-.slide-header .slide-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--site-accent);
+/* Mono uppercase label shared by the small tags in the deck */
+.slide-header .slide-num,
+.step-indicator,
+.deck-sidebar h2,
+.deck-sidebar .deck-num,
+.deck-controls .deck-counter {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
+.slide-header .slide-num { color: var(--slide-text); }
+
 .slide-header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--slide-text);
-    letter-spacing: -0.4px;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 200;
+    line-height: 1.2;
+    color: var(--black);
+    letter-spacing: -0.02em;
 }
 
 .slide-header .slide-sub {
-    font-size: 14px;
+    font-size: 15.5px;
     color: var(--slide-text-dim);
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .manim-stage {
@@ -86,7 +86,7 @@ body.slide {
     margin: 0 auto;
     background: var(--slide-bg);
     border: 1px solid var(--slide-border);
-    border-radius: 10px;
+    border-radius: var(--radius-container);
     overflow: hidden;
     position: relative;
     aspect-ratio: 16 / 9;
@@ -105,7 +105,7 @@ body.slide {
     align-items: center;
     justify-content: center;
     color: var(--slide-text-muted);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     text-align: center;
     padding: 16px;
@@ -115,10 +115,9 @@ body.slide {
     max-width: 1040px;
     width: 100%;
     margin: 0 auto;
-    background: var(--slide-surface);
     border: 1px solid var(--slide-border);
-    border-radius: 8px;
-    padding: 14px 20px;
+    border-radius: var(--radius-container);
+    padding: var(--card-padding-2);
 }
 
 .slide-notes ul {
@@ -128,33 +127,39 @@ body.slide {
 }
 
 .slide-notes li {
-    font-size: 13px;
-    color: var(--slide-text-dim);
-    line-height: 1.6;
+    font-size: 14px;
+    color: var(--slide-text);
+    line-height: 1.5;
     padding-left: 18px;
     position: relative;
 }
 
+/* Square marker, same shape as the .dot-tag dot */
 .slide-notes li::before {
-    content: '▸';
+    content: '';
     position: absolute;
     left: 0;
-    color: var(--site-accent);
+    top: 0.55em;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-dot);
+    background: currentColor;
+    opacity: 0.6;
 }
 
 .slide-notes .callout {
     grid-column: 1 / -1;
     margin-top: 6px;
-    padding: 8px 12px;
-    background: color-mix(in srgb, var(--site-accent) 8%, transparent);
-    border-left: 2px solid var(--site-accent);
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 10px 14px;
+    background: var(--hydro-blue-100);
+    border-radius: var(--radius-4);
+    font-size: 13px;
     color: var(--slide-text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
 }
 
-/* ─────────── Quiz buttons (slide 13) ─────────── */
+/* ─────────── Quiz buttons (slide 13) and stepper buttons ───────────
+   Same hairline box as the shared .seg-btn in theme.css. */
 .quiz-row {
     display: flex;
     gap: 10px;
@@ -162,34 +167,59 @@ body.slide {
     margin-top: 10px;
 }
 
-.quiz-btn {
-    background: var(--slide-surface);
-    color: var(--slide-text-dim);
-    border: 1px solid var(--slide-border);
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.quiz-btn:hover {
+.quiz-btn,
+.stepper-btn,
+.deck-controls button {
+    height: var(--btn-size-2);
+    padding: 0 var(--spacing-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-1);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
     color: var(--slide-text);
-    border-color: var(--slide-border-hover);
+    background: var(--slide-surface);
+    border: 1px solid var(--carbon-black-500);
+    border-radius: var(--radius-3);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-radius 0.15s cubic-bezier(0.455, 0.03, 0.515, 0.955);
 }
 
-.quiz-btn.active {
-    color: var(--site-accent);
-    border-color: var(--site-accent);
-    background: color-mix(in srgb, var(--site-accent) 10%, transparent);
+.quiz-btn:hover,
+.stepper-btn:hover:not(:disabled),
+.deck-controls button:hover:not(:disabled) {
+    border-radius: var(--radius-5);
+}
+
+.quiz-btn:active,
+.stepper-btn:active:not(:disabled),
+.deck-controls button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.quiz-btn.active,
+.stepper-btn.active {
+    background: var(--carbon-black-500);
+    color: var(--white);
+}
+
+.stepper-btn:disabled,
+.deck-controls button:disabled {
+    border-color: var(--neutral-grey);
+    color: var(--neutral-grey);
+    cursor: default;
 }
 
 /* ─────────── Stepper controls (slide 8) ─────────── */
 .stepper-row {
     position: absolute;
     left: 50%;
-    bottom: 10px;
+    bottom: 12px;
     transform: translateX(-50%);
     z-index: 8;
     width: calc(100% - 24px);
@@ -200,35 +230,10 @@ body.slide {
     flex-wrap: wrap;
 }
 
-.stepper-btn {
-    background: var(--slide-surface);
-    color: var(--slide-text-dim);
-    border: 1px solid var(--slide-border);
-    border-radius: 6px;
-    padding: 8px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.stepper-btn:hover:not(:disabled) {
-    color: var(--slide-text);
-    border-color: var(--slide-border-hover);
-}
-
-.stepper-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
 .step-indicator {
     min-width: 260px;
     text-align: center;
-    color: var(--site-accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.2px;
+    color: var(--slide-text);
 }
 
 /* ─────────── Presenter hub page ─────────── */
@@ -244,19 +249,13 @@ body.presenter {
     background: var(--slide-surface);
     border-right: 1px solid var(--slide-border);
     overflow-y: auto;
-    padding: 64px 0 16px;
+    padding: 24px 0 16px;
 }
 
 .deck-sidebar h2 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--site-accent);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 0 20px 12px;
+    color: var(--slide-text);
+    padding: 0 20px 16px;
     border-bottom: 1px solid var(--slide-border);
-    margin-bottom: 8px;
 }
 
 .deck-sidebar ol {
@@ -278,30 +277,29 @@ body.presenter {
     padding: 10px 20px;
     text-align: left;
     cursor: pointer;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-text);
+    font-weight: 300;
     font-size: 13px;
     line-height: 1.4;
-    transition: all 0.15s;
 }
 
 .deck-sidebar li button:hover {
-    background: color-mix(in srgb, var(--site-accent) 6%, transparent);
     color: var(--slide-text);
 }
 
 .deck-sidebar li.active button {
-    background: color-mix(in srgb, var(--site-accent) 12%, transparent);
-    color: var(--site-accent);
-    border-left: 2px solid var(--site-accent);
-    padding-left: 18px;
+    background: var(--hydro-blue-100);
+    color: var(--slide-text);
+    font-family: var(--font-book);
+    font-weight: 400;
 }
 
 .deck-sidebar .deck-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
     color: var(--slide-text-muted);
     min-width: 22px;
 }
+
+.deck-sidebar li.active .deck-num { color: var(--slide-text); }
 
 .deck-main {
     display: flex;
@@ -326,62 +324,13 @@ body.presenter {
     border-top: 1px solid var(--slide-border);
 }
 
-.deck-controls button {
-    background: none;
-    border: 1px solid var(--slide-border);
-    border-radius: 6px;
-    color: var(--slide-text-dim);
-    padding: 8px 18px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.deck-controls button:hover:not(:disabled) {
-    color: var(--slide-text);
-    border-color: var(--slide-border-hover);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.deck-controls button:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
 .deck-controls .deck-counter {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--slide-text-muted);
+    color: var(--slide-text);
     min-width: 64px;
     text-align: center;
 }
 
-.back-btn {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 100;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    background: var(--slide-surface);
-    border: 1px solid var(--slide-border);
-    color: var(--slide-text-dim);
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: 'JetBrains Mono', monospace;
-    backdrop-filter: blur(8px);
-    transition: all 0.15s;
-}
-
-.back-btn:hover {
-    color: var(--slide-text);
-    border-color: var(--slide-border-hover);
-}
+/* The back button is the shared .back-btn from theme.css (top right). */
 
 /* Narrow viewport */
 @media (max-width: 900px) {
@@ -393,12 +342,11 @@ body.presenter {
         max-height: 40vh;
         border-right: none;
         border-bottom: 1px solid var(--slide-border);
-        padding-top: 48px;
     }
     body.slide {
         padding: 40px 16px 24px;
     }
     .slide-header h1 {
-        font-size: 22px;
+        font-size: 24px;
     }
 }

@@ -35,7 +35,7 @@
         var text = T.text;
         var muted = T.textMuted;
         var rcol = window.CMP.cssVar('--c-resistor') || T.fg(0.45);
-        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.yellowA(0.5);
+        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.wire;
         var blockFill = window.CMP.cssVar('--c-chip-fill') || T.fg(0.05);
 
         function ln(x1, y1, x2, y2, color, w) {
@@ -69,10 +69,10 @@
             dot(x + dx, y);
             window.renderKatex(svg, String(n),
                 x + (side === 'left' ? -8 : 8), y - 12,
-                { width: 16, height: 12, size: 10, color: muted });
+                { width: 16, height: 12, size: 15, color: muted });
             window.renderKatex(svg, latex || ('\\mathrm{' + name + '}'),
-                x + (side === 'left' ? -38 : 38), y,
-                { width: 60, height: 18, size: 12, color: text,
+                x + (side === 'left' ? -50 : 46), y,
+                { width: 60, height: 18, size: 16, color: text,
                   align: side === 'left' ? 'right' : 'left' });
         }
 
@@ -86,16 +86,16 @@
         ln(X_RAIL_L - 14, Y_VCC, X_RAIL_L, Y_VCC, wire, 2);
         dot(X_RAIL_L, Y_VCC);
         window.renderKatex(svg, '8', X_RAIL_L - 8, Y_VCC - 12,
-            { width: 16, height: 12, size: 10, color: muted });
-        window.renderKatex(svg, 'V_{CC}', X_RAIL_L - 38, Y_VCC,
-            { width: 60, height: 18, size: 12, color: text, align: 'right' });
+            { width: 16, height: 12, size: 15, color: muted });
+        window.renderKatex(svg, 'V_{CC}', X_RAIL_L - 50, Y_VCC,
+            { width: 60, height: 18, size: 16, color: text, align: 'right' });
 
         ln(X_RAIL_L - 14, Y_GND, X_RAIL_L, Y_GND, wire, 2);
         dot(X_RAIL_L, Y_GND);
         window.renderKatex(svg, '1', X_RAIL_L - 8, Y_GND - 12,
-            { width: 16, height: 12, size: 10, color: muted });
-        window.renderKatex(svg, '\\mathrm{GND}', X_RAIL_L - 38, Y_GND,
-            { width: 60, height: 18, size: 12, color: text, align: 'right' });
+            { width: 16, height: 12, size: 15, color: muted });
+        window.renderKatex(svg, '\\mathrm{GND}', X_RAIL_L - 50, Y_GND,
+            { width: 60, height: 18, size: 16, color: text, align: 'right' });
 
         // Voltage divider at X_DIV
         // Connection points along the divider:
@@ -125,24 +125,24 @@
         // Resistor labels (5 kΩ each)
         window.renderKatex(svg, '5\\,\\mathrm{k\\Omega}',
             X_DIV - 38, (Y_RT_T + Y_RT_B) / 2,
-            { width: 60, height: 16, size: 11, color: muted });
+            { width: 60, height: 16, size: 15, color: muted });
         window.renderKatex(svg, '5\\,\\mathrm{k\\Omega}',
             X_DIV - 38, (Y_RM_T + Y_RM_B) / 2,
-            { width: 60, height: 16, size: 11, color: muted });
+            { width: 60, height: 16, size: 15, color: muted });
         window.renderKatex(svg, '5\\,\\mathrm{k\\Omega}',
             X_DIV - 38, (Y_RB_T + Y_RB_B) / 2,
-            { width: 60, height: 16, size: 11, color: muted });
+            { width: 60, height: 16, size: 15, color: muted });
 
         // Tap A label (2/3 V_CC), placed above its horizontal wire
         window.renderKatex(svg, '\\tfrac{2}{3}V_{CC}',
             X_DIV + 50, Y_TAPA - 18,
-            { width: 80, height: 18, size: 12, color: text });
-        // Tap B label (1/3 V_CC), placed above its horizontal wire to keep
-        // it clear of the jog vertical at x = 220 that routes Tap B down
-        // into the lower comparator's + input.
+            { width: 80, height: 18, size: 16, color: text });
+        // Tap B label (1/3 V_CC), placed below its horizontal wire, between
+        // the lower resistor and the jog vertical at x = 220. The THRES wire
+        // at y = 260 leaves no room above the tap.
         window.renderKatex(svg, '\\tfrac{1}{3}V_{CC}',
-            X_DIV + 50, Y_TAPB - 18,
-            { width: 80, height: 18, size: 12, color: text });
+            X_DIV + 42, Y_TAPB + 22,
+            { width: 80, height: 18, size: 16, color: text });
 
         // ── External pin labels ──
         // Pin 5 (CTRL) connects directly to Tap A
@@ -171,8 +171,8 @@
             .attr('fill', blockFill).attr('stroke', wire).attr('stroke-width', 2)
             .attr('stroke-linejoin', 'round');
         // + and − markers near the input edges
-        window.renderKatex(svg, '-', UCOMP.tl[0] + 14, 180, { width: 14, height: 14, size: 13, color: text });
-        window.renderKatex(svg, '+', UCOMP.bl[0] + 14, 260, { width: 14, height: 14, size: 13, color: text });
+        window.renderKatex(svg, '-', UCOMP.tl[0] + 14, 180, { width: 14, height: 14, size: 16, color: text });
+        window.renderKatex(svg, '+', UCOMP.bl[0] + 14, 260, { width: 14, height: 14, size: 16, color: text });
         // Wires into upper comparator
         ln(X_DIV, Y_TAPA, UCOMP.tl[0], 180);             // tap A → − input (y=180)
         // Tap A is at y=180 already; horizontal at y=180 from X_DIV to triangle
@@ -185,8 +185,8 @@
             .attr('points', LCOMP.tl.join(',') + ' ' + LCOMP.bl.join(',') + ' ' + LCOMP.apex.join(','))
             .attr('fill', blockFill).attr('stroke', wire).attr('stroke-width', 2)
             .attr('stroke-linejoin', 'round');
-        window.renderKatex(svg, '+', LCOMP.tl[0] + 14, 340, { width: 14, height: 14, size: 13, color: text });
-        window.renderKatex(svg, '-', LCOMP.bl[0] + 14, 420, { width: 14, height: 14, size: 13, color: text });
+        window.renderKatex(svg, '+', LCOMP.tl[0] + 14, 340, { width: 14, height: 14, size: 16, color: text });
+        window.renderKatex(svg, '-', LCOMP.bl[0] + 14, 420, { width: 14, height: 14, size: 16, color: text });
 
         // Tap B → + input of lower comparator (jog right then down)
         ln(X_DIV, Y_TAPB, 220, Y_TAPB);
@@ -205,19 +205,19 @@
             .attr('rx', 6).attr('ry', 6)
             .attr('fill', blockFill).attr('stroke', wire).attr('stroke-width', 2);
         window.renderKatex(svg, '\\text{SR latch}',
-            LATCH.x + LATCH.w / 2, LATCH.y + 14,
-            { width: 100, height: 18, size: 12, color: text });
+            LATCH.x + LATCH.w / 2, LATCH.y - 14,
+            { width: 100, height: 18, size: 16, color: text });
 
         // S, R, ~CLR, Q, ~Q labels and pin positions
         var S_y = 320, R_y = 380, CLR_y = LATCH.y + LATCH.h, Q_y = 320, NQ_y = 380;
-        window.renderKatex(svg, 'S', LATCH.x + 14, S_y, { width: 16, height: 14, size: 11, color: text });
-        window.renderKatex(svg, 'R', LATCH.x + 14, R_y, { width: 16, height: 14, size: 11, color: text });
+        window.renderKatex(svg, 'S', LATCH.x + 14, S_y, { width: 16, height: 14, size: 15, color: text });
+        window.renderKatex(svg, 'R', LATCH.x + 14, R_y, { width: 16, height: 14, size: 15, color: text });
         window.renderKatex(svg, '\\overline{\\mathrm{CLR}}',
             LATCH.x + LATCH.w / 2, CLR_y - 14,
-            { width: 56, height: 16, size: 11, color: text });
-        window.renderKatex(svg, 'Q', LATCH.x + LATCH.w - 14, Q_y, { width: 16, height: 14, size: 11, color: text });
+            { width: 56, height: 16, size: 15, color: text });
+        window.renderKatex(svg, 'Q', LATCH.x + LATCH.w - 14, Q_y, { width: 16, height: 14, size: 15, color: text });
         window.renderKatex(svg, '\\overline{Q}',
-            LATCH.x + LATCH.w - 14, NQ_y, { width: 16, height: 14, size: 11, color: text });
+            LATCH.x + LATCH.w - 14, NQ_y, { width: 16, height: 14, size: 15, color: text });
 
         // Wires from comparators to latch:
         //   Lower comparator apex (370, 380) → S input (460, 320)
@@ -247,9 +247,9 @@
         ln(OBUF.apex[0], OBUF.apex[1], X_RAIL_R, OBUF.apex[1]);
         dot(X_RAIL_R, OBUF.apex[1]);
         window.renderKatex(svg, '3', X_RAIL_R + 8, OBUF.apex[1] - 12,
-            { width: 16, height: 12, size: 10, color: muted });
-        window.renderKatex(svg, '\\mathrm{OUT}', X_RAIL_R + 38, OBUF.apex[1],
-            { width: 60, height: 18, size: 12, color: text, align: 'left' });
+            { width: 16, height: 12, size: 15, color: muted });
+        window.renderKatex(svg, '\\mathrm{OUT}', X_RAIL_R + 46, OBUF.apex[1],
+            { width: 60, height: 18, size: 16, color: text, align: 'left' });
 
         // ── Discharge NPN transistor ──
         // Drawn as a circle with internal symbol. Base from latch ~Q, collector
@@ -289,9 +289,9 @@
         ln(TX_C.x + 14, Y_DISCH, X_RAIL_R, Y_DISCH);
         dot(X_RAIL_R, Y_DISCH);
         window.renderKatex(svg, '7', X_RAIL_R + 8, Y_DISCH - 12,
-            { width: 16, height: 12, size: 10, color: muted });
-        window.renderKatex(svg, '\\mathrm{DISCH}', X_RAIL_R + 38, Y_DISCH,
-            { width: 60, height: 18, size: 12, color: text, align: 'left' });
+            { width: 16, height: 12, size: 15, color: muted });
+        window.renderKatex(svg, '\\mathrm{DISCH}', X_RAIL_R + 46, Y_DISCH,
+            { width: 60, height: 18, size: 16, color: text, align: 'left' });
 
         // Hover tooltips
         if (window.CircuitTip) {
@@ -301,7 +301,7 @@
             }
             tip(X_DIV - 22, Y_RT_T - 6, 44, (Y_RB_B - Y_RT_T) + 12,
                 'Resistive divider',
-                'Three nominally-identical 5 k&Omega; resistors set the upper threshold at &#8532;V<sub>CC</sub> and the lower threshold at &#8531;V<sub>CC</sub>. Both thresholds scale with V<sub>CC</sub>, so timing is independent of supply voltage.');
+                'Three nominally identical 5 k&Omega; resistors set the upper threshold at &#8532;V<sub>CC</sub> and the lower threshold at &#8531;V<sub>CC</sub>. Both thresholds scale with V<sub>CC</sub>, so timing is independent of supply voltage.');
             tip(UCOMP.tl[0] - 6, UCOMP.tl[1] - 6,
                 UCOMP.apex[0] - UCOMP.tl[0] + 12, UCOMP.bl[1] - UCOMP.tl[1] + 12,
                 'Upper comparator',
@@ -312,21 +312,20 @@
                 'Output goes high when v<sub>TRIG</sub> falls below &#8531;V<sub>CC</sub>. Drives the S input of the latch, setting Q and starting the high portion of the cycle.');
             tip(LATCH.x - 4, LATCH.y - 4, LATCH.w + 8, LATCH.h + 8,
                 'SR latch',
-                'Single-bit memory. S sets Q high, R clears Q low, and the active-low CLR input from RESET pin overrides both.');
+                'Single-bit memory. S sets Q high, R clears Q low, and the active-low CLR input from the RESET pin overrides both.');
             tip(OBUF.tl[0] - 6, OBUF.tl[1] - 6,
                 OBUF.apex[0] - OBUF.tl[0] + 12, OBUF.bl[1] - OBUF.tl[1] + 12,
                 'Output buffer',
-                'Drives the OUT pin from the latch state Q. Bipolar 555 variants source and sink up to ~200 mA so the OUT pin can drive small loads directly.');
+                'Drives the OUT pin from the latch state Q. Bipolar 555 variants source and sink up to approximately 200 mA, so the OUT pin can drive small loads directly.');
             tip(TX_C.x - TX_C.r - 6, TX_C.y - TX_C.r - 6,
                 TX_C.r * 2 + 12, TX_C.r * 2 + 12,
                 'Discharge transistor',
-                'NPN that grounds the DISCH pin while the latch is in the reset state. External timing capacitors connect to DISCH so the transistor sinks their charge during the low portion of the cycle.');
+                'NPN transistor that grounds the DISCH pin while the latch is in the reset state. External timing capacitors connect to DISCH so the transistor sinks their charge during the low portion of the cycle.');
         }
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

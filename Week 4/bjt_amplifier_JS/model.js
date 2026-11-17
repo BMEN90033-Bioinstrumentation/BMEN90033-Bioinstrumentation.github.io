@@ -134,12 +134,11 @@
         p: p, buf: buf, waveValue: waveValue, solveVBE: solveVBE, operatingPoint: operatingPoint,
         computeDCBias: computeDCBias, computeSmallSignal: computeSmallSignal, shockleyQ: shockleyQ,
         watch: watch, vinNow: vinNow, fmtR: fmtR, fmtV: fmtV, fmtmA: fmtmA,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ampchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

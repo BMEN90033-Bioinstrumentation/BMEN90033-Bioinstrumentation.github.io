@@ -37,7 +37,7 @@
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
         var wire   = window.T.wire;
-        var fill   = window.CMP.cssVar('--bg-2');
+        var fill   = window.T.plotBg;
         var text   = window.T.text;
         var dim    = window.T.textDim;
         var rcol   = window.CMP.cssVar('--c-resistor');
@@ -112,29 +112,28 @@
         ln(X_GND - 6,  Y_GND + 14, X_GND + 6,  Y_GND + 14, wire, 1.8);
 
         // ── Labels (KaTeX) ──
-        // R_1, R_2 inside their rectangles
+        // R_1, R_2 above their rectangles
         window.renderKatex(svg, 'R_1',
-            (X_R1_L + X_R1_R) / 2, Y_PLUS,
-            { width: 36, height: 22, size: 14, color: text });
+            (X_R1_L + X_R1_R) / 2, Y_PLUS - 24,
+            { width: 36, height: 22, size: 17, color: text });
         window.renderKatex(svg, 'R_2',
-            (X_R2_L + X_R2_R) / 2, Y_R2,
-            { width: 36, height: 22, size: 14, color: text });
+            (X_R2_L + X_R2_R) / 2, Y_R2 - 24,
+            { width: 36, height: 22, size: 17, color: text });
         // V_+ tap label below node A
         window.renderKatex(svg, 'V_+',
-            X_NODE, Y_PLUS + 22,
-            { width: 36, height: 20, size: 13, color: dim });
+            X_NODE, Y_PLUS + 24,
+            { width: 36, height: 20, size: 16, color: dim });
         // Terminal labels
         window.renderKatex(svg, 'v_\\text{in}',
             X_VIN_DOT - 26, Y_PLUS,
-            { width: 50, height: 24, size: 16, color: text });
+            { width: 50, height: 24, size: 18, color: text });
         window.renderKatex(svg, 'v_\\text{out}',
             X_VOUT_DOT + 32, TRI.apex[1],
-            { width: 60, height: 24, size: 16, color: text });
+            { width: 60, height: 24, size: 18, color: text });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

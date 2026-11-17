@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Apple 1 CPU · The MOS 6502</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Apple 1 CPU and the MOS 6502</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="passive_peak_detector_JS/passive_peak_detector.css">
@@ -24,7 +18,7 @@
                 { left: '$',  right: '$',  display: false },
                 { left: '\\(', right: '\\)', display: false }
             ],
-            ignoredClasses: ['terminal', 'terminal-hint', 'memtable-wrap', 'memmap', 'sim-meta', 'pla-truth', 'pla-toolbar', 'pla-readout', 'pla-legend'],
+            ignoredClasses: ['terminal', 'terminal-hint', 'memtable-wrap', 'sim-meta', 'pla-truth', 'pla-toolbar', 'pla-readout', 'pla-legend', 'asm-listing'],
             throwOnError: false
         });"></script>
 
@@ -41,2011 +35,429 @@
     </script>
 
     <style>
+        /* Tokens, controls and the slide deck come from ../theme.css and
+           passive_peak_detector.css. This block lays out the image stack,
+           the PLA diagram and the wrapper around the visual6502 simulator. */
         :root {
-            --c-acc: #f5c451;
-            --c-reg: #58a6ff;
-            --c-mem: #34d399;
-            --c-bus: #b58df1;
+            /* PLA signal classes on the data palette. */
+            --c-reg: var(--d-blue);     /* inputs */
+            --c-acc: var(--d-orange);   /* product terms */
+            --c-mem: var(--d-green);    /* outputs */
         }
 
-        [data-theme="light"] {
-            --c-acc: #b8801f;
-            --c-reg: #1d4ed8;
-            --c-mem: #059669;
-            --c-bus: #7d3cdc;
+        /* The footer does not fit the deck layout; the brand tag identifies the page. */
+        body > footer { display: none; }
+
+        .slide.full.sim-slide { padding: 78px 32px 90px; }
+        .slide.full.sim-slide .copy { max-width: 1000px; margin: 0 auto; }
+        .sim-wrap { width: 100%; margin: var(--spacing-5) auto 0; }
+
+        /* ─── Slide 1: image stack ─── */
+        .image-stack { display: flex; flex-direction: column; gap: var(--spacing-4); width: 100%; }
+        .image-stack figure {
+            margin: 0; border: 1px solid var(--calcium-white-800);
+            border-radius: var(--radius-container); overflow: hidden; background: var(--white);
+        }
+        .image-stack figure img { display: block; width: 100%; height: auto; }
+        .image-stack figcaption {
+            padding: var(--spacing-3) var(--spacing-4);
+            font-size: 13px; line-height: 1.4; color: var(--fg);
+            border-top: 1px solid var(--calcium-white-800);
+        }
+        .image-stack figcaption b { margin-right: 6px; }
+
+        /* A round portrait sits to the left of the designers figure with an
+           arrow joining the two. On wide layouts the portrait is positioned
+           absolutely so the figure keeps the width of the others; on narrow
+           layouts the row is an in-flow flex strip. */
+        .image-stack .designers-row { position: relative; margin: 0; }
+        .image-stack .designers-figure { margin: 0; width: 100%; }
+        .image-stack .me-woz-callout {
+            position: absolute; top: 32%; right: calc(100% + 136px);
+            transform: translateY(-50%);
+            width: 320px; margin: 0;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            border: 0; background: none; border-radius: 0; overflow: visible;
+        }
+        .image-stack .me-woz-callout img {
+            width: 320px; height: 320px; object-fit: cover;
+            border-radius: 50%; border: 1px solid var(--calcium-white-800);
+        }
+        .image-stack .me-woz-callout figcaption {
+            padding: 0; border: 0; text-align: center;
+            font-family: var(--font-mono); font-size: 10px; line-height: 1.4;
+            letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+        }
+        .image-stack .designers-arrow {
+            position: absolute; top: 30%; right: calc(100% + 12px);
+            width: 112px; height: 90px;
+            color: var(--fg); pointer-events: none; overflow: visible;
+        }
+        @media (max-width: 1100px) {
+            .image-stack .designers-row { display: flex; align-items: center; gap: 12px; }
+            .image-stack .me-woz-callout,
+            .image-stack .designers-arrow { position: static; transform: none; }
+            .image-stack .me-woz-callout { flex: 0 0 180px; width: 180px; }
+            .image-stack .me-woz-callout img { width: 180px; height: 180px; }
+            .image-stack .designers-arrow { flex: 0 0 80px; width: 80px; height: 64px; }
+            .image-stack .designers-figure { flex: 1 1 auto; min-width: 0; }
         }
 
-        h2 em.acc {
-            color: var(--c-acc);
+        /* ─── Slide 2: programmable logic array ───
+           Four inputs, eight product terms, four outputs, drawn with D3.
+           Clicking a cross-point in either plane toggles a connection. */
+        .pla-widget {
+            display: flex; flex-direction: column; gap: var(--spacing-4); width: 100%;
+            border: 1px solid var(--calcium-white-800);
+            border-radius: var(--radius-container); padding: var(--spacing-5);
         }
-
-        h2 em.reg {
-            color: var(--c-reg);
+        .pla-toolbar {
+            display: flex; flex-wrap: wrap; gap: var(--spacing-3);
+            align-items: center; justify-content: space-between;
         }
+        .pla-group { display: flex; flex-wrap: wrap; align-items: center; }
+        .pla-group .tag-s { color: var(--muted); margin-right: var(--spacing-2); }
+        .pla-group .pillbtn + .pillbtn { margin-left: -1px; }
+        .pla-input .bit { margin-left: 6px; }
 
-        h2 em.mem {
-            color: var(--c-mem);
+        .pla-explainer {
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--hydro-blue-100); border-radius: var(--radius-5);
+            font-size: 13px; line-height: 1.45; color: var(--fg);
         }
+        .pla-explainer .tag-s { display: block; margin-bottom: 4px; }
+        .pla-explainer.is-default .tag-s { color: var(--muted); }
 
-        h2 em.bus {
-            color: var(--c-bus);
+        #pla-svg { display: block; width: 100%; height: auto; }
+        #pla-svg text {
+            font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.04em;
+            fill: var(--fg); user-select: none;
         }
+        #pla-svg .pla-frame { fill: none; stroke: var(--tick-line); stroke-dasharray: 3 4; }
+        #pla-svg .pla-band-label { fill: var(--muted); }
+        #pla-svg .vline,
+        #pla-svg .hline { stroke: var(--calcium-white-800); stroke-width: 1.2; }
+        #pla-svg .vline.input.lit   { stroke: var(--c-reg); stroke-width: 2.4; }
+        #pla-svg .hline.product.lit { stroke: var(--c-acc); stroke-width: 2.4; }
+        #pla-svg .vline.output.lit  { stroke: var(--c-mem); stroke-width: 2.4; }
 
-        /* Single-column scene used for the embedded simulator. */
-        section.scene.full {
-            grid-template-columns: 1fr;
-            max-width: 1400px;
+        /* Cross-point: a clickable group at every wire crossing. An open
+           crossing shows nothing until hovered; a connected crossing shows
+           a filled dot, the schematic convention for a junction. */
+        #pla-svg .xpoint { cursor: pointer; }
+        #pla-svg .xpoint .hit { fill: transparent; }
+        #pla-svg .xpoint .mark { fill: transparent; stroke: transparent; pointer-events: none; }
+        #pla-svg .xpoint:hover .mark { fill: var(--grid-line); stroke: var(--fg); }
+        #pla-svg .xpoint.and.on .mark { fill: var(--c-acc); stroke: var(--c-acc); }
+        #pla-svg .xpoint.or.on .mark  { fill: var(--c-mem); stroke: var(--c-mem); }
+        #pla-svg .ibit, #pla-svg .obit { fill: var(--muted); }
+        #pla-svg .ibit.lit { fill: var(--c-reg); }
+        #pla-svg .obit.lit { fill: var(--c-mem); }
+        #pla-svg .plabel.lit { fill: var(--c-acc); }
+
+        .pla-legend { align-items: center; }
+        .pla-legend .leg-hint { margin-left: auto; }
+        .pla-legend .sw.in   { background: var(--c-reg); }
+        .pla-legend .sw.prod { background: var(--c-acc); }
+        .pla-legend .sw.out  { background: var(--c-mem); }
+
+        /* Boolean expression and value carried by each product line. */
+        .pla-readout, .pla-truth {
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--hydro-blue-100); border-radius: var(--radius-5);
+            font-family: var(--font-mono); font-size: 12px; color: var(--fg);
         }
+        .pla-readout { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; }
+        .pla-readout .pterm { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+        .pla-readout .pterm .lab { min-width: 22px; }
+        .pla-readout .pterm .eq { color: var(--muted); }
+        .pla-readout .pterm .expr { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pla-readout .pterm .val { min-width: 12px; text-align: right; }
+        .pla-readout .pterm.unused { color: var(--muted); }
+        .pla-readout .pterm.lit .lab,
+        .pla-readout .pterm.lit .val { color: var(--c-acc); }
 
-        section.scene.full .copy {
-            max-width: 900px;
-            margin: 0 auto;
+        .pla-truth {
+            display: flex; flex-wrap: wrap; gap: var(--spacing-4);
+            align-items: center; justify-content: space-between; letter-spacing: 0.1em;
         }
+        .pla-truth .tag-s { display: inline; color: var(--muted); margin-right: var(--spacing-2); }
+        .pla-truth .nibble.in  { color: var(--c-reg); }
+        .pla-truth .nibble.out { color: var(--c-mem); }
+        .pla-truth .to { color: var(--muted); letter-spacing: 0.12em; }
 
-        section.scene.full .sim-wrap {
-            width: 100%;
-            margin: 24px auto 0;
+        /* ─── Slide 3: wrapper around the visual6502 simulator ───
+           The simulator pans and zooms by writing top, left, width and height
+           onto the chip canvases. The viewport is square to match the chip
+           layout; the upstream recenter() and mouseMove() are replaced at
+           runtime for the 800 px viewport. */
+        .sim-meta {
+            display: flex; flex-wrap: wrap; gap: 10px 22px;
+            padding: var(--spacing-3) var(--spacing-4); margin-bottom: 14px;
+            background: var(--hydro-blue-100); border-radius: var(--radius-5);
+            font-size: 13px; color: var(--fg);
         }
+        .sim-meta .tag-s { display: inline; color: var(--muted); margin-right: var(--spacing-2); }
 
-        /* ------------------------------------------------------------
-           Themed wrapper around the visual6502 transistor simulator.
-           The simulator's JS pans/zooms by writing top/left/width/height
-           directly onto the four canvases. The viewport is square so its
-           aspect ratio matches the rendered chip schematic; the upstream
-           recenter() / mouseMove() are patched at runtime to the new
-           viewport width (the originals assume 800 wide).
-           ------------------------------------------------------------ */
+        .asm-listing {
+            margin: var(--spacing-5) 0;
+            border: 1px solid var(--calcium-white-800); border-radius: var(--radius-5);
+            font-family: var(--font-mono); overflow: hidden;
+        }
+        .asm-listing > summary {
+            list-style: none; cursor: pointer; user-select: none;
+            padding: var(--spacing-3) var(--spacing-4);
+            display: flex; align-items: center; gap: 10px;
+            font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg);
+        }
+        .asm-listing > summary::-webkit-details-marker { display: none; }
+        .asm-listing > summary .chev {
+            width: 7px; height: 7px; flex: none;
+            border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+            transform: rotate(-45deg); transition: transform 0.18s ease;
+        }
+        .asm-listing[open] > summary .chev { transform: rotate(45deg); }
+        .asm-listing > summary .meta { margin-left: auto; color: var(--muted); }
+        .asm-listing pre {
+            margin: 0; padding: var(--spacing-4);
+            border-top: 1px solid var(--calcium-white-800); background: var(--hydro-blue-100);
+            font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55;
+            color: var(--fg); overflow-x: auto; white-space: pre;
+        }
+        .asm-listing pre .c { color: var(--muted); }
+
         .v6502 {
-            display: grid;
-            grid-template-columns: 800px minmax(0, 1fr);
-            gap: 20px;
-            align-items: start;
-            margin: 0 auto;
-            max-width: 1320px;
+            display: grid; grid-template-columns: 800px minmax(0, 1fr);
+            gap: var(--spacing-5); align-items: start;
+            margin: 0 auto; max-width: 1320px;
         }
-
         @media (max-width: 1380px) {
-            .v6502 {
-                grid-template-columns: 1fr;
-                justify-items: center;
-            }
+            .v6502 { grid-template-columns: 1fr; justify-items: center; }
         }
-
+        .v6502 .chip-column {
+            display: flex; flex-direction: column; align-items: center;
+            gap: var(--spacing-3); width: 800px;
+        }
         .v6502 .chip-viewport {
-            position: relative;
-            width: 800px;
-            height: 800px;
-            overflow: hidden;
-            background: #050608;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            position: relative; width: 800px; height: 800px; overflow: hidden;
+            background: var(--white);
+            border: 1px solid var(--calcium-white-800); border-radius: var(--radius-container);
         }
-
-        [data-theme="light"] .v6502 .chip-viewport {
-            background: #1a1c24;
-        }
-
         .v6502 .chip-viewport canvas.chip {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            top: 0;
-            left: 0;
-            image-rendering: pixelated;
+            position: absolute; width: 800px; height: 800px; top: 0; left: 0;
         }
+        /* The dimmer canvas sits above the click-receiving #hilite canvas, so
+           pointer events must pass through it. */
+        .v6502 .chip-viewport #dimmer { pointer-events: none; }
+        .v6502 .chip-viewport.labels-on { cursor: help; }
 
-        /* The dimmer canvas sits on top of the click-receiving #hilite
-           canvas (DOM order). It is purely a visual overlay, so let
-           mouse events fall through to the layer below. Without this
-           panning and node-click hit-testing both stop working. */
-        .v6502 .chip-viewport #dimmer {
-            pointer-events: none;
-        }
-
-        /* In 3D view all the 2D chip canvases and overlays are hidden;
-           the Three.js renderer takes the full viewport. */
+        /* In the 3D view the 2D canvases and overlays are hidden and the
+           Three.js renderer fills the viewport. */
         .v6502 .chip-viewport.view-3d canvas.chip,
         .v6502 .chip-viewport.view-3d .regions-overlay,
-        .v6502 .chip-viewport.view-3d #waiting-label {
-            display: none;
-        }
-
-        /* 3D scene container. Fills the chip viewport and contains the
-           Three.js renderer's canvas. Hidden until the user activates
-           the 3D toggle the first time. */
-        .v6502 .chip-viewport .scene-3d {
-            position: absolute;
-            inset: 0;
-            display: none;
-            background: radial-gradient(ellipse at center, #0d1118 0%, #050608 75%);
-        }
-
-        .v6502 .chip-viewport.view-3d .scene-3d {
-            display: block;
-        }
-
+        .v6502 .chip-viewport.view-3d #waiting-label { display: none; }
+        .v6502 .chip-viewport .scene-3d { position: absolute; inset: 0; display: none; background: var(--white); }
+        .v6502 .chip-viewport.view-3d .scene-3d { display: block; }
         .v6502 .chip-viewport .scene-3d canvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
+            position: absolute; inset: 0; width: 100%; height: 100%; display: block;
         }
-
         .v6502 .chip-viewport .scene-3d .scene-hint {
-            position: absolute;
-            top: 12px;
-            left: 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.42);
-            pointer-events: none;
+            position: absolute; top: 12px; left: 14px; z-index: 1;
+            color: var(--muted); pointer-events: none;
+        }
+        .v6502 .chip-viewport #waiting-label {
+            position: absolute; inset: 0; z-index: 5;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); pointer-events: none;
         }
 
-        .v6502 .chip-viewport #waiting-label {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255, 255, 255, 0.55);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            pointer-events: none;
-            z-index: 5;
+        /* Functional-region overlay. Sized like the canvases (kept in step
+           by the patched setChipStyle); rectangles use percentage coordinates
+           so they scale with zoom. Each region is labelled directly. */
+        .regions-overlay {
+            position: absolute; top: 0; left: 0; width: 800px; height: 800px;
+            display: none; pointer-events: none; z-index: 4;
+        }
+        .v6502 .chip-viewport.regions-on .regions-overlay { display: block; }
+        .regions-overlay .region {
+            position: absolute; box-sizing: border-box;
+            border: 1px solid currentColor;
+            background: color-mix(in srgb, currentColor 20%, transparent);
+        }
+        .regions-overlay .region.active {
+            border-width: 2px;
+            background: color-mix(in srgb, currentColor 8%, transparent);
+        }
+        .regions-overlay .rlabel {
+            position: absolute; inset: 0; padding: 6px;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            font-family: var(--font-mono); font-size: 11px; line-height: 1.25;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--fg); pointer-events: none;
+        }
+        .regions-overlay .rlabel span { background: var(--white); padding: 2px 5px; border-radius: var(--radius-1); }
+
+        /* Pin labels on the bonding pads, shown with the region overlay.
+           Border colour gives the direction; the tooltip states it in words. */
+        .regions-overlay .pin-label {
+            position: absolute; display: none; transform: translate(-50%, -50%);
+            font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em;
+            padding: 2px 6px; border-radius: var(--radius-1); white-space: nowrap;
+            color: var(--fg); background: var(--white); border: 1px solid;
+            pointer-events: auto; cursor: help; z-index: 3;
+        }
+        .regions-overlay .pin-label:hover { z-index: 4; background: var(--hydro-blue-100); }
+        .v6502 .chip-viewport.regions-on .regions-overlay .pin-label { display: block; }
+        .regions-overlay .pin-label.kind-in  { border-color: var(--d-blue); }
+        .regions-overlay .pin-label.kind-out { border-color: var(--d-orange); }
+        .regions-overlay .pin-label.kind-io  { border-color: var(--d-green); }
+        .regions-overlay .pin-label.kind-pwr { border-color: var(--d-violet); }
+
+        /* Tooltip for the label overlay; follows the cursor. */
+        #labelTip {
+            position: fixed; pointer-events: none; z-index: 9999; display: none;
+            max-width: 320px; padding: var(--spacing-3) var(--spacing-4);
+            background: var(--white); border: 1px solid var(--carbon-black-500);
+            border-radius: var(--radius-5);
+            font-size: 13px; line-height: 1.4; color: var(--fg);
+        }
+        #labelTip b { display: block; font-family: var(--font-mono); font-size: 12px; margin-bottom: 3px; }
+        #labelTip .cat, #labelTip .raw {
+            display: block; font-family: var(--font-mono); font-size: 10px;
+            letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+        }
+        #labelTip .cat { margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        #labelTip .cat i { width: 7px; height: 7px; border-radius: var(--radius-dot); background: var(--swatch, currentColor); }
+        #labelTip .raw { margin-top: 6px; text-transform: none; letter-spacing: 0.04em; }
+
+        /* Floating control bar at the bottom centre of the chip viewport:
+           label toggle, 2D / 3D switch, and the label mode and dim controls
+           that open when labels are on. */
+        .v6502 .chip-viewport .labels-bar {
+            position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 20;
+            display: inline-flex; align-items: center; padding: 3px;
+            background: var(--white); border: 1px solid var(--carbon-black-500);
+            border-radius: var(--radius-4);
+            font-family: var(--font-mono); font-size: 10px;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--fg); user-select: none;
+        }
+        .v6502 .chip-viewport .labels-bar button {
+            appearance: none; -webkit-appearance: none; margin: 0;
+            height: 22px; padding: 0 10px;
+            background: none; border: 0; border-radius: var(--radius-1);
+            font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+            white-space: nowrap; cursor: pointer; line-height: 1;
+        }
+        .v6502 .chip-viewport .labels-bar button:hover:not(.active) { background: var(--hydro-blue-100); }
+        .v6502 .chip-viewport .labels-bar button.active { background: var(--carbon-black-500); color: var(--white); }
+        .v6502 .chip-viewport .labels-toggle { display: inline-flex; align-items: center; gap: 7px; }
+        .v6502 .chip-viewport .labels-toggle .dot {
+            width: 7px; height: 7px; border-radius: var(--radius-dot);
+            border: 1px solid var(--carbon-black-500);
+        }
+        .v6502 .chip-viewport .labels-bar.expanded .labels-toggle .dot { background: var(--carbon-black-500); }
+        .v6502 .chip-viewport .view-toggle,
+        .v6502 .chip-viewport .mode-switch,
+        .v6502 .chip-viewport .dim-control { display: flex; align-items: center; }
+        .v6502 .chip-viewport .view-toggle::before,
+        .v6502 .chip-viewport .mode-switch::before,
+        .v6502 .chip-viewport .dim-control::before {
+            content: ''; width: 1px; align-self: stretch; margin: 3px 6px;
+            background: var(--calcium-white-800);
+        }
+        /* Collapsed until .expanded is set on the bar. */
+        .v6502 .chip-viewport .mode-switch,
+        .v6502 .chip-viewport .dim-control {
+            max-width: 0; overflow: hidden; opacity: 0;
+            transition: max-width 0.28s ease, opacity 0.18s ease 0.04s;
+        }
+        .v6502 .chip-viewport .labels-bar.expanded .mode-switch { max-width: 260px; opacity: 1; }
+        .v6502 .chip-viewport .labels-bar.expanded .dim-control { max-width: 200px; opacity: 1; }
+        .v6502 .chip-viewport .dim-control .dc-label { color: var(--muted); margin-right: 10px; }
+        .v6502 .chip-viewport .dim-control input[type="range"] { width: 90px; margin-right: 10px; }
+        /* Labels apply to the 2D view only. */
+        .v6502 .chip-viewport.view-3d .labels-bar .mode-switch,
+        .v6502 .chip-viewport.view-3d .labels-bar .dim-control,
+        .v6502 .chip-viewport.view-3d .labels-bar .labels-toggle { display: none; }
+
+        /* Layer buttons and legend below the chip. --swatch is the layer
+           colour from the chip-layer map in the simulator script. */
+        .v6502 .layer-btn .swatch,
+        .v6502 .layers-legend .sw {
+            width: 9px; height: 9px; flex: none; border-radius: var(--radius-dot);
+            background: var(--swatch);
+        }
+        .v6502 .layer-btn .swatch { margin-right: 4px; }
+        .v6502 .layer-btn.active .swatch { outline: 1px solid var(--white); }
+        .v6502 .layers-legend {
+            width: 100%;
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px;
+            padding: var(--spacing-3) var(--spacing-4);
+            background: var(--hydro-blue-100); border-radius: var(--radius-5);
+            font-size: 13px; line-height: 1.4; color: var(--fg);
+        }
+        .v6502 .layers-legend .row {
+            display: grid; grid-template-columns: 9px 62px 1fr; align-items: baseline; gap: 8px;
+        }
+        .v6502 .layers-legend .row.wide { grid-column: 1 / -1; }
+        .v6502 .layers-legend .sw { transform: translateY(1px); }
+        .v6502 .layers-legend .sw.none { background: none; border: 1px solid var(--carbon-black-500); }
+        .v6502 .layers-legend .key {
+            font-family: var(--font-mono); font-size: 10px;
+            letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .v6502 .layers-legend .cls { white-space: nowrap; margin-right: 10px; }
+        .v6502 .layers-legend .cls .sw { display: inline-block; margin-right: 5px; transform: none; }
+        @media (max-width: 720px) {
+            .v6502 .layers-legend { grid-template-columns: 1fr; }
         }
 
         .v6502 .side {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            min-width: 0;
-            width: 100%;
-            max-width: 460px;
+            display: flex; flex-direction: column; gap: 14px;
+            min-width: 0; width: 100%; max-width: 460px;
         }
+        .v6502 .controls { justify-content: flex-start; }
+        .v6502 .controls .seg { flex-wrap: nowrap; }
+        .v6502 .speed-control { display: inline-flex; align-items: center; gap: 10px; }
+        .v6502 .speed-control .tag-s { color: var(--muted); }
+        .v6502 .speed-control input[type="range"] { width: 110px; }
+        .v6502 .speed-control .speed-readout { min-width: 4ch; text-align: right; color: var(--fg); }
+        .v6502 .status-label { color: var(--muted); margin-bottom: 6px; }
 
-        .v6502 .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 12px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+        .v6502 #status, .v6502 .memtable-wrap, .v6502 .terminal {
+            border: 1px solid var(--calcium-white-800); border-radius: var(--radius-5);
+            font-family: var(--font-mono); color: var(--fg); background: var(--white);
         }
-
-        .v6502 .ctl {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            background: var(--pill-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: all 0.12s;
-            user-select: none;
-        }
-
-        .v6502 .ctl:hover {
-            border-color: var(--border-hover);
-            color: var(--fg);
-        }
-
-        .v6502 .ctl.run {
-            color: var(--c-output);
-            border-color: rgba(52, 211, 153, 0.35);
-        }
-
-        .v6502 .ctl.run:hover {
-            background: rgba(52, 211, 153, 0.10);
-        }
-
-        .v6502 .ctl.stop {
-            color: var(--c-thresh);
-            border-color: rgba(255, 92, 122, 0.35);
-        }
-
-        .v6502 .ctl.stop:hover {
-            background: rgba(255, 92, 122, 0.10);
-        }
-
-        .v6502 .ctl.reset {
-            color: var(--c-amber);
-            border-color: rgba(245, 196, 81, 0.35);
-        }
-
-        .v6502 .ctl.reset:hover {
-            background: rgba(245, 196, 81, 0.10);
-        }
-
-        /* Inline speed slider, sits in the same row as the chip
-           controls. Slider value is "speed", left = slow, right = fast. */
-        .v6502 .speed-control {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 10px 4px 12px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            background: var(--pill-bg);
-        }
-
-        .v6502 .speed-control .speed-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
-
-        .v6502 .speed-control input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 110px;
-            height: 4px;
-            background: var(--slider-track);
-            border-radius: 999px;
-            outline: none;
-            cursor: pointer;
-        }
-
-        .v6502 .speed-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: var(--c-output);
-            border: 2px solid var(--bg-2);
-            cursor: pointer;
-            box-shadow: 0 0 6px rgba(52, 211, 153, 0.45);
-        }
-
-        .v6502 .speed-control input[type="range"]::-moz-range-thumb {
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: var(--c-output);
-            border: 2px solid var(--bg-2);
-            cursor: pointer;
-        }
-
-        .v6502 .speed-control .speed-readout {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: var(--text-dim);
-            min-width: 4ch;
-            text-align: right;
-        }
-
         .v6502 #status {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11.5px;
-            line-height: 1.55;
-            color: var(--text-dim);
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            min-height: 76px;
-            white-space: pre-wrap;
-            overflow-x: auto;
+            font-size: 12px; line-height: 1.55; padding: 12px 14px;
+            min-height: 76px; white-space: pre-wrap; overflow-x: auto;
         }
+        .v6502 #status p { margin: 0; }
+        .v6502 .memtable-wrap { padding: 10px; overflow-x: auto; }
+        .v6502 #memtable { font-family: var(--font-mono); font-size: 10.5px; border-spacing: 0; color: var(--fg); }
+        .v6502 #memtable td { padding: 1px 4px; text-align: right; min-width: 18px; }
+        .v6502 #memtable tr td:first-child { color: var(--muted); text-align: left; padding-right: 8px; }
 
-        .v6502 .status-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-
-        .v6502 .memtable-wrap {
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px;
-            overflow-x: auto;
-        }
-
-        .v6502 #memtable {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10.5px;
-            border-spacing: 0;
-            color: var(--text-dim);
-        }
-
-        .v6502 #memtable td {
-            padding: 1px 4px;
-            text-align: right;
-            min-width: 18px;
-        }
-
-        .v6502 #memtable tr td:first-child {
-            color: var(--c-mem);
-            text-align: left;
-            padding-right: 8px;
-        }
-
-        /* CRT-style terminal pane connected to $D010-$D013. */
+        /* Terminal pane connected to the display register at $D012. */
         .v6502 .terminal {
-            background: #050608;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            line-height: 1.35;
-            color: #6dffaf;
-            min-height: 220px;
-            max-height: 320px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            outline: none;
-            cursor: text;
-            box-shadow: inset 0 0 24px rgba(109, 255, 175, 0.06);
-            text-shadow: 0 0 6px rgba(109, 255, 175, 0.35);
+            padding: 14px 16px; font-size: 13px; line-height: 1.35;
+            min-height: 220px; max-height: 320px; overflow-y: auto;
+            white-space: pre-wrap; word-break: break-all; cursor: text;
         }
-
-        .v6502 .terminal:focus {
-            border-color: rgba(109, 255, 175, 0.5);
-        }
-
-        [data-theme="light"] .v6502 .terminal {
-            background: #0c0e15;
-            color: #4be08e;
-        }
-
+        .v6502 .terminal:focus { border-color: var(--carbon-black-500); outline: none; }
+        .v6502 .terminal .boot-msg { color: var(--muted); }
         .v6502 .terminal .cursor {
-            display: inline-block;
-            width: 0.55em;
-            background: #6dffaf;
-            color: #050608;
+            display: inline-block; width: 0.55em;
+            background: var(--carbon-black-500);
             animation: caret-blink 1.05s steps(1) infinite;
         }
-
-        @keyframes caret-blink {
-            50% {
-                background: transparent;
-                color: inherit;
-            }
-        }
-
-        .v6502 .terminal-hint {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-top: 6px;
-        }
-
-        .v6502 .terminal-hint b {
-            color: var(--text-dim);
-            font-weight: 500;
-        }
-
-        /* Hidden stub buttons that the upstream JS toggles via id #start / #stop */
-        #v6502-stubs {
-            position: absolute;
-            left: -10000px;
-            top: -10000px;
-            visibility: hidden;
-        }
-
-        /* Hover tooltip used by the "labels" overlay. Floats with the cursor. */
-        #labelTip {
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            display: none;
-            background: rgba(10, 10, 16, 0.96);
-            border: 1px solid var(--border-hover);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            line-height: 1.45;
-            color: var(--text-dim);
-            max-width: 320px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(6px);
-        }
-
-        #labelTip b {
-            display: block;
-            color: var(--c-bus);
-            font-weight: 600;
-            font-size: 10.5px;
-            letter-spacing: 0.06em;
-            margin-bottom: 3px;
-        }
-
-        #labelTip span.cat {
-            display: inline-block;
-            color: var(--c-acc);
-            font-size: 9.5px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        [data-theme="light"] #labelTip {
-            background: rgba(255, 255, 255, 0.97);
-            color: var(--fg);
-        }
-
-        .v6502 .chip-viewport.labels-on {
-            cursor: help;
-        }
-
-        /* High-level "regions" overlay. Sits on top of the chip canvas
-           layer, sized exactly the same as the canvases (top/left/width
-           /height kept in sync via the patched setChipStyle). Region
-           rectangles use percentage coordinates so they scale with zoom. */
-        .regions-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 800px;
-            height: 800px;
-            display: none;
-            pointer-events: none;
-            /* hover handled on the viewport */
-            z-index: 4;
-            /* above chipbg/overlay/hilite */
-        }
-
-        .v6502 .chip-viewport.regions-on .regions-overlay {
-            display: block;
-        }
-
-        .regions-overlay .region {
-            position: absolute;
-            border: 1px solid currentColor;
-            background: currentColor;
-            opacity: 0.18;
-            box-sizing: border-box;
-            transition: opacity 0.15s, border-width 0.15s;
-        }
-
-        .regions-overlay .region.active {
-            opacity: 0.42;
-            border-width: 2px;
-        }
-
-        .regions-overlay .rlabel {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10.5px;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.6);
-            text-align: center;
-            line-height: 1.2;
-            padding: 6px;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* Per-pin labels placed on the bonding pads. Visible only in
-           regions mode (.regions-on enables display via the parent). */
-        .regions-overlay .pin-label {
-            position: absolute;
-            display: none;
-            transform: translate(-50%, -50%);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9.5px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            padding: 2px 6px;
-            border-radius: 4px;
-            white-space: nowrap;
-            color: #ffffff;
-            background: rgba(10, 10, 16, 0.88);
-            border: 1px solid currentColor;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.85);
-            pointer-events: auto;
-            cursor: help;
-            z-index: 3;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        .regions-overlay .pin-label:hover {
-            transform: translate(-50%, -50%) scale(1.18);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
-            z-index: 4;
-        }
-
-        .v6502 .chip-viewport.regions-on .regions-overlay .pin-label {
-            display: block;
-        }
-
-        /* The chip viewport and the per-layer pill stack vertically
-           in the left grid column so the chip stays 800x800 and the
-           layer toggles sit beneath it as a separate row. */
-        .v6502 .chip-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            width: 800px;
-        }
-
-        /* Floating labels control. A single white pill, compact when
-           off; clicking the toggle expands it to reveal a
-           regions / detailed segmented switch on the right. Anchored
-           to the bottom centre of the chip viewport, on top of the
-           schematic. */
-        .v6502 .chip-viewport .labels-bar {
-            position: absolute;
-            left: 50%;
-            bottom: 16px;
-            transform: translateX(-50%);
-            z-index: 20;
-            display: inline-flex;
-            align-items: stretch;
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 999px;
-            padding: 3px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10.5px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #14151c;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-            user-select: none;
-        }
-
-        .v6502 .chip-viewport .labels-bar button {
-            appearance: none;
-            -webkit-appearance: none;
-            margin: 0;
-            background: none;
-            border: none;
-            font: inherit;
-            color: inherit;
-            letter-spacing: inherit;
-            text-transform: inherit;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        /* The on/off toggle (left side, always visible). */
-        .v6502 .chip-viewport .labels-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            color: #14151c;
-            white-space: nowrap;
-            transition: background 0.15s;
-        }
-
-        .v6502 .chip-viewport .labels-toggle:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .v6502 .chip-viewport .labels-toggle .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.28);
-            transition: background 0.15s, box-shadow 0.15s;
-        }
-
-        .v6502 .chip-viewport .labels-bar.expanded .labels-toggle .dot {
-            background: #2f8f3f;
-            box-shadow: 0 0 6px rgba(47, 143, 63, 0.55);
-        }
-
-        /* 2D / 3D view toggle (sits next to the labels toggle in the
-           same pill). Two segmented buttons; the active one fills with
-           a coloured pill. */
-        .v6502 .chip-viewport .view-toggle {
-            display: inline-flex;
-            align-items: center;
-            margin-left: 4px;
-        }
-
-        .v6502 .chip-viewport .view-toggle::before {
-            content: '';
-            width: 1px;
-            background: rgba(0, 0, 0, 0.16);
-            margin: 4px 6px;
-            align-self: stretch;
-        }
-
-        .v6502 .chip-viewport .view-toggle button {
-            padding: 6px 11px;
-            border-radius: 999px;
-            color: rgba(20, 21, 28, 0.55);
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .v6502 .chip-viewport .view-toggle button:hover:not(.active) {
-            color: rgba(20, 21, 28, 0.95);
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .v6502 .chip-viewport .view-toggle button.active {
-            background: #14151c;
-            color: #ffffff;
-        }
-
-        .v6502 .chip-viewport .view-toggle button[data-view="3d"].active {
-            background: #b58df1;
-            color: #14151c;
-        }
-
-        /* In 3D view the labels controls don't apply, so collapse them
-           cleanly even if labels were on before the user switched. */
-        .v6502 .chip-viewport.view-3d .labels-bar .mode-switch,
-        .v6502 .chip-viewport.view-3d .labels-bar .dim-control,
-        .v6502 .chip-viewport.view-3d .labels-bar .labels-toggle {
-            display: none;
-        }
-
-        /* Layer-visibility pill. Sits below the labels bar and shows
-           one chip per visual6502 layer; clicking toggles whether the
-           layer is rendered (in 3D the mesh is hidden, in 2D the chip
-           background is redrawn with that layer skipped). */
-        .v6502 .chip-column .layers-bar {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 999px;
-            padding: 3px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #14151c;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn {
-            appearance: none;
-            -webkit-appearance: none;
-            border: 1px solid transparent;
-            background: rgba(0, 0, 0, 0.04);
-            color: rgba(20, 21, 28, 0.5);
-            margin: 0;
-            padding: 5px 10px;
-            border-radius: 999px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font: inherit;
-            letter-spacing: inherit;
-            text-transform: inherit;
-            line-height: 1;
-            transition: background 0.15s, color 0.15s, border-color 0.15s;
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn:hover {
-            color: rgba(20, 21, 28, 0.95);
-            background: rgba(0, 0, 0, 0.08);
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn .swatch {
-            width: 9px;
-            height: 9px;
-            border-radius: 2px;
-            background: var(--swatch);
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            flex-shrink: 0;
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn.active {
-            background: var(--swatch);
-            color: #14151c;
-            border-color: rgba(0, 0, 0, 0.16);
-        }
-
-        /* Use white text on darker swatches (poly purple, pink diode). */
-        .v6502 .chip-column .layers-bar .layer-btn.active[data-layer="2"],
-        .v6502 .chip-column .layers-bar .layer-btn.active[data-layer="5"] {
-            color: #ffffff;
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn.active .swatch {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: rgba(0, 0, 0, 0.25);
-        }
-
-        /* Vertical divider between fab layers and the logic-state
-           toggle, since the latter is conceptually separate. */
-        .v6502 .chip-column .layers-bar .layers-divider {
-            width: 1px;
-            background: rgba(0, 0, 0, 0.16);
-            align-self: stretch;
-            margin: 4px 4px;
-        }
-
-        /* Static legend listing the meaning of each fab-layer button.
-           Sits below the layers-bar in the chip-column. */
-        .v6502 .chip-column .layers-legend {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 4px 18px;
-            margin-top: 2px;
-            padding: 10px 14px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            line-height: 1.5;
-            color: var(--text-dim);
-        }
-
-        .v6502 .chip-column .layers-legend .row {
-            display: grid;
-            grid-template-columns: 12px 56px 1fr;
-            align-items: baseline;
-            gap: 8px;
-        }
-
-        .v6502 .chip-column .layers-legend .sw {
-            width: 10px;
-            height: 10px;
-            border-radius: 2px;
-            background: var(--swatch);
-            border: 1px solid rgba(0, 0, 0, 0.25);
-            transform: translateY(1px);
-        }
-
-        .v6502 .chip-column .layers-legend .key {
-            color: var(--fg);
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            font-size: 10.5px;
-        }
-
-        @media (max-width: 720px) {
-            .v6502 .chip-column .layers-legend {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* The logic-state button uses a multi-colour swatch to signal
-           that the overlay is colour-coded per signal class. */
-        .v6502 .chip-column .layers-bar .layer-btn.logic-btn .swatch {
-            background: conic-gradient(from 90deg,
-                    #ffc850 0deg,
-                    #50c8ff 60deg,
-                    #50ffb4 120deg,
-                    #8cff64 180deg,
-                    #c882ff 240deg,
-                    #ff82c8 300deg,
-                    #ffc850 360deg);
-            border-color: rgba(0, 0, 0, 0.32);
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn.logic-btn.active {
-            background: linear-gradient(90deg,
-                    rgba(255, 200, 80, 0.28),
-                    rgba(80, 200, 255, 0.28),
-                    rgba(140, 255, 100, 0.28),
-                    rgba(200, 130, 255, 0.28));
-            color: #14151c;
-            border-color: rgba(0, 0, 0, 0.20);
-        }
-
-        .v6502 .chip-column .layers-bar .layer-btn.logic-btn.active .swatch {
-            background: conic-gradient(from 90deg,
-                    #ffc850 0deg,
-                    #50c8ff 60deg,
-                    #50ffb4 120deg,
-                    #8cff64 180deg,
-                    #c882ff 240deg,
-                    #ff82c8 300deg,
-                    #ffc850 360deg);
-        }
-
-        /* Segmented mode switch. Collapsed (max-width 0) by default;
-           when .expanded is set on the bar it slides open. */
-        .v6502 .chip-viewport .mode-switch {
-            display: flex;
-            align-items: center;
-            max-width: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-width 0.28s ease, opacity 0.18s ease 0.04s;
-        }
-
-        .v6502 .chip-viewport .labels-bar.expanded .mode-switch {
-            max-width: 260px;
-            opacity: 1;
-        }
-
-        .v6502 .chip-viewport .mode-switch::before {
-            content: '';
-            width: 1px;
-            background: rgba(0, 0, 0, 0.16);
-            margin: 4px 4px 4px 6px;
-            align-self: stretch;
-        }
-
-        .v6502 .chip-viewport .mode-switch button {
-            padding: 6px 12px;
-            border-radius: 999px;
-            color: rgba(20, 21, 28, 0.55);
-            white-space: nowrap;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .v6502 .chip-viewport .mode-switch button:hover:not(.active) {
-            color: rgba(20, 21, 28, 0.95);
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .v6502 .chip-viewport .mode-switch button[data-mode="regions"].active {
-            background: #58a6ff;
-            color: #ffffff;
-        }
-
-        .v6502 .chip-viewport .mode-switch button[data-mode="detailed"].active {
-            background: #f5c451;
-            color: #14151c;
-        }
-
-        /* Opacity slider, third pill segment. Same expand/collapse
-           transition as the mode switch. */
-        .v6502 .chip-viewport .dim-control {
-            display: flex;
-            align-items: center;
-            max-width: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-width 0.28s ease, opacity 0.18s ease 0.04s;
-        }
-
-        .v6502 .chip-viewport .labels-bar.expanded .dim-control {
-            max-width: 200px;
-            opacity: 1;
-        }
-
-        .v6502 .chip-viewport .dim-control::before {
-            content: '';
-            width: 1px;
-            background: rgba(0, 0, 0, 0.16);
-            margin: 4px 8px 4px 4px;
-            align-self: stretch;
-        }
-
-        .v6502 .chip-viewport .dim-control .dc-label {
-            font-size: 10px;
-            color: rgba(20, 21, 28, 0.65);
-            letter-spacing: 0.14em;
-            margin-right: 8px;
-        }
-
-        .v6502 .chip-viewport .dim-control input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 90px;
-            height: 4px;
-            background: rgba(20, 21, 28, 0.16);
-            border-radius: 999px;
-            outline: none;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .v6502 .chip-viewport .dim-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: #14151c;
-            cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-        }
-
-        .v6502 .chip-viewport .dim-control input[type="range"]::-moz-range-thumb {
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: #14151c;
-            cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-        }
-
-        /* Direction colour-coding. */
-        .regions-overlay .pin-label.kind-in {
-            color: #58a6ff;
-        }
-
-        /* inputs */
-        .regions-overlay .pin-label.kind-out {
-            color: #ff8e6e;
-        }
-
-        /* outputs */
-        .regions-overlay .pin-label.kind-io {
-            color: #34d399;
-        }
-
-        /* bidirectional */
-        .regions-overlay .pin-label.kind-pwr {
-            color: #f5c451;
-        }
-
-        /* power */
-
-        .sim-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px 22px;
-            padding: 12px 16px;
-            margin-bottom: 14px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--text-dim);
-            letter-spacing: 0.04em;
-        }
-
-        .sim-meta b {
-            color: var(--fg);
-            font-weight: 600;
-        }
-
-        .sim-meta a {
-            color: var(--accent);
-            text-decoration: none;
-            border-bottom: 1px dashed var(--accent);
-        }
-
-        /* Collapsible assembly listing for the Hello World program.
-           Sits at the bottom of the .copy column on the simulator
-           slide, between the descriptive copy and the simulator. */
-        .asm-listing {
-            margin: 18px 0 22px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            overflow: hidden;
-        }
-
-        .asm-listing > summary {
-            list-style: none;
-            cursor: pointer;
-            padding: 11px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 11.5px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            user-select: none;
-            transition: color 0.12s;
-        }
-
-        .asm-listing > summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .asm-listing > summary:hover {
-            color: var(--fg);
-        }
-
-        .asm-listing > summary .chev {
-            display: inline-block;
-            width: 9px;
-            height: 9px;
-            border-right: 1.5px solid currentColor;
-            border-bottom: 1.5px solid currentColor;
-            transform: rotate(-45deg);
-            transition: transform 0.18s ease;
-            margin-right: 2px;
-        }
-
-        .asm-listing[open] > summary .chev {
-            transform: rotate(45deg);
-        }
-
-        .asm-listing > summary b {
-            color: var(--fg);
-            font-weight: 600;
-            text-transform: none;
-            letter-spacing: 0.02em;
-        }
-
-        .asm-listing > summary .meta {
-            margin-left: auto;
-            color: var(--text-dim);
-            text-transform: none;
-            letter-spacing: 0.02em;
-            font-size: 11px;
-        }
-
-        .asm-listing pre {
-            margin: 0;
-            padding: 14px 18px 16px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-2, var(--bg-panel));
-            font-size: 12.5px;
-            line-height: 1.55;
-            color: var(--fg);
-            overflow-x: auto;
-            white-space: pre;
-        }
-
-        .asm-listing pre .c { color: var(--text-dim); }
-        .asm-listing pre .a { color: var(--accent); }
-        .asm-listing pre .l { color: var(--accent); font-weight: 600; }
-        .asm-listing pre .o { color: var(--fg); font-weight: 600; }
-
-        /* Specification table for register / signal summaries. */
-        .spec-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 14px 0 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12.5px;
-            color: var(--text-dim);
-        }
-
-        .spec-table th,
-        .spec-table td {
-            text-align: left;
-            padding: 9px 12px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
-        }
-
-        .spec-table th {
-            color: var(--muted);
-            font-weight: 500;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            font-size: 10.5px;
-            border-bottom: 1px solid var(--border-hover);
-        }
-
-        .spec-table td:first-child {
-            color: var(--c-reg);
-            white-space: nowrap;
-        }
-
-        .spec-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Memory map block. */
-        .memmap {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12.5px;
-            display: grid;
-            grid-template-columns: 1fr;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 14px 0;
-            background: var(--bg-2);
-        }
-
-        .memmap .row {
-            display: grid;
-            grid-template-columns: 170px 1fr;
-            padding: 10px 14px;
-            border-top: 1px solid var(--border);
-            color: var(--text-dim);
-        }
-
-        .memmap .row:first-child {
-            border-top: none;
-        }
-
-        .memmap .row .addr {
-            color: var(--c-mem);
-        }
-
-        .memmap .row .what {
-            color: var(--fg);
-        }
-
-        code.inline {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9em;
-            padding: 1px 6px;
-            border-radius: 4px;
-            background: var(--pill-bg);
-            border: 1px solid var(--border);
-            color: var(--fg);
-        }
-
-        /* Status flag list. */
-        .flags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            margin: 10px 0 4px;
-        }
-
-        .flags .flag {
-            padding: 6px 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--bg-panel);
-            color: var(--text-dim);
-        }
-
-        .flags .flag b {
-            color: var(--c-acc);
-            margin-right: 6px;
-        }
-
-        /* Image stack used in the historical Apple 1 section. */
-        .image-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-        }
-
-        .image-stack figure {
-            margin: 0;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            background: var(--bg-2);
-        }
-
-        .image-stack figure img {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-
-        .image-stack figcaption {
-            padding: 10px 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            line-height: 1.5;
-            letter-spacing: 0.04em;
-            color: var(--text-dim);
-            border-top: 1px solid var(--border);
-        }
-
-        .image-stack figcaption b {
-            color: var(--fg);
-            font-weight: 600;
-            margin-right: 6px;
-        }
-
-        /* Designers row: a small "me&woz" portrait callout sits to the
-           LEFT of the designers figure, with a small arrow connecting
-           the two. On the wide layout the callout is positioned
-           absolutely so the designers figure keeps the same width as
-           the other figures in the stack; the callout overhangs into
-           the empty space left of the image column. On narrow layouts
-           the row falls back to a normal in-flow flex strip. */
-        .image-stack .designers-row {
-            position: relative;
-            margin: 0;
-        }
-
-        .image-stack .designers-figure {
-            margin: 0;
-            width: 100%;
-        }
-
-        .image-stack .me-woz-callout {
-            position: absolute;
-            /* Sit slightly above the vertical centre of the designers
-               figure so the curved arrow can swoop down-right into it. */
-            top: 32%;
-            right: calc(100% + 136px);
-            transform: translateY(-50%);
-            width: 320px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            opacity: 0.95;
-            /* Override the square-frame styling inherited from
-               .image-stack figure so the round portrait sits free. */
-            border: none;
-            background: none;
-            border-radius: 0;
-            overflow: visible;
-        }
-
-        .image-stack .me-woz-callout img {
-            width: 320px;
-            height: 320px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            display: block;
-        }
-
-        .image-stack .me-woz-callout figcaption {
-            padding: 0;
-            border: none;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            line-height: 1.35;
-            letter-spacing: 0.06em;
-            color: var(--text-dim);
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .image-stack .designers-arrow {
-            position: absolute;
-            /* The arrow sits entirely in the gap between the portrait
-               and the designers image. Right edge ~12 px to the left
-               of the figure; left edge ~12 px to the right of the
-               portrait. The curve sags from the portrait's vertical
-               centre down to the figure's vertical middle. */
-            top: 30%;
-            right: calc(100% + 12px);
-            width: 112px;
-            height: 90px;
-            color: var(--fg);
-            pointer-events: none;
-            overflow: visible;
-        }
-
-        @media (max-width: 1100px) {
-
-            /* Not enough horizontal room for the overhang; collapse to
-               an in-flow row so nothing crashes into adjacent content. */
-            .image-stack .designers-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .image-stack .me-woz-callout,
-            .image-stack .designers-arrow {
-                position: static;
-                transform: none;
-            }
-
-            .image-stack .me-woz-callout {
-                flex: 0 0 180px;
-                width: 180px;
-            }
-
-            .image-stack .me-woz-callout img {
-                width: 180px;
-                height: 180px;
-            }
-
-            .image-stack .designers-arrow {
-                flex: 0 0 80px;
-                width: 80px;
-                height: 64px;
-                overflow: visible;
-            }
-
-            .image-stack .designers-figure {
-                flex: 1 1 auto;
-                min-width: 0;
-            }
-        }
-
-        /* Inline explainer figure used under each section heading.
-           A small SVG plot, themed via window.T, with a tight caption
-           strip beneath it. Sits inside the .copy column. */
-        .inline-figure {
-            margin: 8px 0 18px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-2);
-            overflow: hidden;
-        }
-
-        .inline-figure svg {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-
-        .inline-figure .cap {
-            padding: 8px 12px 10px;
-            border-top: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10.5px;
-            line-height: 1.5;
-            letter-spacing: 0.04em;
-            color: var(--text-dim);
-        }
-
-        .inline-figure .cap b {
-            color: var(--fg);
-            font-weight: 600;
-        }
-
-        .inline-figure .label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            fill: var(--text-dim);
-        }
-
-        .inline-figure .label-strong {
-            fill: var(--fg);
-            font-weight: 600;
-        }
-
-        p.simple {
-            font-size: 14.5px;
-            line-height: 1.65;
-            color: var(--fg);
-            margin: 0 0 12px;
-            padding: 12px 14px;
-            border-left: 2px solid var(--accent-soft, var(--accent));
-            background: var(--accent-soft-faint);
-            border-radius: 0 6px 6px 0;
-        }
-
-        /* ------------------------------------------------------------
-           Slide-deck shell. Mirrors the pattern used by digital_logic,
-           active_peak_detector and case_study in this same Week 10
-           directory: each top-level section becomes a full-viewport
-           slide; only the active slide is visible; prev/next + dots +
-           keyboard arrows drive navigation.
-           ------------------------------------------------------------ */
-        body {
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        .deck {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .slide {
-            position: absolute;
-            inset: 0;
-            padding: 78px 56px 90px;
-            overflow-y: auto;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(40px);
-            transition: opacity 0.32s ease, transform 0.32s ease, visibility 0s linear 0.32s;
-            display: grid;
-            grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr);
-            gap: 32px;
-            align-items: start;
-            max-width: 1500px;
-            margin: 0 auto;
-        }
-
-        .slide.full {
-            grid-template-columns: 1fr;
-        }
-
-        .slide.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
-            transition: opacity 0.32s ease, transform 0.32s ease, visibility 0s linear 0s;
-        }
-
-        .slide.prev {
-            transform: translateX(-40px);
-        }
-
-        .slide .copy {
-            max-width: 600px;
-        }
-
-        .slide.title-slide {
-            grid-template-columns: 1fr;
-            place-items: center;
-            text-align: center;
-        }
-
-        .slide.title-slide .copy {
-            max-width: 760px;
-        }
-
-        .slide.title-slide h1.hero {
-            font-size: 60px;
-        }
-
-        .slide.title-slide .tags {
-            justify-content: center;
-        }
-
-        .slide.title-slide .nav-hint {
-            margin-top: 36px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
-
-        /* The transistor-level simulator slide carries its own internal
-           layout (800 px chip viewport beside a controls column). Keep
-           the slide's own padding minimal so the sim has room. */
-        .slide.full.sim-slide {
-            padding: 60px 32px 90px;
-        }
-
-        .slide.full.sim-slide .copy {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* ---------- slide nav ---------- */
-        .deck-nav {
-            position: fixed;
-            bottom: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 8px 16px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            backdrop-filter: blur(10px);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-        }
-
-        .deck-nav .arrow {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 1px solid var(--border);
-            background: var(--pill-bg);
-            color: var(--text-dim);
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            transition: all 0.12s;
-            user-select: none;
-        }
-
-        .deck-nav .arrow:hover:not(.disabled) {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .deck-nav .arrow.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .deck-nav .dots {
-            display: flex;
-            gap: 8px;
-        }
-
-        .deck-nav .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--border);
-            cursor: pointer;
-            transition: all 0.12s;
-        }
-
-        .deck-nav .dot:hover {
-            background: var(--border-hover);
-        }
-
-        .deck-nav .dot.active {
-            background: var(--accent);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
-        }
-
-        .deck-nav .counter {
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            min-width: 48px;
-            text-align: center;
-        }
-
-        /* The footer doesn't fit in the slide-deck layout (each slide
-           occupies the full viewport). Hide it; the brand strip in the
-           top-left already identifies the page. */
-        body>footer {
-            display: none;
-        }
-
-        /* ------------------------------------------------------------
-           Section 02 · Programmable Logic Array widget.
-           A 4-input, 8-product-term, 4-output PLA rendered with D3.
-           Click any AND-plane or OR-plane cross-point to toggle a
-           connection. Toggle the input switches to drive the array.
-           ------------------------------------------------------------ */
-        .pla-widget {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .pla-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .pla-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .pla-group .pla-group-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-right: 4px;
-        }
-
-        .pla-btn {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            background: var(--pill-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 10px;
-            cursor: pointer;
-            transition: all 0.12s;
-            user-select: none;
-        }
-
-        .pla-btn:hover {
-            border-color: var(--border-hover);
-            color: var(--fg);
-        }
-
-        .pla-btn.preset {
-            color: var(--text-dim);
-        }
-
-        .pla-btn.preset.clear {
-            color: var(--c-thresh);
-            border-color: rgba(255, 92, 122, 0.30);
-        }
-
-        .pla-btn.preset.clear:hover {
-            background: rgba(255, 92, 122, 0.10);
-        }
-
-        .pla-btn.preset.active {
-            color: var(--c-acc);
-            border-color: rgba(245, 196, 81, 0.55);
-            background: rgba(245, 196, 81, 0.10);
-            box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.25);
-        }
-
-        .pla-input {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            background: var(--pill-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 6px 10px;
-            cursor: pointer;
-            transition: all 0.12s;
-            user-select: none;
-        }
-
-        .pla-input:hover {
-            border-color: var(--border-hover);
-            color: var(--fg);
-        }
-
-        .pla-input .bit {
-            display: inline-block;
-            min-width: 12px;
-            text-align: center;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        .pla-input.on {
-            color: var(--c-reg);
-            border-color: rgba(88, 166, 255, 0.45);
-            background: rgba(88, 166, 255, 0.10);
-        }
-
-        .pla-input.on .bit {
-            color: var(--c-reg);
-        }
-
-        /* Explanation strip above the SVG. Sits flush against the SVG
-           wrapper (shared border, square inner corners) so the two read
-           as one figure. Title and body update with the active preset. */
-        .pla-explainer {
-            padding: 10px 14px;
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--text-dim);
-        }
-
-        .pla-explainer .ex-title {
-            display: block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.20em;
-            text-transform: uppercase;
-            color: var(--c-acc);
-            margin-bottom: 4px;
-        }
-
-        .pla-explainer.is-default .ex-title {
-            color: var(--muted);
-        }
-
-        .pla-explainer .ex-body {
-            color: var(--text-dim);
-        }
-
-        .pla-svg-wrap {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-2);
-            padding: 8px;
-        }
-
-        /* When the explainer is shown directly above, square the
-           wrapper's top corners so the two boxes merge cleanly. */
-        .pla-explainer+.pla-svg-wrap {
-            border-radius: 0 0 10px 10px;
-            border-top: none;
-        }
-
-        #pla-svg {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
-
-        #pla-svg text {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 0.06em;
-            fill: var(--text-dim);
-            user-select: none;
-        }
-
-        #pla-svg text.lbl-strong {
-            fill: var(--fg);
-        }
-
-        #pla-svg .pla-frame {
-            fill: none;
-            stroke: var(--border);
-            stroke-dasharray: 3 4;
-        }
-
-        #pla-svg .pla-band-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.20em;
-            text-transform: uppercase;
-            fill: var(--muted);
-        }
-
-        #pla-svg .vline,
-        #pla-svg .hline {
-            stroke: var(--border);
-            stroke-width: 1.2;
-        }
-
-        #pla-svg .vline.input.lit {
-            stroke: var(--c-reg);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 1.5px var(--c-reg));
-        }
-
-        #pla-svg .hline.product.lit {
-            stroke: var(--c-acc);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 1.5px var(--c-acc));
-        }
-
-        #pla-svg .vline.output.lit {
-            stroke: var(--c-mem);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 1.5px var(--c-mem));
-        }
-
-        /* Cross-point: a clickable group at every wire crossing.
-           Empty crossings are nearly invisible so the schematic
-           convention (dot = wires fused together) reads correctly.
-           A faint preview pip appears on hover. When toggled on, a
-           filled colored disc covers the intersection, making the dot
-           look physically welded to both crossing wires. */
-        #pla-svg .xpoint {
-            cursor: pointer;
-        }
-
-        #pla-svg .xpoint .hit {
-            fill: transparent;
-        }
-
-        #pla-svg .xpoint .mark {
-            fill: transparent;
-            stroke: transparent;
-            transition: fill 0.12s, stroke 0.12s, opacity 0.12s;
-            pointer-events: none;
-        }
-
-        #pla-svg .xpoint:hover .mark {
-            fill: var(--border-hover);
-            stroke: var(--border-hover);
-            fill-opacity: 0.20;
-            stroke-opacity: 0.55;
-        }
-
-        #pla-svg .xpoint.and.on .mark {
-            fill: var(--c-acc);
-            stroke: var(--c-acc);
-            fill-opacity: 1;
-            stroke-opacity: 1;
-        }
-
-        #pla-svg .xpoint.or.on .mark {
-            fill: var(--c-mem);
-            stroke: var(--c-mem);
-            fill-opacity: 1;
-            stroke-opacity: 1;
-        }
-
-        #pla-svg .ibit {
-            fill: var(--muted);
-            font-weight: 600;
-        }
-
-        #pla-svg .ibit.lit {
-            fill: var(--c-reg);
-        }
-
-        #pla-svg .obit {
-            fill: var(--muted);
-            font-weight: 600;
-        }
-
-        #pla-svg .obit.lit {
-            fill: var(--c-mem);
-        }
-
-        #pla-svg .plabel.lit {
-            fill: var(--c-acc);
-        }
-
-        /* Compact legend explaining colour roles and the click action.
-           Sits between the SVG and the per-term readout. */
-        .pla-legend {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 14px 18px;
-            padding: 8px 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.06em;
-            color: var(--muted);
-        }
-
-        .pla-legend .leg-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-dim);
-        }
-
-        .pla-legend .leg-swatch {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--muted);
-            box-shadow: 0 0 4px currentColor;
-        }
-
-        .pla-legend .leg-swatch.in {
-            background: var(--c-reg);
-            color: var(--c-reg);
-        }
-
-        .pla-legend .leg-swatch.prod {
-            background: var(--c-acc);
-            color: var(--c-acc);
-        }
-
-        .pla-legend .leg-swatch.out {
-            background: var(--c-mem);
-            color: var(--c-mem);
-        }
-
-        .pla-legend .leg-hint {
-            color: var(--muted);
-        }
-
-        /* Per-product-term readout: shows the boolean expression each
-           product line currently carries and its evaluated value. Lets
-           the abstract Pi line read as a concrete sum-of-products term. */
-        .pla-readout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 22px;
-            padding: 12px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-2);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text-dim);
-        }
-
-        .pla-readout .pterm {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            min-width: 0;
-        }
-
-        .pla-readout .pterm .lab {
-            color: var(--muted);
-            min-width: 22px;
-            font-weight: 600;
-        }
-
-        .pla-readout .pterm .eq {
-            color: var(--muted);
-        }
-
-        .pla-readout .pterm .expr {
-            flex: 1;
-            color: var(--fg);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .pla-readout .pterm .val {
-            color: var(--muted);
-            min-width: 12px;
-            text-align: right;
-            font-weight: 600;
-        }
-
-        .pla-readout .pterm.unused .lab,
-        .pla-readout .pterm.unused .expr,
-        .pla-readout .pterm.unused .eq,
-        .pla-readout .pterm.unused .val {
-            color: var(--muted);
-            opacity: 0.55;
-        }
-
-        .pla-readout .pterm.unused .expr {
-            font-style: italic;
-        }
-
-        .pla-readout .pterm.lit .lab {
-            color: var(--c-acc);
-        }
-
-        .pla-readout .pterm.lit .val {
-            color: var(--c-acc);
-        }
-
-        .pla-truth {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-2);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--text-dim);
-            letter-spacing: 0.10em;
-        }
-
-        .pla-truth .lab {
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-right: 8px;
-        }
-
-        .pla-truth .nibble {
-            color: var(--fg);
-            font-weight: 600;
-        }
-
-        .pla-truth .nibble.in {
-            color: var(--c-reg);
-        }
-
-        .pla-truth .nibble.out {
-            color: var(--c-mem);
-        }
-
-        .pla-truth .arrow {
-            color: var(--muted);
-            margin: 0 6px;
-        }
-
-        @media (max-width: 1100px) {
-            .pla-widget {
-                max-width: 100%;
-            }
-        }
+        @keyframes caret-blink { 50% { background: transparent; } }
+        .v6502 .terminal-hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+        .v6502 .terminal-hint b { color: var(--fg); font-family: var(--font-mono); font-size: 12px; }
+
+        /* Hidden stubs that the upstream JS addresses by id (#start, #stop). */
+        #v6502-stubs { position: absolute; left: -10000px; top: -10000px; visibility: hidden; }
     </style>
 </head>
 

@@ -17,8 +17,8 @@
         var out = d3.range(0, n + 1).map(function (i) {
             var t = C.WINDOW * i / n; return [P.x(t), y(C.nodeAt(t) / C.VCC)];
         });
-        f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-hi')).attr('stroke-width', 2.6).attr('d', d3.line()(out));
-        cur = C.cursor(P, [{ panel: 0, col: '--c-hi', fn: function (t) { return C.nodeAt(t) / C.VCC; } }]);
+        f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-out')).attr('stroke-width', 2.6).attr('d', d3.line()(out));
+        cur = C.cursor(P, [{ panel: 0, col: '--c-out', fn: function (t) { return C.nodeAt(t) / C.VCC; } }]);
         tick();
     }
 

@@ -114,12 +114,12 @@
     var inputSvg = d3.select('#plot-ap-cs-input').classed('ov', true);
     var outSvg   = d3.select('#plot-ap-cs-out').classed('ov', true);
 
-    function makeFrame(svg) {
+    function makeFrame(svg, top) {
         var rect = svg.node().getBoundingClientRect();
         var W = Math.max(420, rect.width);
         var H = Math.max(220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = { top: top || 40, right: 36, bottom: 52, left: 68 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -145,7 +145,7 @@
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(7)
                 .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
 
         var tickVals = [];
@@ -157,10 +157,10 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle').text('Time');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-54) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
     }
 
@@ -181,11 +181,12 @@
             .attr('y1', y(state.vf)).attr('y2', y(state.vf))
             .attr('stroke', 'var(--c-thresh)').attr('stroke-dasharray', '4 3')
             .attr('stroke-width', 1.2).attr('opacity', 0.7);
+        // Threshold label sits in the right margin, clear of the trace.
         f.g.append('text')
-            .attr('x', 6).attr('y', y(state.vf) - 6)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-thresh)')
-            .text('V_F · the passive diode never conducts below this line');
+            .attr('x', f.iw + 5).attr('y', y(state.vf) + 4)
+            .attr('class', 't-thresh')
+            .text('V_F');
+        APD.sub(f.g);
 
         commonAxes(f, x, y, yMax);
 
@@ -206,14 +207,14 @@
             tg.append('text')
                 .attr('x', x(s.t)).attr('y', y(s.amp) - 8)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 9)
-                .attr('fill', 'var(--muted)')
+                .style('paint-order', 'stroke')
+                .style('stroke', 'var(--white)').style('stroke-width', '3px')
                 .text(s.amp.toFixed(2));
         }
     }
 
     function drawOutputs(sim) {
-        var f = makeFrame(outSvg);
+        var f = makeFrame(outSvg, APD.legendTop(3));
         f.g.selectAll('*').remove();
 
         var yMax = Math.max(1.6, d3.max(sim.pts, function (p) {
@@ -252,16 +253,11 @@
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[3]); }));
 
         // Legend in the upper-right.
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('input EEG');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-passive)').text('passive: D + C ∥ R_leak');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-precision)').text('precision: storage cap + buffer + reset');
+        APD.legend(f.g, f.iw, [
+            { color: 'var(--c-input)', label: 'input EEG' },
+            { color: 'var(--c-passive)', label: 'passive detector' },
+            { color: 'var(--c-precision)', label: 'precision detector' }
+        ]);
     }
 
     function updateReadout(sim) {
@@ -276,10 +272,10 @@
             : sim.nPre === 0 ? 'warn' : 'amber');
 
         if (sim.nPre === SPIKES.length && sim.nPas < SPIKES.length) {
-            rdEnv.textContent = 'visible (precision only)';
+            rdEnv.textContent = 'resolved (precision only)';
             rdEnv.className = 'v on';
         } else if (sim.nPre === SPIKES.length) {
-            rdEnv.textContent = 'visible';
+            rdEnv.textContent = 'resolved';
             rdEnv.className = 'v on';
         } else {
             rdEnv.textContent = 'partial';
@@ -310,7 +306,6 @@
             winL.textContent = parseFloat(winI.value).toFixed(0) + ' ms';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

@@ -5,9 +5,15 @@
 (function () {
     var fmt = {
         bias: function (v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + ' V'; },
-        logNA: function (v) { return Math.pow(10, v).toExponential(1).replace('e+', 'e') + ' cm⁻³'; },
-        logND: function (v) { return Math.pow(10, v).toExponential(1).replace('e+', 'e') + ' cm⁻³'; }
+        logNA: conc,
+        logND: conc
     };
+
+    // 10^v as mantissa × power of ten in cm^-3, returned as HTML.
+    function conc(v) {
+        var s = Math.pow(10, v).toExponential(1).split('e+');
+        return s[0] + '×10<sup>' + s[1] + '</sup> cm<sup>−3</sup>';
+    }
 
     function sync() {
         var p = window.PN.p;
@@ -16,7 +22,7 @@
         });
         document.querySelectorAll('.val[data-param]').forEach(function (el) {
             var k = el.dataset.param;
-            el.textContent = fmt[k] ? fmt[k](p[k]) : p[k];
+            el.innerHTML = fmt[k] ? fmt[k](p[k]) : p[k];   // formatter output only, no user text
         });
         document.querySelectorAll('button[data-param]').forEach(function (el) {
             el.classList.toggle('active', p[el.dataset.param] === el.dataset.value);

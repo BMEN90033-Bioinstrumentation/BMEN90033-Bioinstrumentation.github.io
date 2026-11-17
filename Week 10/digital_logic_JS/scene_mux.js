@@ -33,11 +33,11 @@
 
         var inX = 60;
         f.g.append('text').attr('x', inX - 8).attr('y', 64)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (d0 ? ' lit' : '')).text('D0 = ' + d0);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (d0 ? ' lit' : '')).call(DL.sub, 'D_0 = ' + d0);
         f.g.append('text').attr('x', inX - 8).attr('y', 204)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (d1 ? ' lit' : '')).text('D1 = ' + d1);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (d1 ? ' lit' : '')).call(DL.sub, 'D_1 = ' + d1);
         f.g.append('text').attr('x', inX - 8).attr('y', 244)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (s ? ' lit' : '')).text('S = ' + s);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (s ? ' lit' : '')).call(DL.sub, 'S = ' + s);
 
         // NOT inverter for S sits between the two AND rows.
         var notG = DL.gateNOT(f.g, 240, 96, 36, 28, !!sBar);
@@ -78,7 +78,7 @@
         // Output
         DL.wire(f.g, orG.out.x, orG.out.y, 580, orG.out.y, !!y);
         f.g.append('text').attr('x', 588).attr('y', orG.out.y + 4)
-            .attr('class', 'lbl' + (y ? ' lit' : '')).text('Y = ' + y);
+            .attr('class', 'lbl' + (y ? ' lit' : '')).call(DL.sub, 'Y = ' + y);
     }
 
     // ---------------- 4:1 mux ----------------
@@ -99,7 +99,7 @@
                    ' L ' + bx + ',' + (by + bh) + ' Z';
         f.g.append('path').attr('class', 'gate' + (y ? ' hi' : '')).attr('d', path);
         f.g.append('text').attr('x', bx + bw / 2 - 6).attr('y', by + bh / 2 + 4)
-            .attr('text-anchor', 'middle').attr('class', 'gate-title').text('4:1 MUX');
+            .attr('text-anchor', 'middle').attr('class', 'gate-title').call(DL.sub, '4:1 MUX');
 
         // Four data inputs into the left edge, evenly spaced.
         var inX = 60;
@@ -109,7 +109,7 @@
             var litRoute = (i === sel);
             f.g.append('text').attr('x', inX - 8).attr('y', py + 4)
                 .attr('text-anchor', 'end').attr('class', 'lbl' + (di ? ' lit' : ''))
-                .text('D' + i + ' = ' + di);
+                .call(DL.sub, 'D_' + i + ' = ' + di);
             DL.wire(f.g, inX, py, bx, py, !!di);
             if (litRoute) {
                 f.g.append('circle').attr('cx', bx + 18).attr('cy', py)
@@ -121,26 +121,26 @@
         var outY = by + bh / 2;
         DL.wire(f.g, bx + bw, outY, 600, outY, !!y);
         f.g.append('text').attr('x', 608).attr('y', outY + 4)
-            .attr('class', 'lbl' + (y ? ' lit' : '')).text('Y = D' + sel + ' = ' + y);
+            .attr('class', 'lbl' + (y ? ' lit' : '')).call(DL.sub, 'Y = D_' + sel + ' = ' + y);
 
         // Select inputs from below
         var s1x = bx + 40, s0x = bx + bw - 40;
         f.g.append('text').attr('x', s1x).attr('y', by + bh + 36)
             .attr('text-anchor', 'middle').attr('class', 'lbl' + (s1 ? ' lit' : ''))
-            .text('S1 = ' + s1);
+            .call(DL.sub, 'S_1 = ' + s1);
         f.g.append('text').attr('x', s0x).attr('y', by + bh + 36)
             .attr('text-anchor', 'middle').attr('class', 'lbl' + (s0 ? ' lit' : ''))
-            .text('S0 = ' + s0);
+            .call(DL.sub, 'S_0 = ' + s0);
         DL.wire(f.g, s1x, by + bh + 24, s1x, by + bh - 8, !!s1);
         DL.wire(f.g, s0x, by + bh + 24, s0x, by + bh - 8, !!s0);
 
         // Boolean expression near the top of the box
         f.g.append('text').attr('x', bx + bw / 2).attr('y', by - 10)
             .attr('text-anchor', 'middle').attr('class', 'gate-expr')
-            .text('Y = ¬S1·¬S0·D0 + ¬S1·S0·D1 + S1·¬S0·D2 + S1·S0·D3');
+            .call(DL.sub, 'Y = S\u0304_1 S\u0304_0 D_0 + S\u0304_1 S_0 D_1 + S_1 S\u0304_0 D_2 + S_1 S_0 D_3');
 
         rdSel.textContent = '' + s1 + s0;
-        rdRoute.textContent = 'D' + sel;
+        rdRoute.innerHTML = 'D<sub>' + sel + '</sub>';
         rdY.textContent = String(y);
     }
 
@@ -152,7 +152,6 @@
     function init() {
         btns.forEach(function (b) { DL.bindBitButton(b, drawAll); });
         drawAll();
-        window.addEventListener('themechange', drawAll);
         window.addEventListener('resize', drawAll);
     }
 

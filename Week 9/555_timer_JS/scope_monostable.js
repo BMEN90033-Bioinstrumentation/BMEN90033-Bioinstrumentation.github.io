@@ -130,6 +130,7 @@
 
     function draw() {
         var ctx = canvas.getContext('2d');
+        var ST = window.Scope555.subText, TAG = window.Scope555.tag;
         var bg     = window.CMP.cssVar('--bg-2');
         var grid   = window.CMP.cssVar('--grid-line');
         var gridZ  = window.CMP.cssVar('--grid-zero');
@@ -143,7 +144,7 @@
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, dims.w, dims.h);
 
-        var marL = 64, marR = 30, marT = 28, marB = 38;
+        var marL = 84, marR = 30, marT = 28, marB = 46;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
         var gap = 10;
@@ -192,63 +193,58 @@
 
         // Tick labels
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'center';
         for (var s = 0; s <= WINDOW_SECS; s++) {
             var px = marL + (s / WINDOW_SECS) * innerW;
-            var lab = (s === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - s) + 's';
+            var lab = (s === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - s);
             ctx.fillText(lab, px, outY0 + hOut + 6);
         }
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText('0',   marL - 6, yToPxTrig(0));
-        ctx.fillText('Vcc', marL - 6, yToPxTrig(Vcc));
+        ST(ctx, 'V_{CC}', marL - 6, yToPxTrig(Vcc));
         ctx.fillText('0',         marL - 6, yToPxVc(0));
-        ctx.fillText('Vcc/3',     marL - 6, yToPxVc(TL));
-        ctx.fillText('2Vcc/3',    marL - 6, yToPxVc(TH));
-        ctx.fillText('Vcc',       marL - 6, yToPxVc(Vcc));
+        ST(ctx, 'V_{CC}/3',     marL - 6, yToPxVc(TL));
+        ST(ctx, '2V_{CC}/3',    marL - 6, yToPxVc(TH));
+        ST(ctx, 'V_{CC}',       marL - 6, yToPxVc(Vcc));
         ctx.fillText('0',   marL - 6, yToPxOut(0));
-        ctx.fillText('Vcc', marL - 6, yToPxOut(Vcc));
+        ST(ctx, 'V_{CC}', marL - 6, yToPxOut(Vcc));
 
         // Axis titles
         ctx.save();
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "400 13px 'Inter', sans-serif";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText('time (relative, s)', marL + innerW / 2, outY0 + hOut + 24);
+        ctx.fillText('Time relative to present (s)', marL + innerW / 2, outY0 + hOut + 31);
         function vTitle(label, panelY, panelH) {
             ctx.save();
-            ctx.translate(18, panelY + panelH / 2);
+            ctx.translate(16, panelY + panelH / 2);
             ctx.rotate(-Math.PI / 2);
             ctx.textAlign = 'center';
-            ctx.fillText(label, 0, 0);
+            ST(ctx, label, 0, 0);
             ctx.restore();
         }
         vTitle('TRIG', trigY0, hTrig);
-        vTitle('v_C (V)', vcY0, hVc);
-        vTitle('OUT (V)', outY0, hOut);
+        vTitle('v_{C} (V)', vcY0, hVc);
+        vTitle('v_{out} (V)', outY0, hOut);
         ctx.restore();
 
         // Panel labels
-        ctx.fillStyle = cTrig;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'right';
-        ctx.fillText('TRIG (pin 2)', marL + innerW - 8, trigY0 + 4);
-        ctx.fillStyle = cCap;
-        ctx.fillText('capacitor voltage', marL + innerW - 8, vcY0 + 6);
-        ctx.fillStyle = cOut;
-        ctx.fillText('OUT (pin 3)', marL + innerW - 8, outY0 + 6);
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
+        TAG(ctx, 'TRIG (pin 2)', cTrig, bg, marL + innerW - 8, trigY0 + hTrig / 2);
+        TAG(ctx, 'Capacitor voltage', cCap, bg, marL + innerW - 8, vcY0 + 14);
+        TAG(ctx, 'OUT (pin 3)', cOut, bg, marL + innerW - 8, outY0 + hOut / 2);
 
         // Pulse-width readout
         var pulseT = Math.log(3) * state.r * state.c;
         ctx.fillStyle = fg;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textBaseline = 'top';
         ctx.textAlign = 'left';
-        ctx.fillText('T = ln(3)·RC ≈ ' + pulseT.toFixed(2) + ' s',
+        ctx.fillText('T = ln(3) RC \u2248 ' + pulseT.toFixed(2) + ' s',
             marL + 8, vcY0 + 6);
     }
 
@@ -308,8 +304,6 @@
             }
         }, { threshold: 0.15 });
         io.observe(canvas);
-
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { setupCanvas(); draw(); });
     }
 
