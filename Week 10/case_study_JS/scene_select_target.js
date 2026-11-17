@@ -1,13 +1,13 @@
 // scene_select_target.js  ·  Slide 2
 // Static illustration of the target signal: a filtered EEG segment with a
 // rising train of pre-state spikes, annotated to show the three operations
-// the circuit must perform — detect each spike, measure its amplitude,
+// the circuit must perform, detect each spike, measure its amplitude,
 // and track the envelope over time.
 (function () {
     var SVG = '#plot-select-target';
     var svg = d3.select(SVG).classed('ov', true);
     var W = 800, H = 320;
-    var margin = { top: 48, right: 28, bottom: 44, left: 56 };
+    var margin = { top: 52, right: 28, bottom: 50, left: 56 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -64,14 +64,13 @@
         gAxis.selectAll('*').remove();
         var yAxis = d3.axisLeft(y).tickValues([0, 1, 2]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([0, 3, 6, 9, 12])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([0, 3, 6, 9, 12]).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 
         gTitles.selectAll('*').remove();
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 34)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
             .text('time, s');
         gTitles.append('text').attr('class', 'axis-title')
@@ -114,49 +113,24 @@
                 .attr('r', 3.6)
                 .attr('class', 'peak-anno');
 
-            gAnno.append('text')
-                .attr('x', x(s.t)).attr('y', y(s.amp) - 12)
+            EEG.label(gAnno.append('text')
+                .attr('x', x(s.t)).attr('y', y(s.amp) - 18)
                 .attr('text-anchor', 'middle')
-                .attr('class', 'peak-anno-label')
-                .text('A' + (idx + 1) + ' = ' + s.amp.toFixed(1));
+                .attr('class', 'peak-anno-label'),
+                'A_{' + (idx + 1) + '} = ' + s.amp.toFixed(1));
         });
 
-        gLegend.selectAll('*').remove();
-        var entries = [
-            { c: 'var(--c-thresh)', dash: '3 3', lbl: 'detect (event)' },
-            { c: 'var(--c-thresh)', dash: null,  lbl: 'amplitude (peak)', dot: true },
-            { c: 'var(--c-output2)', dash: '5 4', lbl: 'trend (rising envelope)' }
-        ];
-        var lg = gLegend.append('g').attr('transform', 'translate(8,6)');
-        lg.append('rect')
-            .attr('x', -8).attr('y', -4)
-            .attr('width', 220).attr('height', entries.length * 18 + 8)
-            .attr('rx', 4)
-            .attr('fill', 'var(--bg-2)')
-            .attr('stroke', 'var(--border)')
-            .attr('opacity', 0.85);
-        entries.forEach(function (e, i) {
-            var yy = i * 18 + 6;
-            if (e.dot) {
-                lg.append('circle').attr('cx', 8).attr('cy', yy).attr('r', 3.5)
-                    .attr('fill', e.c);
-            } else {
-                lg.append('line')
-                    .attr('x1', 0).attr('x2', 16)
-                    .attr('y1', yy).attr('y2', yy)
-                    .attr('stroke', e.c).attr('stroke-width', 1.6)
-                    .attr('stroke-dasharray', e.dash || null);
-            }
-            lg.append('text').attr('x', 22).attr('y', yy + 4)
-                .attr('class', 'phase-label')
-                .text(e.lbl);
-        });
+        // Key in the top margin, clear of the annotations.
+        EEG.legend(gLegend, [
+            { c: 'var(--c-thresh)', dash: '3 3', text: 'event' },
+            { c: 'var(--c-thresh)', dot: true, text: 'peak amplitude' },
+            { c: 'var(--c-output2)', dash: '5 4', text: 'trend' }
+        ], -8);
     }
 
     function init() {
         layout();
         draw();
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { layout(); draw(); });
     }
 

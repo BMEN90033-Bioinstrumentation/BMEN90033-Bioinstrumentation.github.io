@@ -1,17 +1,17 @@
 // Section 04 · Processing strip (Canvas2D, redrawn on every playback tick).
 // One row per electrode, columns: label, band-pass y_i, rectified r_i,
-// envelope e_i, stimulation bar. Window of +/-50 ms about the playback
+// envelope e_i, stimulation level bar. Window of +/-50 ms about the playback
 // position (or the middle of the signal when stopped); each trace scaled to
 // its own peak in the window; the stimulation bar is the envelope at the
 // window centre. Above 16 channels an evenly spaced subset of
 // 16 rows is shown and the plot-box label says so.
 //
 // Layout (CSS px): plot-box label occupies y < 28; column titles at y = 44;
-// rows from y = 58 to h - 12. Label column 96 px, stim column 40 px, three
+// rows from y = 58 to h - 12. Label column 108 px, level column 52 px, three
 // equal trace columns between them, 14 px side padding.
 (function () {
     var cv = null, visible = true;
-    var MAXROWS = 16, TOP = 58, BOT = 12, PAD = 14, LABW = 96, STIMW = 40;
+    var MAXROWS = 16, TOP = 58, BOT = 12, PAD = 14, LABW = 108, STIMW = 52;
 
     function setup() {
         var dpr = Math.min(window.devicePixelRatio || 1, 2), r = cv.getBoundingClientRect();
@@ -67,9 +67,9 @@
         var colW = (w - 2 * PAD - LABW - STIMW) / 3, rh = (h - TOP - BOT) / rows.length;
         var xc = [PAD + LABW, PAD + LABW + colW, PAD + LABW + 2 * colW];
 
-        g.font = "500 11px 'JetBrains Mono', monospace";
+        g.font = "13px 'JetBrains Mono', monospace";
         g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillStyle = T.textDim;
-        ['ELECTRODE', 'BAND-PASS', 'RECTIFIED', 'ENVELOPE', 'STIM'].forEach(function (t, i) {
+        ['ELECTRODE', 'BAND-PASS', 'RECTIFIED', 'ENVELOPE', 'LEVEL'].forEach(function (t, i) {
             var cx = i === 0 ? PAD + LABW / 2 : i === 4 ? w - PAD - STIMW / 2 : xc[i - 1] + colW / 2;
             g.fillText(t, cx, 44);
         });
@@ -82,19 +82,21 @@
             g.beginPath(); g.moveTo(x, TOP); g.lineTo(x, h - BOT); g.stroke();
         });
 
-        var cRect = css('--c-rect'), cEnv = css('--c-env'), labFont = rh >= 30 ? 12 : 11;
+        var cRect = css('--c-rect'), cEnv = css('--c-env'), labFont = 13;
         rows.forEach(function (ch, r) {
             var y0 = TOP + r * rh, ih = rh - 6;
             g.textAlign = 'left';
-            g.font = '600 ' + labFont + "px 'JetBrains Mono', monospace"; g.fillStyle = cfg.colors[ch];
+            g.font = labFont + "px 'JetBrains Mono', monospace"; g.fillStyle = T.text;
+            // Channel colour key beside the electrode number.
+            g.save(); g.fillStyle = cfg.colors[ch]; g.fillRect(PAD, y0 + 4, 3, rh - 8); g.restore();
             if (rh >= 30) {
-                g.fillText('E' + (n - ch), PAD + 6, y0 + rh / 2 - 7);
+                g.fillText('E' + (n - ch), PAD + 8, y0 + rh / 2 - 8);
                 g.font = labFont + "px 'JetBrains Mono', monospace"; g.fillStyle = T.textDim;
-                g.fillText(cfg.labels[ch], PAD + 6, y0 + rh / 2 + 8);
+                g.fillText(cfg.labels[ch], PAD + 8, y0 + rh / 2 + 8);
             } else {
-                g.fillText('E' + (n - ch), PAD + 6, y0 + rh / 2);
+                g.fillText('E' + (n - ch), PAD + 8, y0 + rh / 2);
                 g.font = labFont + "px 'JetBrains Mono', monospace"; g.fillStyle = T.textDim;
-                g.fillText(cfg.labels[ch], PAD + 40, y0 + rh / 2);
+                g.fillText(cfg.labels[ch], PAD + 44, y0 + rh / 2);
             }
             trace(g, d.bp[ch], s0, s1, xc[0] + 4, y0 + 3, colW - 8, ih, cfg.colors[ch], true, false);
             trace(g, d.rect[ch], s0, s1, xc[1] + 4, y0 + 3, colW - 8, ih, cRect, false, false);

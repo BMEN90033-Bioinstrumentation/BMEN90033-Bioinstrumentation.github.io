@@ -34,7 +34,9 @@
     }
 
     function drawAddSub() {
-        var f = DL.frame(svg, { W: 720, H: 420 });
+        var f = DL.frame(svg, { W: 750, H: 420 });
+        // Shift the drawing down so the input labels clear the plot-box label.
+        f.g.attr('transform', 'translate(0,16)');
         var bits = readBits();
         var aArr = [bits.a0, bits.a1, bits.a2, bits.a3];
         var bArr = [bits.b0, bits.b1, bits.b2, bits.b3];
@@ -54,7 +56,7 @@
         var faMs = fullAdder(aArr[3], bxArr[3], carries[3]);
         var ovf = DL.XOR(carries[3], faMs.c);
 
-        var boxW = 120, boxH = 100, spacing = 30;
+        var boxW = 110, boxH = 100, spacing = 52;   // gap fits the carry labels
         var startX = 90;        // explicit margin so C_out label fits on left
         var boxY = 210;
         var carryY = boxY + boxH / 2;
@@ -64,7 +66,7 @@
         var mLabelEnd = 90;
         f.g.append('text').attr('x', mLabelEnd).attr('y', mBusY + 4)
             .attr('text-anchor', 'end').attr('class', 'lbl' + (M ? ' lit' : ''))
-            .text('M = ' + M + (M ? ' (SUB)' : ' (ADD)'));
+            .call(DL.sub, 'M=' + M + (M ? ' (SUB)' : ' (ADD)'));   // compact form keeps the label clear of the box edge
         var mBusLeft = mLabelEnd + 6;
         var cInTapX = startX + 3 * (boxW + spacing) + boxW + 22;  // right of FA0
         DL.wire(f.g, mBusLeft, mBusY, cInTapX, mBusY, !!M);
@@ -76,7 +78,7 @@
         DL.dot(f.g, cInTapX, mBusY, !!M);
         f.g.append('text').attr('x', cInTapX).attr('y', mBusY - 8)
             .attr('text-anchor', 'middle').attr('class', 'lbl' + (M ? ' lit' : ''))
-            .text('C_in = M');
+            .call(DL.sub, 'C_in = M');
 
         for (var k = 3; k >= 0; k--) {
             var idx = 3 - k;
@@ -86,20 +88,20 @@
             var cOutBit = (bit === 3) ? cOut : carries[bit + 1];
 
             // Stage column positions.
-            var bColX  = x + 35;
-            var aColX  = x + 95;
+            var bColX  = x + 30;
+            var aColX  = x + 86;
 
             // FA box
             f.g.append('rect').attr('x', x).attr('y', boxY)
                 .attr('width', boxW).attr('height', boxH)
-                .attr('rx', 8).attr('fill', 'var(--bg-panel)')
-                .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+                .attr('rx', 8).attr('fill', 'var(--hydro-blue-100)')
+                .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + 30)
                 .attr('text-anchor', 'middle').attr('class', 'gate-title')
-                .text('FA' + bit);
+                .call(DL.sub, 'FA' + bit);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + 50)
                 .attr('text-anchor', 'middle').attr('class', 'gate-expr')
-                .text('A_' + bit + '  B⊕M  C_in');
+                .call(DL.sub, 'A_' + bit + '  B⊕M  C_in');
 
             // XOR for B_bit ⊕ M.  inA aligns with the B drop column so the
             // wire from B drops cleanly into the XOR.
@@ -109,7 +111,7 @@
             // B label and drop
             f.g.append('text').attr('x', bColX).attr('y', 40)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (bBit ? ' lit' : ''))
-                .text('B' + bit + '=' + bBit);
+                .call(DL.sub, 'B_' + bit + '=' + bBit);
             DL.wire(f.g, bColX, 50, bColX, xor.inA.y, !!bBit);
 
             // M bus tap up to xor.inB
@@ -123,21 +125,21 @@
             // A label and drop into FA top.
             f.g.append('text').attr('x', aColX).attr('y', 40)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (aBit ? ' lit' : ''))
-                .text('A' + bit + '=' + aBit);
+                .call(DL.sub, 'A_' + bit + '=' + aBit);
             DL.wire(f.g, aColX, 50, aColX, boxY, !!aBit);
 
             // R_i (= sum) output below.
             DL.wire(f.g, x + boxW / 2, boxY + boxH, x + boxW / 2, boxY + boxH + 22, !!sBit);
             f.g.append('text').attr('x', x + boxW / 2).attr('y', boxY + boxH + 38)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (sBit ? ' lit' : ''))
-                .text('R' + bit + '=' + sBit);
+                .call(DL.sub, 'R_' + bit + '=' + sBit);
 
             // C_out (final) on the leftmost stage's left edge.
             if (bit === 3) {
                 DL.wire(f.g, x - 22, carryY, x, carryY, !!cOutBit);
                 f.g.append('text').attr('x', x - 26).attr('y', carryY + 4)
                     .attr('text-anchor', 'end').attr('class', 'lbl' + (cOutBit ? ' lit' : ''))
-                    .text('C_out=' + cOutBit);
+                    .call(DL.sub, 'C_out=' + cOutBit);
             }
             // Inter-stage carry wire only in the gap to the LEFT (carry into
             // bit + 1), drawn solely between the boxes so it never enters a
@@ -149,7 +151,7 @@
                 f.g.append('text').attr('x', (leftBoxRight + x) / 2)
                     .attr('y', carryY - 6)
                     .attr('text-anchor', 'middle').attr('class', 'lbl' + (cOutBit ? ' lit' : ''))
-                    .text('C' + (bit + 1) + '=' + cOutBit);
+                    .call(DL.sub, 'C_' + (bit + 1) + '=' + cOutBit);
             }
         }
 
@@ -164,15 +166,17 @@
         rdR.textContent = rStr;
         var aSig = signed4(aArr), bSig = signed4(bArr);
         var rSig = signed4(sums);
-        rdDec.textContent = aSig + (M ? ' − ' : ' + ') + bSig + ' = ' + rSig;
-        rdOv.textContent = ovf ? 'overflow' : 'no';
+        // Negative values take a true minus sign; a negative second operand is bracketed.
+        function num(n) { return n < 0 ? '−' + (-n) : String(n); }
+        rdDec.textContent = num(aSig) + (M ? ' − ' : ' + ') +
+            (bSig < 0 ? '(' + num(bSig) + ')' : num(bSig)) + ' = ' + num(rSig);
+        rdOv.textContent = ovf ? 'yes' : 'no';
         rdOv.className = ovf ? 'v warn' : 'v on';
     }
 
     function init() {
         btns.forEach(function (b) { DL.bindBitButton(b, drawAddSub); });
         drawAddSub();
-        window.addEventListener('themechange', drawAddSub);
         window.addEventListener('resize', drawAddSub);
     }
 

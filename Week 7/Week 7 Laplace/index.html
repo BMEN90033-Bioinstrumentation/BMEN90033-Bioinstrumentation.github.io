@@ -4,89 +4,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fourier vs Laplace, visually</title>
+  <title>BMEN90033 · The Laplace transform</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link rel="stylesheet" href="../../theme.css" />
+  <link rel="stylesheet" href="../../components/lecture_page.css" />
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\\\(',right:'\\\\)',display:false},{left:'\\\\[',right:'\\\\]',display:true}]});"></script>
 
+  <script src="../../theme.js"></script>
+
   <script>
-    // Tweakable defaults — persisted by the host when Tweaks panel writes.
+    // Tweakable defaults, persisted by the host when the Tweaks panel writes.
+    // The colours are the theme.css tokens; a colour input needs them as hex.
     window.TWEAKS = /*EDITMODE-BEGIN*/{
-      "colorReal": "#58a6ff",
-      "colorImag": "#ff5c7a",
-      "colorTime": "#7be089",
-      "colorAccent": "#ffcf5c",
-      "colorBg": "#0a0a10",
-      "colorFg": "#eef0f5",
-      "colorMuted": "#8b90a3",
+      "colorReal": "#1378d1",
+      "colorImag": "#c0429d",
+      "colorTime": "#2f9e5b",
+      "colorAccent": "#d9661f",
+      "colorBg": "#ffffff",
+      "colorFg": "#1e1e1e",
+      "colorMuted": "#737373",
       "fontBody": 16,
       "fontMath": 17,
-      "fontHero": 76,
-      "canvasOffset": -60,
-      "textOffset": -40
+      "fontHero": 48,
+      "canvasOffset": 0,
+      "textOffset": 0
     }/*EDITMODE-END*/;
   </script>
 
   <style>
+    /* Page layout. Palette and shared components come from ../../theme.css and
+       ../../components/lecture_page.css. Trace colours: --real (blue),
+       --imag (pink) and --time (green) are defined in theme.css. */
     :root {
-      --bg: #0a0a10;
-      --bg-2: #12131c;
-      --fg: #eef0f5;
-      --muted: #8b90a3;
-      --real: #58a6ff;
-      --imag: #ff5c7a;
-      --time: #7be089;
-      --accent: #ffcf5c;
-      --grid: rgba(255, 255, 255, 0.06);
-      --grid-strong: rgba(255, 255, 255, 0.14);
-      --panel: rgba(22, 23, 32, 0.75);
-      --border: rgba(255, 255, 255, 0.09);
-      --body-size: 17px;
-      --math-size: 18px;
-      --hero-size: 64px;
+      --mark: var(--d-orange);   /* highlighted element: phasor, selection, current slice */
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: 'Inter', system-ui, sans-serif;
-      font-size: var(--body-size);
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    body {
-      overflow-x: hidden;
-    }
-
-    .katex {
-      font-size: var(--math-size) !important;
-    }
-
-    .katex-display {
-      margin: 0.6em 0 !important;
-    }
-
-    .katex-display>.katex {
-      font-size: calc(var(--math-size) * 1.15) !important;
-    }
-
-    a {
-      color: var(--accent);
+    html {
+      scroll-snap-type: y proximity;
+      scroll-behavior: smooth;
     }
 
     /* Progress rail */
@@ -95,20 +54,19 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 2px;
-      background: transparent;
+      height: 1px;
       z-index: 60;
       pointer-events: none;
     }
 
     .rail-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--real), var(--accent));
+      background: var(--fg);
       width: 0%;
       transition: width 0.15s;
     }
 
-    /* Section nav dots */
+    /* Section navigation */
     .dots {
       position: fixed;
       right: 22px;
@@ -121,25 +79,19 @@
     }
 
     .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
+      width: 7px;
+      height: 7px;
+      border-radius: var(--radius-dot);
+      background: var(--calcium-white-800);
       cursor: pointer;
-      transition: all 0.2s;
       border: 0;
       padding: 0;
       position: relative;
     }
 
-    .dot:hover {
-      background: rgba(255, 255, 255, 0.5);
-      transform: scale(1.3);
-    }
-
+    .dot:hover,
     .dot.active {
-      background: var(--accent);
-      transform: scale(1.4);
+      background: var(--fg);
     }
 
     .dot .lbl {
@@ -148,223 +100,71 @@
       top: 50%;
       transform: translateY(-50%);
       white-space: nowrap;
-      font-size: 11px;
-      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg);
+      background: var(--white);
+      padding: 2px 6px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.15s;
-      font-family: 'JetBrains Mono', monospace;
     }
 
     .dot:hover .lbl {
       opacity: 1;
     }
 
-    /* Top brand */
-    .brand {
-      position: fixed;
-      top: 20px;
-      left: 24px;
-      z-index: 40;
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-family: 'JetBrains Mono', monospace;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand .mark {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: conic-gradient(var(--real), var(--imag), var(--time), var(--real));
-    }
-
-    /* Back button (top-right) */
-    .back-btn {
-      position: fixed;
-      top: 18px;
-      right: 24px;
-      z-index: 40;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(22, 23, 32, 0.6);
-      border: 1px solid var(--border);
-      color: var(--fg);
-      text-decoration: none;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
-      transition: all 0.15s;
-    }
-
-    .back-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    @media (max-width: 900px) {
-      .back-btn {
-        top: 14px;
-        right: 16px;
-      }
-    }
-
     /* Sections */
     section.scene {
-      min-height: 100vh;
-      padding: 100px 56px 80px;
-      display: grid;
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
-      gap: 28px;
       align-items: center;
       position: relative;
       scroll-snap-align: start;
-      border-bottom: 1px solid var(--border);
-    }
-
-    section.scene.full {
-      grid-template-columns: 1fr;
-      text-align: center;
     }
 
     section.scene .copy {
-      max-width: 520px;
       transform: translateY(var(--text-offset, 0px));
+    }
+
+    section.scene .copy ol {
+      padding-left: 20px;
+      margin: 0 0 14px;
+    }
+
+    section.scene .copy ol li {
+      padding: 3px 0;
     }
 
     section.scene .canvas-wrap {
       position: relative;
       aspect-ratio: 4/3;
       width: 100%;
-      margin: 0;
       transform: translate(var(--canvas-offset, 0px), 0);
     }
 
-    section.scene.wide .canvas-wrap {
-      aspect-ratio: 4/3;
-    }
-
-    html {
-      scroll-snap-type: y proximity;
-      scroll-behavior: smooth;
-    }
-
-    .eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .eyebrow .num {
-      color: var(--accent);
-    }
-
-    .eyebrow .bar {
-      flex: 0 0 28px;
-      height: 1px;
-      background: var(--accent);
-    }
-
-    h1.hero {
-      font-size: var(--hero-size);
-      line-height: 1.02;
-      font-weight: 600;
-      letter-spacing: -0.025em;
-      margin: 0 0 24px;
-    }
-
-    h1.hero em {
+    /* Words keyed to a trace colour */
+    em.real,
+    em.imag,
+    em.time,
+    em.mark {
       font-style: normal;
-      background: linear-gradient(135deg, var(--real), var(--imag));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-family: var(--font-book);
+      font-weight: 400;
     }
 
-    h2 {
-      font-size: 38px;
-      line-height: 1.1;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin: 0 0 18px;
-    }
-
-    h3 {
-      font-size: 20px;
-      font-weight: 600;
-      margin: 20px 0 8px;
-    }
-
-    p {
-      margin: 0 0 14px;
-      color: #d4d7e0;
-    }
-
-    p.lead {
-      font-size: calc(var(--body-size) + 2px);
-      color: var(--fg);
-    }
-
-    p.dim {
-      color: var(--muted);
-    }
-
-    em.real {
-      font-style: normal;
-      color: var(--real);
-    }
-
-    em.imag {
-      font-style: normal;
-      color: var(--imag);
-    }
-
-    em.time {
-      font-style: normal;
-      color: var(--time);
-    }
-
-    em.acc {
-      font-style: normal;
-      color: var(--accent);
-    }
+    /* The key is an underline in the trace colour; the text stays ink. */
+    em.real { border-bottom: 2px solid var(--real); }
+    em.imag { border-bottom: 2px solid var(--imag); }
+    em.time { border-bottom: 2px solid var(--time); }
+    em.mark { border-bottom: 2px solid var(--mark); }
 
     .legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
       margin: 18px 0 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
     }
 
-    .legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend i {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      display: inline-block;
+    .legend .katex {
+      font-size: 13px !important;
     }
 
     /* Controls */
@@ -373,11 +173,9 @@
       flex-direction: column;
       gap: 14px;
       margin-top: 20px;
-      padding: 16px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      backdrop-filter: blur(8px);
+      padding: var(--spacing-4);
+      background: var(--hydro-blue-100);
+      border-radius: var(--radius-5);
     }
 
     .ctrl {
@@ -385,172 +183,76 @@
       grid-template-columns: 120px 1fr 56px;
       align-items: center;
       gap: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
     }
 
     .ctrl label {
       color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .ctrl label .katex,
+    .plot .title .katex {
+      font-size: 14px !important;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .pillbtn .katex {
+      font-size: 13px !important;
     }
 
     .ctrl output {
-      color: var(--accent);
       text-align: right;
     }
 
     .ctrl input[type=range] {
-      -webkit-appearance: none;
-      appearance: none;
-      background: transparent;
       width: 100%;
     }
 
-    .ctrl input[type=range]::-webkit-slider-runnable-track {
-      height: 3px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 2px;
+    .ctrl .seg {
+      grid-column: 2 / span 2;
+      row-gap: 6px;
     }
 
-    .ctrl input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--accent);
-      margin-top: -5.5px;
-      cursor: grab;
-      border: 2px solid var(--bg);
-    }
-
-    .ctrl input[type=range]::-moz-range-track {
-      height: 3px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 2px;
-    }
-
-    .ctrl input[type=range]::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--bg);
-      cursor: grab;
-    }
-
-    .seg.iconic {
+    .seg.grid3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      background: transparent;
-      border: 0;
-      border-radius: 10px;
-      overflow: visible;
-      width: 100%;
-      max-width: 380px;
     }
 
-    .seg.iconic button {
-      display: flex;
+    .seg.grid3 > * + * {
+      margin-left: 0;
+    }
+
+    /* Suspension design selector: icon above the label */
+    .seg.iconic {
+      max-width: 420px;
+    }
+
+    .seg.iconic .pillbtn {
+      height: auto;
       flex-direction: column;
-      align-items: center;
       gap: 6px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--muted);
       padding: 10px 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
     }
 
-    .seg.iconic button:hover {
-      color: var(--fg);
-      border-color: rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .seg.iconic button.on {
-      color: var(--fg);
-      background: rgba(255, 207, 92, 0.08);
-      border-color: rgba(255, 207, 92, 0.4);
-    }
-
-    .seg.iconic button.on .ico {
-      color: var(--accent);
-    }
-
-    .seg.iconic .ico {
-      width: 22px;
-      height: 22px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      transition: color 0.15s;
-    }
-
-    .seg.iconic button:hover .ico {
-      color: var(--fg);
-    }
-
-    .seg {
-      display: inline-flex;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .seg button {
-      background: transparent;
-      border: 0;
-      color: var(--muted);
-      padding: 7px 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .seg button.on {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--fg);
-    }
-
-    .seg button:hover {
-      color: var(--fg);
-    }
-
-    .pillbtn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--fg);
-      padding: 8px 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .pillbtn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     /* Canvas boxes */
     .plot {
       position: absolute;
       inset: 0;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      background: var(--white);
+      border: 1px solid var(--calcium-white-800);
+      border-radius: var(--radius-container);
       overflow: hidden;
     }
 
@@ -558,22 +260,30 @@
       position: absolute;
       top: 10px;
       left: 14px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
       z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Titles sit on a page-coloured box so a curve passing beneath stays clear of the text. */
+    .plot .title,
+    .plot .sub {
+      max-width: calc(100% - 28px);
+      background: var(--white);
     }
 
     .plot .sub {
       position: absolute;
-      top: 26px;
+      top: 28px;
       left: 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--accent);
+      font-size: 13px;
+      color: var(--fg);
       z-index: 2;
+      pointer-events: none;
     }
 
     .plot canvas {
@@ -583,16 +293,12 @@
       height: 100%;
     }
 
-    /* Caption block rendered above a plot in the page's body font. */
+    /* Caption block above a plot */
     .plot-caption {
       margin-bottom: 14px;
     }
 
     .plot-caption .ttl {
-      font-size: 19px;
-      font-weight: 500;
-      color: var(--fg);
-      letter-spacing: -0.01em;
       margin: 0 0 4px;
     }
 
@@ -602,19 +308,7 @@
       margin: 0;
     }
 
-    .plot-caption .sub.ok {
-      color: var(--time);
-    }
-
-    .plot-caption .sub.warn {
-      color: var(--accent);
-    }
-
-    .plot-caption .sub.bad {
-      color: var(--imag);
-    }
-
-    /* dual / triple panels */
+    /* Two-panel rows */
     .dual {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -623,17 +317,16 @@
       aspect-ratio: 16/8;
     }
 
-    .triple {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      width: 100%;
-      aspect-ratio: 18/7;
+    .dual .plot,
+    .grid .plot {
+      position: relative;
     }
 
-    .dual .plot,
-    .triple .plot {
-      position: relative;
+    .grid {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+      height: 100%;
     }
 
     /* Tweaks panel */
@@ -642,16 +335,13 @@
       right: 24px;
       bottom: 24px;
       width: 300px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      background: var(--white);
+      border: 1px solid var(--carbon-black-500);
+      border-radius: var(--radius-container);
       padding: 16px;
       z-index: 50;
-      backdrop-filter: blur(12px);
       display: none;
       font-size: 12px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      transition: all 0.2s;
     }
 
     .tweaks.show {
@@ -673,11 +363,11 @@
 
     .tweaks h4 {
       margin: 0 0 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 400;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--muted);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -689,40 +379,25 @@
       gap: 6px;
     }
 
-    .tweaks h4 button {
-      background: transparent;
-      border: 0;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 14px;
-      line-height: 1;
-      padding: 2px 4px;
-      border-radius: 3px;
-      transition: all 0.15s;
-    }
-
-    .tweaks h4 button:hover {
-      color: var(--fg);
-      background: rgba(255, 255, 255, 0.08);
-    }
-
     .tweaks .row {
       display: grid;
-      grid-template-columns: 90px 1fr;
+      grid-template-columns: 110px 1fr;
       gap: 10px;
       align-items: center;
       margin-bottom: 10px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       color: var(--muted);
     }
 
     .tweaks input[type=color] {
       width: 100%;
       height: 24px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--carbon-black-500);
       background: transparent;
-      border-radius: 4px;
+      border-radius: var(--radius-3);
       cursor: pointer;
       padding: 0;
     }
@@ -731,175 +406,14 @@
       width: 100%;
     }
 
-    .tweaks .swatches {
-      display: flex;
-      gap: 6px;
-      margin-top: 10px;
-    }
-
-    .tweaks .sw {
-      flex: 1;
-      height: 28px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 9px;
-      color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.05em;
-    }
-
-    /* scene 1 specific */
-    .pothole-scene {
-      width: 100%;
-      position: relative;
-    }
-
-    .question-card {
-      margin-top: 22px;
-      padding: 18px 20px;
-      border-left: 2px solid var(--accent);
-      background: rgba(255, 207, 92, 0.05);
-      border-radius: 0 8px 8px 0;
-    }
-
-    .question-card p {
-      color: var(--fg);
-      margin: 0;
-    }
-
-    /* Scene 6/7 placeholder style */
-    .placeholder {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16/10;
-      background:
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 14px, transparent 14px 28px),
-        var(--bg-2);
-      border: 1px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .placeholder .tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-
-    .placeholder .ttl {
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--fg);
-      max-width: 80%;
-      text-align: center;
-    }
-
-    /* Hook landing */
-    .landing {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 120px 56px 80px;
-      position: relative;
-      text-align: center;
-    }
-
-    .landing .meta {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 32px;
-    }
-
-    .landing h1 {
-      max-width: 25ch;
-    }
-
-    .landing .sub {
-      color: var(--muted);
-      font-size: 19px;
-      max-width: 48ch;
-      margin: 20px auto 0;
-    }
-
-    .scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      color: var(--muted);
-      text-transform: uppercase;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .scroll-hint .line {
-      width: 1px;
-      height: 32px;
-      background: linear-gradient(var(--muted), transparent);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 0.3;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    .field-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      display: inline-block;
-      padding: 3px 8px;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      margin-right: 8px;
-    }
-
-    footer {
-      padding: 60px 56px 80px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    /* Section 07 — transfer function block diagram */
+    /* Section 08: transfer function block diagram */
     .tf-block {
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 14px;
-      padding: 40px 14px 26px;
+      padding: 52px 14px 20px;
     }
 
     .tf-node {
@@ -911,8 +425,8 @@
     .tf-node .tf-sub {
       font-size: 10px;
       color: var(--muted);
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.1em;
+      font-family: var(--font-mono);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       margin-top: 8px;
     }
@@ -931,26 +445,24 @@
     }
 
     .tf-box {
-      border: 2px solid var(--accent);
-      background: rgba(88, 166, 255, 0.06);
-      border-radius: 14px;
-      padding: 18px 26px;
+      border: 1px solid var(--carbon-black-500);
+      border-radius: var(--radius-container);
+      padding: 18px;
       min-width: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 22px rgba(88, 166, 255, 0.12) inset;
     }
 
     .tf-box .tf-math .katex {
-      color: var(--accent) !important;
+      white-space: nowrap;
       font-size: 19px !important;
     }
 
     .tf-arrow {
-      flex: 0 0 48px;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.35);
+      flex: 0 0 32px;
+      height: 1px;
+      background: var(--carbon-black-500);
       position: relative;
     }
 
@@ -960,48 +472,33 @@
       right: -1px;
       top: 50%;
       transform: translateY(-50%);
-      border-left: 9px solid rgba(255, 255, 255, 0.55);
-      border-top: 5px solid transparent;
-      border-bottom: 5px solid transparent;
+      border-left: 8px solid var(--carbon-black-500);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
     }
 
-    .tf-node.tf-in+.tf-arrow {
-      background: linear-gradient(to right, var(--real), rgba(255, 255, 255, 0.35));
-    }
-
-    .tf-box+.tf-arrow {
-      background: linear-gradient(to right, rgba(255, 255, 255, 0.35), var(--imag));
-    }
-
-    .tf-box+.tf-arrow::after {
-      border-left-color: var(--imag);
-    }
-
-    /* Equation bar above the wrap plot — stage-aware greying */
+    /* Equation bar above a plot. Pieces are dimmed unless highlighted. */
     .eq-bar {
       width: 100%;
-      padding: 22px 24px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      padding: 14px 18px;
+      background: var(--hydro-blue-100);
+      border-radius: var(--radius-5);
       margin-bottom: 12px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      backdrop-filter: blur(8px);
-      font-size: 28px;
+      overflow-x: auto;
     }
 
     .eq-bar .katex {
-      font-size: 1.6em !important;
+      font-size: 20px !important;
     }
 
     .eq-piece {
-      transition: opacity 0.35s ease, color 0.35s ease;
-      opacity: 0.55;
-      color: #cdcfd7;
+      transition: opacity 0.35s ease;
+      opacity: 0.35;
       display: inline-flex;
       align-items: center;
       padding: 0 4px;
@@ -1009,73 +506,19 @@
 
     .eq-piece.hl {
       opacity: 1;
-      color: var(--accent);
     }
 
-    .eq-piece.hl .katex {
-      color: var(--accent);
-    }
-
-    .eq-piece .katex {
-      color: inherit;
-    }
-
-    /* Section 2.5 — equation lives between the copy and the plots */
-    section#s25 {
-      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.5fr) minmax(0, 1.45fr);
-      gap: 40px;
-    }
-
-    section#s25 .eq-bar-vert {
-      margin-bottom: 0;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 18px 16px;
-      gap: 3px;
-      font-size: 18px;
-      white-space: nowrap;
-      width: fit-content;
-      max-width: 100%;
-      justify-self: start;
-      overflow: hidden;
-    }
-
-    section#s25 .eq-bar-vert .eq-piece {
-      padding: 0 2px;
-    }
-
-    section#s25 .eq-bar-vert .katex {
-      font-size: 0.95em !important;
+    .eq-piece.note {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     @media (max-width: 900px) {
-      section.scene {
-        grid-template-columns: 1fr;
-        padding: 80px 24px 60px;
-      }
-
-      section#s25 {
-        grid-template-columns: 1fr;
-      }
-
-      section#s25 .eq-bar-vert {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
       .dots {
         display: none;
-      }
-
-      h1.hero {
-        font-size: 40px;
-      }
-
-      h2 {
-        font-size: 28px;
       }
     }
   </style>
@@ -1083,7 +526,7 @@
 
 <body>
 
-  <div class="brand"><span class="mark"></span><span>Week 7 · Laplace</span></div>
+  <div class="brand"><span class="mark"></span><span>BMEN90033 · Week 7</span></div>
   <a class="back-btn" href="../../index.html">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
@@ -1097,69 +540,74 @@
   <nav class="dots" id="dots"></nav>
 
   <!-- =========================== LANDING =========================== -->
-  <section class="landing" id="s0" data-label="00 Landing">
+  <section class="landing" id="s0" data-label="Overview">
     <div>
-      <div class="meta">WEEK 7: BIOINSTRUMENTATION</div>
-      <h1 class="hero">From Fourier and Laplace transforms to <em>transfer functions</em>.</h1>
-      <p class="sub">An introduction to the transform methods used to represent linear dynamical systems.</p>
-      <div style="margin-top: 40px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
-        <span class="field-tag">signals &amp; systems</span>
-        <span class="field-tag">complex analysis</span>
-        <span class="field-tag">control theory</span>
+      <div class="meta">BMEN90033 · WEEK 7 · TRANSFORM METHODS</div>
+      <h1 class="hero">The Laplace transform</h1>
+      <p class="sub">The Fourier transform represents a signal as a sum of sinusoids and is defined only when its
+        integral converges. The Laplace transform adds an exponential weighting, which extends the representation to
+        growing signals and leads to the transfer function, poles and zeros of a linear system.</p>
+      <div class="tags">
+        <span class="field-tag">complex exponentials</span>
+        <span class="field-tag">Fourier transform</span>
+        <span class="field-tag">region of convergence</span>
+        <span class="field-tag">transfer functions</span>
+        <span class="field-tag">poles and zeros</span>
       </div>
     </div>
     <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
   </section>
 
-  <!-- =========================== SECTION 1 — HOOK =========================== -->
-  <section class="scene wide" id="s1" data-label="01 Hook">
+  <!-- =========================== SECTION 1: SUSPENSION =========================== -->
+  <section class="scene wide" id="s1" data-label="01 Suspension response">
     <div class="copy">
-      <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>practical example</span></div>
-      <h2>Car suspension</h2>
+      <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>motivating example</span></div>
+      <h2>Second-order response of a car suspension</h2>
       <p class="lead">After a car crosses a bump, its chassis oscillates before returning to equilibrium.
-        The settling rate depends on the suspension damping and stability.</p>
-      <p>The three designs compare well-damped ($\zeta = 0.75$), underdamped, and unstable chassis displacement $y(t)$.</p>
+        The settling rate depends on the suspension damping.</p>
+      <p>The three designs give a well-damped ($\zeta = 0.75$), an underdamped ($\zeta = 0.12$) and an unstable
+        ($\zeta = -0.05$) chassis displacement $z(t)$.</p>
 
       <div class="controls">
-        <div class="seg iconic" id="carSeg">
-          <button data-v="good" class="on">
+        <div class="seg grid3 iconic" id="carSeg">
+          <button data-v="good" class="pillbtn on">
             <span class="ico"><svg viewBox="0 0 24 20" width="22" height="18" fill="none" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 10 L3 10 Q4 10 5 2 Q7 2 9 10 Q10 10 11 13 Q12 13 13 10 L23 10" />
               </svg></span>
-            <span>good design</span>
+            <span>Well damped</span>
           </button>
-          <button data-v="ring">
+          <button data-v="ring" class="pillbtn">
             <span class="ico"><svg viewBox="0 0 24 20" width="22" height="18" fill="none" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                 <path
                   d="M1 10 Q2 10 3 2 Q4 2 5 18 Q6 18 7 5 Q8 5 9 15 Q10 15 11 7 Q12 7 13 13 Q14 13 15 9 Q16 9 17 11 L23 10" />
               </svg></span>
-            <span>ringing</span>
+            <span>Underdamped</span>
           </button>
-          <button data-v="bad">
+          <button data-v="bad" class="pillbtn">
             <span class="ico"><svg viewBox="0 0 24 20" width="22" height="18" fill="none" stroke="currentColor"
-                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                 <path
                   d="M1 10 Q2 10 3 9 Q4 9 5 12 Q6 12 7 7 Q8 7 9 14 Q10 14 11 4 Q12 4 13 17 Q14 17 15 1 Q16 1 17 19 Q18 19 19 0 L20 20" />
               </svg></span>
-            <span>unstable</span>
+            <span>Unstable</span>
           </button>
         </div>
       </div>
 
-      <div class="question-card">
+      <div class="callout">
         <p>A conventional Fourier transform represents the frequency content of integrable signals, including
           decaying transients. It does not converge for a response that grows without bound.</p>
-        <p class="dim" style="margin-top:8px;font-size:14px;">The Laplace transform adds an exponential weighting
+        <p class="dim" style="margin:8px 0 0;">The Laplace transform adds an exponential weighting
           and exposes the pole locations that determine whether each mode decays or grows.</p>
       </div>
     </div>
 
     <div class="canvas-wrap" style="aspect-ratio: auto;">
       <div class="plot-caption">
-        <h3 class="ttl">Quarter-car suspension · chassis displacement z(t)</h3>
-        <p class="sub ok" id="carSub">good design · well damped</p>
+        <h3 class="ttl">Quarter-car suspension: chassis displacement $z(t)$</h3>
+        <p class="sub" id="carSub">Well damped (ζ = 0.75)</p>
       </div>
       <div class="plot" style="position: relative; aspect-ratio: 3/2;">
         <canvas id="carCanvas"></canvas>
@@ -1167,19 +615,19 @@
     </div>
   </section>
 
-  <!-- =========================== SECTION 2 — PHASOR =========================== -->
-  <section class="scene" id="s2" data-label="02 Phasor">
+  <!-- =========================== SECTION 2: PHASOR =========================== -->
+  <section class="scene" id="s2" data-label="02 Complex exponential">
     <div class="copy">
-      <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>The complex exponential</span>
+      <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>the complex exponential</span>
       </div>
       <h2>Rotation and magnitude in the complex plane</h2>
       <p class="lead">The complex exponential $e^{j\omega t}$ traces the unit circle. Its
         <em class="real">real component</em> is $\cos(\omega t)$ and its
         <em class="imag">imaginary component</em> is $\sin(\omega t)$.</p>
       <p>Angular velocity gives the frequency, radius gives the amplitude, and initial angle gives the phase.</p>
-      <p class="dim" style="font-size: 14px;">Complex exponentials are <em
-          class="acc">eigenfunctions</em> of linear time-invariant systems. A sinusoidal input produces
-        a sinusoid at the same frequency, scaled in magnitude and shifted in phase.</p>
+      <p class="dim" style="font-size: 14px;">Complex exponentials are <strong>eigenfunctions</strong> of linear
+        time-invariant systems. A sinusoidal input produces a sinusoid at the same frequency, scaled in magnitude and
+        shifted in phase.</p>
 
       <div class="controls">
         <div class="ctrl"><label>frequency $\omega$</label><input type="range" id="phasorW" min="0.3" max="3"
@@ -1188,9 +636,9 @@
             value="0.85" /><output id="phasorAO">0.85</output></div>
       </div>
       <div class="legend">
-        <span><i style="background:var(--real)"></i>real · cos</span>
-        <span><i style="background:var(--imag)"></i>imaginary · sin</span>
-        <span><i style="background:var(--accent)"></i>phasor tip</span>
+        <span><i class="sw" style="background:var(--real)"></i>real part, $\cos\omega t$</span>
+        <span><i class="sw" style="background:var(--imag)"></i>imaginary part, $\sin\omega t$</span>
+        <span><i class="sw" style="background:var(--mark)"></i>phasor</span>
       </div>
     </div>
     <div class="canvas-wrap">
@@ -1200,109 +648,106 @@
     </div>
   </section>
 
-  <!-- =========================== SECTION 2B — S-PLANE GRID =========================== -->
-  <section class="scene wide" id="s2b" data-label="03 s-plane grid">
+  <!-- =========================== SECTION 3: S-PLANE GRID =========================== -->
+  <section class="scene wide" id="s2b" data-label="03 The s-plane">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>the s-plane</span>
       </div>
-      <h2>Every point in the plane is a different exponential.</h2>
+      <h2>Complex exponentials across the $s$-plane</h2>
       <p class="lead">For a general complex frequency $s = \sigma + j\omega$, the exponential
         $e^{st}$ has both a growth or decay rate and an oscillation frequency.</p>
-      <p>Each tile on the left plots the real part $\mathrm{Re}\{e^{st}\} = e^{\sigma t}\cos(\omega t)$ for the $s$ at
-        the centre of that tile. <em class="acc">Click any tile</em> to see the full complex trajectory of $e^{st}$ on
-        the right.</p>
-      <ul style="padding-left: 18px; color: #d4d7e0; margin: 0 0 14px;">
-        <li><em class="real">Horizontal · $\sigma$ (real)</em> controls growth: left half ($\sigma&lt;0$) decays, right
-          half ($\sigma&gt;0$) grows without bound.</li>
-        <li><em class="imag">Vertical · $\omega$ (imaginary)</em> controls how fast the signal oscillates.</li>
-        <li><em class="imag">Imaginary axis</em> ($\sigma = 0$) is the Fourier kernel $e^{j\omega t}$: a pure circle.
-        </li>
-        <li><em class="real">Real axis</em> ($\omega = 0$) is a pure exponential $e^{\sigma t}$: no rotation at all.</li>
+      <p>Each tile in the left panel plots the real part $\mathrm{Re}\{e^{st}\} = e^{\sigma t}\cos(\omega t)$ for the
+        $s$ at the centre of that tile. Selecting a tile displays the full complex trajectory of $e^{st}$ in the right
+        panel.</p>
+      <ul class="bullets">
+        <li>The <em class="real">horizontal coordinate $\sigma$</em> sets the growth rate: the signal decays in the
+          left half-plane ($\sigma&lt;0$) and grows without bound in the right half-plane ($\sigma&gt;0$).</li>
+        <li>The <em class="imag">vertical coordinate $\omega$</em> sets the oscillation frequency.</li>
+        <li>On the <em class="imag">imaginary axis</em> ($\sigma = 0$) the exponential is the Fourier kernel
+          $e^{j\omega t}$, which traces a circle of constant radius.</li>
+        <li>On the <em class="real">real axis</em> ($\omega = 0$) the exponential is $e^{\sigma t}$, which does not
+          rotate.</li>
       </ul>
       <p class="dim" style="font-size: 14px;">Each pole of a transfer function contributes a mode
         $e^{st}$ with the decay rate and oscillation frequency shown at its location in this grid.</p>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: auto;">
-      <div class="eq-bar"
-        style="font-size: 19px; padding: 14px 18px; gap: 4px; margin-bottom: 12px; flex-wrap: nowrap; overflow-x: auto;">
-        <span class="eq-piece" style="opacity: 1; color: var(--fg);">$e^{st}$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--fg);">$=$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--fg);">$e^{(\sigma + j\omega)\,t}$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--fg);">$=$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--real);">$e^{\sigma t}$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--muted); font-size: 11px; letter-spacing: 0.06em;">envelope</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--fg);">$\cdot$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--imag);">$e^{j\omega t}$</span>
-        <span class="eq-piece" style="opacity: 1; color: var(--muted); font-size: 11px; letter-spacing: 0.06em;">oscillation</span>
+      <div class="eq-bar">
+        <span class="eq-piece hl">$e^{st}$</span>
+        <span class="eq-piece hl">$=$</span>
+        <span class="eq-piece hl">$e^{(\sigma + j\omega)\,t}$</span>
+        <span class="eq-piece hl">$=$</span>
+        <span class="eq-piece hl" style="color: var(--real);">$e^{\sigma t}$</span>
+        <span class="eq-piece hl note">envelope</span>
+        <span class="eq-piece hl">$\cdot$</span>
+        <span class="eq-piece hl" style="color: var(--imag);">$e^{j\omega t}$</span>
+        <span class="eq-piece hl note">oscillation</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;aspect-ratio: 2/1;">
-        <div class="plot" style="position:relative;"><canvas id="splaneGridCanvas"></canvas>
-          <div class="title">s-plane · Re{e^{st}} · click a tile</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;aspect-ratio: 2/1;height:auto;">
+        <div class="plot"><canvas id="splaneGridCanvas"></canvas>
+          <div class="title">$\mathrm{Re}\{e^{st}\}$ at each tile centre; select a tile</div>
         </div>
-        <div class="plot" style="position:relative;"><canvas id="splaneDetailCanvas"></canvas>
-          <div class="title" id="splaneDetailTitle">e^{st} · complex trajectory</div>
+        <div class="plot"><canvas id="splaneDetailCanvas"></canvas>
+          <div class="title" id="splaneDetailTitle">Trajectory of $e^{st}$ in the complex plane</div>
           <div class="sub" id="splaneDetailSub"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 2.5 — WRAP INTRO =========================== -->
-  <section class="scene wide" id="s25" data-label="04 Wrap intro">
+  <!-- =========================== SECTION 4: FOURIER INTEGRAND =========================== -->
+  <section class="scene wide" id="s25" data-label="04 Fourier integrand">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>Fourier transform
           geometry</span></div>
       <h2>The Fourier integrand in the complex plane</h2>
       <p class="lead">The Fourier integrand combines the signal $g(t)$ with the complex exponential
         $e^{-j2\pi f t}$.</p>
-      <p><em class="acc">1.</em> The exponential $e^{-j2\pi f t}$ traces the
-        <em class="acc">unit circle</em> with angle
-        $-2\pi f t$.</p>
-      <p><em class="acc">2.</em> Multiplication by $g(t)$ <em class="acc">scales the radius</em>
-        at each time.</p>
-      <p><em class="acc">3.</em> As time advances, the scaled point traces $g(t)e^{-j2\pi f t}$
-        <em class="acc">in the complex plane</em>.</p>
+      <ol>
+        <li>The exponential $e^{-j2\pi f t}$ traces the <strong>unit circle</strong> with angle $-2\pi f t$.</li>
+        <li>Multiplication by $g(t)$ <strong>scales the radius</strong> at each time.</li>
+        <li>As time advances, the scaled point traces $g(t)e^{-j2\pi f t}$ <strong>in the complex plane</strong>.</li>
+      </ol>
 
       <div class="controls">
         <div class="ctrl"><label>winding $f$</label><input type="range" id="wrapF" min="0.2" max="2.5" step="0.005"
             value="1" /><output id="wrapFO">1.00</output></div>
         <div class="ctrl"><label>stage</label>
-          <div class="seg" id="wrapStage" style="grid-column: 2 / span 2;">
-            <button data-v="0" class="on">1 · signal</button>
-            <button data-v="1">2 ·$e^{-j2\pi f t}$</button>
-            <button data-v="2">3 · scale by $g(t)$</button>
-            <button data-v="3">4 · wrap over $t$</button>
+          <div class="seg" id="wrapStage">
+            <button data-v="0" class="pillbtn on">1 Signal</button>
+            <button data-v="1" class="pillbtn">2 $e^{-j2\pi f t}$</button>
+            <button data-v="2" class="pillbtn">3 Scale by $g(t)$</button>
+            <button data-v="3" class="pillbtn">4 Wrap over $t$</button>
           </div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="pillbtn" id="wrapPlay">play sequence</button>
-          <button class="pillbtn" id="wrapReset">reset</button>
+        <div class="btn-row">
+          <button class="pillbtn" id="wrapPlay">Play sequence</button>
+          <button class="pillbtn" id="wrapReset">Reset</button>
         </div>
       </div>
       <div class="legend">
-        <span><i style="background:var(--time)"></i>signal $g(t)$</span>
-        <span><i style="background:var(--accent)"></i>wound path</span>
-        <span><i style="background:var(--muted)"></i>time axis → angle</span>
+        <span><i class="sw" style="background:var(--time)"></i>signal $g(t)$, start of the wound curve</span>
+        <span><i class="sw" style="background:var(--mark)"></i>end of the wound curve</span>
       </div>
     </div>
-    <div class="eq-bar eq-bar-vert" id="wrapEq" data-stage="0">
-      <span class="eq-piece e-lhs">$F(f) = \displaystyle\int_{-\infty}^{\infty}$</span><span
-        class="eq-piece e-g hl">$g(t)$</span><span class="eq-piece e-dot">$\cdot$</span><span class="eq-piece e-exp">$e^{-j
-        2\pi f t}$</span><span class="eq-piece e-dt">$\,dt$</span>
-    </div>
     <div class="canvas-wrap" style="aspect-ratio: auto;">
+      <div class="eq-bar" id="wrapEq" data-stage="0">
+        <span class="eq-piece e-lhs">$F(f) = \displaystyle\int_{-\infty}^{\infty}$</span><span
+          class="eq-piece e-g hl">$g(t)$</span><span class="eq-piece e-dot">$\cdot$</span><span
+          class="eq-piece e-exp">$e^{-j 2\pi f t}$</span><span class="eq-piece e-dt">$\,dt$</span>
+      </div>
       <div class="plot" style="position: relative; aspect-ratio: 16/10;"><canvas id="wrapCanvas"></canvas>
-        <div class="title">straight line of time · bent into a disc</div>
-        <div class="sub" id="wrapSub">stage 1 · drawing the signal</div>
+        <div class="title">Time axis mapped onto the complex plane</div>
+        <div class="sub" id="wrapSub">Stage 1: the signal g(t) on a linear time axis</div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 3 — WINDING MACHINE =========================== -->
-  <section class="scene wide" id="s3" data-label="05 Fourier winding">
+  <!-- =========================== SECTION 5: WINDING =========================== -->
+  <section class="scene wide" id="s3" data-label="05 Centroid interpretation">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>geometric interpretation</span></div>
-      <h2>The Fourier transform measures complex accumulation.</h2>
+      <h2>The Fourier transform as the centroid of the wound curve</h2>
       <p class="lead">Multiplying a signal $g(t)$ by $e^{-2\pi j f t}$ winds it around the origin of the complex plane
         at frequency $f$.</p>
       <p>Consider the centroid of the resulting curve. For most values of $f$, the curve loops around the origin with
@@ -1317,38 +762,42 @@
         <div class="ctrl"><label>winding $f$</label><input type="range" id="windF" min="0" max="4" step="0.005"
             value="0.4" /><output id="windFO">0.40</output></div>
         <div class="ctrl"><label>signal</label>
-          <div class="seg" id="windSig" style="grid-column: 2 / span 2;">
-            <button data-v="tone1" class="on">1 Hz tone</button>
-            <button data-v="chord">1 + 2 Hz chord</button>
-            <button data-v="square">square wave</button>
+          <div class="seg" id="windSig">
+            <button data-v="tone1" class="pillbtn on">1 Hz tone</button>
+            <button data-v="chord" class="pillbtn">1 Hz + 2 Hz</button>
+            <button data-v="square" class="pillbtn">Square wave</button>
           </div>
         </div>
-        <div style="display:flex;gap:10px;"><button class="pillbtn" id="sweepBtn">sweep f</button></div>
+        <div class="btn-row"><button class="pillbtn" id="sweepBtn">Sweep frequency</button></div>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--time)"></i>signal and frequency cursor</span>
+        <span><i class="sw" style="background:var(--imag)"></i>wound curve</span>
+        <span><i class="sw" style="background:var(--mark)"></i>centroid and $|F(f)|$</span>
       </div>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: 16/11;">
-      <div class="triple"
-        style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:0.55fr 1.45fr;width:100%;height:100%;gap:12px;">
+      <div class="grid" style="grid-template-columns:1fr 1fr;grid-template-rows:0.55fr 1.45fr;">
         <div class="plot" style="grid-column:1 / span 2;"><canvas id="w_sig"></canvas>
-          <div class="title">signal $g(t)$</div>
+          <div class="title">Signal $g(t)$</div>
         </div>
         <div class="plot"><canvas id="w_wound"></canvas>
-          <div class="title">wound · $g(t)\,e^{-2\pi j f t}$</div>
+          <div class="title">Wound curve $g(t)\,e^{-2\pi j f t}$</div>
           <div class="sub" id="w_sub">f = 0.40 Hz</div>
         </div>
         <div class="plot"><canvas id="w_spec"></canvas>
-          <div class="title">|F(f)| · center of mass path</div>
+          <div class="title">Spectrum $|F(f)|$</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 4 — FOURIER BREAKS =========================== -->
-  <section class="scene wide" id="s4" data-label="06 Fourier breaks">
+  <!-- =========================== SECTION 6: CONVERGENCE =========================== -->
+  <section class="scene wide" id="s4" data-label="06 Convergence">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>convergence</span></div>
-      <h2>The Fourier integral does not converge for growing signals.</h2>
-      <p class="lead">Now consider the signal $e^{0.3 t}\cos(\omega_0 t)$. The wound curve spirals outward without
+      <h2>Divergence of the Fourier integral for growing signals</h2>
+      <p class="lead">Consider the signal $e^{0.3 t}\cos(\omega_0 t)$. The wound curve spirals outward without
         bound, its centroid fails to converge, and the defining integral diverges.</p>
       <p>The ordinary Fourier integral is defined for absolutely integrable signals. Extensions also cover
         square-integrable signals and distributions, but a growing unstable response still lacks an ordinary
@@ -1365,32 +814,33 @@
         spirals inward; the transform is well-defined. For $a > 0$, the wound curve is unbounded and the integral
         fails to converge.</p>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 16/11;">
+    <div class="canvas-wrap" style="aspect-ratio: 16/9;">
       <div class="dual" style="aspect-ratio: 16/9;">
         <div class="plot"><canvas id="g_sig"></canvas>
-          <div class="title">signal $e^{a t}\cos(\omega_0 t)$</div>
+          <div class="title">Signal $e^{a t}\cos(\omega_0 t)$</div>
         </div>
         <div class="plot"><canvas id="g_wound"></canvas>
-          <div class="title">wound shape</div>
-          <div class="sub" id="g_sub">diverges</div>
+          <div class="title">Wound curve</div>
+          <div class="sub" id="g_sub">Curve unbounded: the integral diverges</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 5 — LAPLACE =========================== -->
-  <section class="scene wide" id="s5" data-label="07 Laplace">
+  <!-- =========================== SECTION 7: LAPLACE =========================== -->
+  <section class="scene wide" id="s5" data-label="07 Laplace transform">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">07</span><span>Laplace transform</span></div>
-      <h2>The Laplace transform generalises Fourier via a complex frequency.</h2>
-      <p class="lead">Replace the Fourier kernel $e^{-j\omega t}$ with $e^{-st}$, where $s = \sigma + j\omega \in
+      <h2>Generalisation of the Fourier transform to a complex frequency</h2>
+      <p class="lead">The Fourier kernel $e^{-j\omega t}$ is replaced by $e^{-st}$, where $s = \sigma + j\omega \in
         \mathbb{C}$. The kernel factorises as $e^{-st} = e^{-\sigma t}\,e^{-j\omega t}$.</p>
       <p>The second factor is the Fourier kernel; the first is a real exponential weighting that attenuates
         the signal for $\sigma > 0$ and amplifies it for $\sigma < 0$. Setting $\sigma = 0$ recovers the Fourier
         transform exactly.</p>
       <p>Applied to the divergent signal of the previous section, the transform converges whenever $\sigma$ exceeds the
-        signal's growth rate. The set of $s \in \mathbb{C}$ for which the integral converges is termed the <em
-          class="acc">region of convergence</em> (ROC), and is an intrinsic part of the transform's specification.</p>
+        growth rate of the signal. The set of $s \in \mathbb{C}$ for which the integral converges is termed the
+        <strong>region of convergence</strong> (ROC), and is an intrinsic part of the specification of the
+        transform.</p>
 
       <div class="controls">
         <div class="ctrl"><label>damping $\sigma$</label><input type="range" id="lapS" min="-0.3" max="0.8" step="0.005"
@@ -1399,60 +849,60 @@
             value="1" /><output id="lapWO">1.00</output></div>
         <div class="ctrl"><label>signal growth $a$</label><input type="range" id="lapA" min="-0.1" max="0.5"
             step="0.005" value="0.3" /><output id="lapAO">0.30</output></div>
-        <div style="display:flex;gap:10px;"><button class="pillbtn" id="lapMatch">match growth</button></div>
+        <div class="btn-row"><button class="pillbtn" id="lapMatch">Match growth</button></div>
       </div>
-      <p class="dim" style="font-size:13px;margin-top:14px;">For this signal the ROC is the half-plane $\sigma > a$.
-        The s-plane panel indicates convergence in green.</p>
+      <p class="dim" style="font-size:13px;margin-top:14px;">For this signal the ROC is the half-plane $\sigma > a$,
+        shaded <em class="time">green</em> in the $s$-plane panel. The <em class="mark">orange point</em> is the
+        selected $s$.</p>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: 16/10;">
-      <div
-        style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;width:100%;height:100%;">
-        <div class="plot" style="position:relative;"><canvas id="l_sig"></canvas>
-          <div class="title">$g(t)$ · weighted by $e^{-\sigma t}$</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;">
+        <div class="plot"><canvas id="l_sig"></canvas>
+          <div class="title">$g(t)$ and $g(t)\,e^{-\sigma t}$</div>
         </div>
-        <div class="plot" style="position:relative;"><canvas id="l_wound"></canvas>
-          <div class="title">wound shape</div>
-          <div class="sub" id="l_sub">bounded · ROC ok</div>
+        <div class="plot"><canvas id="l_wound"></canvas>
+          <div class="title">Wound curve</div>
+          <div class="sub" id="l_sub">Unbounded: outside the ROC</div>
         </div>
-        <div class="plot" style="position:relative;grid-column:1/span 2;"><canvas id="l_splane"></canvas>
-          <div class="title">s-plane · (σ, ω)</div>
+        <div class="plot" style="grid-column:1/span 2;"><canvas id="l_splane"></canvas>
+          <div class="title">$s$-plane</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 5b — TRANSFER FUNCTIONS =========================== -->
-  <section class="scene wide" id="s5b" data-label="08 Block">
+  <!-- =========================== SECTION 8: TRANSFER FUNCTIONS =========================== -->
+  <section class="scene wide" id="s5b" data-label="08 Transfer functions">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">08</span><span>transfer functions</span></div>
-      <h2>Poles and zeros characterise the transfer function.</h2>
+      <h2>Poles and zeros of the transfer function</h2>
       <p class="lead">For a linear time-invariant system with input $x(t)$ and output $y(t)$, the ratio of their Laplace
-        transforms defines the <em class="acc">transfer function</em>, $H(s) = Y(s)/X(s)$.</p>
+        transforms defines the <strong>transfer function</strong>, $H(s) = Y(s)/X(s)$.</p>
       <p>For the systems considered here, $H(s)$ is a rational function of $s$, and therefore admits the factored form
       </p>
-      <p style="text-align:center;">$$H(s) \;=\; k \, \frac{(s - z_1)(s - z_2)\cdots}{(s - p_1)(s - p_2)\cdots}.$$</p>
+      <div class="eq-block">$$H(s) \;=\; k \, \frac{(s - z_1)(s - z_2)\cdots}{(s - p_1)(s - p_2)\cdots}.$$</div>
       <p>The roots of the numerator are the <em class="time">zeros</em> $\{z_i\}$; the roots of the denominator are the
         <em class="imag">poles</em> $\{p_i\}$. Together with the scalar gain $k$, these two sets of complex numbers
         determine $H(s)$ completely.</p>
-      <p>At $s = z_i$ the numerator vanishes, so $H(z_i) = 0$ and the system <em class="time">annihilates</em> that
-        mode. At $s = p_i$ the denominator vanishes, so $|H(p_i)| \to \infty$ and the response is <em
-          class="imag">unbounded</em>. The frequency response, resonant behaviour, and stability of the system are
+      <p>At $s = z_i$ the numerator vanishes, so $H(z_i) = 0$ and the system annihilates that
+        mode. At $s = p_i$ the denominator vanishes, so $|H(p_i)| \to \infty$ and the response is unbounded. The
+        frequency response, resonant behaviour, and stability of the system are
         consequently all determined by the location of its poles and zeros in the $s$-plane.</p>
 
       <div class="controls">
         <div class="ctrl"><label>example</label>
-          <div class="seg" id="tfSeg" style="grid-column: 2 / span 2;">
-            <button data-v="lowpass" class="on">low-pass</button>
-            <button data-v="resonator">resonator</button>
-            <button data-v="notch">notch</button>
-            <button data-v="integrator">integrator</button>
+          <div class="seg" id="tfSeg">
+            <button data-v="lowpass" class="pillbtn on">Low-pass</button>
+            <button data-v="resonator" class="pillbtn">Resonator</button>
+            <button data-v="notch" class="pillbtn">Notch</button>
+            <button data-v="integrator" class="pillbtn">Integrator</button>
           </div>
         </div>
       </div>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: 4/3;">
-      <div style="display:grid;grid-template-rows:1.15fr 1.35fr;gap:12px;width:100%;height:100%;">
-        <div class="plot" style="position:relative;">
+      <div class="grid" style="grid-template-rows:1.15fr 1.35fr;">
+        <div class="plot">
           <div class="tf-block">
             <div class="tf-node tf-in">
               <div class="tf-math" id="tfInEqn">$X(s)$</div>
@@ -1468,15 +918,15 @@
               <div class="tf-sub">output</div>
             </div>
           </div>
-          <div class="title">block diagram · $Y(s) = H(s)\,X(s)$</div>
-          <div class="sub" id="tfSub">low-pass · single pole</div>
+          <div class="title">Block diagram: $Y(s) = H(s)\,X(s)$</div>
+          <div class="sub" id="tfSub">Low-pass, single pole</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1.25fr;gap:12px;min-height:0;">
-          <div class="plot" style="position:relative;"><canvas id="tfPZ"></canvas>
-            <div class="title">s-plane · poles × · zeros ○</div>
+        <div class="grid" style="grid-template-columns:1fr 1.25fr;min-height:0;">
+          <div class="plot"><canvas id="tfPZ"></canvas>
+            <div class="title">$s$-plane</div>
           </div>
-          <div class="plot" style="position:relative;"><canvas id="tfInOut"></canvas>
-            <div class="title">input $x(t)$ → output $y(t)$</div>
+          <div class="plot"><canvas id="tfInOut"></canvas>
+            <div class="title">Input $x(t)$ and output $y(t)$</div>
             <div class="sub" id="tfInOutSub"></div>
           </div>
         </div>
@@ -1484,191 +934,181 @@
     </div>
   </section>
 
-  <!-- =========================== SECTION 6 — LAPLACE SURFACE =========================== -->
-  <section class="scene wide" id="s6" data-label="09 Link">
+  <!-- =========================== SECTION 9: LAPLACE SURFACE =========================== -->
+  <section class="scene wide" id="s6" data-label="09 Fourier and Laplace">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">09</span><span>Fourier and Laplace</span></div>
-      <h2>The Fourier transform is a restriction of the Laplace transform.</h2>
+      <h2>The Fourier transform as a restriction of the Laplace transform</h2>
       <p class="lead">Varying both $\sigma$ and $\omega$ simultaneously, the magnitude $|F(s)|$ defines a surface over
         the complex plane. Poles appear as singularities at which the surface diverges; zeros appear as points at
         which it vanishes.</p>
       <p>The Fourier transform is the restriction of this surface to the imaginary axis $\sigma = 0$. This slice
-        represents the system's steady-state response to pure sinusoidal inputs $e^{j\omega t}$: the magnitude of
+        represents the steady-state response of the system to pure sinusoidal inputs $e^{j\omega t}$: the magnitude of
         $F(j\omega)$ gives the gain and its argument gives the phase at frequency $\omega$. Evaluating $F(s)$ on any
         other vertical line $\sigma = \sigma_0$ yields a parallel cross-section, which represents the response to
-        exponentially modulated sinusoids $e^{\sigma_0 t}\,e^{j\omega t}$, i.e. signals whose envelope decays for
+        exponentially modulated sinusoids $e^{\sigma_0 t}\,e^{j\omega t}$, that is, signals whose envelope decays for
         $\sigma_0 < 0$ or grows for $\sigma_0 > 0$.</p>
       <p>This viewpoint also clarifies the role of <em class="time">zeros</em>. A zero located on the imaginary axis
         produces an exact null in the Fourier response at the corresponding frequency, since the surface meets the
         plane $|F(s)| = 0$ at that point.</p>
-      <p class="dim" style="font-size:14px;">Rotate the surface by dragging, and adjust $\sigma$ to translate the
-        slice. The <em class="real">blue ridge</em> denotes the Fourier cross-section; <em class="imag">pink ×</em>
-        mark poles and <em class="time">green ○</em> mark zeros.</p>
+      <p class="dim" style="font-size:14px;">Drag the surface to rotate it and adjust $\sigma$ to translate the
+        slice. Poles and zeros can be dragged in the pole-zero map.</p>
 
       <div class="controls">
         <div class="ctrl"><label>system</label>
-          <div class="seg" id="surfSysSeg" style="grid-column: 2 / span 2;">
-            <button data-v="stable" class="on">stable · 2nd order</button>
-            <button data-v="ring">lightly damped</button>
-            <button data-v="unstable">unstable</button>
+          <div class="seg" id="surfSysSeg">
+            <button data-v="stable" class="pillbtn on">Stable, 2nd order</button>
+            <button data-v="ring" class="pillbtn">Lightly damped</button>
+            <button data-v="unstable" class="pillbtn">Unstable</button>
           </div>
         </div>
         <div class="ctrl"><label>slice $\sigma$</label><input type="range" id="surfSigma" min="-1.5" max="1.5"
             step="0.01" value="0" /><output id="surfSigmaO">0.00</output></div>
         <div class="ctrl"><label>mesh density</label><input type="range" id="surfMesh" min="24" max="160" step="4"
             value="84" /><output id="surfMeshO">84</output></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="pillbtn" id="surfFourier">snap to σ = 0</button>
-          <button class="pillbtn" id="surfTopView">top view</button>
-          <button class="pillbtn" id="surfSpin">auto rotate</button>
-          <button class="pillbtn" id="surfBode">bode plot mode</button>
+        <div class="btn-row">
+          <button class="pillbtn" id="surfFourier">Snap to $\sigma = 0$</button>
+          <button class="pillbtn" id="surfTopView">Top view</button>
+          <button class="pillbtn" id="surfSpin">Auto rotate</button>
+          <button class="pillbtn" id="surfBode">Bode magnitude</button>
         </div>
       </div>
       <div class="legend">
-        <span><i style="background:var(--real)"></i>jω ridge · Fourier</span>
-        <span><i style="background:var(--accent)"></i>slice at current σ</span>
-        <span><i style="background:var(--imag)"></i>× poles · spikes</span>
-        <span><i style="background:var(--time)"></i>○ zeros · valleys</span>
+        <span><i class="sw" style="background:var(--real)"></i>Fourier cross-section, $\sigma = 0$</span>
+        <span><i class="sw" style="background:var(--mark)"></i>slice at the selected $\sigma$</span>
+        <span><i class="sw" style="background:var(--imag)"></i>poles (crosses)</span>
+        <span><i class="sw" style="background:var(--time)"></i>zeros (circles) and ROC</span>
       </div>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: 4/3;">
-      <div
-        style="display:grid;grid-template-columns:2.1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;width:100%;height:100%;">
-        <div class="plot" style="position:relative;grid-row:1 / span 2;">
+      <div class="grid" style="grid-template-columns:2.1fr 1fr;grid-template-rows:1fr 1fr;">
+        <div class="plot" style="grid-row:1 / span 2;">
           <canvas id="surfCanvas"></canvas>
-          <div class="title">|F(s)| · surface over the s-plane</div>
-          <div class="sub" id="surfSub">drag to rotate</div>
+          <div class="title">$|F(s)|$ over the $s$-plane</div>
+          <div class="sub" id="surfSub"></div>
         </div>
-        <div class="plot" style="position:relative;">
+        <div class="plot">
           <canvas id="surfSlice"></canvas>
-          <div class="title" id="surfSliceTitle">slice at σ = 0.00 · |F(σ + jω)|</div>
+          <div class="title" id="surfSliceTitle">Magnitude along the slice</div>
         </div>
-        <div class="plot" style="position:relative;">
+        <div class="plot">
           <canvas id="surfTop"></canvas>
-          <div class="title">top view · poles · σ slice line</div>
+          <div class="title">Pole-zero map</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 7 — PLACEHOLDER =========================== -->
-  <section class="scene wide" id="s7" data-label="10 Poles">
+  <!-- =========================== SECTION 10: POLE LOCATION =========================== -->
+  <section class="scene wide" id="s7" data-label="10 Pole location">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">10</span><span>stability and pole location</span>
       </div>
-      <h2>Pole location determines the qualitative behaviour of the system.</h2>
+      <h2>Pole location and the impulse response</h2>
       <p class="lead">For an LTI system, $H(s)$ is the Laplace transform of the impulse response $h(t)$. The location
         of each pole $p_i = \sigma_i + j\omega_i$ in the complex plane determines the contribution of the corresponding
         mode $e^{p_i t}$ to $h(t)$.</p>
-      <ul style="padding-left: 18px; color: #d4d7e0;">
-        <li>Poles with $\sigma_i < 0$ (<em class="real">left half-plane</em>): the mode decays exponentially, and the
+      <ul class="bullets">
+        <li>Poles with $\sigma_i < 0$ (<em class="time">left half-plane</em>): the mode decays exponentially, and the
           system is asymptotically stable.</li>
-        <li>Poles with $\sigma_i = 0$ (on the imaginary axis): the mode is a pure sinusoid of constant amplitude; the
+        <li>Poles with $\sigma_i = 0$ (on the imaginary axis): the mode is a sinusoid of constant amplitude; the
           system is marginally stable.</li>
-        <li>Poles with $\sigma_i > 0$ (<em class="imag">right half-plane</em>): the mode grows without bound, rendering
-          the system unstable.</li>
+        <li>Poles with $\sigma_i > 0$ (<em class="imag">right half-plane</em>): the mode grows without bound, and
+          the system is unstable.</li>
         <li>For a complex-conjugate pole pair, proximity to the $j\omega$ axis corresponds to a small damping ratio and
           a lightly damped, oscillatory response.</li>
       </ul>
-      <p>The green pole may be translated in the $s$-plane to observe the resulting change in the impulse response
-        $h(t)$.</p>
+      <p>Dragging the <em class="mark">orange pole</em> in the $s$-plane moves the conjugate pair and updates the
+        impulse response $h(t)$.</p>
     </div>
-    <div class="canvas-wrap" style="aspect-ratio: 16/10;">
-      <div class="dual" style="aspect-ratio: 16/8;">
-        <div class="plot" style="position:relative;"><canvas id="p_splane"></canvas>
-          <div class="title">s-plane · drag the pole</div>
+    <div class="canvas-wrap" style="aspect-ratio: 16/8;">
+      <div class="dual">
+        <div class="plot"><canvas id="p_splane"></canvas>
+          <div class="title">$s$-plane: drag the pole</div>
         </div>
-        <div class="plot" style="position:relative;"><canvas id="p_time"></canvas>
-          <div class="title">impulse response $h(t)$</div>
-          <div class="sub" id="p_sub">stable</div>
+        <div class="plot"><canvas id="p_time"></canvas>
+          <div class="title">Impulse response $h(t)$</div>
+          <div class="sub" id="p_sub">Stable: decaying</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- =========================== SECTION 8 — SANDBOX =========================== -->
-  <section class="scene wide" id="s8" data-label="11 Sandbox">
+  <!-- =========================== SECTION 11: INTERACTIVE SYSTEM =========================== -->
+  <section class="scene wide" id="s8" data-label="11 Interactive system">
     <div class="copy">
       <div class="eyebrow"><span class="bar"></span><span class="num">11</span><span>interactive system</span></div>
       <h2>Constructing a transfer function</h2>
-      <p class="lead">The selected input $x(t)$ contributes the poles and zeros shown in
-        <em class="acc">yellow</em> on the s-plane.</p>
-      <p>Click the s-plane to add poles (<em class="imag">×</em>) and zeros (<em
-          class="time">○</em>), drag to move them, and shift-click to delete them. The output $y(t)$ is the inverse
-        Laplace of $X(s)\,H(s)$, computed live by integrating the underlying ODE on every frame.</p>
+      <p class="lead">The selected input $x(t)$ contributes the poles and zeros of $X(s)$, shown in
+        <em class="mark">orange</em> on the $s$-plane.</p>
+      <p>Clicking the $s$-plane adds a <em class="imag">pole</em> (cross) or a <em class="time">zero</em> (circle),
+        dragging moves it, and shift-clicking or right-clicking deletes it. The output $y(t)$ is the inverse
+        Laplace transform of $X(s)\,H(s)$, computed by numerical integration of the equivalent state-space model.</p>
 
       <div class="controls">
         <div class="ctrl"><label>input $x(t)$</label>
-          <div class="seg" id="sbInput"
-            style="grid-column: 2 / span 2; display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: transparent; border: 0; overflow:visible;">
-            <button data-v="impulse" class="on">δ(t)</button>
-            <button data-v="step">step u(t)</button>
-            <button data-v="ramp">ramp t</button>
-            <button data-v="exp">e<sup>−at</sup></button>
-            <button data-v="sin">sin ωt</button>
-            <button data-v="cos">cos ωt</button>
+          <div class="seg grid3" id="sbInput">
+            <button data-v="impulse" class="pillbtn">$\delta(t)$</button>
+            <button data-v="step" class="pillbtn on">Step $u(t)$</button>
+            <button data-v="ramp" class="pillbtn">Ramp $t$</button>
+            <button data-v="exp" class="pillbtn">$e^{-at}$</button>
+            <button data-v="sin" class="pillbtn">$\sin\omega t$</button>
+            <button data-v="cos" class="pillbtn">$\cos\omega t$</button>
           </div>
         </div>
         <div class="ctrl" id="sbParamRow"><label id="sbParamLbl">parameter</label><input type="range" id="sbParam"
             min="0.2" max="3" step="0.05" value="1" /><output id="sbParamO">1.00</output></div>
         <div class="ctrl"><label>click adds</label>
-          <div class="seg" id="sbMode" style="grid-column: 2 / span 2;">
-            <button data-v="pole" class="on">pole ×</button>
-            <button data-v="zero">zero ○</button>
+          <div class="seg" id="sbMode">
+            <button data-v="pole" class="pillbtn on">Pole</button>
+            <button data-v="zero" class="pillbtn">Zero</button>
           </div>
         </div>
         <div class="ctrl"><label>gain $k$</label><input type="range" id="sbGain" min="0.1" max="5" step="0.05"
             value="1" /><output id="sbGainO">1.00</output></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="pillbtn" id="sbReset">reset H(s)</button>
-          <button class="pillbtn" id="sbClear">clear all</button>
+        <div class="btn-row">
+          <button class="pillbtn" id="sbReset">Reset $H(s)$</button>
+          <button class="pillbtn" id="sbClear">Clear all</button>
         </div>
       </div>
-      <p class="dim" style="font-size:13px;margin-top:14px;">Click empty space to drop a pole or zero. Drag to move,
-        shift-click (or right-click) to delete. Anything you drop above the σ axis gets mirrored below it, since a real
-        system's poles and zeros come in complex-conjugate pairs.</p>
+      <p class="dim" style="font-size:13px;margin-top:14px;">A root placed off the $\sigma$ axis is mirrored about
+        it, because the poles and zeros of a system with real coefficients occur in complex-conjugate pairs.</p>
     </div>
     <div class="canvas-wrap" style="aspect-ratio: 16/10;">
-      <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:12px;width:100%;height:100%;">
-        <div class="plot" style="position:relative;"><canvas id="sb_splane"></canvas>
-          <div class="title">s-plane · build H(s) · input × ○ in yellow</div>
-          <div class="sub" id="sb_hsub">H(s) · 0 zeros · 1 pole</div>
+      <div class="grid" style="grid-template-columns:1fr 1.15fr;">
+        <div class="plot"><canvas id="sb_splane"></canvas>
+          <div class="title">$s$-plane: roots of $H(s)$ and $X(s)$</div>
+          <div class="sub" id="sb_hsub">H(s): 0 zeros, 1 pole, k = 1.00</div>
         </div>
-        <div class="plot" style="position:relative;"><canvas id="sb_io"></canvas>
-          <div class="title">x(t) input → y(t) output</div>
-          <div class="sub" id="sb_iosub">stable response</div>
+        <div class="plot"><canvas id="sb_io"></canvas>
+          <div class="title">Input $x(t)$ and output $y(t)$</div>
+          <div class="sub" id="sb_iosub">Stable response</div>
         </div>
       </div>
     </div>
   </section>
 
-  <footer>
-    <p>Rendered with KaTeX and HTML canvas.</p>
-  </footer>
+  <footer>BMEN90033 · The University of Melbourne</footer>
 
   <!-- Tweaks panel -->
   <div class="tweaks" id="tweaks">
-    <h4><span>Tweaks</span><span class="btns"><button id="tweaksMin" title="Minimise">–</button><button id="tweaksX"
-          title="Close">×</button></span></h4>
+    <h4><span>Tweaks</span><span class="btns"><button class="ctrl-btn" id="tweaksMin">Hide</button><button
+          class="ctrl-btn" id="tweaksX">Close</button></span></h4>
     <div class="body">
-      <div class="row"><span>bg</span><input type="color" data-tk="colorBg" /></div>
+      <div class="row"><span>background</span><input type="color" data-tk="colorBg" /></div>
       <div class="row"><span>text</span><input type="color" data-tk="colorFg" /></div>
       <div class="row"><span>real</span><input type="color" data-tk="colorReal" /></div>
-      <div class="row"><span>imag</span><input type="color" data-tk="colorImag" /></div>
+      <div class="row"><span>imaginary</span><input type="color" data-tk="colorImag" /></div>
       <div class="row"><span>time</span><input type="color" data-tk="colorTime" /></div>
-      <div class="row"><span>accent</span><input type="color" data-tk="colorAccent" /></div>
-      <div class="swatches">
-        <button class="sw" data-preset="math" style="background:#0a0a10;color:#fff;">MATH</button>
-        <button class="sw" data-preset="cream" style="background:#f3eee3;">CREAM</button>
-        <button class="sw" data-preset="navy" style="background:#0d1b2a;color:#fff;">NAVY</button>
-      </div>
-      <div class="row" style="margin-top:14px;"><span>body pt</span><input type="range" data-tk="fontBody" min="13"
+      <div class="row"><span>highlight</span><input type="color" data-tk="colorAccent" /></div>
+      <div class="row" style="margin-top:14px;"><span>body size</span><input type="range" data-tk="fontBody" min="13"
           max="22" step="1" /></div>
-      <div class="row"><span>math pt</span><input type="range" data-tk="fontMath" min="13" max="26" step="1" /></div>
-      <div class="row"><span>hero pt</span><input type="range" data-tk="fontHero" min="40" max="92" step="1" /></div>
-      <div class="row"><span>canvas x</span><input type="range" data-tk="canvasOffset" min="-60" max="60" step="1" />
+      <div class="row"><span>math size</span><input type="range" data-tk="fontMath" min="13" max="26" step="1" /></div>
+      <div class="row"><span>hero size</span><input type="range" data-tk="fontHero" min="40" max="92" step="1" /></div>
+      <div class="row"><span>canvas offset</span><input type="range" data-tk="canvasOffset" min="-60" max="60" step="1" />
       </div>
-      <div class="row"><span>text x</span><input type="range" data-tk="textOffset" min="-40" max="40" step="1" /></div>
+      <div class="row"><span>text offset</span><input type="range" data-tk="textOffset" min="-40" max="40" step="1" /></div>
+      <button class="ctrl-btn" id="tweaksReset">Reset to defaults</button>
     </div>
   </div>
 

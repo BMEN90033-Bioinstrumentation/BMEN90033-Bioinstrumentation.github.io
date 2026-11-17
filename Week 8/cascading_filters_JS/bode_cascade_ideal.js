@@ -16,7 +16,7 @@
             xDomain: [0.1, 1000],
             magDomain: [-120, 6],
             phaseDomain: [-540, 10],
-            magTicks: [-120, -100, -80, -60, -40, -20, -3, 0],
+            magTicks: [-120, -100, -80, -60, -40, -20, 0],
             phaseTicks: [-540, -450, -360, -270, -180, -90, 0]
         });
 
@@ -88,46 +88,47 @@
         H.gMag.append('circle').attr('class', 'marker-dot')
             .attr('cx', x3).attr('cy', yMag(-3)).attr('r', 5);
 
-        // Composite cutoff pill centred on the cutoff line. Generous
-        // foreignObject; the inner pill auto-sizes to its no-wrap content.
-        var pillCx = Math.max(60,
-            Math.min(H.innerW - 60, x3));
+        // Composite cutoff pill, placed below and to the left of the marker
+        // dot, where no trace passes.
+        var pillCx = Math.max(64, x3 - 70);
         window.renderKatex(H.gMag, '\\text{composite}\\ -3\\,\\mathrm{dB}',
-            pillCx, 14,
-            { width: 200, height: 22, size: 9, pill: true, pillPad: '1px 6px' });
+            pillCx, yMag(-3) + 26,
+            { width: 200, height: 22, size: 12, pill: true, pillPad: '2px 6px' });
 
         // single-stage label rendered as a KaTeX pill at the bottom of the phase panel
         window.renderKatex(H.gPhase, '\\text{single-stage}\\ \\omega_c',
             xc, H.innerH - 16,
             { width: 130, height: 22, size: 12, pill: true });
 
-        // ── Legend (top-right inside magnitude panel) ──────────
+        // ── Legend ─────────────────────────────────────────────
         var legendData = [
-            { c: 'ideal', label: 'composite |H_N|' }
+            { c: 'ideal', label: 'composite, N stages' }
         ];
-        if (state.showStages && N > 1) legendData.push({ c: 'stage', label: 'k = 1 … N−1' });
+        if (state.showStages && N > 1) legendData.push({ c: 'stage', label: '1 to N−1 stages' });
 
         // Hover only on the composite curve to avoid clutter.
         window.BodeHelpers.attachHover(H, [
             { name: 'composite', cssClass: 'ideal', pts: pts }
         ]);
 
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
+        // Bottom-left of the magnitude panel, where no trace passes.
+        var lg = H.gMag.append('g').attr('transform',
+            'translate(12,' + (H.innerH - 10 - legendData.length * 18) + ')');
         legendData.forEach(function (e, idx) {
             var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
             row.append('line')
-                .attr('x1', -36).attr('x2', -8)
+                .attr('x1', 0).attr('x2', 28)
                 .attr('y1', 8).attr('y2', 8)
-                .attr('class', 'trace ' + e.c)
-                .attr('stroke-dasharray', e.c === 'stage' ? null : null);
+                .attr('class', 'trace ' + e.c);
             row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
+                .attr('x', 34).attr('y', 12)
+                .attr('text-anchor', 'start')
                 .attr('fill', T.text)
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(e.label);
         });
+        if (legendData.length) window.legendBacking(lg);
     }
 
     function onSlider() {
@@ -148,7 +149,6 @@
             });
         }
         if (slider) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

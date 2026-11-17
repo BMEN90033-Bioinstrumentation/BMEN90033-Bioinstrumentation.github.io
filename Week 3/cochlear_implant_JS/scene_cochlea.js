@@ -1,7 +1,7 @@
 // Section 01 · 3D cochlea (Three.js). Bony shell with 2.75 turns and tapering
 // radius, basilar membrane ribbon, receiver-stimulator housing and the
 // electrode array, with contacts placed by the Greenwood map. Geometry is
-// ported from the original page. Contact glow and pulse rings follow
+// ported from the original page. Contact emission and pulse rings follow
 // CI.play.amps during playback. Up to six contacts carry CSS2D labels.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -35,12 +35,12 @@ controls.target.set(0, 1.2, 0);
 guardWheel(controls, renderer.domElement, box.querySelector('.hint'));
 
 // ── Lights ──
-const ambient = new THREE.AmbientLight(css('--c-light-amb'), 1.8);
-const key = new THREE.DirectionalLight(css('--c-light-key'), 1.4);
+const ambient = new THREE.AmbientLight(css('--calcium-white-800'), 1.8);
+const key = new THREE.DirectionalLight(css('--white'), 1.4);
 key.position.set(5, 8, 5);
-const rim = new THREE.DirectionalLight(css('--c-light-cool'), 0.3);
+const rim = new THREE.DirectionalLight(css('--amino-azure-100'), 0.3);
 rim.position.set(-3, 2, -5);
-const fill = new THREE.DirectionalLight(css('--c-light-key'), 0.3);
+const fill = new THREE.DirectionalLight(css('--white'), 0.3);
 fill.position.set(0, -3, 3);
 scene.add(ambient, key, rim, fill);
 
@@ -189,24 +189,20 @@ function buildElectrodes() {
     recolor();
 }
 
-// Theme-dependent colours: background, materials, contact and label colours.
+// Colours from the page CSS: background, materials, contact and label key.
 function recolor() {
     scene.background = new THREE.Color(css('--bg-2'));
     boneMat.color.set(css('--c-bone'));
     membraneMat.color.set(css('--c-membrane'));
     implantMat.color.set(css('--c-implant'));
     implantMat.sheenColor.set(css('--c-implant'));
-    ambient.color.set(css('--c-light-amb'));
-    key.color.set(css('--c-light-key'));
-    rim.color.set(css('--c-light-cool'));
-    fill.color.set(css('--c-light-key'));
     const cfg = CI.config();
     contacts.forEach((c, i) => {
         const col = new THREE.Color(cfg.colors[i]);
         c.mesh.material.color.set(css('--c-contact'));
         c.mesh.material.emissive.copy(col);
         c.ring.material.color.copy(col);
-        if (c.label) c.label.element.style.color = cfg.colors[i];
+        if (c.label) c.label.element.style.setProperty('--ch', cfg.colors[i]);
     });
     drawOnce();
 }
@@ -276,7 +272,6 @@ new IntersectionObserver((es) => {
     else { cancelAnimationFrame(raf); raf = 0; }
 }).observe(box);
 
-window.addEventListener('themechange', recolor);
 window.addEventListener('cichange', (e) => {
     if (['nch', 'fmin', 'fmax', 'preset'].indexOf(e.detail.key) >= 0) buildElectrodes();
 });

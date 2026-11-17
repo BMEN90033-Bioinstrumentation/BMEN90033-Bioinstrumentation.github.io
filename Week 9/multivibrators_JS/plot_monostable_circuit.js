@@ -193,22 +193,22 @@
         // ── Labels ──
         window.renderKatex(svg, 'R',
             (X_R_L + X_R_R) / 2, Y_TOP - 22,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'C',
             X_C + 32, Y_BODY_TOP + 14,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'R_1',
             X_RIGHT + 28, (Y_R1_T + Y_R1_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
         window.renderKatex(svg, 'R_2',
             X_RIGHT + 28, (Y_R2_T + Y_R2_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'V_\\text{trig}',
             X_VIN_BUS_L - 30, Y_VIN,
-            { width: 70, height: 22, size: 16, color: trig });
+            { width: 70, height: 22, size: 18, color: trig });
 
         // Trigger pulse glyph above the Vin label: a single negative-going
         // pulse drawn as a polyline, indicating that Vin is a trigger pulse.
@@ -227,14 +227,14 @@
             .attr('stroke-width', 2)
             .attr('stroke-linejoin', 'round')
             .attr('stroke-linecap', 'round');
-        window.renderKatex(svg, 'V_\\text{out}',
+        window.renderKatex(svg, 'v_\\text{out}',
             X_VOUT_DOT + 40, Y_OUT,
-            { width: 70, height: 22, size: 16, color: output });
+            { width: 70, height: 22, size: 18, color: output });
 
         // node label
         window.renderKatex(svg, 'v_C',
             X_C + 32, Y_NEG - 18,
-            { width: 36, height: 18, size: 12, color: muted });
+            { width: 36, height: 18, size: 17, color: muted });
 
         // ── Hover hotspots: one per component ──
         if (window.CircuitTip) {
@@ -248,51 +248,50 @@
                 (TRI.apex[0] - TRI.topLeft[0]) + 12,
                 (TRI.botLeft[1] - TRI.topLeft[1]) + 12,
                 'Op-amp comparator',
-                'Comparator. The inverting input watches the capacitor voltage; the non-inverting input is held at the divider tap. The output saturates to whichever rail makes the differential input non-zero.');
+                'Comparator. The inverting input senses the capacitor voltage; the non-inverting input is held at the divider tap. The output saturates to whichever rail makes the differential input non-zero.');
 
             // Feedback resistor R at the top
             tip(X_R_L - 6, Y_TOP - R_THICK / 2 - 6,
                 R_LEN + 12, R_THICK + 12,
                 'R',
-                'Timing resistor. After a trigger, the output discharges C through R toward &minus;V<sub>sat</sub>. The traversal sets the pulse width T = RC&middot;ln(1/(1&minus;&beta;)).');
+                'Timing resistor. After a trigger, the output discharges C through R toward &minus;V<sub>sat</sub>. The time taken to reach the threshold sets the pulse width T = RC&middot;ln(1/(1&minus;&beta;)).');
 
             // Capacitor C
             tip(X_C - 20, Y_BODY_TOP - 6, 40, 40,
                 'C',
-                'Timing capacitor on the inverting node. Its voltage v<sub>C</sub> is the slow state variable. At rest the diode clamps v<sub>C</sub> at one diode drop above ground; during the pulse it ramps toward &minus;V<sub>sat</sub>.');
+                'Timing capacitor on the inverting node. Its voltage v<sub>C</sub> is the slow state variable. At rest the diode clamps v<sub>C</sub> at one diode drop above ground; during the pulse it decays toward &minus;V<sub>sat</sub>.');
 
             // Diode D
             tip(X_LEFT - 16, Y_BODY_TOP - 6, 32, 40,
                 'D',
-                'Clamping diode. In the stable state the diode is forward-biased and pins v<sub>C</sub> at V<sub>D</sub>. When the output flips negative the diode reverse-biases and frees C to discharge through R.');
+                'Clamping diode. In the stable state the diode is forward-biased and holds v<sub>C</sub> at V<sub>D</sub>. When the output switches to the negative rail the diode becomes reverse-biased and C discharges through R.');
 
             // R_1 vertical
             tip(X_RIGHT - R_THICK / 2 - 6, Y_R1_T - 6,
                 R_THICK + 12, R_LEN + 12,
                 'R<sub>1</sub>',
-                'Upper arm of the positive-feedback divider. With R<sub>2</sub> sets &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>), which fixes the threshold V<sub>TL</sub> = &minus;&beta;V<sub>sat</sub> the capacitor must reach to end the pulse.');
+                'Upper arm of the positive-feedback divider. With R<sub>2</sub> it sets &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>), which fixes the threshold V<sub>TL</sub> = &minus;&beta;V<sub>sat</sub> the capacitor must reach to end the pulse.');
 
             // R_2 vertical
             tip(X_RIGHT - R_THICK / 2 - 6, Y_R2_T - 6,
                 R_THICK + 12, R_LEN + 12,
                 'R<sub>2</sub>',
-                'Lower arm of the divider, returned to ground. Together with R<sub>1</sub> sets &beta; and therefore the switching threshold at the non-inverting input.');
+                'Lower arm of the divider, returned to ground. Together with R<sub>1</sub> it sets &beta; and therefore the switching threshold at the non-inverting input.');
 
             // V_trig (label + pulse glyph)
             tip(0, 410, 100, 70,
                 'V<sub>trig</sub>',
-                'Trigger input on the non-inverting node. A brief negative pulse pulls v<sub>+</sub> below v<sub>C</sub>, flipping the comparator and starting the timing excursion.');
+                'Trigger input on the non-inverting node. A brief negative pulse pulls v<sub>+</sub> below v<sub>C</sub>, switching the comparator and starting the timing excursion.');
 
             // V_out
             tip(X_VOUT_DOT + 4, Y_OUT - 16, 80, 32,
-                'V<sub>out</sub>',
-                'Comparator output. Rests at +V<sub>sat</sub>, snaps to &minus;V<sub>sat</sub> on a trigger, and returns to +V<sub>sat</sub> after T = RC&middot;ln(1/(1&minus;&beta;)).');
+                'v<sub>out</sub>',
+                'Comparator output. Rests at +V<sub>sat</sub>, switches to &minus;V<sub>sat</sub> on a trigger, and returns to +V<sub>sat</sub> after T = RC&middot;ln(1/(1&minus;&beta;)).');
         }
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

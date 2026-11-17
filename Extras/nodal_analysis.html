@@ -3,245 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033: Nodal Analysis Tool</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>BMEN90033 · Nodal analysis tool</title>
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <style>
-        :root {
-            --bg: #0a0e14;
-            --bg-panel: rgba(16, 20, 28, 0.92);
-            --bg-card: #1a1e26;
-            --border: rgba(255,255,255,0.07);
-            --border-hover: rgba(255,255,255,0.15);
-            --text: #e2e8f0;
-            --text-dim: #8892a4;
-            --text-muted: #505868;
-            --accent: #6aaa8e;
-            --accent-dim: #5a9a7e;
-            --red: #e06050;
-            --blue: #5b9bd5;
-            --yellow: #ffcc44;
-        }
+        /* Page layout only. Palette and tokens come from ../theme.css; canvas
+           colours are read from window.T and the --d-* data palette. */
 
-        [data-theme="light"] {
-            --bg: #f5f5f7;
-            --bg-panel: rgba(255,255,255,0.92);
-            --bg-card: #eeeef0;
-            --border: rgba(0,0,0,0.1);
-            --border-hover: rgba(0,0,0,0.2);
-            --accent: #3d8b6e;
-            --accent-dim: #357a60;
-            --text: #1a1a1e;
-            --text-dim: #555555;
-            --text-muted: #888888;
-            --yellow: #b8860b;
-        }
+        /* Tool page: a short header in place of the full-height hero. */
+        .landing { min-height: 0; padding-bottom: var(--spacing-8); }
+        .landing .sub { max-width: 640px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ── Back button ── */
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 4px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-        .back-btn:hover { color: var(--text); border-color: var(--border-hover); }
-
-        /* ── Explainer container ── */
-        .explainer {
-            max-width: 960px;
+        .tool {
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 72px 24px 120px;
-        }
-
-        /* ── Title block ── */
-        .title-block {
-            margin-bottom: 32px;
-        }
-        .title-block h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-        .title-block .sub {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'IBM Plex Mono', monospace;
-            margin-bottom: 12px;
-        }
-        .title-block p {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.7;
-            max-width: 640px;
+            padding: var(--spacing-7) 5vw var(--spacing-9);
         }
 
         /* ── Toolbar ── */
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+        .toolbar { margin-bottom: var(--spacing-4); }
+        .toolbar .group { display: flex; align-items: center; gap: var(--spacing-2); }
+        .toolbar label,
+        .toolbar .unit {
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
-        .toolbar .group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .toolbar .sep {
-            width: 1px;
-            height: 24px;
-            background: var(--border);
-            margin: 0 6px;
-        }
+        .toolbar .sym,
+        .toolbar .unit.si { text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--fg); }
 
-        /* ── Tool buttons (component palette) ── */
-        .tool-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 11px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
+        /* ── Text fields: hairline boxes ── */
+        .field {
+            height: var(--btn-size-2);
+            padding: 0 var(--spacing-2);
+            border: 1px solid var(--carbon-black-500);
+            border-radius: var(--radius-3);
             background: transparent;
-            color: var(--text-dim);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
+            color: var(--fg);
+            font-family: var(--font-mono);
+            font-size: 12px;
         }
-        .tool-btn:hover {
-            color: var(--text);
-            border-color: var(--border-hover);
-            background: rgba(255,255,255,0.03);
-        }
-        .tool-btn.active {
-            color: var(--accent);
-            border-color: var(--accent);
-            background: rgba(106,170,142,0.08);
-        }
-        [data-theme="light"] .tool-btn:hover {
-            background: rgba(0,0,0,0.04);
-        }
-        [data-theme="light"] .tool-btn.active {
-            color: var(--accent);
-            border-color: var(--accent);
-            background: rgba(61,139,110,0.1);
-        }
+        input.field[type="number"] { width: 84px; text-align: right; }
 
-        /* ── Action buttons (compute, clear, delete) ── */
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 13px;
-            border-radius: 4px;
-            border: 1px solid var(--accent);
-            background: var(--accent);
-            color: #fff;
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
-        .action-btn:hover {
-            filter: brightness(1.1);
-        }
-        .action-btn.secondary {
-            background: transparent;
-            color: var(--text-dim);
-            border-color: var(--border);
-        }
-        .action-btn.secondary:hover {
-            color: var(--text);
-            border-color: var(--border-hover);
-        }
-        [data-theme="light"] .action-btn.secondary:hover {
-            color: var(--text);
-        }
-
-        /* ── Frequency input ── */
-        .freq-input {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: var(--text-dim);
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .freq-input input[type="number"] {
-            width: 72px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            text-align: right;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .freq-input input[type="number"]:focus {
-            border-color: var(--accent);
-        }
-        .freq-input input[type="number"]::-webkit-inner-spin-button,
-        .freq-input input[type="number"]::-webkit-outer-spin-button {
-            opacity: 0.5;
-        }
-
-        /* ── Canvas container ── */
+        /* ── Canvas ── */
         .canvas-container {
             position: relative;
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            border: 1px solid var(--calcium-white-800);
+            border-radius: var(--radius-container);
             overflow: hidden;
-            background: var(--bg);
-            margin-bottom: 4px;
+            background: var(--white);
+            margin-bottom: var(--spacing-3);
         }
-        .canvas-container canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-        }
+        .canvas-container canvas { display: block; width: 100%; height: auto; }
 
-        /* ── Canvas hint ── */
         .canvas-hint {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-family: 'IBM Plex Mono', monospace;
-            margin-bottom: 32px;
-            padding-left: 2px;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: var(--spacing-7);
+            max-width: 760px;
         }
 
         /* ── Value editor popup ── */
@@ -249,196 +69,136 @@
             display: none;
             position: absolute;
             z-index: 200;
-            background: var(--bg-panel);
-            border: 1px solid var(--border-hover);
-            border-radius: 6px;
-            padding: 12px 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            min-width: 180px;
+            background: var(--white);
+            border: 1px solid var(--carbon-black-500);
+            border-radius: var(--radius-5);
+            padding: var(--spacing-3) var(--spacing-4);
+            min-width: 190px;
         }
-        .value-editor.visible {
-            display: block;
-        }
+        .value-editor.visible { display: block; }
         .value-editor label {
             display: block;
-            font-size: 11px;
-            color: var(--text-dim);
-            font-family: 'IBM Plex Mono', monospace;
-            margin-bottom: 6px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: var(--spacing-2);
         }
-        .value-editor input {
-            width: 100%;
-            padding: 5px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12px;
-            outline: none;
-        }
-        .value-editor input:focus {
-            border-color: var(--accent);
-        }
+        .value-editor .field { width: 100%; }
         .value-editor .ve-actions {
             display: flex;
-            gap: 6px;
-            margin-top: 8px;
+            margin-top: var(--spacing-2);
             justify-content: flex-end;
         }
-        .value-editor .ve-actions button {
-            padding: 3px 10px;
-            border-radius: 3px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text-dim);
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
+
+        /* ── Probe readout ── */
+        .probe-readout {
+            display: none;
+            padding: var(--spacing-4) var(--spacing-5);
+            margin-bottom: var(--spacing-3);
+            background: var(--hydro-blue-100);
+            border-radius: var(--radius-5);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.7;
         }
-        .value-editor .ve-actions button.ve-ok {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
+        .probe-readout.visible { display: block; }
+        .probe-readout .probe-title { margin-bottom: var(--spacing-1); }
+        .probe-readout .probe-row { display: flex; gap: var(--spacing-5); }
+        .probe-readout .probe-label {
+            color: var(--muted);
+            min-width: 80px;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            line-height: 22px;
         }
 
         /* ── Walkthrough ── */
-        .walkthrough {
-            display: none;
-            margin-top: 32px;
-        }
-        .walkthrough.visible {
-            display: block;
-        }
-        .walkthrough h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 20px;
-            letter-spacing: -0.3px;
-        }
+        .walkthrough { display: none; }
+        .walkthrough.visible { display: block; }
 
-        /* ── Walk step card ── */
         .walk-step {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 20px 24px;
-            margin-bottom: 16px;
+            border: 1px solid var(--calcium-white-800);
+            border-radius: var(--radius-container);
+            padding: var(--card-padding-2);
+            margin-bottom: var(--spacing-4);
         }
-        .walk-step h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 10px;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .walk-step p {
-            font-size: 13px;
-            color: var(--text-dim);
-            line-height: 1.65;
-            margin-bottom: 8px;
-        }
+        .walk-step h3 { margin-top: 0; margin-bottom: var(--spacing-3); }
+        .walk-step .legend { margin: 0 0 var(--spacing-3); }
 
-        /* ── Walk table ── */
         .walk-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
-            font-family: 'IBM Plex Mono', monospace;
-            margin: 12px 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            margin: var(--spacing-3) 0;
         }
         .walk-table th {
             text-align: left;
             padding: 6px 10px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-dim);
-            font-weight: 500;
+            border-bottom: 1px solid var(--carbon-black-500);
+            color: var(--muted);
+            font-weight: 400;
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
         }
         .walk-table td {
             padding: 6px 10px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
+            border-bottom: 1px solid var(--calcium-white-800);
+            vertical-align: top;
         }
-        .walk-table tr:last-child td {
-            border-bottom: none;
-        }
+        .walk-table tr:last-child td { border-bottom: none; }
+        .walk-table .polar { color: var(--muted); font-size: 12px; }
 
-        /* ── Matrix display ── */
+        /* ── Matrix and vector display ── */
         .matrix-container {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 16px 0;
+            gap: var(--spacing-3);
+            margin: var(--spacing-4) 0;
             overflow-x: auto;
-            padding: 8px 0;
+            padding: var(--spacing-2) 0;
         }
-        .matrix {
+        .matrix-container .eq-sign { font-size: 18px; }
+        .matrix, .vector {
             display: inline-flex;
             flex-direction: column;
-            border-left: 2px solid var(--text-dim);
-            border-right: 2px solid var(--text-dim);
-            border-radius: 2px;
+            border-left: 1px solid var(--carbon-black-500);
+            border-right: 1px solid var(--carbon-black-500);
+            border-radius: var(--radius-1);
             padding: 4px 2px;
         }
-        .matrix-row {
-            display: flex;
-            gap: 0;
-        }
-        .matrix-row span {
-            display: inline-block;
+        .matrix { display: inline-grid; }
+        .matrix-row { display: contents; }
+        .matrix-row span, .vector-entry {
+            display: block;
             min-width: 64px;
             text-align: center;
             padding: 4px 8px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12px;
-            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            white-space: nowrap;
         }
-
-        /* ── Vector display ── */
-        .vector {
-            display: inline-flex;
-            flex-direction: column;
-            border-left: 2px solid var(--text-dim);
-            border-right: 2px solid var(--text-dim);
-            border-radius: 2px;
-            padding: 4px 2px;
-        }
-        .vector-entry {
-            display: block;
-            min-width: 48px;
-            text-align: center;
-            padding: 4px 8px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12px;
-            color: var(--text);
-        }
+        .vector-entry { min-width: 48px; }
 
         /* ── Equation block ── */
         .equation {
-            background: var(--bg-panel);
-            border-left: 3px solid var(--accent);
-            border-radius: 0 4px 4px 0;
-            padding: 12px 16px;
-            margin: 12px 0;
-            font-family: 'IBM Plex Mono', monospace;
+            background: var(--hydro-blue-100);
+            border-radius: var(--radius-5);
+            padding: var(--spacing-3) var(--spacing-4);
+            margin: var(--spacing-3) 0;
+            font-family: var(--font-mono);
             font-size: 13px;
-            color: var(--text);
             line-height: 1.7;
             overflow-x: auto;
         }
 
         /* ── Error message ── */
-        .error-msg {
-            background: rgba(224,96,80,0.1);
-            border: 1px solid rgba(224,96,80,0.3);
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin: 12px 0;
-            font-size: 13px;
-            color: var(--red);
-            line-height: 1.5;
-        }
+        .error-msg { margin: 0 0 var(--spacing-4); }
+        .error-msg .tag-s { display: block; margin-bottom: var(--spacing-2); }
 
         /* ── Node badge ── */
         .node-badge {
@@ -448,168 +208,122 @@
             width: 22px;
             height: 22px;
             border-radius: 50%;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            font-weight: 600;
-            color: #fff;
-            background: var(--accent);
-            vertical-align: middle;
-        }
-
-        /* ── Probe readout ── */
-        .probe-readout {
-            display: none;
-            padding: 10px 16px;
-            margin-bottom: 8px;
-            background: var(--bg-panel);
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            font-family: 'IBM Plex Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 12px;
-            line-height: 1.8;
-        }
-        .probe-readout.visible { display: block; }
-        .probe-readout .probe-title {
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-        .probe-readout .probe-row {
-            display: flex;
-            gap: 24px;
-        }
-        .probe-readout .probe-label {
-            color: var(--text-dim);
-            min-width: 60px;
-        }
-        .probe-readout .probe-val {
-            color: var(--text);
+            color: var(--white);
+            vertical-align: middle;
         }
 
         /* ── Node diagram canvases ── */
         .node-diagram-canvas {
             display: block;
-            margin: 12px auto;
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            margin: var(--spacing-3) auto;
+            border: 1px solid var(--calcium-white-800);
+            border-radius: var(--radius-container);
             max-width: 100%;
+            height: auto !important;
         }
 
-        /* ── Responsive ── */
         @media (max-width: 640px) {
-            .explainer {
-                padding: 56px 12px 80px;
-            }
-            .title-block h1 {
-                font-size: 22px;
-            }
-            .toolbar {
-                padding: 8px 10px;
-                gap: 4px;
-            }
-            .toolbar .sep {
-                display: none;
-            }
-            .toolbar .group {
-                flex-wrap: wrap;
-            }
-            .tool-btn, .action-btn {
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-            .canvas-container canvas {
-                min-height: 300px;
-            }
-            .walk-step {
-                padding: 14px 16px;
-            }
-            .matrix-row span,
-            .vector-entry {
-                min-width: 48px;
-                font-size: 11px;
-                padding: 3px 4px;
-            }
-            .equation {
-                font-size: 12px;
-                padding: 10px 12px;
-            }
+            .tool { padding: var(--spacing-6) 16px var(--spacing-8); }
+            .walk-step { padding: var(--spacing-4); overflow-x: auto; }
+            .matrix-row span, .vector-entry { min-width: 48px; padding: 3px 4px; }
         }
     </style>
+    <script src="../theme.js"></script>
 </head>
 <body>
-    <a href="../index.html" class="back-btn">&#8592; Back</a>
+    <div class="brand"><span class="mark"></span><span>BMEN90033 · Extras</span></div>
+    <a class="back-btn" href="../index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+        </svg>
+        Back
+    </a>
 
-    <div class="explainer">
-        <div class="title-block">
-            <h1>Nodal Analysis Tool</h1>
-            <div class="sub">Interactive Circuit Solver</div>
-            <p>
-                Build a circuit on the grid below by placing components, wiring them together,
-                and assigning a ground node. Click <strong>Compute</strong> to run Modified Nodal Analysis
-                and see a step-by-step walkthrough of the solution.
-            </p>
+    <section class="landing">
+        <div>
+            <div class="meta">BMEN90033 · Extras · Circuit analysis</div>
+            <h1 class="hero">Nodal analysis tool</h1>
+            <p class="sub">A circuit is assembled on the grid by placing components, wiring them together and
+                assigning a ground node. <strong>Compute</strong> applies modified nodal analysis (MNA) and lists
+                each step of the solution: node identification, component admittances, the KCL equations, the MNA
+                matrix, Gaussian elimination, and the resulting voltages, currents and powers.</p>
+            <div class="tags">
+                <span class="field-tag">nodal analysis</span>
+                <span class="field-tag">KCL</span>
+                <span class="field-tag">MNA matrix</span>
+                <span class="field-tag">phasors</span>
+            </div>
         </div>
+    </section>
 
+    <div class="tool">
         <div class="toolbar">
-            <div class="group">
-                <button class="tool-btn" data-tool="resistor">R Resistor</button>
-                <button class="tool-btn" data-tool="capacitor">C Capacitor</button>
-                <button class="tool-btn" data-tool="inductor">L Inductor</button>
-                <button class="tool-btn" data-tool="vsource">V Source</button>
-                <button class="tool-btn" data-tool="isource">I Source</button>
-                <button class="tool-btn" data-tool="gnd">GND</button>
+            <div class="seg">
+                <button class="seg-btn tool-btn" data-tool="resistor">Resistor</button>
+                <button class="seg-btn tool-btn" data-tool="capacitor">Capacitor</button>
+                <button class="seg-btn tool-btn" data-tool="inductor">Inductor</button>
+                <button class="seg-btn tool-btn" data-tool="vsource">Voltage source</button>
+                <button class="seg-btn tool-btn" data-tool="isource">Current source</button>
+                <button class="seg-btn tool-btn" data-tool="gnd">Ground</button>
+                <button class="seg-btn tool-btn" data-tool="wire">Wire</button>
             </div>
-            <div class="sep"></div>
+            <div class="divider"></div>
             <div class="group">
-                <button class="tool-btn" data-tool="wire">Wire</button>
+                <label for="freq-input">Angular frequency <span class="sym">&omega;</span></label>
+                <input class="field" type="number" id="freq-input" value="1000" min="0" step="100">
+                <span class="unit si">rad/s</span>
             </div>
-            <div class="sep"></div>
-            <div class="group freq-input">
-                <label>&omega;</label>
-                <input type="number" id="freq-input" value="1000" min="0" step="100">
-                <span>rad/s</span>
-            </div>
-            <div class="sep"></div>
+            <div class="divider"></div>
             <div class="group">
-                <label>Preset:</label>
-                <select id="preset-select" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg-panel);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;">
-                    <option value="">-- Load a preset --</option>
-                    <option value="voltage-divider">Voltage Divider</option>
-                    <option value="rc-lowpass">RC Low-Pass Filter</option>
-                    <option value="rl-circuit">RL Circuit</option>
-                    <option value="wheatstone">Wheatstone Bridge</option>
-                    <option value="current-divider">Current Divider</option>
+                <label for="preset-select">Preset</label>
+                <select class="field" id="preset-select">
+                    <option value="">Load a preset</option>
+                    <option value="voltage-divider">Voltage divider</option>
+                    <option value="rc-lowpass">RC low-pass filter</option>
+                    <option value="rl-circuit">RL circuit</option>
+                    <option value="wheatstone">Wheatstone bridge</option>
+                    <option value="current-divider">Current divider</option>
                 </select>
             </div>
-            <div class="sep"></div>
-            <div class="group">
-                <button class="action-btn" id="btn-compute">Compute</button>
-                <button class="tool-btn" data-tool="probe" id="btn-probe" style="display:none;">&#x1F50D; Probe</button>
-                <button class="action-btn secondary" id="btn-clear">Clear All</button>
-                <button class="action-btn secondary" id="btn-delete">Delete</button>
+            <div class="divider"></div>
+            <div class="seg">
+                <button class="seg-btn active" id="btn-compute">Compute</button>
+            </div>
+            <div class="seg">
+                <button class="seg-btn tool-btn" data-tool="probe" id="btn-probe" style="display:none;">Probe</button>
+                <button class="seg-btn" id="btn-delete">Delete</button>
+                <button class="seg-btn" id="btn-clear">Clear all</button>
             </div>
         </div>
 
         <div class="canvas-container">
             <canvas id="circuit-canvas" width="960" height="500"></canvas>
             <div class="value-editor" id="value-editor">
-                <label>Component Value</label>
-                <input type="text" id="ve-input" placeholder="e.g. 1k, 100u">
-                <div class="ve-actions">
-                    <button id="ve-cancel">Cancel</button>
-                    <button class="ve-ok" id="ve-ok">OK</button>
+                <label for="ve-input">Component value</label>
+                <input class="field" type="text" id="ve-input" placeholder="e.g. 1k, 100u">
+                <div class="ve-actions seg">
+                    <button class="seg-btn" id="ve-cancel">Cancel</button>
+                    <button class="seg-btn active" id="ve-ok">OK</button>
                 </div>
             </div>
         </div>
         <div class="probe-readout" id="probe-readout"></div>
-        <div class="canvas-hint">Click a component to edit its value. Press R to rotate before placing or after selecting.</div>
+        <p class="canvas-hint">Select a component and click a grid point to place it. With the wire tool, drag
+            between grid points. Press R to rotate a component before placing it or after selecting it; a right-click
+            also rotates. Double-click a component to edit its value, which accepts the SI prefixes p, n, u, m, k, M
+            and G. Delete or Backspace removes the selection and Escape cancels the active tool.</p>
 
         <div class="walkthrough" id="walkthrough">
-            <!-- Walkthrough steps will be generated by the solver -->
+            <!-- Walkthrough steps are generated by the solver -->
         </div>
     </div>
 
-    <script src="../theme.js"></script>
+    <footer>BMEN90033 · The University of Melbourne</footer>
+
     <script>
         (function() {
             'use strict';
@@ -617,10 +331,44 @@
             // ── Constants ──
             const GRID = 40;
             const COMP_LEN = 2; // in grid units
-            const NODE_COLORS = [
-                '#e06050', '#5b9bd5', '#6aaa8e', '#ffcc44', '#c77dba',
-                '#e8915a', '#6ec8c8', '#d46e9a', '#8fbc5a', '#b0a0d8'
-            ];
+            const MONO = '"JetBrains Mono", ui-monospace, monospace';
+            const LABEL_FONT = '13px ' + MONO;
+            const LABEL_H = 16;
+            const NODE_R = 10;
+
+            // Node markers take hues from the data palette in order; the number
+            // inside each marker identifies the node, so hue is a secondary cue.
+            function nodeHue(num) {
+                num = Number(num);
+                return num === 0 ? T.c('slate') : T.series[(num - 1) % 6];
+            }
+
+            const TYPE_NAMES = {
+                resistor: 'Resistor', capacitor: 'Capacitor', inductor: 'Inductor',
+                vsource: 'Voltage source', isource: 'Current source', gnd: 'Ground'
+            };
+            function compName(c) { return (TYPE_NAMES[c.type] || c.type) + ' (id ' + c.id + ')'; }
+
+            // Display helper: typographic minus sign.
+            function mn(s) { return String(s).replace(/-/g, '\u2212'); }
+
+            // Candidate label positions beside a component centred on (mx, my):
+            // rows above and below a horizontal component, columns to the right
+            // and left of a vertical one. flip starts on the secondary side.
+            function sideCandidates(mx, my, w, h, isVert, flip) {
+                var s = h + 2, P, S;
+                if (isVert) {
+                    var r = mx + 20, l = mx - 34 - w, y = my - h / 2;
+                    P = [{ x: r, y: y }, { x: r, y: y - s }, { x: r, y: y + s }];
+                    S = [{ x: l, y: y }, { x: l, y: y - s }, { x: l, y: y + s }];
+                } else {
+                    var x = mx - w / 2, a = my - 20 - h, b = my + 34;
+                    P = [{ x: x, y: a }, { x: x, y: a - s }, { x: x, y: a - 2 * s }];
+                    S = [{ x: x, y: b }, { x: x, y: b + s }, { x: x, y: b + 2 * s }];
+                }
+                return flip ? [S[0], P[0], S[1], S[2], P[1], P[2]]
+                            : [P[0], S[0], P[1], P[2], S[1], S[2]];
+            }
 
             // ── Canvas & Context ──
             const canvas = document.getElementById('circuit-canvas');
@@ -704,30 +452,20 @@
 
             // ── Drawing: Component type-specific drawers ──
             function drawResistor(len, color) {
-                const leadLen = len * 0.2;
                 const bodyLen = len * 0.6;
-                const amp = 8;
-                const segs = 6;
+                const bodyH = 16;
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 // left lead
                 ctx.moveTo(-len / 2, 0);
-                ctx.lineTo(-len / 2 + leadLen, 0);
-                // zigzag
-                const segW = bodyLen / segs;
-                let sx = -len / 2 + leadLen;
-                for (let i = 0; i < segs; i++) {
-                    const midX = sx + segW / 2;
-                    const endX = sx + segW;
-                    const dir = (i % 2 === 0) ? -1 : 1;
-                    ctx.lineTo(midX, dir * amp);
-                    ctx.lineTo(endX, 0);
-                    sx = endX;
-                }
+                ctx.lineTo(-bodyLen / 2, 0);
                 // right lead
+                ctx.moveTo(bodyLen / 2, 0);
                 ctx.lineTo(len / 2, 0);
                 ctx.stroke();
+                // rectangular body
+                ctx.strokeRect(-bodyLen / 2, -bodyH / 2, bodyLen, bodyH);
             }
 
             function drawCapacitor(len, color) {
@@ -785,7 +523,7 @@
                 ctx.stroke();
             }
 
-            function drawVSource(len, color) {
+            function drawVSource(len, color, vert) {
                 const r = 14;
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 2;
@@ -803,13 +541,17 @@
                 ctx.beginPath();
                 ctx.arc(0, 0, r, 0, Math.PI * 2);
                 ctx.stroke();
-                // + and - labels
-                ctx.fillStyle = color;
-                ctx.font = 'bold 12px IBM Plex Mono';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('+', -r / 2 - 1, 0);
-                ctx.fillText('\u2212', r / 2 + 1, 0);
+                // Polarity marks drawn as strokes. The minus bar stays horizontal
+                // on screen when the source is vertical (vert).
+                const m = 3.5;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-7 - m, 0); ctx.lineTo(-7 + m, 0);
+                ctx.moveTo(-7, -m);    ctx.lineTo(-7, m);
+                if (vert) { ctx.moveTo(7, -m); ctx.lineTo(7, m); }
+                else      { ctx.moveTo(7 - m, 0); ctx.lineTo(7 + m, 0); }
+                ctx.stroke();
+                ctx.lineWidth = 2;
             }
 
             function drawISource(len, color) {
@@ -892,14 +634,14 @@
 
             // ── Format Value ──
             function formatValue(val, unit) {
-                if (val >= 1e6) return (val / 1e6).toFixed(val % 1e6 === 0 ? 0 : 1) + 'M' + unit;
-                if (val >= 1e3) return (val / 1e3).toFixed(val % 1e3 === 0 ? 0 : 1) + 'k' + unit;
-                if (val >= 1) return val.toFixed(val === Math.floor(val) ? 0 : 1) + unit;
-                if (val >= 1e-3) return (val * 1e3).toFixed(val * 1e3 === Math.floor(val * 1e3) ? 0 : 1) + 'm' + unit;
-                if (val >= 1e-6) return (val * 1e6).toFixed(val * 1e6 === Math.floor(val * 1e6) ? 0 : 1) + '\u03BC' + unit;
-                if (val >= 1e-9) return (val * 1e9).toFixed(val * 1e9 === Math.floor(val * 1e9) ? 0 : 1) + 'n' + unit;
-                if (val >= 1e-12) return (val * 1e12).toFixed(val * 1e12 === Math.floor(val * 1e12) ? 0 : 1) + 'p' + unit;
-                return val.toExponential(1) + unit;
+                if (val >= 1e6) return (val / 1e6).toFixed(val % 1e6 === 0 ? 0 : 1) + ' M' + unit;
+                if (val >= 1e3) return (val / 1e3).toFixed(val % 1e3 === 0 ? 0 : 1) + ' k' + unit;
+                if (val >= 1) return val.toFixed(val === Math.floor(val) ? 0 : 1) + ' ' + unit;
+                if (val >= 1e-3) return (val * 1e3).toFixed(val * 1e3 === Math.floor(val * 1e3) ? 0 : 1) + ' m' + unit;
+                if (val >= 1e-6) return (val * 1e6).toFixed(val * 1e6 === Math.floor(val * 1e6) ? 0 : 1) + ' \u03BC' + unit;
+                if (val >= 1e-9) return (val * 1e9).toFixed(val * 1e9 === Math.floor(val * 1e9) ? 0 : 1) + ' n' + unit;
+                if (val >= 1e-12) return (val * 1e12).toFixed(val * 1e12 === Math.floor(val * 1e12) ? 0 : 1) + ' p' + unit;
+                return val.toExponential(1) + ' ' + unit;
             }
 
             // ── Draw Component ──
@@ -907,7 +649,7 @@
                 const len = COMP_LEN * GRID;
                 const p = gridToPixel(comp.gx, comp.gy);
                 const isSelected = comp.id === selectedId;
-                const color = isSelected ? '#ffcc44' : T.wire;
+                const color = isSelected ? T.c('blue') : T.wire;
 
                 ctx.save();
 
@@ -927,7 +669,7 @@
                         case 'resistor':  drawResistor(len, color); break;
                         case 'capacitor': drawCapacitor(len, color); break;
                         case 'inductor':  drawInductor(len, color); break;
-                        case 'vsource':   drawVSource(len, color); break;
+                        case 'vsource':   drawVSource(len, color, comp.rotation % 2 === 1); break;
                         case 'isource':   drawISource(len, color); break;
                     }
                 }
@@ -964,46 +706,36 @@
                     var labelTerms = getTerminals(comp);
                     var lmx = (labelTerms[0].gx + labelTerms[1].gx) / 2 * GRID;
                     var lmy = (labelTerms[0].gy + labelTerms[1].gy) / 2 * GRID;
-                    ctx.font = '11px IBM Plex Mono';
+                    ctx.font = LABEL_FONT;
                     var labelW = ctx.measureText(label).width + 6;
-                    var labelH = 14;
+                    var labelH = LABEL_H;
                     var rot = comp.rotation % 4;
                     var isVert = (rot === 1 || rot === 3);
 
                     // Default position
-                    var defX = isVert ? lmx + 16 : lmx;
-                    var defY = isVert ? lmy - 6 : lmy - 18;
+                    var defX = isVert ? lmx + 20 + labelW / 2 : lmx;
+                    var defY = isVert ? lmy - labelH / 2 : lmy - 20 - labelH;
 
                     var lx = defX;
                     var ly = defY;
 
                     if (labelMgr) {
-                        var candidates = [
-                            { x: lmx - labelW / 2, y: lmy - 20 },
-                            { x: lmx - labelW / 2, y: lmy + 12 },
-                            { x: lmx + 18, y: lmy - 6 },
-                            { x: lmx - 18 - labelW, y: lmy - 6 },
-                            { x: lmx + 14, y: lmy - 16 },
-                            { x: lmx - 14 - labelW, y: lmy - 16 },
-                            { x: lmx + 14, y: lmy + 8 },
-                            { x: lmx - 14 - labelW, y: lmy + 8 }
-                        ];
+                        var candidates = sideCandidates(lmx, lmy, labelW, labelH, isVert, false);
                         var best = labelMgr.findClear(candidates, labelW, labelH, 2);
                         lx = best.x + labelW / 2;
                         ly = best.y;
                         labelMgr.occupy(best.x, best.y, labelW, labelH);
                     }
 
-                    // Draw semi-transparent background behind label
-                    var bgPad = 3;
-                    ctx.fillStyle = T.isDark ? 'rgba(10,14,20,0.8)' : 'rgba(245,245,247,0.8)';
-                    ctx.fillRect(lx - labelW / 2 - bgPad, ly - 1, labelW + bgPad * 2, labelH + 2);
+                    // Background behind the label
+                    ctx.fillStyle = T.canvasBg;
+                    ctx.fillRect(lx - labelW / 2, ly, labelW, labelH);
 
-                    ctx.fillStyle = T.textDim;
-                    ctx.font = '11px IBM Plex Mono';
+                    ctx.fillStyle = T.text;
+                    ctx.font = LABEL_FONT;
                     ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.fillText(label, lx, ly);
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, lx, ly + labelH / 2);
                 }
             }
 
@@ -1017,7 +749,7 @@
                 wires.forEach(function(w) {
                     const p1 = gridToPixel(w.x1, w.y1);
                     const p2 = gridToPixel(w.x2, w.y2);
-                    ctx.strokeStyle = (w.id === selectedId) ? '#ffcc44' : T.wire;
+                    ctx.strokeStyle = (w.id === selectedId) ? T.c('blue') : T.wire;
                     ctx.lineWidth = 2;
                     ctx.setLineDash([]);
                     ctx.beginPath();
@@ -1313,7 +1045,7 @@
             // ── Preset Circuits ──
             var PRESETS = {
                 'voltage-divider': {
-                    desc: 'Voltage Divider: 10V source, 2kΩ and 1kΩ resistors',
+                    desc: 'Voltage divider: 10 V source, 2 kΩ and 1 kΩ resistors',
                     omega: 0,
                     components: [
                         { type: 'vsource', gx: 3, gy: 4, rotation: 1, value: 10 },
@@ -1332,7 +1064,7 @@
                     ]
                 },
                 'rc-lowpass': {
-                    desc: 'RC Low-Pass Filter: 5V source, 1kΩ resistor, 10μF capacitor',
+                    desc: 'RC low-pass filter: 5 V source, 1 kΩ resistor, 10 μF capacitor',
                     omega: 100,
                     components: [
                         { type: 'vsource', gx: 3, gy: 4, rotation: 1, value: 5 },
@@ -1351,7 +1083,7 @@
                     ]
                 },
                 'rl-circuit': {
-                    desc: 'RL Circuit: 5V source, 100Ω resistor, 10mH inductor',
+                    desc: 'RL circuit: 5 V source, 100 Ω resistor, 10 mH inductor',
                     omega: 1000,
                     components: [
                         { type: 'vsource', gx: 3, gy: 4, rotation: 1, value: 5 },
@@ -1370,7 +1102,7 @@
                     ]
                 },
                 'wheatstone': {
-                    desc: 'Wheatstone Bridge: 10V source, 4 resistors',
+                    desc: 'Wheatstone bridge: 10 V source, 4 resistors',
                     omega: 0,
                     components: [
                         { type: 'vsource', gx: 3, gy: 4, rotation: 1, value: 10 },
@@ -1396,7 +1128,7 @@
                     ]
                 },
                 'current-divider': {
-                    desc: 'Current Divider: 5mA source, 2kΩ and 3kΩ in parallel',
+                    desc: 'Current divider: 5 mA source, 2 kΩ and 3 kΩ in parallel',
                     omega: 0,
                     components: [
                         { type: 'isource', gx: 3, gy: 4, rotation: 1, value: 5e-3 },
@@ -1668,12 +1400,12 @@
                 var tol = mag * 1e-10;
                 if (tol < 1e-15) tol = 1e-15;
                 // Treat near-zero imaginary as purely real
-                if (Math.abs(im) < tol) return parseFloat(r.toPrecision(4)).toString();
+                if (Math.abs(im) < tol) return mn(parseFloat(r.toPrecision(4)));
                 // Treat near-zero real as purely imaginary
-                if (Math.abs(r) < tol) return (im < 0 ? '-' : '') + parseFloat(Math.abs(im).toPrecision(4)) + 'j';
+                if (Math.abs(r) < tol) return (im < 0 ? '\u2212' : '') + parseFloat(Math.abs(im).toPrecision(4)) + 'j';
                 var rs = parseFloat(r.toPrecision(4));
                 var is = parseFloat(Math.abs(im).toPrecision(4));
-                return rs + (im < 0 ? ' - ' : ' + ') + is + 'j';
+                return mn(rs) + (im < 0 ? ' \u2212 ' : ' + ') + is + 'j';
             }
             function cPolar(a) {
                 var m = cMag(a);
@@ -1682,7 +1414,7 @@
                 // Clean up near-zero phase for purely real values
                 if (Math.abs(p) < 1e-6) p = 0;
                 if (Math.abs(Math.abs(p) - 180) < 1e-6) p = 180;
-                return parseFloat(m.toPrecision(4)) + ' \u2220 ' + parseFloat(p.toFixed(1)) + '\u00B0';
+                return parseFloat(m.toPrecision(4)) + ' \u2220 ' + mn(parseFloat(p.toFixed(1))) + '\u00B0';
             }
 
             // ── Union-Find ──
@@ -1818,12 +1550,12 @@
                 var errors = [];
                 var nonGndComponents = components.filter(function(c) { return c.type !== 'gnd'; });
                 if (nonGndComponents.length === 0) {
-                    errors.push('Place at least one component');
+                    errors.push('At least one component must be placed.');
                     return errors;
                 }
                 var hasGround = components.some(function(c) { return c.type === 'gnd'; });
                 if (!hasGround) {
-                    errors.push('A ground node is required');
+                    errors.push('A ground node is required.');
                 }
 
                 // Check for unconnected terminals
@@ -1851,8 +1583,8 @@
                         var onWire = wirePoints[k] === true;
                         var sharedWithOther = allTermPoints[k] && allTermPoints[k].length > 1;
                         if (!onWire && !sharedWithOther) {
-                            var termName = idx === 0 ? '+' : '-';
-                            errors.push('Terminal ' + termName + ' of ' + comp.type + ' (id=' + comp.id + ') is not connected');
+                            var termName = idx === 0 ? '+' : '\u2212';
+                            errors.push('Terminal ' + termName + ' of ' + compName(comp).toLowerCase() + ' is not connected.');
                         }
                     });
                 });
@@ -1897,7 +1629,7 @@
                         }
                     });
                     if (Object.keys(roots).length > 1) {
-                        errors.push('Circuit is not fully connected. There are ' + Object.keys(roots).length + ' disconnected subgraphs. All components must be wired together.');
+                        errors.push('The circuit is not fully connected: it contains ' + Object.keys(roots).length + ' disconnected subgraphs. All components must be wired together.');
                     }
                 }
 
@@ -1961,7 +1693,7 @@
                             A[ni(n2)][ni(n1)] = cSub(A[ni(n2)][ni(n1)], G);
                         }
                     } else if (comp.type === 'capacitor') {
-                        // jωC: at DC (ω=0) this is [0,0], correctly modeling an open circuit
+                        // jωC: at DC (ω=0) this is [0,0], which models an open circuit
                         var Y = [0, omega * baseVal];
                         if (n1 > 0) A[ni(n1)][ni(n1)] = cAdd(A[ni(n1)][ni(n1)], Y);
                         if (n2 > 0) A[ni(n2)][ni(n2)] = cAdd(A[ni(n2)][ni(n2)], Y);
@@ -2033,7 +1765,7 @@
                         }
                     }
                     if (maxMag < 1e-15) {
-                        return { error: 'Matrix is singular (no unique solution). Check circuit connectivity.' };
+                        return { error: 'The matrix is singular, so no unique solution exists. Check the circuit connectivity.' };
                     }
                     if (maxRow !== col) {
                         var tmp = aug[col];
@@ -2072,10 +1804,9 @@
             function drawLabelBg(c, text, x, y, font) {
                 c.font = font;
                 var metrics = c.measureText(text);
-                var pad = 3;
-                var w = metrics.width + pad * 2;
-                var h = 12 + pad * 2;
-                c.fillStyle = T.isDark ? 'rgba(17,17,17,0.85)' : 'rgba(245,245,247,0.85)';
+                var w = metrics.width + 6;
+                var h = LABEL_H;
+                c.fillStyle = T.canvasBg;
                 c.fillRect(x - w / 2, y - h / 2, w, h);
             }
 
@@ -2095,7 +1826,7 @@
                 if (!cvs) return;
                 var c = cvs.getContext('2d');
                 var dpr = window.devicePixelRatio || 1;
-                var W = 400, H = 300;
+                var W = 560, H = 400;
 
                 // HiDPI setup
                 cvs.width = W * dpr;
@@ -2109,7 +1840,7 @@
                 c.fillRect(0, 0, W, H);
 
                 var diagLM = createLabelManager();
-                var nodeColor = NODE_COLORS[nodeNum % NODE_COLORS.length];
+                var nodeColor = nodeHue(nodeNum);
 
                 // Collect branches: components connected to this node
                 var branches = [];
@@ -2216,13 +1947,13 @@
                 function mapX(gx) { return offsetX + (gx - minGX) * scale; }
                 function mapY(gy) { return offsetY + (gy - minGY) * scale; }
 
-                // ── 1. Draw ALL wires — non-relevant transparent, relevant full ──
-                var dimAlpha = 0.2;
+                // ── 1. Draw ALL wires: non-relevant transparent, relevant full ──
+                var dimAlpha = 0.35;
                 var compLen = COMP_LEN * scale;
 
                 // Draw non-relevant wires first (transparent)
                 c.globalAlpha = dimAlpha;
-                c.strokeStyle = T.isDark ? '#555555' : '#aaaaaa';
+                c.strokeStyle = T.c('grey');
                 c.lineWidth = 2;
                 wires.forEach(function(w, idx) {
                     if (relevantWireSet[idx]) return; // skip relevant, draw later
@@ -2235,7 +1966,7 @@
                 // Draw non-relevant components (transparent)
                 var savedCtx = ctx;
                 ctx = c;
-                var dimCompColor = T.isDark ? '#555555' : '#aaaaaa';
+                var dimCompColor = T.c('grey');
                 components.forEach(function(comp) {
                     if (comp.type === 'gnd') return;
                     if (relevantCompSet[comp.id]) return; // skip relevant
@@ -2256,7 +1987,7 @@
                         case 'resistor':  drawResistor(compLen, dimCompColor); break;
                         case 'capacitor': drawCapacitor(compLen, dimCompColor); break;
                         case 'inductor':  drawInductor(compLen, dimCompColor); break;
-                        case 'vsource':   drawVSource(compLen, dimCompColor); break;
+                        case 'vsource':   drawVSource(compLen, dimCompColor, comp.rotation % 2 === 1); break;
                         case 'isource':   drawISource(compLen, dimCompColor); break;
                     }
                     ctx.restore();
@@ -2282,17 +2013,17 @@
                     if (drawn) return; // will be drawn at full opacity later
                     var info = nodeData.nodeInfo[num];
                     var pts = info.points || [info.point];
-                    var clr = NODE_COLORS[Number(num) % NODE_COLORS.length];
+                    var clr = nodeHue(Number(num));
                     pts.forEach(function(p) {
                         if (p.gx >= minGX && p.gx <= maxGX && p.gy >= minGY && p.gy <= maxGY) {
                             var nx = mapX(p.gx);
                             var ny = mapY(p.gy);
                             c.fillStyle = clr;
                             c.beginPath();
-                            c.arc(nx, ny, 7, 0, Math.PI * 2);
+                            c.arc(nx, ny, NODE_R, 0, Math.PI * 2);
                             c.fill();
-                            c.fillStyle = '#fff';
-                            c.font = 'bold 9px IBM Plex Mono';
+                            c.fillStyle = T.onAccent;
+                            c.font = LABEL_FONT;
                             c.textAlign = 'center';
                             c.textBaseline = 'middle';
                             c.fillText(String(num), nx, ny);
@@ -2303,7 +2034,7 @@
                 c.globalAlpha = 1.0;
 
                 // ── 2. Draw relevant wires (full opacity) ──
-                c.strokeStyle = T.isDark ? '#555555' : '#aaaaaa';
+                c.strokeStyle = T.c('grey');
                 c.lineWidth = 2;
                 wires.forEach(function(w, idx) {
                     if (!relevantWireSet[idx]) return;
@@ -2320,7 +2051,7 @@
                 // ── 3. Draw relevant components (full opacity) ──
                 savedCtx = ctx;
                 ctx = c;
-                var compColor = T.isDark ? '#cccccc' : '#444444';
+                var compColor = T.wire;
                 branches.forEach(function(br) {
                     var terms = getTerminals(br.comp);
                     var t0x = mapX(terms[0].gx);
@@ -2338,7 +2069,7 @@
                         case 'resistor':  drawResistor(compLen, compColor); break;
                         case 'capacitor': drawCapacitor(compLen, compColor); break;
                         case 'inductor':  drawInductor(compLen, compColor); break;
-                        case 'vsource':   drawVSource(compLen, compColor); break;
+                        case 'vsource':   drawVSource(compLen, compColor, br.comp.rotation % 2 === 1); break;
                         case 'isource':   drawISource(compLen, compColor); break;
                     }
                     ctx.restore();
@@ -2361,21 +2092,13 @@
                     var midX = (t0x + t1x) / 2;
                     var midY = (t0y + t1y) / 2;
 
-                    var font = '10px IBM Plex Mono';
+                    var font = LABEL_FONT;
                     c.font = font;
                     var valW = c.measureText(br.label).width + 6;
-                    var valH = 14;
+                    var valH = LABEL_H;
+                    var valVert = Math.abs(t1y - t0y) > Math.abs(t1x - t0x);
 
-                    var valCandidates = [
-                        { x: midX - valW / 2, y: midY - 22 },
-                        { x: midX - valW / 2, y: midY + 10 },
-                        { x: midX + 16, y: midY - valH / 2 },
-                        { x: midX - 16 - valW, y: midY - valH / 2 },
-                        { x: midX + 12, y: midY - 18 },
-                        { x: midX - 12 - valW, y: midY - 18 },
-                        { x: midX + 12, y: midY + 6 },
-                        { x: midX - 12 - valW, y: midY + 6 }
-                    ];
+                    var valCandidates = sideCandidates(midX, midY, valW, valH, valVert, false);
                     var bestVal = diagLM.findClear(valCandidates, valW, valH, 2);
                     var lx = bestVal.x + valW / 2;
                     var ly = bestVal.y + valH / 2;
@@ -2383,20 +2106,20 @@
 
                     drawLabelBg(c, br.label, lx, ly, font);
                     c.font = font;
-                    c.fillStyle = T.textDim;
+                    c.fillStyle = T.text;
                     c.textAlign = 'center';
                     c.textBaseline = 'middle';
                     c.fillText(br.label, lx, ly);
 
                     // MNA variable note for vsource (Step 3 only)
                     if (br.comp.type === 'vsource' && !(options && options.solved)) {
-                        var mnaFont = '8px IBM Plex Mono';
+                        var mnaFont = LABEL_FONT;
                         c.font = mnaFont;
-                        var mnaW = c.measureText('MNA var').width + 6;
-                        var mnaH = 12;
+                        var mnaW = c.measureText('MNA unknown').width + 6;
+                        var mnaH = LABEL_H;
                         var mnaCandidates = [
-                            { x: lx - mnaW / 2, y: ly + 8 },
-                            { x: lx - mnaW / 2, y: ly - 20 },
+                            { x: lx - mnaW / 2, y: ly + valH / 2 + 2 },
+                            { x: lx - mnaW / 2, y: ly - valH / 2 - 2 - mnaH },
                             { x: lx + valW / 2 + 4, y: ly - mnaH / 2 },
                             { x: lx - valW / 2 - mnaW - 4, y: ly - mnaH / 2 }
                         ];
@@ -2404,12 +2127,12 @@
                         var mnaX = bestMna.x + mnaW / 2;
                         var mnaY = bestMna.y + mnaH / 2;
                         diagLM.occupy(bestMna.x, bestMna.y, mnaW, mnaH);
-                        drawLabelBg(c, 'MNA var', mnaX, mnaY, mnaFont);
+                        drawLabelBg(c, 'MNA unknown', mnaX, mnaY, mnaFont);
                         c.font = mnaFont;
-                        c.fillStyle = '#ffcc44';
+                        c.fillStyle = T.c('violet');
                         c.textAlign = 'center';
                         c.textBaseline = 'middle';
-                        c.fillText('MNA var', mnaX, mnaY);
+                        c.fillText('MNA unknown', mnaX, mnaY);
                     }
                 });
 
@@ -2417,9 +2140,9 @@
                 // Collect all unique nodes to draw
                 var nodesDrawn = {};
 
-                // Draw all nodes at same size as main circuit (radius=10, font=bold 11px)
-                var nodeRadius = 7;
-                var nodeFont = 'bold 9px IBM Plex Mono';
+                // Node markers match the main circuit canvas
+                var nodeRadius = NODE_R;
+                var nodeFont = LABEL_FONT;
 
                 // Helper to draw a node label at a mapped grid point
                 function drawNodeCircle(gx, gy, num, color) {
@@ -2429,7 +2152,7 @@
                     c.beginPath();
                     c.arc(nx, ny, nodeRadius, 0, Math.PI * 2);
                     c.fill();
-                    c.fillStyle = '#fff';
+                    c.fillStyle = T.onAccent;
                     c.font = nodeFont;
                     c.textAlign = 'center';
                     c.textBaseline = 'middle';
@@ -2443,7 +2166,7 @@
                     nodesDrawn[br.otherNode] = true;
                     var otherInfo = nodeData.nodeInfo[br.otherNode];
                     if (!otherInfo) return;
-                    var otherColor = NODE_COLORS[br.otherNode % NODE_COLORS.length];
+                    var otherColor = nodeHue(br.otherNode);
                     var pts = otherInfo.points || [otherInfo.point];
                     pts.forEach(function(p) {
                         // Only draw if this point is within our bounding box
@@ -2484,8 +2207,10 @@
 
                     // Arrow offset perpendicular to branch so it doesn't overlap
                     var isVertical = Math.abs(dy) > Math.abs(dx);
-                    var perpOffX = isVertical ? -10 : 0;
-                    var perpOffY = isVertical ? 0 : 10;
+                    var perpOffX = isVertical ? -24 : 0;
+                    var perpOffY = isVertical ? 0 : 24;
+                    // Label-manager footprint of an arrow drawn along the branch
+                    var arrW = isVertical ? 12 : 28, arrH = isVertical ? 28 : 12;
 
                     var nodesMap = nodeData.terminalNodeMap[br.comp.id];
                     // Which terminal of this component connects to the focused node?
@@ -2505,17 +2230,17 @@
                         // Convention: current LEAVING this node is positive in KCL
                         // So arrow points AWAY from focused node (toward other node)
                         var angle;
-                        var arrowColor = '#e06050'; // red for passive assumed direction
+                        var arrowColor = T.c('orange'); // assumed branch current
 
                         if (br.comp.type === 'isource') {
                             // Current source has fixed direction: flows from terminal 0 to terminal 1
                             // If terminal 0 is at focused node, current leaves (away)
                             // If terminal 1 is at focused node, current enters (toward)
-                            arrowColor = '#5b9bd5'; // blue for fixed current source
+                            arrowColor = T.c('pink'); // current fixed by a current source
                             angle = (focusedTermIdx === 0) ? awayAngle : towardAngle;
                         } else if (br.comp.type === 'vsource') {
-                            // Voltage source current is an MNA unknown — show assumed leaving direction
-                            arrowColor = '#ffcc44'; // yellow for MNA variable
+                            // Voltage source current is an MNA unknown: show assumed leaving direction
+                            arrowColor = T.c('violet'); // MNA unknown
                             angle = awayAngle;
                         } else {
                             // Passive components (R, C, L): assume current leaves this node
@@ -2527,14 +2252,14 @@
                         var ax = focTermX + (otherTermX - focTermX) * arrowFrac + perpOffX;
                         var ay = focTermY + (otherTermY - focTermY) * arrowFrac + perpOffY;
                         c.strokeStyle = arrowColor;
-                        c.lineWidth = 3;
+                        c.lineWidth = 2.4;
                         var aLen = 16;
                         c.beginPath();
                         c.moveTo(ax - Math.cos(angle) * aLen / 2, ay - Math.sin(angle) * aLen / 2);
                         c.lineTo(ax + Math.cos(angle) * aLen / 2, ay + Math.sin(angle) * aLen / 2);
                         c.stroke();
                         drawArrowhead(c, ax + Math.cos(angle) * aLen / 2, ay + Math.sin(angle) * aLen / 2, angle, 10, arrowColor);
-                        diagLM.occupy(ax - 12, ay - 12, 24, 24);
+                        diagLM.occupy(ax - arrW / 2, ay - arrH / 2, arrW, arrH);
                     }
 
                     // ── Step 6: Solved values overlay ──
@@ -2589,76 +2314,52 @@
                         }
                         var actualAngle = leavesNode ? awayAngle : towardAngle;
 
-                        // Draw green arrow at 1/3 from focused terminal
+                        // Draw the solved-current arrow at 0.3 of the branch from the focused terminal
                         var arrowFrac2 = 0.3;
                         var gax = focTermX + (otherTermX - focTermX) * arrowFrac2 + perpOffX;
                         var gay = focTermY + (otherTermY - focTermY) * arrowFrac2 + perpOffY;
-                        c.strokeStyle = '#4ade80';
-                        c.lineWidth = 3;
+                        c.strokeStyle = T.c('orange');
+                        c.lineWidth = 2.4;
                         var gaLen = 16;
                         c.beginPath();
                         c.moveTo(gax - Math.cos(actualAngle) * gaLen / 2, gay - Math.sin(actualAngle) * gaLen / 2);
                         c.lineTo(gax + Math.cos(actualAngle) * gaLen / 2, gay + Math.sin(actualAngle) * gaLen / 2);
                         c.stroke();
-                        drawArrowhead(c, gax + Math.cos(actualAngle) * gaLen / 2, gay + Math.sin(actualAngle) * gaLen / 2, actualAngle, 10, '#4ade80');
-                        diagLM.occupy(gax - 12, gay - 12, 24, 24);
+                        drawArrowhead(c, gax + Math.cos(actualAngle) * gaLen / 2, gay + Math.sin(actualAngle) * gaLen / 2, actualAngle, 10, T.c('orange'));
+                        diagLM.occupy(gax - arrW / 2, gay - arrH / 2, arrW, arrH);
 
                         // Current label with background (collision-aware)
-                        var curFont = 'bold 9px IBM Plex Mono';
+                        var curFont = LABEL_FONT;
                         var curText = formatValue(iMag, 'A');
                         c.font = curFont;
                         var curW = c.measureText(curText).width + 6;
-                        var curH = 12;
-                        var curDefX = midX + perpOffX + (isVertical ? -12 : 0);
-                        var curDefY = midY + perpOffY + (isVertical ? 0 : 12);
-                        var curCandidates = [
-                            { x: curDefX - curW / 2, y: curDefY - curH / 2 },
-                            { x: midX - curW / 2, y: midY + 16 },
-                            { x: midX - curW / 2, y: midY - 20 },
-                            { x: midX + 20, y: midY - curH / 2 },
-                            { x: midX - 20 - curW, y: midY - curH / 2 },
-                            { x: midX + 16, y: midY + 10 },
-                            { x: midX - 16 - curW, y: midY + 10 },
-                            { x: midX + 16, y: midY - 16 },
-                            { x: midX - 16 - curW, y: midY - 16 }
-                        ];
+                        var curH = LABEL_H;
+                        var curCandidates = sideCandidates(midX, midY, curW, curH, isVertical, true);
                         var bestCur = diagLM.findClear(curCandidates, curW, curH, 2);
                         var curLX = bestCur.x + curW / 2;
                         var curLY = bestCur.y + curH / 2;
                         diagLM.occupy(bestCur.x, bestCur.y, curW, curH);
                         drawLabelBg(c, curText, curLX, curLY, curFont);
                         c.font = curFont;
-                        c.fillStyle = '#6aaa8e';
+                        c.fillStyle = T.c('orange');
                         c.textAlign = 'center';
                         c.textBaseline = 'middle';
                         c.fillText(curText, curLX, curLY);
 
                         // Voltage drop label with background (collision-aware)
-                        var vFont = '9px IBM Plex Mono';
+                        var vFont = LABEL_FONT;
                         var vText = formatValue(vMag, 'V');
                         c.font = vFont;
                         var vLW = c.measureText(vText).width + 6;
-                        var vLH = 12;
-                        var vDefX = midX - perpOffX + (isVertical ? 14 : 0);
-                        var vDefY = midY - perpOffY + (isVertical ? 0 : -10);
-                        var vCandidates = [
-                            { x: vDefX - vLW / 2, y: vDefY - vLH / 2 },
-                            { x: midX - vLW / 2, y: midY - 22 },
-                            { x: midX - vLW / 2, y: midY + 14 },
-                            { x: midX + 22, y: midY - vLH / 2 },
-                            { x: midX - 22 - vLW, y: midY - vLH / 2 },
-                            { x: midX + 18, y: midY - 18 },
-                            { x: midX - 18 - vLW, y: midY - 18 },
-                            { x: midX + 18, y: midY + 8 },
-                            { x: midX - 18 - vLW, y: midY + 8 }
-                        ];
+                        var vLH = LABEL_H;
+                        var vCandidates = sideCandidates(midX, midY, vLW, vLH, isVertical, false);
                         var bestV = diagLM.findClear(vCandidates, vLW, vLH, 2);
                         var vLX = bestV.x + vLW / 2;
                         var vLY = bestV.y + vLH / 2;
                         diagLM.occupy(bestV.x, bestV.y, vLW, vLH);
                         drawLabelBg(c, vText, vLX, vLY, vFont);
                         c.font = vFont;
-                        c.fillStyle = '#5b9bd5';
+                        c.fillStyle = T.c('blue');
                         c.textAlign = 'center';
                         c.textBaseline = 'middle';
                         c.fillText(vText, vLX, vLY);
@@ -2669,19 +2370,19 @@
                 if (options && options.solved && options.solution) {
                     var nodeV = nodeNum === 0 ? [0,0] : options.solution.x[nodeNum - 1];
                     var vNodeMag = Math.sqrt(nodeV[0]*nodeV[0] + nodeV[1]*nodeV[1]);
-                    var vMainFont = 'bold 11px IBM Plex Mono';
-                    var vMainText = 'V=' + formatValue(vNodeMag, 'V');
+                    var vMainFont = LABEL_FONT;
+                    var vMainText = '|V' + nodeNum + '| = ' + formatValue(vNodeMag, 'V');
                     c.font = vMainFont;
                     var vmW = c.measureText(vMainText).width + 6;
-                    var vmH = 14;
+                    var vmH = LABEL_H;
                     var vmCandidates = [
-                        { x: focusX - vmW / 2, y: focusY - 28 },
-                        { x: focusX - vmW / 2, y: focusY + 14 },
-                        { x: focusX + 14, y: focusY - vmH / 2 },
-                        { x: focusX - 14 - vmW, y: focusY - vmH / 2 },
-                        { x: focusX - vmW / 2, y: focusY - 38 },
-                        { x: focusX + 14, y: focusY - 24 },
-                        { x: focusX - 14 - vmW, y: focusY - 24 }
+                        { x: focusX - vmW / 2, y: focusY - NODE_R - 4 - vmH },
+                        { x: focusX - vmW / 2, y: focusY + NODE_R + 4 },
+                        { x: focusX + NODE_R + 4, y: focusY - vmH / 2 },
+                        { x: focusX - NODE_R - 4 - vmW, y: focusY - vmH / 2 },
+                        { x: focusX - vmW / 2, y: focusY - NODE_R - 6 - 2 * vmH },
+                        { x: focusX + NODE_R + 4, y: focusY - NODE_R - 4 - vmH },
+                        { x: focusX - NODE_R - 4 - vmW, y: focusY - NODE_R - 4 - vmH }
                     ];
                     var bestVm = diagLM.findClear(vmCandidates, vmW, vmH, 2);
                     var vMainX = bestVm.x + vmW / 2;
@@ -2689,16 +2390,16 @@
                     diagLM.occupy(bestVm.x, bestVm.y, vmW, vmH);
                     drawLabelBg(c, vMainText, vMainX, vMainY, vMainFont);
                     c.font = vMainFont;
-                    c.fillStyle = nodeColor;
+                    c.fillStyle = T.text;
                     c.textAlign = 'center';
                     c.textBaseline = 'middle';
                     c.fillText(vMainText, vMainX, vMainY);
 
-                    var vSubFont = '9px IBM Plex Mono';
+                    var vSubFont = LABEL_FONT;
                     var vSubText = cStr(nodeV) + ' V';
                     c.font = vSubFont;
                     var vsW = c.measureText(vSubText).width + 6;
-                    var vsH = 12;
+                    var vsH = LABEL_H;
                     var vsCandidates = [
                         { x: vMainX - vsW / 2, y: bestVm.y - vsH - 2 },
                         { x: vMainX - vsW / 2, y: bestVm.y + vmH + 2 },
@@ -2734,18 +2435,18 @@
             }
 
             function generateStep1(nodeData) {
-                var html = '<div class="walk-step"><h3>Step 1: Identify Nodes</h3>';
-                html += '<p>Each unique electrical connection point is a node. The ground node is the reference (0V).</p>';
-                html += '<table class="walk-table"><tr><th>Node</th><th>Type</th><th>Connected Components</th></tr>';
+                var html = '<div class="walk-step"><h3>Step 1: Identify the nodes</h3>';
+                html += '<p>Each distinct electrical connection point is a node. The ground node is the reference, at 0 V.</p>';
+                html += '<table class="walk-table"><tr><th>Node</th><th>Type</th><th>Connected components</th></tr>';
                 var keys = Object.keys(nodeData.nodeInfo).sort(function(a, b) { return Number(a) - Number(b); });
                 keys.forEach(function(num) {
                     var info = nodeData.nodeInfo[num];
-                    var color = NODE_COLORS[num % NODE_COLORS.length];
+                    var color = nodeHue(num);
                     var badge = '<span class="node-badge" style="background:' + color + '">' + num + '</span>';
-                    var typeStr = Number(num) === 0 ? 'Reference (GND)' : 'Node';
+                    var typeStr = Number(num) === 0 ? 'Reference (ground)' : 'Node';
                     var compNames = info.comps.map(function(cid) {
                         var c = components.find(function(x) { return x.id === cid; });
-                        return c ? (c.type + ' (id=' + c.id + ')') : ('id=' + cid);
+                        return c ? compName(c) : ('id ' + cid);
                     }).join(', ');
                     html += '<tr><td>' + badge + '</td><td>' + typeStr + '</td><td>' + compNames + '</td></tr>';
                 });
@@ -2754,9 +2455,9 @@
             }
 
             function generateStep2(nodeData, omega) {
-                var html = '<div class="walk-step"><h3>Step 2: Component Values and Impedances</h3>';
-                html += '<p>Convert each component to its admittance or conductance for stamping into the MNA matrix.</p>';
-                html += '<table class="walk-table"><tr><th>Component</th><th>Value</th><th>Nodes</th><th>Admittance / Conductance</th></tr>';
+                var html = '<div class="walk-step"><h3>Step 2: Component values and admittances</h3>';
+                html += '<p>Each component is expressed as a conductance or admittance, which is then stamped into the MNA matrix.</p>';
+                html += '<table class="walk-table"><tr><th>Component</th><th>Value</th><th>Nodes</th><th>Admittance or conductance</th></tr>';
                 components.forEach(function(comp) {
                     if (comp.type === 'gnd') return;
                     var nodes = nodeData.terminalNodeMap[comp.id];
@@ -2776,7 +2477,7 @@
                         var Y;
                         if (omega === 0) {
                             Y = [1e12, 0];
-                            admStr = 'Y = 1/j\u03C9L \u2192 \u221E (DC short)';
+                            admStr = 'Y = 1/j\u03C9L \u2192 \u221E (short circuit at DC)';
                         } else {
                             Y = cDiv([1, 0], [0, omega * baseVal]);
                             admStr = 'Y = 1/j\u03C9L = ' + cStr(Y) + ' S';
@@ -2787,21 +2488,26 @@
                         admStr = 'Current source: ' + valStr;
                     }
 
-                    html += '<tr><td>' + comp.type + ' (id=' + comp.id + ')</td><td>' + valStr + '</td><td>' + nodesStr + '</td><td>' + admStr + '</td></tr>';
+                    html += '<tr><td>' + compName(comp) + '</td><td>' + valStr + '</td><td>' + nodesStr + '</td><td>' + admStr + '</td></tr>';
                 });
                 html += '</table></div>';
                 return html;
             }
 
             function generateStep3(nodeData, omega) {
-                var html = '<div class="walk-step"><h3>Step 3: Write KCL Equations</h3>';
-                html += '<p>Apply Kirchhoff\'s Current Law at each non-reference node: the sum of currents leaving equals zero.</p>';
+                var html = '<div class="walk-step"><h3>Step 3: Write the KCL equations</h3>';
+                html += '<p>Kirchhoff\'s current law is applied at each non-reference node: the currents leaving the node sum to zero. The arrows in each diagram mark the reference direction of the branch currents.</p>';
+                html += '<div class="legend">'
+                    + '<span><i class="sw" style="background:var(--d-orange)"></i>Assumed branch current, leaving the node</span>'
+                    + '<span><i class="sw" style="background:var(--d-pink)"></i>Current fixed by a current source</span>'
+                    + '<span><i class="sw" style="background:var(--d-violet)"></i>Voltage-source current (MNA unknown)</span>'
+                    + '</div>';
                 var keys = Object.keys(nodeData.nodeInfo).sort(function(a, b) { return Number(a) - Number(b); });
                 keys.forEach(function(num) {
                     if (Number(num) === 0) return; // skip ground
                     var info = nodeData.nodeInfo[num];
-                    html += '<canvas id="node-diagram-3-' + num + '" class="node-diagram-canvas" width="400" height="300"></canvas>';
-                    html += '<p><strong>Node ' + num + ':</strong> KCL equation from connected components:</p>';
+                    html += '<canvas id="node-diagram-3-' + num + '" class="node-diagram-canvas" width="560" height="400"></canvas>';
+                    html += '<p><strong>Node ' + num + ':</strong> KCL equation for the connected components.</p>';
                     var eqTerms = [];
                     components.forEach(function(comp) {
                         if (comp.type === 'gnd') return;
@@ -2813,24 +2519,24 @@
                         if (comp.type === 'resistor') {
                             var otherNode = n1 === Number(num) ? n2 : n1;
                             var sign = n1 === Number(num) ? '' : '-';
-                            eqTerms.push('(V' + num + ' - V' + otherNode + ')/' + formatValue(baseVal, '\u03A9'));
+                            eqTerms.push('(V' + num + ' \u2212 V' + otherNode + ')/(' + formatValue(baseVal, '\u03A9') + ')');
                         } else if (comp.type === 'capacitor') {
                             var otherNode = n1 === Number(num) ? n2 : n1;
-                            eqTerms.push('j\u03C9C\u00B7(V' + num + ' - V' + otherNode + ')');
+                            eqTerms.push('j\u03C9C\u00B7(V' + num + ' \u2212 V' + otherNode + ')');
                         } else if (comp.type === 'inductor') {
                             var otherNode = n1 === Number(num) ? n2 : n1;
-                            eqTerms.push('(V' + num + ' - V' + otherNode + ')/(j\u03C9L)');
+                            eqTerms.push('(V' + num + ' \u2212 V' + otherNode + ')/(j\u03C9L)');
                         } else if (comp.type === 'isource') {
-                            var dir = n1 === Number(num) ? '+' : '-';
+                            var dir = n1 === Number(num) ? '+' : '\u2212';
                             eqTerms.push(dir + 'I_source');
                         } else if (comp.type === 'vsource') {
                             // MNA branch current I_Vk flows from n1 through the source to n2
                             var vk = components.filter(function(cc) { return cc.type === 'vsource'; }).indexOf(comp) + 1;
-                            eqTerms.push((n1 === Number(num) ? '' : '-') + 'I_V' + vk);
+                            eqTerms.push((n1 === Number(num) ? '' : '\u2212') + 'I_V' + vk);
                         }
                     });
                     if (eqTerms.length > 0) {
-                        html += '<div class="equation">' + eqTerms.join(' + ') + ' = 0</div>';
+                        html += '<div class="equation">' + eqTerms.join(' + ').replace(/ \+ \u2212/g, ' \u2212 ').replace(/ \+ \+/g, ' + ').replace(/^\+/, '') + ' = 0</div>';
                     }
                 });
 
@@ -2841,8 +2547,8 @@
                     var nodes = nodeData.terminalNodeMap[comp.id];
                     if (!nodes) return;
                     var baseVal = getBaseValue(comp);
-                    html += '<p><strong>Voltage Source Constraint (V' + (vsIdx + 1) + '):</strong></p>';
-                    html += '<div class="equation">V' + nodes[0] + ' - V' + nodes[1] + ' = ' + cStr([baseVal, 0]) + ' V</div>';
+                    html += '<p><strong>Voltage source constraint (source ' + (vsIdx + 1) + '):</strong></p>';
+                    html += '<div class="equation">V' + nodes[0] + ' \u2212 V' + nodes[1] + ' = ' + cStr([baseVal, 0]) + ' V</div>';
                     vsIdx++;
                 });
 
@@ -2852,12 +2558,12 @@
 
             function generateStep4(A, xLabels, b) {
                 var n = A.length;
-                var html = '<div class="walk-step"><h3>Step 4: Assemble the MNA Matrix</h3>';
-                html += '<p>The system of equations in matrix form [A][x] = [b]:</p>';
+                var html = '<div class="walk-step"><h3>Step 4: Assemble the MNA matrix</h3>';
+                html += '<p>The system of equations in matrix form, [A][x] = [b]:</p>';
                 html += '<div class="matrix-container">';
 
                 // A matrix
-                html += '<div class="matrix">';
+                html += '<div class="matrix" style="grid-template-columns:repeat(' + n + ',auto)">';
                 for (var i = 0; i < n; i++) {
                     html += '<div class="matrix-row">';
                     for (var j = 0; j < n; j++) {
@@ -2874,7 +2580,7 @@
                 }
                 html += '</div>';
 
-                html += '<span style="font-size:18px;color:var(--text-dim)">=</span>';
+                html += '<span class="eq-sign">=</span>';
 
                 // b vector
                 html += '<div class="vector">';
@@ -2888,10 +2594,10 @@
             }
 
             function generateStep5(result, xLabels) {
-                var html = '<div class="walk-step"><h3>Step 5: Solve the System</h3>';
+                var html = '<div class="walk-step"><h3>Step 5: Solve the system</h3>';
 
                 if (result.error) {
-                    html += '<div class="error-msg">' + result.error + '</div></div>';
+                    html += errorHtml(result.error) + '</div>';
                     return html;
                 }
 
@@ -2902,7 +2608,7 @@
                         if (step.type === 'swap') {
                             html += 'R' + (step.r1 + 1) + ' \u2194 R' + (step.r2 + 1) + '<br>';
                         } else if (step.type === 'eliminate') {
-                            html += 'R' + (step.target + 1) + ' \u2192 R' + (step.target + 1) + ' - (' + cStr(step.factor) + ')\u00B7R' + (step.source + 1) + '<br>';
+                            html += 'R' + (step.target + 1) + ' \u2192 R' + (step.target + 1) + ' \u2212 (' + cStr(step.factor) + ')\u00B7R' + (step.source + 1) + '<br>';
                         }
                     });
                     html += '</div>';
@@ -2919,20 +2625,24 @@
             }
 
             function generateStep6(nodeData, solution, omega) {
-                var html = '<div class="walk-step"><h3>Step 6: Results Summary</h3>';
+                var html = '<div class="walk-step"><h3>Step 6: Results summary</h3>';
 
                 // Node diagrams with solved values
-                html += '<p>Node diagrams with solved voltages and currents:</p>';
+                html += '<p>Node diagrams with the solved voltages and currents:</p>';
+                html += '<div class="legend">'
+                    + '<span><i class="sw" style="background:var(--d-orange)"></i>Branch current: magnitude and direction</span>'
+                    + '<span><i class="sw" style="background:var(--d-blue)"></i>Voltage magnitude across the component</span>'
+                    + '</div>';
                 var keys6 = Object.keys(nodeData.nodeInfo).sort(function(a, b) { return Number(a) - Number(b); });
                 keys6.forEach(function(num) {
                     if (Number(num) === 0) return;
-                    html += '<canvas id="node-diagram-6-' + num + '" class="node-diagram-canvas" width="400" height="300"></canvas>';
+                    html += '<canvas id="node-diagram-6-' + num + '" class="node-diagram-canvas" width="560" height="400"></canvas>';
                 });
 
                 // Phasors are taken as peak amplitudes: S = ½·V·I* (AC), S = V·I (DC)
                 var pFactor = omega === 0 ? 1 : 0.5;
-                html += '<p>Voltage across, current through, and power absorbed by each component (passive sign convention; negative values are delivered). Source values are treated as peak phasor amplitudes, so the complex power is S = ' + (omega === 0 ? 'V\u00B7I' : '\u00BD\u00B7V\u00B7I*') + ', with average power P = Re(S) and reactive power Q = Im(S).</p>';
-                html += '<table class="walk-table"><tr><th>Component</th><th>Voltage Across</th><th>Current Through</th><th>Complex Power S</th></tr>';
+                html += '<p>Voltage across, current through, and power absorbed by each component (passive sign convention; a negative power is delivered by the component). Source values are treated as peak phasor amplitudes, so the complex power is S = ' + (omega === 0 ? 'V\u00B7I' : '\u00BD\u00B7V\u00B7I*') + ', with average power P = Re(S) and reactive power Q = Im(S).</p>';
+                html += '<table class="walk-table"><tr><th>Component</th><th>Voltage across</th><th>Current through</th><th>Complex power S</th></tr>';
 
                 var vsIdx = 0;
                 components.forEach(function(comp) {
@@ -2971,10 +2681,10 @@
                     // Complex power S = ½·V·I* for peak phasors (V·I at DC)
                     var power = cMul([pFactor, 0], cMul(vAcross, cConj(current)));
 
-                    html += '<tr><td>' + comp.type + ' (id=' + comp.id + ')</td>';
-                    html += '<td>' + cStr(vAcross) + ' V<br><span style="color:var(--text-dim);font-size:11px">' + cPolar(vAcross) + '</span></td>';
-                    html += '<td>' + cStr(current) + ' A<br><span style="color:var(--text-dim);font-size:11px">' + cPolar(current) + '</span></td>';
-                    html += '<td>' + cStr(power) + ' VA<br><span style="color:var(--text-dim);font-size:11px">P = ' + power[0].toPrecision(4) + ' W, Q = ' + power[1].toPrecision(4) + ' VAR</span></td>';
+                    html += '<tr><td>' + compName(comp) + '</td>';
+                    html += '<td>' + cStr(vAcross) + ' V<br><span class="polar">' + cPolar(vAcross) + '</span></td>';
+                    html += '<td>' + cStr(current) + ' A<br><span class="polar">' + cPolar(current) + '</span></td>';
+                    html += '<td>' + cStr(power) + ' VA<br><span class="polar">P = ' + mn(power[0].toPrecision(4)) + ' W, Q = ' + mn(power[1].toPrecision(4)) + ' var</span></td>';
                     html += '</tr>';
                 });
 
@@ -2987,22 +2697,22 @@
                 var keys = Object.keys(nodeData.nodeInfo);
                 keys.forEach(function(num) {
                     var info = nodeData.nodeInfo[num];
-                    var color = NODE_COLORS[num % NODE_COLORS.length];
+                    var color = nodeHue(num);
                     var pts = info.points || [info.point];
                     pts.forEach(function(p) {
                         var pt = gridToPixel(p.gx, p.gy);
                         ctx.fillStyle = color;
                         ctx.beginPath();
-                        ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+                        ctx.arc(pt.x, pt.y, NODE_R, 0, Math.PI * 2);
                         ctx.fill();
-                        ctx.fillStyle = '#fff';
-                        ctx.font = 'bold 9px IBM Plex Mono';
+                        ctx.fillStyle = T.onAccent;
+                        ctx.font = LABEL_FONT;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(String(num), pt.x, pt.y);
                         // Register node circle in label manager
                         if (labelMgr) {
-                            labelMgr.occupy(pt.x - 7, pt.y - 7, 14, 14);
+                            labelMgr.occupy(pt.x - NODE_R, pt.y - NODE_R, NODE_R * 2, NODE_R * 2);
                         }
                     });
                 });
@@ -3045,7 +2755,7 @@
             }
 
             function getNodeForWirePoint(w) {
-                // A wire connects two grid points — find which node they belong to
+                // A wire connects two grid points: find which node they belong to
                 if (!lastNodeData) return null;
                 // Check all node points to find which node this wire endpoint belongs to
                 var k1 = w.x1 + ',' + w.y1;
@@ -3066,7 +2776,7 @@
 
             function drawProbeOverlay(px, py) {
                 // Draw crosshair
-                ctx.strokeStyle = T.isDark ? 'rgba(106,170,142,0.5)' : 'rgba(61,139,110,0.5)';
+                ctx.strokeStyle = T.fg(0.35);
                 ctx.lineWidth = 1;
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
@@ -3116,9 +2826,9 @@
 
                 // Determine what's under the cursor
                 var lines = [];
-                var titleColor = '#6aaa8e';
+                var titleColor = T.text;
                 var arrowAngle = null; // direction to draw current arrow
-                var arrowColor = '#4ade80';
+                var arrowColor = T.c('orange');
 
                 // 1. Check for component
                 var comp = findComponentAt(px, py);
@@ -3132,7 +2842,7 @@
                         var current = getCompCurrent(comp);
                         var iMag = cMag(current);
 
-                        lines.push(comp.type.toUpperCase());
+                        lines.push(TYPE_NAMES[comp.type] || comp.type);
                         lines.push('V: ' + cStr(vAcross) + ' V');
                         lines.push('I: ' + cStr(current) + ' A');
                         if (iMag > 1e-15) lines.push('|I|: ' + formatValue(iMag, 'A'));
@@ -3189,8 +2899,8 @@
 
                         if (nodeNum !== null) {
                             var nodeV = nodeNum === 0 ? [0,0] : lastSolution.x[nodeNum - 1];
-                            titleColor = NODE_COLORS[nodeNum % NODE_COLORS.length];
-                            lines.push('Node ' + nodeNum + (nodeNum === 0 ? ' (GND)' : ''));
+                            titleColor = nodeHue(nodeNum);
+                            lines.push('Node ' + nodeNum + (nodeNum === 0 ? ' (ground)' : ''));
                             lines.push('V: ' + cStr(nodeV) + ' V');
                         } else {
                             lines.push('Wire');
@@ -3210,8 +2920,8 @@
                         }
                     } else if (nodeNum !== null) {
                         var nodeV = nodeNum === 0 ? [0,0] : lastSolution.x[nodeNum - 1];
-                        titleColor = NODE_COLORS[nodeNum % NODE_COLORS.length];
-                        lines.push('Node ' + nodeNum + (nodeNum === 0 ? ' (GND)' : ''));
+                        titleColor = nodeHue(nodeNum);
+                        lines.push('Node ' + nodeNum + (nodeNum === 0 ? ' (ground)' : ''));
                         lines.push('V: ' + cStr(nodeV) + ' V');
                     }
                 }
@@ -3227,7 +2937,7 @@
                     var ay2 = py + Math.sin(arrowAngle) * arrowLen;
 
                     ctx.strokeStyle = arrowColor;
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2.4;
                     ctx.beginPath();
                     ctx.moveTo(ax1, ay1);
                     ctx.lineTo(ax2, ay2);
@@ -3247,7 +2957,7 @@
                 // Draw tooltip near cursor
                 var tipX = px + 20;
                 var tipY = py - 10;
-                var tipFont = '11px IBM Plex Mono';
+                var tipFont = LABEL_FONT;
                 ctx.font = tipFont;
 
                 // Measure widest line
@@ -3258,7 +2968,7 @@
                 });
 
                 var padX = 8, padY = 6;
-                var lineH = 16;
+                var lineH = 18;
                 var tipW = maxW + padX * 2;
                 var tipH = lines.length * lineH + padY * 2;
 
@@ -3268,7 +2978,7 @@
                 if (tipY < 10) tipY = 10;
 
                 // Background
-                ctx.fillStyle = T.isDark ? 'rgba(20,20,24,0.92)' : 'rgba(255,255,255,0.95)';
+                ctx.fillStyle = T.canvasBg;
                 ctx.strokeStyle = titleColor;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
@@ -3284,8 +2994,8 @@
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';
                 lines.forEach(function(line, i) {
-                    ctx.fillStyle = i === 0 ? titleColor : T.text;
-                    ctx.font = i === 0 ? 'bold 11px IBM Plex Mono' : '11px IBM Plex Mono';
+                    ctx.fillStyle = T.text;
+                    ctx.font = LABEL_FONT;
                     ctx.fillText(line, tipX + padX, tipY + padY + i * lineH);
                 });
 
@@ -3294,7 +3004,7 @@
                 ctx.beginPath();
                 ctx.arc(px, py, 4, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = T.onAccent;
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
@@ -3338,9 +3048,9 @@
                     var unitSym = def ? def.unit.replace(/^[kMm\u03BC]/, '') : '';
 
                     readout.innerHTML =
-                        '<div class="probe-title">' + comp.type.toUpperCase() + ' (id=' + comp.id + ') — ' + formatValue(baseVal, unitSym) + '</div>' +
+                        '<div class="probe-title">' + compName(comp) + ', ' + formatValue(baseVal, unitSym) + '</div>' +
                         '<div class="probe-row"><span class="probe-label">Nodes</span><span class="probe-val">' + n1 + ' \u2192 ' + n2 + '</span></div>' +
-                        '<div class="probe-row"><span class="probe-label">V across</span><span class="probe-val">' + cStr(vAcross) + ' V &nbsp; (' + cPolar(vAcross) + ')</span></div>' +
+                        '<div class="probe-row"><span class="probe-label">Voltage</span><span class="probe-val">' + cStr(vAcross) + ' V &nbsp; (' + cPolar(vAcross) + ')</span></div>' +
                         '<div class="probe-row"><span class="probe-label">Current</span><span class="probe-val">' + cStr(current) + ' A &nbsp; (' + cPolar(current) + ')</span></div>' +
                         '<div class="probe-row"><span class="probe-label">Power</span><span class="probe-val">' + cStr(power) + ' W &nbsp; (' + cPolar(power) + ')</span></div>';
                     readout.classList.add('visible');
@@ -3370,10 +3080,10 @@
 
                 if (closestNode !== null) {
                     var nodeV = closestNode === 0 ? [0,0] : lastSolution.x[closestNode - 1];
-                    var nodeColor = NODE_COLORS[closestNode % NODE_COLORS.length];
+                    var nodeColor = nodeHue(closestNode);
 
                     readout.innerHTML =
-                        '<div class="probe-title" style="color:' + nodeColor + '">Node ' + closestNode + (closestNode === 0 ? ' (GND)' : '') + '</div>' +
+                        '<div class="probe-title"><span class="node-badge" style="background:' + nodeColor + '">' + closestNode + '</span> Node ' + closestNode + (closestNode === 0 ? ' (ground)' : '') + '</div>' +
                         '<div class="probe-row"><span class="probe-label">Voltage</span><span class="probe-val">' + cStr(nodeV) + ' V &nbsp; (' + cPolar(nodeV) + ')</span></div>';
                     readout.classList.add('visible');
 
@@ -3388,6 +3098,10 @@
                 draw();
             }
 
+            function errorHtml(msg) {
+                return '<div class="callout error-msg"><span class="tag-s">Circuit error</span>' + msg + '</div>';
+            }
+
             // ── Compute Button ──
             document.getElementById('btn-compute').addEventListener('click', function() {
                 var wt = document.getElementById('walkthrough');
@@ -3397,7 +3111,7 @@
                 // Validate
                 var errors = validateCircuit();
                 if (errors.length > 0) {
-                    wt.innerHTML = '<div class="error-msg">' + errors.join('<br>') + '</div>';
+                    wt.innerHTML = errorHtml(errors.join('<br>'));
                     wt.classList.add('visible');
                     return;
                 }
@@ -3405,7 +3119,7 @@
                 // Build node map
                 var nodeData = buildNodeMap();
                 if (!nodeData.hasGround) {
-                    wt.innerHTML = '<div class="error-msg">A ground node is required</div>';
+                    wt.innerHTML = errorHtml('A ground node is required.');
                     wt.classList.add('visible');
                     return;
                 }
@@ -3419,13 +3133,13 @@
                 // Solve
                 var result = solveSystem(mna.A, mna.b);
                 if (result.error) {
-                    wt.innerHTML = '<div class="error-msg">' + result.error + '</div>';
+                    wt.innerHTML = errorHtml(result.error);
                     wt.classList.add('visible');
                     return;
                 }
 
                 // Generate walkthrough HTML
-                var html = '<h2>Solution Walkthrough</h2>';
+                var html = '<h2>Solution walkthrough</h2>';
                 html += generateStep1(nodeData);
                 html += generateStep2(nodeData, omega);
                 html += generateStep3(nodeData, omega);
@@ -3450,10 +3164,10 @@
                 wt.scrollIntoView({behavior:'smooth'});
             });
 
-            // ── Theme Change Listener ──
-            window.addEventListener('themechange', function() {
-                draw();
-            });
+            // Redraw once the label font has loaded, so canvas text uses it.
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function() { draw(); });
+            }
 
             // ── Canvas Resize ──
             function resizeCanvas() {

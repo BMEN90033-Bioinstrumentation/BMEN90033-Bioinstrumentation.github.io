@@ -17,7 +17,7 @@
             xDomain: [0.01, 100],
             magDomain: [-120, 6],
             phaseDomain: [-540, 10],
-            magTicks: [-120, -100, -80, -60, -40, -20, -3, 0],
+            magTicks: [-120, -100, -80, -60, -40, -20, 0],
             phaseTicks: [-540, -450, -360, -270, -180, -90, 0]
         });
 
@@ -93,11 +93,11 @@
         // Mark the asymptotic slope of buffered curve: -20N dB/decade.
         var slopeText = '−' + (20 * N) + ' dB/dec';
         H.gMag.append('text')
-            .attr('x', H.innerW - 12).attr('y', H.innerH - 12)
-            .attr('text-anchor', 'end')
+            .attr('x', 12).attr('y', H.innerH - 12)
+            .attr('text-anchor', 'start')
             .attr('fill', T.fg(0.6))
             .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
+            .attr('font-size', 13)
             .text('asymptote: ' + slopeText);
 
         // ── Hover crosshair + readout ───────────────────────────
@@ -107,23 +107,27 @@
         window.BodeHelpers.attachHover(H, hoverTraces);
 
         // ── Legend ──────────────────────────────────────────────
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
+        // Bottom-left of the magnitude panel, above the asymptote note.
+        var SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶'];
         var entries = [];
-        if (state.showBuffered) entries.push({ c: 'buffered', label: 'buffered  H = 1/(1+sRC)^' + N });
-        if (state.showPassive)  entries.push({ c: 'passive',  label: 'passive cascade  N=' + N });
+        if (state.showBuffered) entries.push({ c: 'buffered', label: 'buffered, 1/(1+sRC)' + SUP[N] });
+        if (state.showPassive)  entries.push({ c: 'passive',  label: 'passive cascade, N = ' + N });
+        var lg = H.gMag.append('g').attr('transform',
+            'translate(12,' + (H.innerH - 34 - entries.length * 18) + ')');
         entries.forEach(function (e, idx) {
             var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
             row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8)
+                .attr('x1', 0).attr('x2', 28)
                 .attr('y1', 8).attr('y2', 8);
             row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
+                .attr('x', 34).attr('y', 12)
+                .attr('text-anchor', 'start')
                 .attr('fill', T.text)
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(e.label);
         });
+        if (entries.length) window.legendBacking(lg);
     }
 
     function onSlider() {
@@ -145,7 +149,6 @@
             render();
         });
         if (slider) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

@@ -24,6 +24,12 @@
         var yMax = d3.max(out, function (d) { return Math.max(d.truth, d.measured); });
         var pad = 0.15 * Math.max(1, yMax - yMin);
         var P = window.WCGW.setupPlot('#plot-transient', {
+            legend: [
+                { key: 'clean', label: 'true analogue signal', opacity: 0.38 },
+                { key: 'distort', label: 'with capacitor transient' },
+                { key: 'fixed', label: 'after settling', opacity: 0.45, dash: true },
+                { key: 'distort', band: true, label: 'first 5τ' }
+            ],
             xDomain: [0, 6],
             yDomain: [yMin - pad, yMax + pad],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -31,16 +37,9 @@
         });
         P.g.append('rect').attr('x', P.x(0)).attr('y', 0).attr('width', P.x(Math.min(6, 5 * tau))).attr('height', P.innerH)
             .attr('fill', P.colors.distort).attr('opacity', 0.08);
-        P.g.append('text').attr('x', P.x(Math.min(5.7, 5 * tau)) + 6).attr('y', 18)
-            .attr('fill', P.colors.distort).attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('first 5 tau');
         window.WCGW.drawLine(P, out, function (d) { return d.t; }, function (d) { return d.truth; }, 'clean reference', P.y);
         window.WCGW.drawLine(P, out, function (d) { return d.t; }, function (d) { return d.measured; }, 'distort', P.y);
         window.WCGW.drawLine(P, out, function (d) { return d.t; }, function (d) { return d.settled; }, 'fixed faint', P.y);
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'true analogue signal' },
-            { key: 'distort', label: 'with capacitor transient' },
-            { key: 'fixed', label: 'after settling' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -51,7 +50,6 @@
         if (!tauSlider || !offsetSlider) return;
         tauSlider.addEventListener('input', draw);
         offsetSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

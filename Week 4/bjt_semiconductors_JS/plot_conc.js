@@ -40,8 +40,9 @@
         var ya = g.append('g').call(d3.axisLeft(gy).tickValues(yt).tickSizeOuter(0)
             .tickFormat(log ? function () { return ''; } : function (v) { return d3.format('~g')(v / 1e19); }));
         window.CMP.styleAxis(ya);
+        ya.selectAll('text').attr('font-size', 13);
         if (log) yt.forEach(function (v) {
-            window.renderKatex(svg, '10^{' + v + '}', m.left - 26, m.top + yLog(v), { width: 44, height: 18, size: 13, color: T.textDim, align: 'right' });
+            window.renderKatex(svg, '10^{' + v + '}', m.left - 32, m.top + yLog(v), { width: 44, height: 18, size: 13, color: T.textDim, align: 'right' });
         });
 
         // Depletion bands and junction guides.
@@ -57,7 +58,7 @@
         g.append('line').attr('x1', 0).attr('x2', iw).attr('y1', ih).attr('y2', ih).attr('stroke', T.gridAxis);
         [['emitter', B.EF / 2], ['base', B.BEJ + B.BF / 2], ['collector', B.BCJ + B.CF / 2]].forEach(function (q) {
             g.append('text').attr('x', x(q[1])).attr('y', ih + 18).attr('text-anchor', 'middle')
-                .attr('fill', T.text).attr('font-size', 12).text(q[0]);
+                .attr('fill', T.text).attr('font-size', 13).text(q[0]);
         });
 
         // Profiles.

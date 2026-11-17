@@ -1,23 +1,50 @@
-// Common drawing helpers + theme bridging.
+// Common drawing helpers. Colours come from the theme.css tokens and window.T.
 (function () {
-  const T = window.TWEAKS;
-
   function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
   function colors() {
     return {
-      real: cssVar('--real') || T.colorReal,
-      imag: cssVar('--imag') || T.colorImag,
-      time: cssVar('--time') || T.colorTime,
-      accent: cssVar('--accent') || T.colorAccent,
-      fg: cssVar('--fg') || T.colorFg,
-      muted: cssVar('--muted') || T.colorMuted,
-      bg: cssVar('--bg') || T.colorBg,
-      grid: 'rgba(255,255,255,0.06)',
-      gridStrong: 'rgba(255,255,255,0.14)',
+      real: cssVar('--real'),
+      imag: cssVar('--imag'),
+      time: cssVar('--time'),
+      accent: cssVar('--mark'),          // highlighted element (orange)
+      fg: cssVar('--fg'),
+      muted: cssVar('--muted'),
+      bg: cssVar('--bg'),
+      panel: cssVar('--hydro-blue-100'),
+      line: cssVar('--calcium-white-800'),
+      grey: cssVar('--d-grey'),
+      grid: window.T.grid,
+      gridStrong: window.T.gridHeavy,
     };
+  }
+
+  // Ink at a given opacity.
+  function ink(a) { return window.T.fg(a); }
+
+  // Parse '#rgb', '#rrggbb' or 'rgb(r,g,b)'; null for anything else.
+  function rgb(c) {
+    c = (c || '').trim();
+    if (c[0] === '#') {
+      const h = c.length === 4 ? c[1] + c[1] + c[2] + c[2] + c[3] + c[3] : c.slice(1);
+      const n = parseInt(h, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    const m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i.exec(c);
+    return m ? [+m[1], +m[2], +m[3]] : null;
+  }
+  // A palette colour at a given opacity.
+  function alpha(c, a) {
+    const p = rgb(c);
+    return p ? `rgba(${p[0]},${p[1]},${p[2]},${a})` : c;
+  }
+  // Linear blend of two palette colours, t = 0 gives a, t = 1 gives b.
+  function mix(a, b, t) {
+    const A = rgb(a), B = rgb(b);
+    if (!A || !B) return a;
+    return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`;
   }
 
   // High DPI canvas
@@ -35,37 +62,59 @@
     ctx.clearRect(0, 0, w, h);
   }
 
-  // Grid drawing in a box with given world->screen mapping
-  function drawGrid(ctx, w, h, opts = {}) {
-    const C = colors();
-    const step = opts.step || 32;
+  const FONT = "400 13px 'JetBrains Mono', monospace";
+
+  // Text label. opts.rotate draws the text rotated 90 degrees anticlockwise
+  // about (x, y), for y-axis titles. opts.halo paints a page-coloured box
+  // behind the text so that a curve passing under the label stays clear of it.
+  function label(ctx, text, x, y, color, opts = {}) {
     ctx.save();
-    ctx.strokeStyle = C.grid;
-    ctx.lineWidth = 1;
-    for (let x = (w / 2) % step; x < w; x += step) {
-      ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); ctx.stroke();
+    ctx.font = FONT;
+    ctx.textAlign = opts.align || 'left';
+    ctx.textBaseline = opts.baseline || 'top';
+    if (opts.halo && !opts.rotate) {
+      const tw = ctx.measureText(text).width, th = 16;
+      const bx = ctx.textAlign === 'right' ? x - tw : ctx.textAlign === 'center' ? x - tw / 2 : x;
+      const by = ctx.textBaseline === 'bottom' ? y - th : ctx.textBaseline === 'middle' ? y - th / 2 : y - 1;
+      ctx.fillStyle = alpha(cssVar('--bg'), 0.9);
+      ctx.fillRect(bx - 3, by - 1, tw + 6, th + 2);
     }
-    for (let y = (h / 2) % step; y < h; y += step) {
-      ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); ctx.stroke();
+    ctx.fillStyle = color;
+    if (opts.rotate) {
+      ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
+      ctx.fillText(text, 0, 0);
+    } else {
+      ctx.fillText(text, x, y);
     }
-    // axes
-    ctx.strokeStyle = C.gridStrong;
-    ctx.lineWidth = 1;
-    const cx = opts.cx ?? w / 2;
-    const cy = opts.cy ?? h / 2;
-    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
     ctx.restore();
   }
 
-  function label(ctx, text, x, y, color, opts = {}) {
+  // Legend row drawn from (x, y), y being the row centre. Each item is
+  // { mark: 'line' | 'dash' | 'pole' | 'zero', text, color }.
+  function legend(ctx, x, y, items) {
     ctx.save();
-    ctx.font = `${opts.weight || 500} ${opts.size || 10}px 'JetBrains Mono', monospace`;
-    ctx.fillStyle = color;
-    ctx.textAlign = opts.align || 'left';
-    ctx.textBaseline = opts.baseline || 'top';
-    ctx.fillText(text, x, y);
+    ctx.font = FONT;
+    for (const it of items) {
+      ctx.strokeStyle = it.color; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.beginPath();
+      if (it.mark === 'pole') {
+        ctx.moveTo(x + 2, y - 5); ctx.lineTo(x + 12, y + 5);
+        ctx.moveTo(x + 2, y + 5); ctx.lineTo(x + 12, y - 5);
+      } else if (it.mark === 'zero') {
+        ctx.arc(x + 7, y, 5, 0, Math.PI * 2);
+      } else {
+        if (it.mark === 'dash') ctx.setLineDash([3, 3]);
+        ctx.moveTo(x, y); ctx.lineTo(x + 14, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = it.color;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(it.text, x + 20, y);
+      x += 20 + ctx.measureText(it.text).width + 16;
+    }
     ctx.restore();
+    return x;
   }
 
   // RAF registry with IntersectionObserver pause
@@ -99,11 +148,10 @@
     requestAnimationFrame(() => tick(el));
   }
 
-  // Small utility: map
   function lerp(a, b, t) { return a + (b - a) * t; }
   function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
 
   window.CFG = {
-    colors, setupCanvas, clear, drawGrid, label, registerLoop, lerp, clamp,
+    colors, ink, alpha, mix, setupCanvas, clear, label, legend, registerLoop, lerp, clamp, FONT,
   };
 })();

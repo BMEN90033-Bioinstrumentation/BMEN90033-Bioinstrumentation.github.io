@@ -46,6 +46,10 @@
         var W = opts.W || 720;
         var H = opts.H || 360;
         svg.attr('viewBox', '0 0 ' + W + ' ' + H).classed('dig', true);
+        // The plot box takes the aspect ratio of the viewBox so the drawing
+        // fills it and the label text scales with the box width only.
+        var box = svg.node() && svg.node().parentNode;
+        if (box) box.style.aspectRatio = W + ' / ' + H;
         svg.selectAll('*').remove();
         var g = svg.append('g');
         return { g: g, W: W, H: H };
@@ -173,6 +177,21 @@
         return p;
     };
 
+    // Sets the text of an SVG text selection, drawing "X_abc" as X with a
+    // subscript abc. Uses dy offsets because baseline-shift is not supported
+    // by every browser in SVG.
+    DL.sub = function (sel, str) {
+        sel.text(null);
+        var shifted = false;
+        String(str).split(/_([A-Za-z0-9]+)/).forEach(function (part, i) {
+            if (part === '') return;
+            var isSub = i % 2 === 1;
+            var ts = sel.append('tspan').text(part);
+            if (isSub) ts.attr('font-size', '0.75em');
+            if (isSub !== shifted) { ts.attr('dy', isSub ? '0.4em' : '-0.3em'); shifted = isSub; }
+        });
+    };
+
     window.DL = DL;
 
     // ===================== scene 01: gate explorer =====================
@@ -238,7 +257,7 @@
             cell.append('rect').attr('x', 6).attr('y', 6)
                 .attr('width', cellW - 12).attr('height', cellH - 12)
                 .attr('rx', 8).attr('fill', 'none')
-                .attr('stroke', 'var(--border)').attr('stroke-width', 1);
+                .attr('stroke', 'var(--calcium-white-800)').attr('stroke-width', 1);
 
             // title and expression (top of cell)
             cell.append('text').attr('class', 'gate-title')
@@ -327,11 +346,11 @@
                     .attr('x', cellW / 2).attr('y', cellH - 18)
                     .attr('text-anchor', 'middle')
                     .attr('fill', 'var(--fg)')
-                    .attr('font-size', 11);
+                    .attr('font-size', 13);
                 g.note.forEach(function (part) {
                     var ts = noteT.append('tspan').text(part.text);
                     if (part.big) {
-                        ts.attr('font-size', 13).attr('font-weight', 600);
+                        ts.attr('font-size', 15);
                     }
                 });
             }
@@ -342,7 +361,6 @@
         DL.bindBitButton(aBtn, drawGates);
         DL.bindBitButton(bBtn, drawGates);
         drawGates();
-        window.addEventListener('themechange', drawGates);
         window.addEventListener('resize', drawGates);
     }
 

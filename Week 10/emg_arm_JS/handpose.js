@@ -189,23 +189,25 @@
         var r = Math.min(canvas.width, canvas.height) * 0.07;
         var t = performance.now() / 1000;
         var a = (t * 2.4) % (Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        // Ink scrim over the camera frame; marks are drawn in the on-ink colour.
+        ctx.fillStyle = window.T.fg(0.55);
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         // Faint full ring.
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.strokeStyle = window.T.onAccent;
+        ctx.globalAlpha = 0.25;
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.stroke();
-        // Bright moving arc.
-        ctx.strokeStyle = '#7be089';
+        ctx.globalAlpha = 1;
+        // Moving arc.
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.arc(cx, cy, r, a, a + Math.PI * 1.4);
         ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.font = "11px 'JetBrains Mono', monospace";
+        ctx.fillStyle = window.T.onAccent;
+        ctx.font = "13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'center';
         ctx.fillText(label, cx, cy + r + 22);
         ctx.textAlign = 'start';
@@ -221,7 +223,7 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             ctx.restore();
         } else {
-            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillStyle = window.T.fg(0.85);
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
@@ -231,7 +233,8 @@
                 var mx = function (p) { return canvas.width - p.x; };
                 ctx.lineWidth = 2.4;
                 ctx.lineCap = 'round';
-                var FCOLOR = ['#58a6ff', '#fb923c', '#7be089', '#ff5c7a', '#ffcf5c'];
+                // Same finger hues as the traces: thumb, index, middle, ring, little.
+                var FCOLOR = ['blue', 'orange', 'green', 'pink', 'violet'].map(window.T.c);
                 for (var f = 0; f < FINGER_CHAINS.length; f++) {
                     var chain = FINGER_CHAINS[f];
                     ctx.strokeStyle = FCOLOR[f];
@@ -244,7 +247,7 @@
                     }
                     ctx.stroke();
                 }
-                ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                ctx.fillStyle = window.T.onAccent;
                 for (var k = 0; k < kp.length; k++) {
                     if (!kp[k]) continue;
                     ctx.beginPath();

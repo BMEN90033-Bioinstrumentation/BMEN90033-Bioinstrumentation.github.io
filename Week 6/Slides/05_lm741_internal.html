@@ -3,35 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide 5: LM741 Internal Circuitry</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Slide 07: LM741 internal circuitry</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    (function () {
-      var qp = new URLSearchParams(location.search);
-      var qt = qp.get('theme');
-      var ss = null;
-      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { /* ignore */ }
-      var pick = (qt === 'dark' || qt === 'light') ? qt
-               : (ss === 'dark' || ss === 'light') ? ss
-               : null;
-      if (pick) document.documentElement.setAttribute('data-theme', pick);
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { /* ignore */ }
-      });
-      if (window.parent !== window) {
-        var style = document.createElement('style');
-        style.textContent = '#theme-toggle{display:none !important;}';
-        document.head.appendChild(style);
-      }
-    })();
-  </script>
   <style>
     .lm741-view {
       position: absolute;
@@ -49,7 +24,7 @@
       left: 32px;
       right: 32px;
       font-size: 22px;
-      font-weight: 600;
+      font-weight: 300;
       color: var(--slide-text);
       letter-spacing: -0.2px;
     }
@@ -83,10 +58,7 @@
       margin-bottom: 2px;
     }
 
-    .lm741-disclaimer strong {
-      color: var(--slide-text);
-      font-weight: 600;
-    }
+    .lm741-disclaimer strong { color: var(--slide-text); }
 
     .lm741-figure {
       position: relative;
@@ -95,9 +67,9 @@
       max-height: 100%;
       flex: 1 1 auto;
       min-height: 0;
-      background: #ffffff;
-      border-radius: 6px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      background: var(--white);
+      border: 1px solid var(--slide-border);
+      border-radius: var(--radius-4);
       overflow: hidden;
     }
 
@@ -111,29 +83,27 @@
     .lm741-overlay {
       position: absolute;
       border: 3px solid currentColor;
-      border-radius: 3px;
+      border-radius: var(--radius-1);
       background: color-mix(in srgb, currentColor 14%, transparent);
-      box-shadow:
-        0 0 0 1px color-mix(in srgb, currentColor 25%, transparent),
-        0 0 18px color-mix(in srgb, currentColor 55%, transparent);
       pointer-events: none;
       opacity: 0;
       transition: opacity 1.6s ease-out;
     }
 
-    .lm741-overlay.blue    { color: var(--slide-blue); }
-    .lm741-overlay.red     { color: var(--slide-red); }
-    .lm741-overlay.magenta { color: var(--slide-magenta); }
-    .lm741-overlay.green   { color: var(--slide-accent); }
-    .lm741-overlay.cyan    { color: var(--slide-cyan); }
+    /* One hue per functional block, in data-palette order */
+    .lm741-view .blue   { color: var(--d-blue); }
+    .lm741-view .orange { color: var(--d-orange); }
+    .lm741-view .pink   { color: var(--d-pink); }
+    .lm741-view .green  { color: var(--d-green); }
+    .lm741-view .violet { color: var(--d-violet); }
 
     .lm741-view.revealed .lm741-overlay { opacity: 1; }
 
-    .lm741-view.revealed .lm741-overlay.blue    { transition-delay: 0.2s; }
-    .lm741-view.revealed .lm741-overlay.red     { transition-delay: 1.6s; }
-    .lm741-view.revealed .lm741-overlay.magenta { transition-delay: 3.0s; }
-    .lm741-view.revealed .lm741-overlay.green   { transition-delay: 4.4s; }
-    .lm741-view.revealed .lm741-overlay.cyan    { transition-delay: 5.8s; }
+    .lm741-view.revealed .lm741-overlay.blue   { transition-delay: 0.2s; }
+    .lm741-view.revealed .lm741-overlay.orange { transition-delay: 1.6s; }
+    .lm741-view.revealed .lm741-overlay.pink   { transition-delay: 3.0s; }
+    .lm741-view.revealed .lm741-overlay.green  { transition-delay: 4.4s; }
+    .lm741-view.revealed .lm741-overlay.violet { transition-delay: 5.8s; }
 
     .lm741-legend {
       display: flex;
@@ -149,10 +119,8 @@
       gap: 12px;
       align-items: start;
       padding: 10px 12px;
-      border-radius: 6px;
-      background: var(--slide-surface);
+      border-radius: var(--radius-4);
       border: 1px solid var(--slide-border);
-      border-left-width: 3px;
       opacity: 0;
       transition: opacity 1.6s ease-out;
     }
@@ -168,9 +136,9 @@
     .lm741-legend .swatch {
       width: 18px;
       height: 18px;
-      border-radius: 3px;
+      border-radius: var(--radius-dot);
       margin-top: 2px;
-      border: 2px dashed currentColor;
+      border: 2px solid currentColor;
       background: color-mix(in srgb, currentColor 15%, transparent);
     }
 
@@ -182,14 +150,15 @@
     }
 
     .lm741-legend .legend-text .name {
+      font-family: var(--font-book);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 400;
       color: var(--slide-text);
       line-height: 1.25;
     }
 
     .lm741-legend .legend-text .transistors {
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 11px;
       color: var(--slide-text-dim);
     }
@@ -201,62 +170,41 @@
       margin-top: 4px;
     }
 
-    .legend-item.blue    { color: var(--slide-blue);    border-left-color: var(--slide-blue); }
-    .legend-item.red     { color: var(--slide-red);     border-left-color: var(--slide-red); }
-    .legend-item.magenta { color: var(--slide-magenta); border-left-color: var(--slide-magenta); }
-    .legend-item.green   { color: var(--slide-accent);  border-left-color: var(--slide-accent); }
-    .legend-item.cyan    { color: var(--slide-cyan);    border-left-color: var(--slide-cyan); }
-
+    /* Appearance comes from the shared .seg-btn in theme.css */
     .lm741-labels-btn {
       position: absolute;
-      top: 18px;
+      top: 14px;
       right: 32px;
-      padding: 8px 18px;
-      background: var(--slide-surface);
-      color: var(--slide-text);
-      border: 1px solid var(--slide-border);
-      border-radius: 6px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-      text-transform: lowercase;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
       z-index: 5;
     }
 
-    .lm741-labels-btn:hover:not(:disabled) {
-      color: var(--slide-accent);
-      border-color: var(--slide-accent);
-      background: rgba(106, 170, 142, 0.08);
-    }
-
-    .lm741-labels-btn:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-
+    /* Narrow viewport: the stage grows with its content in one column */
     @media (max-width: 900px) {
+      .manim-stage { aspect-ratio: auto; max-height: none; }
       .lm741-view {
+        position: relative;
+        inset: auto;
         grid-template-columns: 1fr;
         gap: 14px;
         padding: 16px;
       }
-      .lm741-title { font-size: 16px; left: 16px; right: 16px; top: 12px; }
-      .lm741-image-wrap { padding-top: 28px; }
+      .lm741-title { position: static; font-size: 16px; padding-right: 120px; }
+      .lm741-labels-btn { top: 12px; right: 16px; }
+      .lm741-image-wrap { padding-top: 0; height: auto; }
+      .lm741-figure { flex: none; width: 100%; }
       .lm741-legend { padding-top: 0; }
     }
   </style>
 </head>
 <body class="slide">
   <header class="slide-header">
-    <span class="slide-num">06 / 19</span>
+    <span class="slide-num">07 / 20</span>
   </header>
 
   <div id="stage" class="manim-stage">
     <div class="lm741-view" id="lm741View">
-      <div class="lm741-title">Internal Circuitry of the LM741 Op-Amp</div>
-      <button type="button" class="lm741-labels-btn" id="lm741LabelsBtn">labels</button>
+      <div class="lm741-title">Internal circuitry of the LM741 op-amp</div>
+      <button type="button" class="seg-btn lm741-labels-btn" id="lm741LabelsBtn">Show labels</button>
       <div class="lm741-image-wrap">
         <div class="lm741-disclaimer">
           <ul>
@@ -266,14 +214,14 @@
           </ul>
         </div>
         <div class="lm741-figure">
-          <img src="Images/Slide5_LM741_Internal.png" alt="LM741 internal schematic with functional blocks highlighted">
+          <img src="Images/Slide5_LM741_Internal.png" alt="Transistor-level schematic of the LM741 with the functional blocks highlighted">
           <div class="lm741-overlay blue"    style="left: 8.2%;  top: 23.2%; width: 29.5%; height: 73.5%;"></div>
-          <div class="lm741-overlay red"     style="left: 21.2%; top: 0.1%;  width: 25.4%; height: 23.1%;"></div>
-          <div class="lm741-overlay red"     style="left: 52.7%; top: 0.1%;  width: 28.0%; height: 18.2%;"></div>
-          <div class="lm741-overlay red"     style="left: 41.6%; top: 62.5%; width: 15.6%; height: 34.2%;"></div>
-          <div class="lm741-overlay magenta" style="left: 60.4%; top: 55.3%; width: 20.5%; height: 41.4%;"></div>
+          <div class="lm741-overlay orange"     style="left: 21.2%; top: 0.1%;  width: 25.4%; height: 23.1%;"></div>
+          <div class="lm741-overlay orange"     style="left: 52.7%; top: 0.1%;  width: 28.0%; height: 18.2%;"></div>
+          <div class="lm741-overlay orange"     style="left: 41.6%; top: 62.5%; width: 15.6%; height: 34.2%;"></div>
+          <div class="lm741-overlay pink" style="left: 60.4%; top: 55.3%; width: 20.5%; height: 41.4%;"></div>
           <div class="lm741-overlay green"   style="left: 68.6%; top: 17.9%; width: 12.1%; height: 37.3%;"></div>
-          <div class="lm741-overlay cyan"    style="left: 81.0%; top: 9.7%;  width: 13.0%; height: 58.0%;"></div>
+          <div class="lm741-overlay violet"    style="left: 81.0%; top: 9.7%;  width: 13.0%; height: 58.0%;"></div>
         </div>
       </div>
       <div class="lm741-legend">
@@ -282,39 +230,39 @@
           <div class="legend-text">
             <span class="name">Differential inverting stage</span>
             <span class="transistors">Q1–Q7 · lateral PNP input pair</span>
-            <span class="desc">Amplifies the voltage difference between the two inputs while rejecting any common-mode signal. Sets the op-amp's high input impedance and low input bias current.</span>
+            <span class="desc">Amplifies the voltage difference between the two inputs and rejects the common-mode signal. This stage sets the high input impedance and low input bias current of the op-amp.</span>
           </div>
         </div>
-        <div class="legend-item red">
+        <div class="legend-item orange">
           <span class="swatch"></span>
           <div class="legend-text">
             <span class="name">Current mirrors</span>
             <span class="transistors">Q8/Q9 · Q10/Q11 · Q12/Q13</span>
-            <span class="desc">Internal bias network that copies one reference current to every stage, giving each transistor a stable operating point and acting as a high-impedance active load to maximise gain.</span>
+            <span class="desc">The internal bias network copies one reference current to every stage. Each transistor receives a stable operating point, and the mirrors act as high-impedance active loads that maximise gain.</span>
           </div>
         </div>
-        <div class="legend-item magenta">
+        <div class="legend-item pink">
           <span class="swatch"></span>
           <div class="legend-text">
             <span class="name">Class A gain stage</span>
             <span class="transistors">Q15, Q19, Q22</span>
-            <span class="desc">A high-gain common-emitter stage, biased in class A with an active load. Together with the input stage it provides the op-amp's open-loop voltage gain of about 100 dB. The 30 pF Miller cap sets the dominant pole for stability.</span>
+            <span class="desc">A high-gain common-emitter stage, biased in class A with an active load. Together with the input stage, it provides the open-loop voltage gain of about 100 dB. The 30 pF Miller capacitor sets the dominant pole for stability.</span>
           </div>
         </div>
         <div class="legend-item green">
           <span class="swatch"></span>
           <div class="legend-text">
             <span class="name">Voltage level shifter</span>
-            <span class="transistors">Q16 + 4.5 kΩ / 7.5 kΩ (V<sub>BE</sub> multiplier)</span>
-            <span class="desc">A V<sub>BE</sub>-multiplier that holds a fixed DC offset between the two output transistors, pre-biasing them just into conduction so they switch smoothly and avoid class-B crossover distortion.</span>
+            <span class="transistors">Q16 with 4.5 kΩ and 7.5 kΩ (V<sub>BE</sub> multiplier)</span>
+            <span class="desc">A V<sub>BE</sub> multiplier holds a fixed DC offset between the bases of the two output transistors. Both transistors are biased slightly into conduction, which avoids class-B crossover distortion.</span>
           </div>
         </div>
-        <div class="legend-item cyan">
+        <div class="legend-item violet">
           <span class="swatch"></span>
           <div class="legend-text">
             <span class="name">Output stage</span>
             <span class="transistors">Q14, Q17, Q20 · class-AB push-pull</span>
-            <span class="desc">A complementary push-pull pair that sources or sinks load current at the output pin, giving the op-amp a low output impedance. The output swings to about &plusmn;13 V on &plusmn;15 V supplies; it is not rail-to-rail.</span>
+            <span class="desc">A complementary push-pull pair sources or sinks load current at the output pin and gives the op-amp a low output impedance. On &plusmn;15 V supplies the output swings to about &plusmn;13 V, so the output is not rail-to-rail.</span>
           </div>
         </div>
       </div>

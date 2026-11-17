@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Digital Logic, Adders, Multiplexers, Decoders</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Digital logic, adders, multiplexers and decoders</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="passive_peak_detector_JS/passive_peak_detector.css">
@@ -56,7 +50,7 @@
                 devices. Two complementary MOSFETs form an inverter; an inverter and a series pair form NAND;
                 NAND alone is functionally complete. Structured NAND networks yield the four primitives that
                 route, combine and select digital signals: adders, subtractors, multiplexers, decoders.</p>
-            <p class="dim">Use the dots or the arrow keys to advance through the slides.</p>
+            <p class="dim">Use the dots or the arrow keys to move between slides.</p>
             <div class="tags">
                 <span class="field-tag">cmos</span>
                 <span class="field-tag">boolean algebra</span>
@@ -85,7 +79,7 @@
                 <li><b>OR.</b> Output is $1$ when at least one input is $1$.</li>
                 <li><b>NAND.</b> Negation of AND. Functionally complete: any Boolean function can be built from NAND alone.</li>
                 <li><b>NOR.</b> Negation of OR. Also functionally complete.</li>
-                <li><b>XOR.</b> Output is $1$ when the inputs differ. Addition modulo two.</li>
+                <li><b>XOR.</b> Output is $1$ when the inputs differ; equivalent to addition modulo two.</li>
                 <li><b>XNOR.</b> Negation of XOR. Output is $1$ when the inputs agree.</li>
             </ul>
 
@@ -136,17 +130,18 @@
             <h2>Building gates from <em class="output">bipolar transistors</em></h2>
 
             <p class="lead">Before CMOS, the same Boolean primitives were realised with bipolar
-                junction transistors. An NPN device acts as a switch: drive its base above roughly
-                $0.7\,\text{V}$ and the collector clamps near ground; hold the base low and the
-                collector floats up to $V_{CC}$ through a pull-up resistor. Three single-stage circuits
+                junction transistors. An NPN device acts as a switch. A base voltage above
+                approximately $0.7\,\text{V}$ turns the device on and the collector falls close to
+                ground. With the base held low the device is off and a pull-up resistor raises the
+                collector to $V_{CC}$. Three single-stage circuits
                 cover the universal cases.</p>
 
             <p>The inverter places one transistor between $Y$ and ground, with $R_C$ tying $Y$ to
                 $V_{CC}$. A high input saturates the transistor and pulls $Y$ low; a low input cuts
                 it off and $R_C$ pulls $Y$ high.</p>
 
-            <p>NOR places two transistors in parallel between $Y$ and ground: either input being high
-                is enough to pull $Y$ low. NAND places the same two transistors in series: both inputs
+            <p>NOR places two transistors in parallel between $Y$ and ground: a high level on either input
+                pulls $Y$ low. NAND places the same two transistors in series: both inputs
                 must be high before the conduction path to ground is complete. The base resistors
                 $R_A$ and $R_B$ limit base current; the collector resistor $R_C$ sets the high-state
                 voltage and the static current draw.</p>
@@ -199,7 +194,7 @@
 
             <p>For a low input the PMOS pulls the output to $V_{DD}$; for a high input the NMOS pulls it to
                 ground. At every static input one device is off, so no DC current flows. Power is dissipated
-                only during the switching transient, which is the origin of CMOS's low static power.</p>
+                only during the switching transient, which accounts for the low static power of CMOS.</p>
 
             <p>NAND stacks two NMOS in series to ground and two PMOS in parallel to $V_{DD}$: the output is
                 pulled low only when both inputs are high. NOR is the dual: NMOS in parallel, PMOS in series.
@@ -292,15 +287,15 @@
                     </span>
                 </div>
                 <div class="plot-box gate-box">
-                    <div class="label">half adder · <b>S = A⊕B, C = A·B</b></div>
+                    <div class="label">half adder · <b>$S = A \oplus B$, $C_{\text{out}} = A \cdot B$</b></div>
                     <svg id="plot-dl-half"></svg>
                 </div>
                 <div class="plot-box gate-box">
-                    <div class="label">full adder · <b>two half adders + OR</b></div>
+                    <div class="label">full adder · <b>two half adders and an OR gate</b></div>
                     <svg id="plot-dl-full"></svg>
                 </div>
                 <div class="plot-box ripple-box">
-                    <div class="label">4-bit ripple-carry adder · <b>A + B</b></div>
+                    <div class="label">4-bit ripple-carry adder · <b>$A + B$</b></div>
                     <svg id="plot-dl-ripple"></svg>
                 </div>
                 <div class="readout">
@@ -332,7 +327,7 @@
 
             <p>For $M = 0$ the XORs pass $B$ unchanged and $C_{\text{in,0}} = 0$, computing $A + B$. For
                 $M = 1$ the XORs invert $B$ and $C_{\text{in,0}} = 1$, computing $A + \bar B + 1 = A - B$.
-                The same lattice serves both; only the interpretation of the result changes.</p>
+                The same lattice serves both operations; only the interpretation of the result changes.</p>
 
             <p>Under two's-complement arithmetic the carry-out of the most significant stage is not the
                 sign bit. Overflow is detected as the XOR of the carry into and out of the highest stage.</p>
@@ -366,13 +361,13 @@
                     </span>
                 </div>
                 <div class="plot-box ripple-box">
-                    <div class="label">4-bit adder/subtractor · <b>M = 0 add, M = 1 sub</b></div>
+                    <div class="label">4-bit adder/subtractor · <b>$M = 0$ adds, $M = 1$ subtracts</b></div>
                     <svg id="plot-dl-addsub"></svg>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">A</span><span class="v" id="dl-sub-a">0101</span></div>
                     <div class="item"><span class="k">B</span><span class="v" id="dl-sub-b">0011</span></div>
-                    <div class="item"><span class="k">B XOR M</span><span class="v" id="dl-sub-bx">1100</span></div>
+                    <div class="item"><span class="k">$B \oplus M$</span><span class="v" id="dl-sub-bx">1100</span></div>
                     <div class="item"><span class="k">result</span><span class="v" id="dl-sub-r">0010</span></div>
                     <div class="item"><span class="k">decimal</span><span class="v" id="dl-sub-dec">5 − 3 = 2</span></div>
                     <div class="item"><span class="k">overflow</span><span class="v" id="dl-sub-ov">no</span></div>
@@ -388,7 +383,7 @@
             <h2>Multiplexers: routing one of <em class="output">$2^k$ inputs</em></h2>
 
             <p class="lead">A multiplexer routes one of $2^k$ data inputs to a single output, selected by a
-                $k$-bit code. The 2:1 mux takes $D_0$, $D_1$ and select line $S$, with</p>
+                $k$-bit code. The 2:1 multiplexer takes $D_0$, $D_1$ and select line $S$, with</p>
 
             <div class="formula-stack">
                 <div>$Y = \bar S \cdot D_0 + S \cdot D_1$</div>
@@ -398,7 +393,7 @@
                 $S \cdot D_1$; an OR combines them. Exactly one AND is enabled at a time, so exactly one
                 input reaches $Y$.</p>
 
-            <p>A 4:1 mux uses two select lines $S_1 S_0$ with three-input ANDs, gating each $D_i$ with the
+            <p>A 4:1 multiplexer uses two select lines $S_1 S_0$ with three-input ANDs, gating each $D_i$ with the
                 matching combination of $S_1$, $S_0$ and their negations:</p>
 
             <div class="formula-stack">
@@ -431,16 +426,16 @@
                     </span>
                 </div>
                 <div class="plot-box gate-box">
-                    <div class="label">2:1 mux · <b>Y = ¬S·D₀ + S·D₁</b></div>
+                    <div class="label">2:1 multiplexer · <b>$Y = \bar S \cdot D_0 + S \cdot D_1$</b></div>
                     <svg id="plot-dl-mux2"></svg>
                 </div>
                 <div class="plot-box mux-box">
-                    <div class="label">4:1 mux · <b>two select lines, four data inputs</b></div>
+                    <div class="label">4:1 multiplexer · <b>two select lines, four data inputs</b></div>
                     <svg id="plot-dl-mux4"></svg>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">select code</span><span class="v" id="dl-mux-sel">10</span></div>
-                    <div class="item"><span class="k">routed input</span><span class="v" id="dl-mux-route">D₂</span></div>
+                    <div class="item"><span class="k">routed input</span><span class="v" id="dl-mux-route">D<sub>2</sub></span></div>
                     <div class="item"><span class="k">Y</span><span class="v" id="dl-mux-y">0</span></div>
                 </div>
             </div>
@@ -469,8 +464,8 @@
                 extra inverter stage.</p>
 
             <p>The decoder below has an active-high enable $EN$; setting $EN = 0$ forces every output to
-                zero. Many commercial decoders use an active-low enable $\bar E$ instead. Enables allow hierarchical composition: a 4-to-16 decoder is built from five 2-to-4
-                decoders, with one feeding the enables of the others. The same scaling reaches memory
+                zero. Many commercial decoders use an active-low enable $\bar E$ instead. Enables allow
+                hierarchical composition: a 4-to-16 decoder is built from five 2-to-4 decoders, with one feeding the enables of the others. The same scaling reaches memory
                 address decoders with twenty or more bits.</p>
 
             <div class="callout">
@@ -504,7 +499,7 @@
                 <div class="readout">
                     <div class="item"><span class="k">address</span><span class="v" id="dl-dec-addr">101</span></div>
                     <div class="item"><span class="k">decimal</span><span class="v" id="dl-dec-int">5</span></div>
-                    <div class="item"><span class="k">asserted line</span><span class="v" id="dl-dec-line">Y₅</span></div>
+                    <div class="item"><span class="k">asserted line</span><span class="v" id="dl-dec-line">Y<sub>5</sub></span></div>
                 </div>
             </div>
         </div>
@@ -517,11 +512,11 @@
             <h2>Applications in <em class="output">bioinstrumentation</em></h2>
 
             <p class="lead">Adders, subtractors, multiplexers and decoders compose every datapath that
-                processes a digitised signal. The role of each primitive in a typical instrumentation
-                system:</p>
+                processes a digitised signal. The sections below describe the role of each
+                primitive in a typical instrumentation system.</p>
 
             <h3>Multi-channel ADC front ends</h3>
-            <p>An analog multiplexer in front of a single ADC shares the converter across many electrodes.
+            <p>An analogue multiplexer in front of a single ADC shares the converter across many electrodes.
                 The select code, generated by a counter or by software, selects the channel for the current
                 conversion and may also feed a decoder that drives per-channel calibration lines.</p>
 
@@ -546,9 +541,9 @@
                 depth grows with the bit count, as does the carry delay of a ripple-carry adder.</p>
 
             <div class="callout">
-                Whenever a digital circuit must combine, route, select, count or compare signals, one of
-                these four primitives sits at its centre. Implementations vary; the Boolean function does
-                not. A NAND lattice realises every digital block on this page.
+                A digital circuit that combines, routes, selects, counts or compares signals is built
+                around one of these four primitives. Implementations differ, but each realises the same
+                Boolean function. A NAND lattice realises every digital block on this page.
             </div>
         </div>
     </section>

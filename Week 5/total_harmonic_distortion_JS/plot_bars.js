@@ -6,7 +6,7 @@
 
     function render() {
         var H = window.THD, p = H.p, css = window.CMP.cssVar, T = window.T;
-        var f = H.frame(sel, { margin: { top: 44, bottom: 96 } });
+        var f = H.frame(sel, { margin: { top: 58, bottom: 96 } });
         var g = f.g;
         var x = d3.scaleBand().domain([0, 1, 2, 3, 4]).range([0, f.iw]).padding(0.3);
         var y = d3.scaleLinear().domain([0, 100]).range([f.ih, 0]);
@@ -22,7 +22,7 @@
                 .attr('fill', css(H.COL[n])).attr('fill-opacity', n === 1 ? 0.6 : 0.8).attr('rx', 2);
             if (v > 0.5) {
                 g.append('text').attr('x', x(i) + x.bandwidth() / 2).attr('y', y(v) - 7).attr('text-anchor', 'middle')
-                    .attr('fill', T.text).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+                    .attr('fill', T.text).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
                     .text(v.toFixed(1) + ' %');
             }
         });

@@ -33,17 +33,9 @@
         pctReadout.textContent = pct.toFixed(1) + '%';
         qReadout.textContent = qNom.toFixed(2);
 
-        var P = window.WCGW.setupPlot('#plot-tol-mag', {
-            xScale: d3.scaleLog(),
-            xDomain: [1, 10000],
-            yDomain: [-50, 12],
-            xLabel: 'f\\,[\\mathrm{Hz}]',
-            yLabel: '|H(j2\\pi f)|\\,[\\mathrm{dB}]',
-            yTicks: 6
-        });
-
         var sigma = pct / 100;
         var fcDev = [];
+        var ensemble = [];
         for (var k = 0; k < samples; k++) {
             var dR1 = sigma * 0.5 * seeded(k * 4 + 1);
             var dR2 = sigma * 0.5 * seeded(k * 4 + 2);
@@ -55,22 +47,33 @@
             var qK = qNom * 2 * Math.sqrt((1 + dR1) * (1 + dR2) * (1 + dC1) * (1 + dC2)) /
                 ((1 + dC2) * (2 + dR1 + dR2));
             fcDev.push(fcK / fcNominal - 1);
-            var t = trace(fcK, qK);
-            window.WCGW.drawLine(P, t, function (d) { return d.f; }, function (d) { return d.magDb; }, 'distort thin', P.y);
+            ensemble.push(trace(fcK, qK));
         }
+        var dfc = d3.deviation(fcDev);
+
+        var P = window.WCGW.setupPlot('#plot-tol-mag', {
+            legend: [
+                { key: 'clean', label: 'nominal' },
+                { key: 'distort', label: 'R ±' + (pct / 2).toFixed(2) + '%, C ±' + pct.toFixed(1) + '% (σ(f_c)/f_c = ' + (dfc * 100).toFixed(1) + '%)' },
+                { key: 'mark', dash: true, label: 'nominal f_c = 100 Hz' }
+            ],
+            xScale: d3.scaleLog(),
+            xDomain: [1, 10000],
+            yDomain: [-50, 12],
+            xLabel: 'f\\,[\\mathrm{Hz}]',
+            yLabel: '|H(j2\\pi f)|\\,[\\mathrm{dB}]',
+            yTicks: 6
+        });
+
+        ensemble.forEach(function (t) {
+            window.WCGW.drawLine(P, t, function (d) { return d.f; }, function (d) { return d.magDb; }, 'distort thin', P.y);
+        });
 
         var nom = trace(fcNominal, qNom);
         window.WCGW.drawLine(P, nom, function (d) { return d.f; }, function (d) { return d.magDb; }, 'clean', P.y);
 
         P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fcNominal)).attr('x2', P.x(fcNominal)).attr('y1', 0).attr('y2', P.innerH);
-        P.g.append('text').attr('x', P.x(fcNominal) + 6).attr('y', 14).attr('fill', P.colors.mark)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('f_c nominal = 100 Hz');
 
-        var dfc = d3.deviation(fcDev);
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'nominal' },
-            { key: 'distort', label: 'R ±' + (pct / 2).toFixed(2) + '%, C ±' + pct.toFixed(1) + '% (σ f_c = ' + (dfc * 100).toFixed(1) + '%)' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -81,7 +84,6 @@
         if (!pctSlider) return;
         pctSlider.addEventListener('input', draw);
         qSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

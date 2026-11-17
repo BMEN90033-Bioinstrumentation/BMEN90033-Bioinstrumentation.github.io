@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Electron Orbitals</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Electron orbitals</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -55,8 +49,8 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · ATOMIC STRUCTURE</div>
-            <h1 class="hero">Electron <em>orbitals</em></h1>
-            <p class="sub">The behaviour of semiconductors begins with the electronic structure of the atom. Each
+            <h1 class="hero">Electron orbitals</h1>
+            <p class="sub">The behaviour of semiconductors follows from the electronic structure of the atom. Each
                 electron occupies an orbital, a solution of the Schrödinger equation labelled by the quantum numbers
                 $n$, $l$ and $m$. This page samples the hydrogenic orbitals of hydrogen, carbon, silicon and gold,
                 develops their radial and angular structure, and estimates the energies that order the shells.</p>
@@ -159,7 +153,7 @@
                     <div class="hint">drag to rotate · scroll to zoom</div>
                 </div>
                 <div class="legend">
-                    <span>point colour: orbital, as in the chips</span>
+                    <span>point colour: orbital type, as in the chips; shells of the same type share a hue</span>
                     <span><span class="sw" style="background:var(--c-pos)"></span>$\psi &gt; 0$</span>
                     <span><span class="sw" style="background:var(--c-neg)"></span>$\psi &lt; 0$ (sign view)</span>
                 </div>
@@ -209,7 +203,7 @@
         <div>
             <div class="plot-stack">
                 <div class="toolbar">
-                    <span class="lab" style="color:var(--muted);font-size:10px;letter-spacing:0.1em;text-transform:uppercase">focus</span>
+                    <span class="lab">focus</span>
                     <span class="orb-chips focus"></span>
                 </div>
                 <div class="plot-box radial">
@@ -253,7 +247,7 @@
                 orbital. This is the basis of the covalent bonds in the silicon crystal.</p>
 
             <p>The plot shows $\psi$ on a plane through the nucleus. A $p_y$ orbital is zero everywhere on the
-                $xz$ plane, which is itself its nodal plane, so the $xy$ plane is needed to see it.</p>
+                $xz$ plane, which is itself its nodal plane, so the orbital must be viewed on the $xy$ plane.</p>
 
             <div class="callout">
                 Real orbitals carry no probability current: $\mathbf{j} = (\hbar/m_e)\,\mathrm{Im}(\psi^*\nabla\psi)
@@ -298,8 +292,8 @@
             <div class="eq-block">$$E_n \approx -13.6\,\text{eV}\;\frac{Z_\text{eff}^2}{n^2},
                 \qquad Z_\text{eff} = Z - \sigma$$</div>
 
-            <p>where $\sigma$ is the screening by the other electrons. For silicon, with $Z = 14$, a 1s electron sees
-                $Z_\text{eff} = 13.6$, almost the full nuclear charge, while a 3p electron sees only $4.29$. The core
+            <p>where $\sigma$ is the screening by the other electrons. For silicon, with $Z = 14$, a 1s electron experiences
+                $Z_\text{eff} = 13.6$, almost the full nuclear charge, while a 3p electron experiences only $4.29$. The core
                 electrons are therefore bound far more tightly than the valence electrons in the outermost shell.</p>
 
             <ul class="bullets">
@@ -349,7 +343,7 @@
                     <span>open circle: vacancy</span>
                     <span><span class="sw" style="background:var(--c-level)"></span>measured (first ionisation energy)</span>
                     <span><span class="sw dashed"></span>hydrogenic estimate</span>
-                    <span>highlighted: focus subshell</span>
+                    <span><span class="sw focus"></span>focus subshell</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">state</span><span class="v" data-out="state"></span></div>

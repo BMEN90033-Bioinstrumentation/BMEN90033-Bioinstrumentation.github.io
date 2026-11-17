@@ -3,6 +3,11 @@
 // and is otherwise isolated. There is no discharge path, so the output is the
 // running maximum of v_in - V_F since reset.
 (function () {
+    // SVG label with a subscript: sub('v', 'out') renders v with a lowered 'out'.
+    function sub(a, b, c) {
+        return a + '<tspan dy="4" font-size="10">' + b + '</tspan>' + (c ? '<tspan dy="-4">' + c + '</tspan>' : '');
+    }
+
     var ampI = document.getElementById('pp-s-amp');
     var vfI  = document.getElementById('pp-s-vf');
     var ampL = document.getElementById('pp-s-amp-val');
@@ -34,7 +39,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 54, left: 56 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -66,14 +71,14 @@
         ground(g, gnd.x, gnd.y);
 
         // Source on the input
-        source(g, src.x, src.y, 'v_in');
+        source(g, src.x, src.y, sub('v', 'in'));
 
         // Output dot and label
         g.append('circle').attr('cx', out.x - 14).attr('cy', out.y).attr('r', 4)
             .attr('fill', 'var(--c-output)');
         g.append('text').attr('x', out.x).attr('y', out.y + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--c-output)').text('v_out');
+            .style('font-size', '13px')
+            .style('fill', 'var(--c-output)').html(sub('v', 'out'));
 
         // Junction dot where the cap branches off the top rail
         g.append('circle').attr('cx', cap.x).attr('cy', cap.y).attr('r', 3.5)
@@ -82,8 +87,8 @@
         // Diode label
         g.append('text').attr('x', (dIn.x + dOut.x) / 2).attr('y', dIn.y - 26)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('D1');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('D1');
     }
 
     function source(g, x, y, label) {
@@ -93,8 +98,8 @@
         g.append('path').attr('d', 'M ' + (x - 14) + ',' + y + ' Q ' + (x - 7) + ',' + (y - 12) + ' ' + x + ',' + y + ' T ' + (x + 14) + ',' + y)
             .attr('fill', 'none').attr('stroke', 'var(--c-input)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x).attr('y', y + 46).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text(label);
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').html(label);
     }
 
     function wire(g, x1, y1, x2, y2) {
@@ -139,8 +144,8 @@
         g.append('line').attr('x1', x).attr('y1', midY + 5).attr('x2', x).attr('y2', gy)
             .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x + 22).attr('y', midY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text('C');
+            .style('font-size', '13px')
+            .style('fill', 'var(--muted)').text('C');
     }
 
     function ground(g, x, y) {
@@ -170,7 +175,7 @@
     }
 
     function drawTrace() {
-        var f = makeFrame(traceSvg);
+        var f = makeFrame(traceSvg, { margin: { top: 40, right: 76, bottom: 54, left: 56 } });
         f.g.selectAll('*').remove();
 
         var yMax = Math.max(2.6, state.amp + 0.4);
@@ -198,11 +203,10 @@
             .attr('stroke', 'var(--c-output)').attr('stroke-width', 1.0)
             .attr('stroke-dasharray', '4 4').attr('opacity', 0.4);
         f.g.append('text')
-            .attr('x', f.iw - 8).attr('y', y(ssOut) - 6)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-output)')
-            .text('A − V_F');
+            .attr('x', f.iw + 8).attr('y', y(ssOut) + 4)
+            .style('font-size', '13px')
+            .style('fill', 'var(--c-output)')
+            .html(sub('A − V', 'F'));
 
         // Convert buffer t into a relative time in view (t_rel = t - (current_t - T_VIEW))
         var t0 = Math.max(0, state.t - T_VIEW);
@@ -221,10 +225,10 @@
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
-                .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickFormat(function (d) { return d.toFixed(1); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues(d3.range(-Math.floor(yMax), Math.floor(yMax) + 1, 1))
@@ -234,23 +238,15 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle')
-            .text('Time');
+            .text('Time (s)');
         f.g.append('text')
             .attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
             .text('Voltage (V)');
 
-        // Legend (top right)
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-output)').text('v_out(t)');
     }
 
     function updateReadout(conducting) {
@@ -259,7 +255,7 @@
         rdVo.textContent = state.vCap.toFixed(2) + ' V';
         rdVd.textContent = state.vf.toFixed(2) + ' V';
         if (state.amp <= state.vf) {
-            rdSt.textContent = 'V_F blocked';
+            rdSt.textContent = 'blocked';
             rdSt.className = 'v warn';
         } else if (state.vCap < ssOut - 1e-3 && conducting) {
             rdSt.textContent = 'charging';
@@ -303,7 +299,6 @@
             vfL.textContent = state.vf.toFixed(2) + ' V';
         });
         btnR.addEventListener('click', reset);
-        window.addEventListener('themechange', function () { drawCircuit(); });
         window.addEventListener('resize', function () { drawCircuit(); });
         requestAnimationFrame(tick);
     }

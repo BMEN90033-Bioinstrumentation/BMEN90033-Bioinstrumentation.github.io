@@ -103,12 +103,11 @@
         GBP_MIN: GBP_MIN, GBP_MAX: GBP_MAX,
         omega0: omega0, gainAt: gainAt, gainDb: gainDb, state: state,
         fmtAv: fmtAv, texNum: texNum, supNum: supNum, fmtR: fmtR, fmtC: fmtC, fmtFreq: fmtFreq, fmtHz: fmtHz, tex: tex,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ampchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

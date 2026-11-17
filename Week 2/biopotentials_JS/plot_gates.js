@@ -8,7 +8,7 @@
     function render() {
         var css = window.CMP.cssVar;
         var f = B.frame(sel, {});
-        var gap = 16, ph = (f.ih - gap) / 2;
+        var gap = 24, ph = (f.ih - gap) / 2;
         var x = B.timeScale(f.iw);
         var yX = d3.scaleLinear().domain([0, 1]).range([ph, 0]);
         var yG = d3.scaleLinear().domain([0, 40]).range([ph, 0]);

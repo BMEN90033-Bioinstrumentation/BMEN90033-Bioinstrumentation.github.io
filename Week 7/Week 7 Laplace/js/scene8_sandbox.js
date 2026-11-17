@@ -1,4 +1,4 @@
-// Scene 8 — Sandbox.
+// Scene 8, Sandbox.
 // User picks an input function x(t) (each forces a fixed set of poles/zeros
 // in X(s)) and builds a transfer function H(s) by clicking the s-plane to
 // drop poles and zeros. Output y(t) is the inverse Laplace of X(s)·H(s),
@@ -36,7 +36,7 @@
   const SPAN_Y = 3;
   function geom() {
     const rect = cSP.getBoundingClientRect();
-    const padL = 36, padR = 18, padT = 26, padB = 30;
+    const padL = 14, padR = 30, padT = 70, padB = 40;
     const w = rect.width, h = rect.height;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     return {
@@ -73,10 +73,10 @@
     }
     return { poles: [], zeros: [], k: 1 };
   }
+  // [word, TeX symbol] for the parameter slider label.
   function inputParamLabel() {
-    if (inputKind === 'sin' || inputKind === 'cos') return 'frequency $\\omega$';
-    if (inputKind === 'exp') return 'rate $a$';
-    return '—';
+    if (inputKind === 'exp') return ['rate', 'a'];
+    return ['frequency', '\\omega'];
   }
   function paramVisible() {
     return inputKind === 'sin' || inputKind === 'cos' || inputKind === 'exp';
@@ -197,8 +197,7 @@
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
-    ctx.lineWidth = kind === 'pole' ? 2.4 : 2.2;
-    if (hi) { ctx.shadowColor = color; ctx.shadowBlur = 10; }
+    ctx.lineWidth = (kind === 'pole' ? 2.4 : 2.2) + (hi ? 1 : 0);
     if (kind === 'pole') {
       const r = 7;
       ctx.beginPath();
@@ -216,9 +215,9 @@
     CFG.clear(ctx, w, h);
     const G = geom();
     // shaded half-planes
-    ctx.fillStyle = 'rgba(123,224,137,0.04)';
+    ctx.fillStyle = CFG.alpha(C.time, 0.1);
     ctx.fillRect(G.x0, G.y0, G.xOf(0) - G.x0, G.y1 - G.y0);
-    ctx.fillStyle = 'rgba(255,92,122,0.04)';
+    ctx.fillStyle = CFG.alpha(C.imag, 0.08);
     ctx.fillRect(G.xOf(0), G.y0, G.x1 - G.xOf(0), G.y1 - G.y0);
     // grid
     ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
@@ -234,12 +233,12 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(G.x0, G.yOf(0)); ctx.lineTo(G.x1, G.yOf(0)); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(G.xOf(0), G.y0); ctx.lineTo(G.xOf(0), G.y1); ctx.stroke();
-    CFG.label(ctx, 'jω', G.xOf(0) + 5, G.y0 + 2, C.real, { size: 10 });
-    CFG.label(ctx, 'σ', G.x1 - 10, G.yOf(0) + 4, C.muted, { size: 10 });
-    CFG.label(ctx, 'LHP · stable', G.x0 + 4, G.y1 - 14, C.time, { size: 10 });
-    CFG.label(ctx, 'RHP · unstable', G.x1 - 4, G.y1 - 14, C.imag, { size: 10, align: 'right' });
+    CFG.label(ctx, 'jω', G.xOf(0), G.y0 - 6, C.muted, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, 'σ', G.x1 + 8, G.yOf(0), C.muted, { baseline: 'middle' });
+    CFG.label(ctx, 'LHP: stable', G.x0 + 6, G.y1 - 6, C.time, { baseline: 'bottom' });
+    CFG.label(ctx, 'RHP', G.x1 - 6, G.y1 - 6, C.imag, { align: 'right', baseline: 'bottom' });
 
-    // input poles & zeros (forced by x(t)) — yellow
+    // input poles and zeros (forced by x(t)), drawn in the highlight colour
     const inp = inputPolesZeros();
     const inputCol = C.accent;
     function drawInputRoot(r, kind) {
@@ -258,10 +257,11 @@
     }
 
     // legend along the bottom edge
-    const legendY = G.y1 + 14;
-    CFG.label(ctx, '× pole',  G.x0,        legendY, C.imag,   { size: 10 });
-    CFG.label(ctx, '○ zero',  G.x0 + 60,   legendY, C.time,   { size: 10 });
-    CFG.label(ctx, 'input', G.x1, legendY, C.accent, { size: 10, align: 'right' });
+    CFG.legend(ctx, G.x0, G.y1 + 20, [
+      { mark: 'pole', text: 'pole', color: C.imag },
+      { mark: 'zero', text: 'zero', color: C.time },
+      { mark: 'pole', text: 'input X(s)', color: C.accent },
+    ]);
   }
 
   function drawIO() {
@@ -294,8 +294,8 @@
     xMax *= 1.15; yMax *= 1.15;
     if (yMax > 1e6) yMax = 1e6;
 
-    const padL = 44, padR = 14, padT = 36, padB = 28;
-    const midGap = 20;
+    const padL = 34, padR = 14, padT = 78, padB = 46;
+    const midGap = 30;
     const x0 = padL, x1 = w - padR;
     const topY0 = padT;
     const topY1 = padT + (h - padT - padB - midGap) / 2;
@@ -336,29 +336,29 @@
         ctx.moveTo(x0 + 1, mid); ctx.lineTo(x0 + 1, y0 + 6);
         ctx.moveTo(x0 - 4, y0 + 10); ctx.lineTo(x0 + 1, y0 + 6); ctx.lineTo(x0 + 6, y0 + 10);
         ctx.stroke();
-        CFG.label(ctx, 'δ(t)', x0 + 10, y0 + 4, color, { size: 10 });
+        CFG.label(ctx, 'δ(t)', x0 + 12, y0 + 4, color);
       }
 
-      CFG.label(ctx, label, x0 + 4, y0 - 16, color, { size: 11, weight: 700 });
-      CFG.label(ctx, `±${ymax.toFixed(2)}`, x0 - 4, y0, C.muted, { size: 9, align: 'right' });
+      CFG.label(ctx, `${label}, range ±${ymax.toFixed(2)}`, x0 + 4, y0 - 20, color);
+      CFG.label(ctx, label.slice(0, 4), 14, mid, color, { rotate: true, align: 'center', baseline: 'middle' });
     }
 
-    lane(topY0, topY1, C.real, 'x(t) · input',  s => s.x, xMax, true);
-    lane(botY0, botY1, C.imag, 'y(t) · output', s => s.y, yMax, false);
+    lane(topY0, topY1, C.real, 'x(t) input',  s => s.x, xMax, true);
+    lane(botY0, botY1, C.imag, 'y(t) output', s => s.y, yMax, false);
 
-    CFG.label(ctx, 't →', x1, botY1 + 6, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, '0',   x0 + 2, botY1 + 6, C.muted, { size: 10 });
-    CFG.label(ctx, tMax.toFixed(1), (x0 + x1) / 2, botY1 + 6, C.muted, { size: 10 });
+    CFG.label(ctx, 't (s)', (x0 + x1) / 2, botY1 + 24, C.muted, { align: 'center' });
+    CFG.label(ctx, '0', x0, botY1 + 6, C.muted);
+    CFG.label(ctx, tMax.toFixed(1), x1, botY1 + 6, C.muted, { align: 'right' });
 
     // status line
-    let status = 'stable response';
+    let status = 'Stable response';
     const userPoles = items.filter(i => i.kind === 'pole');
     const unstable = userPoles.some(p => p.re > 1e-4);
     const onAxis   = userPoles.some(p => Math.abs(p.re) < 1e-4 && Math.abs(p.im) > 1e-4);
-    if (improper) status = 'improper · need at least as many poles as zeros';
-    else if (unstable) status = 'unstable · pole in RHP; output grows';
-    else if (onAxis) status = 'marginally stable · poles on jω axis';
-    else if (userPoles.length === 0 && inputKind !== 'impulse') status = 'pure feedthrough · y(t) = k·x(t)';
+    if (improper) status = 'Improper: Y(s) requires at least as many poles as zeros';
+    else if (unstable) status = 'Unstable: pole in the RHP, output grows';
+    else if (onAxis) status = 'Marginally stable: poles on the jω axis';
+    else if (userPoles.length === 0 && inputKind !== 'impulse') status = 'Static gain: y(t) = k·x(t)';
     iosub.textContent = status;
   }
 
@@ -366,7 +366,7 @@
     const userZ = items.filter(i => i.kind === 'zero').length;
     const userP = items.filter(i => i.kind === 'pole').length;
     const k = parseFloat(gain.value).toFixed(2);
-    hsub.textContent = `H(s) · ${userZ} zero${userZ === 1 ? '' : 's'} · ${userP} pole${userP === 1 ? '' : 's'} · k=${k}`;
+    hsub.textContent = `H(s): ${userZ} zero${userZ === 1 ? '' : 's'}, ${userP} pole${userP === 1 ? '' : 's'}, k = ${k}`;
   }
 
   function drawAll() {
@@ -453,12 +453,14 @@
 
   // ─── Controls ────────────────────────────────────────────────────────
   function renderParamLabel() {
-    const tex = inputParamLabel();
-    if (window.katex && tex !== '—') {
-      try { katex.render(tex, paramLbl, { throwOnError: false }); return; }
+    const [word, tex] = inputParamLabel();
+    paramLbl.textContent = word + ' ';
+    const sym = paramLbl.appendChild(document.createElement('span'));
+    if (window.katex) {
+      try { katex.render(tex, sym, { throwOnError: false }); return; }
       catch (_) { /* fall through */ }
     }
-    paramLbl.textContent = tex;
+    sym.textContent = tex.replace('\\omega', 'ω');
   }
   function syncParamUI() {
     paramRow.style.display = paramVisible() ? '' : 'none';

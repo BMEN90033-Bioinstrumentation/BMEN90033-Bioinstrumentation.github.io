@@ -29,8 +29,8 @@
         var text = T.text;
         var muted = T.textMuted;
         var rcol = window.CMP.cssVar('--c-resistor') || T.fg(0.45);
-        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.yellowA(0.5);
-        var trigCol = window.CMP.cssVar('--c-trigger') || '#7be089';
+        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.wire;
+        var trigCol = window.CMP.cssVar('--c-trigger') || T.c('green');
 
         function ln(x1, y1, x2, y2, color, w) {
             svg.append('line')
@@ -72,7 +72,7 @@
         ln(X_RAIL_L, Y_VCC, X_RAIL_R, Y_VCC, vccCol, 2.6);
         ln(X_RAIL_L, Y_GND, X_RAIL_R, Y_GND, wire,   2.6);
         window.renderKatex(svg, 'V_{CC}', X_RAIL_R - 60, Y_VCC - 18,
-            { width: 56, height: 20, size: 13, color: text });
+            { width: 56, height: 20, size: 16, color: text });
         ground(X_RAIL_R - 30, Y_GND + 6);
 
         // Chip
@@ -93,7 +93,7 @@
         ln(p5.outX, Y_CB + 14, p5.outX, Y_GND);
         window.renderKatex(svg, '10\\,\\mathrm{nF}',
             p5.outX + 60, Y_CB,
-            { width: 64, height: 18, size: 11, color: muted });
+            { width: 64, height: 18, size: 15, color: muted });
 
         // Timing column at X_TIMING:
         //   VCC rail -> R -> pin 7 (y=230) -> pin 6 (y=310) directly tied
@@ -117,10 +117,10 @@
 
         window.renderKatex(svg, 'R',
             X_TIMING - 40, (Y_R_T + Y_R_B) / 2,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
         window.renderKatex(svg, 'C',
             X_TIMING - 40, Y_C,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
 
         // Trigger column at X_TRIG:
         //   VCC rail -> R_T -> pin 2 net -> arrow input "V_trig"
@@ -139,11 +139,11 @@
         ln(X_TRIG, p2.outY, X_TRIG, Y_TRIG_LBL);
         window.renderKatex(svg, 'V_{\\text{trig}}',
             X_TRIG - 110, Y_TRIG_LBL,
-            { width: 70, height: 20, size: 13, color: trigCol, align: 'right' });
+            { width: 70, height: 20, size: 16, color: trigCol, align: 'right' });
 
         window.renderKatex(svg, 'R_T',
             X_TRIG - 40, (Y_RT_T + Y_RT_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
 
         // Pin 3 (OUT)
         var X_OUT_DOT = 640;
@@ -151,7 +151,7 @@
         dot(X_OUT_DOT, p3.outY);
         window.renderKatex(svg, 'v_{\\text{out}}',
             X_OUT_DOT + 50, p3.outY,
-            { width: 70, height: 22, size: 16, color: text });
+            { width: 70, height: 22, size: 18, color: text });
 
         // Hover tooltips
         if (window.CircuitTip) {
@@ -164,22 +164,21 @@
                 'Single timing resistor between V<sub>CC</sub> and the THRES/DISCH net. While the discharge transistor is off, the capacitor charges through R toward V<sub>CC</sub>; the pulse ends when v<sub>C</sub> reaches &#8532;V<sub>CC</sub>.');
             tip(X_TIMING - 18, Y_C - 16, 36, 32,
                 'C',
-                'Timing capacitor. Idles at 0 V (held by the internal discharge transistor). When triggered the discharge transistor opens and v<sub>C</sub> rises along an exponential with time constant RC.');
+                'Timing capacitor. At rest it is held at 0 V by the internal discharge transistor. After a trigger the discharge transistor turns off and v<sub>C</sub> rises along an exponential with time constant RC.');
             tip(X_TRIG - R_THICK, Y_RT_T - 6, R_THICK * 2 + 12, R_LEN + 12,
                 'R<sub>T</sub>',
-                'Pull-up resistor on the trigger pin. Holds TRIG above &#8531;V<sub>CC</sub> in the resting state so the chip is not retriggered by ambient noise; a brief active-low pulse on V<sub>trig</sub> initiates the timing cycle.');
+                'Pull-up resistor on the trigger pin. Holds TRIG above &#8531;V<sub>CC</sub> in the resting state so that noise does not trigger the chip; a brief active-low pulse on V<sub>trig</sub> initiates the timing cycle.');
             tip(p3.outX - 4, p3.outY - 14, X_OUT_DOT - p3.outX + 8, 28,
                 'v<sub>out</sub> (pin 3)',
-                'Output. Sits low at rest; pulses high for T &approx; 1.1RC after each negative trigger pulse, then returns to low and waits for the next trigger.');
+                'Output. Low at rest; high for T &approx; 1.1RC after each negative trigger pulse, after which it returns low until the next trigger.');
             tip(p5.outX - 18, Y_CB - 18, 36, 36,
                 '10 nF bypass',
-                'Bypasses the CTRL pin. The internal divider node sits at &#8532;V<sub>CC</sub>; coupling supply noise into it would shift the upper threshold and produce a noisy pulse width.');
+                'Bypasses the CTRL pin. The internal divider node sits at &#8532;V<sub>CC</sub>; coupling supply noise into it would shift the upper threshold and add jitter to the pulse width.');
         }
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

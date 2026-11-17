@@ -13,9 +13,15 @@
         var p = D.p, L = D.LABELS[p.mode], s = D.state();
         document.querySelectorAll('[data-out]').forEach(function (el) {
             var k = el.dataset.out;
-            if (k === 'material') { el.textContent = L.name; el.style.color = window.CMP.cssVar(L.colorVar); }
+            if (k === 'material') el.textContent = L.name;
             else if (k === 'dopant') el.textContent = L.dopant;
-            else if (k === 'carrier') el.textContent = s.type;
+            else if (k === 'carrier') {
+                el.textContent = s.type;
+                if (p.mode === 'pure') {
+                    el.textContent += ', ';
+                    tex(el.appendChild(document.createElement('span')), 'n = p = n_i');
+                }
+            }
             else if (k === 'temp') el.textContent = Math.round(p.temp) + ' K';
             else if (k === 'N') tex(el, p.mode === 'pure' ? '0' : D.fmtSci(D.N()) + '\\,\\text{cm}^{-3}');
             else if (k === 'n') tex(el, D.fmtSci(s.n) + '\\,\\text{cm}^{-3}');
@@ -23,7 +29,7 @@
             else if (k === 'ni') tex(el, D.fmtSci(s.ni) + '\\,\\text{cm}^{-3}');
             else if (k === 'sigma') tex(el, D.fmtSci(s.sigma) + '\\,\\text{S/cm}');
             else if (k === 'ef') el.textContent = isNaN(s.ef) ? 'undefined at 0 K'
-                : (s.ef >= 0 ? '+' : '−') + Math.abs(s.ef * 1e3).toFixed(0) + ' meV';
+                : (Math.abs(s.ef) < 5e-4 ? '' : s.ef > 0 ? '+' : '−') + Math.abs(s.ef * 1e3).toFixed(0) + ' meV';
         });
         live();
     }

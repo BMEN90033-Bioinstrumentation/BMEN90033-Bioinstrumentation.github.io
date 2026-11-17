@@ -12,8 +12,8 @@
         var g = f.g, iw = f.iw, ih = f.ih;
         var cats = [
             { tex: 'P_\\text{DC}', v: d.dc, c: '--c-dc' },
-            { tex: 'P_L', v: d.signal, c: '--c-hi' },
-            { tex: 'P_\\text{rip}', v: d.ripple, c: '--c-car' },
+            { tex: 'P_L', v: d.signal, c: '--c-out' },
+            { tex: 'P_\\text{rip}', v: d.ripple, c: '--c-rip' },
             { tex: 'P_\\text{cond}', v: d.cond, c: '--c-heat' },
             { tex: 'P_\\text{sw}', v: d.sw, c: '--c-heat' },
             { tex: 'P_\\text{drv}', v: d.drive, c: '--c-heat' }
@@ -23,8 +23,8 @@
         var y = d3.scaleLinear().domain([0, d.dc * k * 1.15]).range([ih, 0]).nice(5);
         var yt = y.ticks(5);
         window.CMP.drawGrid(g, d3.scaleLinear(), y, iw, ih, { xTicks: [], yTicks: yt });
-        window.CMP.styleAxis(g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0)));
-        window.CMP.styleAxis(g.append('g').attr('transform', 'translate(0,' + ih + ')')
+        window.CLD.styleAxis(g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0)));
+        window.CLD.styleAxis(g.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(d3.axisBottom(x).tickSizeOuter(0).tickFormat(function () { return ''; })));
         // Bar values carry their own unit so that small losses stay legible.
         function fmt(v) {
@@ -37,7 +37,7 @@
             g.append('rect').attr('x', bx).attr('y', y(v)).attr('width', bw).attr('height', ih - y(v))
                 .attr('fill', css(c.c)).attr('fill-opacity', 0.8).attr('rx', 3);
             g.append('text').attr('x', bx + bw / 2).attr('y', y(v) - 7).attr('text-anchor', 'middle')
-                .attr('fill', T.text).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+                .attr('fill', T.text).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
                 .text(fmt(c.v));
             window.renderKatex(f.svg, c.tex, f.m.left + bx + bw / 2, f.m.top + ih + 18, { width: 70, height: 20, size: 15 });
         });

@@ -1,6 +1,6 @@
 // Section 02 · Scrolling electrode-current trace over the last 6 s, and the
 // live electrode-potential readout. The frame (axes, titles) is rebuilt on
-// theme or size change; each animation frame only rewrites the trace path.
+// size change; each animation frame only rewrites the trace path.
 // IUPAC sign convention: anodic (oxidation) current positive, cathodic
 // (reduction) current negative.
 (function () {
@@ -29,12 +29,15 @@
             .y(function (d) { return y(d[1]); })(hist));
     }
 
+    // Signed number with a typographic minus sign (U+2212).
+    function sgn(v, d) { return (v < 0 ? '\u2212' : '+') + Math.abs(v).toFixed(d); }
+
     function readout(j) {
         var B = window.ELI, p = B.p, E = B.potential(j, p.mode), eta = E - B.nernst(Math.pow(10, p.lacl));
         var out = {
-            e: (E >= 0 ? '+' : '') + E.toFixed(4) + ' V',
-            eta: (eta >= 0 ? '+' : '') + (eta * 1e3).toFixed(2) + ' mV',
-            j: (j >= 0 ? '+' : '') + j.toFixed(1) + ' µA/cm²',
+            e: sgn(E, 4) + ' V',
+            eta: sgn(eta * 1e3, 2) + ' mV',
+            j: sgn(j, 1) + ' µA/cm²',
             rct: B.rct(Math.pow(10, p.lj0)).toFixed(1) + ' Ω·cm²'
         };
         Object.keys(out).forEach(function (k) {
@@ -79,7 +82,6 @@
         build();
         modeOut();
         readout(0);
-        window.addEventListener('themechange', build);
         window.addEventListener('resize', build);
         window.addEventListener('elichange', function (e) {
             var k = e.detail && e.detail.key;

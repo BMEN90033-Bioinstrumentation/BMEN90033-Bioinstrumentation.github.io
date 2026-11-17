@@ -373,12 +373,11 @@
         addElectrode: addElectrode, removeElectrode: removeElectrode, resetElectrodes: resetElectrodes,
         clearHistory: clearHistory, setLayers: setLayers, layersChanged: layersChanged, restart: restart,
         addView: addView,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('vcchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

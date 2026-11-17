@@ -46,7 +46,7 @@
             window.renderKatex(f.svg, c.tex, cx, f.m.top + f.ih + 17, { width: 70, height: 20, size: 14 });
             if (c.sub) {
                 f.svg.append('text').attr('x', cx).attr('y', f.m.top + f.ih + 42).attr('text-anchor', 'middle')
-                    .attr('fill', window.T.textDim).attr('font-size', 12)
+                    .attr('fill', window.T.textDim).attr('font-size', 13)
                     .attr('font-family', "'JetBrains Mono', monospace").text(c.sub);
             }
         });

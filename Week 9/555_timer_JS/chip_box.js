@@ -98,7 +98,7 @@
             if (p.side === 'bottom') { nx = p.innerX + 12; ny = p.innerY + 14; }
             window.renderKatex(svg, String(p.n),
                 nx, ny,
-                { width: 22, height: 16, size: 11, color: muted });
+                { width: 22, height: 16, size: 15, color: muted });
 
             // Function name, inside the chip body
             var lx = p.innerX, ly = p.innerY;
@@ -113,7 +113,7 @@
                 : '\\mathrm{' + p.name + '}';
             window.renderKatex(svg, nameLatex,
                 lx, ly,
-                { width: 64, height: 18, size: 11, color: text });
+                { width: 64, height: 18, size: 15, color: text });
         }
 
         return {
@@ -122,6 +122,41 @@
             pins: PINS
         };
     }
+
+    // Canvas text helpers shared by the three scope plots.
+    // subText draws a string whose subscripts are written base_{sub}; it
+    // honours ctx.textAlign and ctx.textBaseline.
+    function subText(ctx, str, x, y) {
+        var parts = str.split(/_\{([^}]*)\}/);      // odd entries are subscripts
+        var font = ctx.font, align = ctx.textAlign;
+        var m = /(\d+(?:\.\d+)?)px/.exec(font), px = parseFloat(m[1]);
+        var subFont = font.replace(m[0], (px * 0.72).toFixed(1) + 'px');
+        var widths = [], total = 0, i;
+        for (i = 0; i < parts.length; i++) {
+            ctx.font = (i % 2) ? subFont : font;
+            widths.push(ctx.measureText(parts[i]).width);
+            total += widths[i];
+        }
+        var cx = (align === 'center') ? x - total / 2 : (align === 'right') ? x - total : x;
+        ctx.textAlign = 'left';
+        for (i = 0; i < parts.length; i++) {
+            ctx.font = (i % 2) ? subFont : font;
+            ctx.fillText(parts[i], cx, y + ((i % 2) ? px * 0.28 : 0));
+            cx += widths[i];
+        }
+        ctx.font = font; ctx.textAlign = align;
+    }
+    // tag draws a right-aligned trace label, vertically centred on y, over a
+    // background plate so a passing trace does not run through the text.
+    function tag(ctx, str, color, bg, xRight, y) {
+        var w = ctx.measureText(str).width;
+        ctx.fillStyle = bg;
+        ctx.fillRect(xRight - w - 5, y - 10, w + 10, 20);
+        ctx.fillStyle = color;
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(str, xRight, y);
+    }
+    window.Scope555 = { subText: subText, tag: tag };
 
     window.Chip555 = {
         draw: draw,

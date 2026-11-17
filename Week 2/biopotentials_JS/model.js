@@ -172,12 +172,11 @@
         // Concentration (mM) of a species in a compartment from its amount.
         concNow: function (type, side) { return amount[type][side] / amount0[type][side] * conc[type][side]; },
         actions: { fire: function () { HH.stim.cur = p.stim; HH.trigger(); } },
-        // Run fn after DOM ready and again on every parameter, theme or size change.
+        // Run fn after DOM ready and again on every parameter or size change.
         onRender: function (fn) {
             ready(function () {
                 fn();
                 window.addEventListener('biochange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             });
         },

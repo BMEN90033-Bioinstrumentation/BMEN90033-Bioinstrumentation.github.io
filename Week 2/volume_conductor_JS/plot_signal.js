@@ -1,6 +1,6 @@
 // Section 04 · Differential electrode signal V_A - V_B over the last 4 s for
 // the homogeneous medium and through the tissue shells, the latter
-// multiplied by the display scale. The frame is rebuilt on theme, size or
+// multiplied by the display scale. The frame is rebuilt on size or
 // parameter change; each animation frame rewrites the two paths and, when the
 // signal range changes by more than a factor of about two, the y axis.
 (function () {
@@ -27,7 +27,7 @@
         pT = f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-true')).attr('stroke-width', 2);
         pR = f.g.append('path').attr('class', 'trace').attr('stroke', css('--c-rec')).attr('stroke-width', 2);
         // The note sits on a background pill so it never crosses a gridline.
-        noteBg = f.g.append('rect').attr('fill', css('--bg-2')).attr('rx', 4);
+        noteBg = f.g.append('rect').attr('fill', css('--white')).attr('rx', 4);
         note = f.g.append('text').attr('x', f.iw / 2).attr('y', f.ih / 4).attr('text-anchor', 'middle')
             .attr('fill', window.T.textDim).attr('font-size', 13);
         yAxis();
@@ -54,7 +54,7 @@
         };
         pT.attr('d', line(function (d) { return d[1]; }));
         pR.attr('d', line(function (d) { return d[2] * k; }));
-        var msg = VC.electrodes.length < 2 ? 'at least two electrodes are needed for a differential signal' : '';
+        var msg = VC.electrodes.length < 2 ? 'A differential signal requires at least two electrodes' : '';
         if (note.text() !== msg) {
             note.text(msg);
             var b = msg ? note.node().getBBox() : { x: 0, y: 0, width: 0, height: 0 };
@@ -77,7 +77,6 @@
 
     function init() {
         build();
-        window.addEventListener('themechange', build);
         window.addEventListener('resize', build);
         window.addEventListener('vcchange', function (e) { if (e.detail && e.detail.key !== 'angle') build(); });
         window.VC.addView(document.querySelector(sel), draw);

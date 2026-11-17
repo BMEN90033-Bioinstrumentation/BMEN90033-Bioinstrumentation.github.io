@@ -5,7 +5,7 @@
 //
 // Layout (viewBox 640 x 400): PMOS centre (330, 130), NMOS centre (330, 290),
 // device rail x = 350. V_CC bar y = 50, ground y = 360, output node
-// (350, 210) -> terminal (504, 210). Gate drive enters at (116, 210) and
+// (350, 210) to terminal (504, 210). Gate drive enters at (116, 210) and
 // splits at x = 230 to both gates.
 (function () {
     var sel = '#plot-bridge';
@@ -28,8 +28,8 @@
         k.texL('v_\\text{sw}', 514, 210, { width: 60 });
         k.flow('p', [[350, 50], [350, 210], [500, 210]]);
         k.flow('n', [[500, 210], [350, 210], [350, 360]]);
-        onP = k.text('', 382, 130, { anchor: 'start', size: 13, weight: 600 });
-        onN = k.text('', 382, 290, { anchor: 'start', size: 13, weight: 600 });
+        onP = k.text('', 382, 130, { anchor: 'start', size: 13, weight: 400 });
+        onN = k.text('', 382, 290, { anchor: 'start', size: 13, weight: 400 });
         tick();
     }
 
@@ -39,7 +39,7 @@
         k.clearFlows();
         if (pOn) k.setFlow('p', '--c-hi', 1); else k.setFlow('n', '--c-lo', 1);
         onP.text(pOn ? 'ON' : 'OFF').attr('fill', css(pOn ? '--c-hi' : '--c-off'));
-        onN.text(pOn ? 'OFF' : 'ON').attr('fill', css(pOn ? '--c-off' : '--c-hi'));
+        onN.text(pOn ? 'OFF' : 'ON').attr('fill', css(pOn ? '--c-off' : '--c-lo'));
     }
 
     window.CLD.onRender(render);

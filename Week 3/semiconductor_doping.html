@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Semiconductor Doping</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Semiconductor doping</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -55,8 +49,8 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · SEMICONDUCTORS</div>
-            <h1 class="hero">Doping the silicon <em>lattice</em></h1>
-            <p class="sub">Pure silicon at room temperature has too few free carriers to be useful in a device.
+            <h1 class="hero">Doping the silicon lattice</h1>
+            <p class="sub">Pure silicon at room temperature has too few free carriers for most devices.
                 Replacing a small fraction of its atoms with group V or group III elements adds electrons or holes in
                 controlled numbers, sets which carrier dominates conduction, and moves the Fermi level towards the
                 conduction or valence band.</p>
@@ -155,12 +149,13 @@
                     <div class="hint">drag to rotate · scroll to zoom</div>
                 </div>
                 <div class="legend">
-                    <span><span class="sw dot" style="background:var(--c-si)"></span>Si (4 bonds)</span>
-                    <span><span class="sw dot" style="background:var(--c-p)"></span>P donor (5 e⁻)</span>
-                    <span><span class="sw dot" style="background:var(--c-b)"></span>B acceptor (3 e⁻)</span>
+                    <span><span class="sw dot" style="background:var(--c-si)"></span>Si, 4 bonds</span>
+                    <span><span class="sw dot" style="background:var(--c-p)"></span>P donor, 5 valence electrons</span>
+                    <span><span class="sw dot" style="background:var(--c-b)"></span>B acceptor, 3 valence electrons</span>
                     <span><span class="sw dot" style="background:var(--c-bond)"></span>bond electron</span>
                     <span><span class="sw dot" style="background:var(--c-free)"></span>free electron</span>
                     <span><span class="sw ring" style="border-color:var(--c-hole)"></span>hole</span>
+                    <span><span class="sw" style="background:var(--c-field)"></span>field $\vec{E}$</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">material</span><span class="v" data-out="material"></span></div>
@@ -204,7 +199,7 @@
                 sit about 4 % of the gap from the band edges. The model assumes complete ionisation and
                 non-degenerate statistics, which fail at low temperature (freeze-out) and above about
                 $10^{18}\,\text{cm}^{-3}$; where they would place $E_F$ beyond a band edge the line is held at the
-                edge and the plot label says so.
+                edge and the plot label states this.
             </div>
         </div>
 
@@ -272,8 +267,8 @@
             <p>and the corresponding result with $n$ and $p$ exchanged for acceptor doping. Once $N_D \gg n_i$,
                 $n \approx N_D$ and $p \approx n_i^2 / N_D$. The page uses
                 $n_i = 1.0\times10^{10}\,\text{cm}^{-3}$ at $300\,\text{K}$, scaled with temperature as
-                $T^{3/2}\exp(-E_g(T)/2kT)$ with the Varshni gap of the band-theory page. At $300\,\text{K}$, a donor concentration of $10^{16}\,\text{cm}^{-3}$ gives $10^{16}$ electrons and
-                only $10^{4}$ holes per cubic centimetre. The Fermi level sits above the intrinsic level $E_i$ by</p>
+                $T^{3/2}\exp(-E_g(T)/2kT)$ with the Varshni gap of the band-theory page. At $300\,\text{K}$, a donor concentration of
+                $10^{16}\,\text{cm}^{-3}$ gives $10^{16}$ electrons and $10^{4}$ holes per cubic centimetre. The Fermi level sits above the intrinsic level $E_i$ by</p>
 
             <div class="eq-block">$$E_F - E_i = kT \ln\frac{n}{n_i}.$$</div>
 
@@ -287,7 +282,7 @@
 
             <div class="callout">
                 Electrons are the majority carriers in n-type material and holes in p-type material. The minority
-                carriers are scarce, but they control the diffusion currents of the pn junction.
+                carriers are few, but they control the diffusion currents of the pn junction.
             </div>
         </div>
 
@@ -305,7 +300,6 @@
                         <input type="range" data-param="temp" min="0" max="1000" step="10">
                         <span class="val" data-param="temp"></span>
                     </span>
-                    <span class="divider"></span>
                     <span class="slider-group">
                         <span class="lab">$\log_{10} N$</span>
                         <input type="range" data-param="logN" min="8" max="19" step="0.1">

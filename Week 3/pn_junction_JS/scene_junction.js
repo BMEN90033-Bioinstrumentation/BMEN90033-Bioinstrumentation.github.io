@@ -142,9 +142,8 @@ const atomGeo = new THREE.SphereGeometry(ATOM_RADIUS, 16, 16);
 const bondElecGeo = new THREE.SphereGeometry(BOND_ELEC_RADIUS, 8, 8);
 const freeElecGeo = new THREE.SphereGeometry(FREE_ELEC_RADIUS, 12, 12);
 const holeGeo = new THREE.TorusGeometry(HOLE_RADIUS, 0.08, 8, 16);
-const glowGeo = new THREE.SphereGeometry(0.6, 8, 8);
 const flashGeo = new THREE.SphereGeometry(0.5, 8, 8);
-const SHARED = new Set([atomGeo, bondElecGeo, freeElecGeo, holeGeo, glowGeo, flashGeo]);
+const SHARED = new Set([atomGeo, bondElecGeo, freeElecGeo, holeGeo, flashGeo]);
 const dummy = new THREE.Object3D();
 
 const BASIS = [
@@ -368,7 +367,7 @@ function makeChargeSprite(text, colour) {
     ctx.strokeStyle = colour;
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.font = "bold 40px 'Inter','Helvetica Neue',sans-serif";
+    ctx.font = "400 40px 'Inter','Helvetica Neue',sans-serif";
     ctx.fillStyle = colour;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -469,7 +468,6 @@ function spawnElectron(x, y, z) {
         color: C.free, emissive: C.free, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
     mesh.position.set(x, y, z);
     carrierGroup.add(mesh);
-    mesh.add(new THREE.Mesh(glowGeo, new THREE.MeshBasicMaterial({ color: C.free, transparent: true, opacity: 0.12, depthWrite: false })));
     electrons.push({ mesh, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, vz: (Math.random() - 0.5) * 2 });
 }
 
@@ -1034,17 +1032,6 @@ function restartFormation() {
     publishFormation();
 }
 
-function rebuildAll() {
-    applyTheme();
-    buildLatticeVisuals();
-    buildBarrierVisuals();
-    buildBattery();
-    // Recolour live carriers.
-    for (const e of electrons) { e.mesh.material.color.copy(C.free); e.mesh.material.emissive.copy(C.free); e.mesh.children.forEach((c) => c.material.color.copy(C.free)); }
-    for (const h of holes) h.mesh.material.color.copy(C.hole);
-    for (const ce of conductingElecs) { ce.mesh.material.color.copy(C.free); ce.mesh.material.emissive.copy(C.free); }
-}
-
 applyTheme();
 generatePNLattice();
 buildLatticeVisuals();
@@ -1096,4 +1083,3 @@ step(0);
 renderer.render(scene, camera);
 
 window.addEventListener('pnchange', (e) => { if (e.detail && e.detail.key === 'reset') restartFormation(); });
-window.addEventListener('themechange', rebuildAll);

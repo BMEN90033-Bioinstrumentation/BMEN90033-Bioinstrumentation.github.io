@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Semiconductor Band Theory</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Semiconductor band theory</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -55,7 +49,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · SEMICONDUCTORS</div>
-            <h1 class="hero">Energy <em>bands</em> in solids</h1>
+            <h1 class="hero">Energy bands in solids</h1>
             <p class="sub">When atoms bond into a crystal, their discrete electron energy levels broaden into bands.
                 The width of the forbidden gap between the highest filled band and the next empty band determines
                 whether a solid is an insulator, a semiconductor or a conductor, and how its conductivity changes
@@ -136,7 +130,7 @@
                     <div class="hint">drag to rotate · scroll to zoom</div>
                 </div>
                 <div class="legend">
-                    <span><span class="sw dot" id="sw-nucleus"></span>nucleus (+)</span>
+                    <span><span class="sw dot" style="background:var(--c-nucleus)"></span>nucleus (+)</span>
                     <span><span class="sw dot" style="background:var(--c-inner)"></span>inner-shell electron</span>
                     <span><span class="sw dot" style="background:var(--c-valence)"></span>valence shell and electron</span>
                     <span><span class="sw ring" style="border-color:var(--c-conduction)"></span>conduction shell</span>
@@ -169,7 +163,7 @@
 
             <ul class="bullets">
                 <li><strong>insulator</strong> (SiO$_2$, $E_g \approx 9\,\text{eV}$): the gap is several hundred
-                    times $kT$, practically no electrons are promoted, and no current flows;</li>
+                    times $kT$, a negligible number of electrons is promoted, and no current flows;</li>
                 <li><strong>semiconductor</strong> (Si, $E_g = 1.17\,\text{eV}$ at $0\,\text{K}$ and
                     $1.12\,\text{eV}$ at $300\,\text{K}$): a small fraction of electrons is promoted, and the number
                     rises steeply with temperature;</li>
@@ -285,7 +279,7 @@
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-eg)"></span>$E_g(T)$</span>
                     <span><span class="sw" style="background:var(--c-ni)"></span>$n_i(T)$, log scale</span>
-                    <span>dot: present temperature</span>
+                    <span><span class="sw ring"></span>marker at the present temperature</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$T$</span><span class="v" data-out="temp"></span></div>

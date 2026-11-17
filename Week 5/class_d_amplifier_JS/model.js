@@ -136,12 +136,11 @@
         // Animation clock advanced by anim.js: th is the input phase (0..WINDOW),
         // t is wall time in seconds (for current-flow dots).
         clock: { th: 0, t: 0 },
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('cldchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

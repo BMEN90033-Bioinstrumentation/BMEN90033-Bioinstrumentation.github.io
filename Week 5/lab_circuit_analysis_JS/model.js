@@ -141,12 +141,11 @@
         RS: RS, RE: RE, RBB: RBB, VCC: VCC, VBB: VBB, VBE: VBE, VCE_SAT: VCE_SAT,
         DEFAULTS: DEFAULTS, p: p, params: params, evalH: evalH, unwrappedPhase: unwrappedPhase,
         fmtFreq: fmtFreq, fmtCap: fmtCap, fmtRes: fmtRes, tex: tex,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('lcachange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

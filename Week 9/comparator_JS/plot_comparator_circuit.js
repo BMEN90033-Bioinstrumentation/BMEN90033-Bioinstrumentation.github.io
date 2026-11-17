@@ -2,7 +2,7 @@
 // The CircuiTikZ source for the same diagram lives alongside this file in
 // comparator_circuit.tex for offline LaTeX rendering. This script reproduces
 // it in plain SVG so the circuit honours the project conventions: orthogonal
-// wires, theme-aware strokes, KaTeX labels.
+// wires, token-based strokes, KaTeX labels.
 (function () {
     var sel = '#plot-comparator-circuit';
 
@@ -30,7 +30,7 @@
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
         var wire   = window.T.wire;
-        var fill   = window.CMP.cssVar('--bg-2');
+        var fill   = window.T.plotBg;
         var text   = window.T.text;
         var dim    = window.T.textDim;
         var stroke = 2;
@@ -139,7 +139,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

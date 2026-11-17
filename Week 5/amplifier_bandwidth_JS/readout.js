@@ -11,7 +11,7 @@
             ratio: A.supNum(s.ratio, 3),
             mag: A.supNum(s.mag, 4),
             angle: s.angle.toFixed(1) + '°',
-            lag: '−' + s.angle.toFixed(1) + '°',
+            lag: (s.angle < 0.05 ? '' : '−') + s.angle.toFixed(1) + '°',
             gain: A.supNum(s.gain, 4),
             gaindb: s.db.toFixed(1) + ' dB',
             gainratio: (s.gf * 100).toFixed(1) + '%',

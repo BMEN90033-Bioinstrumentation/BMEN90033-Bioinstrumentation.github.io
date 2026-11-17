@@ -1,4 +1,4 @@
-// Scene 7 — Drag pole around the s-plane, impulse response updates.
+// Scene 7, Drag pole around the s-plane, impulse response updates.
 (function () {
   const cSP = document.getElementById('p_splane');
   const cT = document.getElementById('p_time');
@@ -55,26 +55,33 @@
     const sS = (w - 40) / 3.5;
     const wS = (h - 30) / 6;
 
-    // LHP shaded stable region
-    ctx.fillStyle = 'rgba(88,166,255,0.06)';
-    ctx.fillRect(6, 6, cx - 6, h - 12);
-    ctx.fillStyle = 'rgba(255,92,122,0.05)';
-    ctx.fillRect(cx, 6, w - cx - 6, h - 12);
+    // Plot frame. The axis titles sit outside it: jω above the vertical
+    // axis, σ to the right of the horizontal axis.
+    const fx0 = 6, fx1 = w - 30, fy0 = 50, fy1 = h - 6;
+
+    // half-plane shading: stable left, unstable right
+    ctx.fillStyle = CFG.alpha(C.time, 0.1);
+    ctx.fillRect(fx0, fy0, cx - fx0, fy1 - fy0);
+    ctx.fillStyle = CFG.alpha(C.imag, 0.08);
+    ctx.fillRect(cx, fy0, fx1 - cx, fy1 - fy0);
 
     ctx.strokeStyle = C.grid;
     for (let i = -3; i <= 3; i++) {
       const x = cx + i * sS / 2;
-      ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x, h - 6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, fy0); ctx.lineTo(x, fy1); ctx.stroke();
     }
     for (let i = -3; i <= 3; i++) {
       const y = cy + i * wS;
-      ctx.beginPath(); ctx.moveTo(6, y); ctx.lineTo(w - 6, y); ctx.stroke();
+      if (y < fy0) continue;
+      ctx.beginPath(); ctx.moveTo(fx0, y); ctx.lineTo(fx1, y); ctx.stroke();
     }
     ctx.strokeStyle = C.gridStrong;
-    ctx.beginPath(); ctx.moveTo(6, cy); ctx.lineTo(w - 6, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 6); ctx.lineTo(cx, h - 6); ctx.stroke();
-    CFG.label(ctx, 'LHP · stable', 14, h - 10, C.real, { size: 10 });
-    CFG.label(ctx, 'RHP · unstable', w - 14, h - 10, C.imag, { align: 'right', size: 10 });
+    ctx.beginPath(); ctx.moveTo(fx0, cy); ctx.lineTo(fx1, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, fy0); ctx.lineTo(cx, fy1); ctx.stroke();
+    CFG.label(ctx, 'jω', cx, fy0 - 6, C.muted, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, 'σ', fx1 + 8, cy, C.muted, { baseline: 'middle' });
+    CFG.label(ctx, 'LHP: stable', fx0 + 8, fy1 - 6, C.time, { baseline: 'bottom' });
+    CFG.label(ctx, 'RHP: unstable', fx1 - 8, fy1 - 6, C.imag, { align: 'right', baseline: 'bottom' });
 
     // poles
     function pole_mark(x, y, live) {
@@ -86,7 +93,7 @@
       ctx.moveTo(x - r, y + r); ctx.lineTo(x + r, y - r);
       ctx.stroke();
       if (live) {
-        ctx.strokeStyle = 'rgba(255,207,92,0.35)';
+        ctx.strokeStyle = CFG.alpha(C.accent, 0.5);
         ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.stroke();
       }
     }
@@ -94,15 +101,24 @@
     const p2 = { x: cx + pole.sigma * sS, y: cy + pole.omega * wS };
     pole_mark(p1.x, p1.y, true);
     pole_mark(p2.x, p2.y, false);
-    CFG.label(ctx, `s = ${pole.sigma.toFixed(2)} ± j${pole.omega.toFixed(2)}`, p1.x + 12, p1.y - 14, C.accent, { size: 10 });
-    CFG.label(ctx, 'drag →', p1.x + 12, p1.y + 4, C.muted, { size: 10 });
+    // The label stays on the pole's side of the jω axis: beside the pole
+    // where there is room, otherwise on the row above it at the frame edge.
+    const txt = `s = ${pole.sigma.toFixed(2)} ± j${pole.omega.toFixed(2)}`.replace('-', '−');
+    const LW = 150;
+    if (p1.x < cx) {
+      if (p1.x - 20 - LW > fx0) CFG.label(ctx, txt, p1.x - 20, p1.y, C.accent, { align: 'right', baseline: 'middle' });
+      else CFG.label(ctx, txt, fx0 + 4, p1.y - 24, C.accent, { baseline: 'bottom' });
+    } else {
+      if (p1.x + 20 + LW < fx1) CFG.label(ctx, txt, p1.x + 20, p1.y, C.accent, { baseline: 'middle' });
+      else CFG.label(ctx, txt, fx1 - 4, p1.y - 24, C.accent, { align: 'right', baseline: 'bottom' });
+    }
   }
 
   function drawTime() {
     const { ctx, w, h } = CFG.setupCanvas(cT);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
-    const padL = 24, padR = 12, padT = 34, padB = 24;
+    const padL = 34, padR = 12, padT = 50, padB = 26;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const mid = (y0 + y1) / 2;
     ctx.strokeStyle = C.grid;
@@ -110,6 +126,8 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
+    CFG.label(ctx, 'h(t)', 14, mid, C.time, { rotate: true, align: 'center', baseline: 'middle' });
 
     const Tmax = 12;
     // find autoscale
@@ -131,12 +149,12 @@
     }
     ctx.stroke();
 
-    let s = 'marginally stable · pure oscillation';
-    if (pole.sigma < -0.02) s = 'stable · decaying';
-    if (pole.sigma > 0.02) s = 'unstable · growing';
+    let s = 'Marginally stable: constant amplitude';
+    if (pole.sigma < -0.02) s = 'Stable: decaying';
+    if (pole.sigma > 0.02) s = 'Unstable: growing';
     const zeta = -pole.sigma / Math.hypot(pole.sigma, pole.omega);   // damping ratio of the pole pair
-    if (pole.sigma < -0.02 && zeta >= 0.7) s = 'heavily damped · little overshoot';
-    if (pole.sigma < -0.02 && zeta < 0.2) s = 'lightly damped · rings';
+    if (pole.sigma < -0.02 && zeta >= 0.7) s = 'Stable: heavily damped';
+    if (pole.sigma < -0.02 && zeta < 0.2) s = 'Stable: lightly damped';
     sub.textContent = s;
   }
 

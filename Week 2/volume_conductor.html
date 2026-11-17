@@ -6,12 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BMEN90033 · The Volume Conductor Problem</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
-
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="volume_conductor_JS/volume_conductor.css">
@@ -55,7 +49,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 2 · VOLUME CONDUCTION</div>
-            <h1 class="hero">The volume <em>conductor</em> problem</h1>
+            <h1 class="hero">The volume conductor problem</h1>
             <p class="sub">Biopotentials such as the ECG and EEG are recorded at the body surface, some distance from
                 the cells that generate them. Between source and electrode lies a volume conductor: blood, muscle,
                 fat, bone and skin, each with its own conductivity. This page develops the field of a multipole
@@ -95,19 +89,19 @@
                 ($l = 3$) as $1/r^4$, so higher-order terms decay faster with distance from the source.</p>
 
             <ul class="bullets">
-                <li><strong>blue arrows</strong>: the field in a homogeneous medium, the "true" field of the
-                    source;</li>
-                <li><strong>pink arrows</strong>: the field with the enabled tissue shells in place, the field the
-                    electrodes sample;</li>
+                <li><strong>blue-tinted arrows</strong>: the field in a homogeneous medium, referred to here as the
+                    true field of the source;</li>
+                <li><strong>pink-tinted arrows</strong>: the field with the enabled tissue shells in place, which is
+                    the field the electrodes sample;</li>
                 <li><strong>electrodes</strong>: $V_A - V_B$ between the first two electrodes forms the recorded
-                    lead. A click on an electrode attaches a gizmo for moving it.</li>
+                    lead. Clicking an electrode attaches a translation handle for moving it.</li>
             </ul>
 
             <div class="callout">
                 The model scales the source weights of the $l \ge 2$ terms by $R^{\,l-1}$, with $R = 14$ the
                 electrode radius, and by a roll-off of $0.7^{\,l-2}$. Without this compensation the $l = 4$ term would
                 be about 2700 times weaker than the dipole at the electrodes and its filtering would not be visible.
-                Arrow colour follows the viridis map of field magnitude.
+                Arrow colour follows the viridis map of field magnitude, tinted blue or pink by field type.
             </div>
         </div>
 
@@ -141,7 +135,7 @@
                     </span>
                     <span class="divider"></span>
                     <span class="seg">
-                        <button class="seg-btn" data-action="place">+ electrode</button>
+                        <button class="seg-btn" data-action="place">add electrode</button>
                         <button class="seg-btn" data-action="reset-electrodes">reset electrodes</button>
                         <button class="seg-btn" data-action="pause">pause</button>
                     </span>
@@ -214,7 +208,7 @@
                     <svg class="bode" id="plot-sigma"></svg>
                 </div>
                 <div class="legend">
-                    <span>step colour: tissue layer, as in the chips above</span>
+                    <span>step colour and label: tissue layer, as in the chips above</span>
                     <span><span class="sw dash"></span>electrode radius $R = 14$</span>
                 </div>
             </div>
@@ -304,8 +298,8 @@
                 changes only the spatial weighting of the source.</p>
 
             <ul class="bullets">
-                <li><strong>pure dipole</strong> (source complexity 0): every electrode at $R = 14$ sees the same
-                    factor $T_1$, so the recorded trace is an exact scaled copy of the true trace.</li>
+                <li><strong>pure dipole</strong> (source complexity 0): the potential at every electrode at $R = 14$ is scaled by
+                    the same factor $T_1$, so the recorded trace is an exact scaled copy of the true trace.</li>
                 <li><strong>multipole source</strong>: each order is scaled by a different $T_l$, so the ratio of the
                     two traces changes as the source direction changes and the recorded waveform differs in
                     shape.</li>

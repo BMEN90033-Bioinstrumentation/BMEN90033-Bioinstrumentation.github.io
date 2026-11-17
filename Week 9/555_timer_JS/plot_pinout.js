@@ -19,7 +19,7 @@
         var text = T.text;
         var muted = T.textMuted;
         var pkgFill = window.CMP.cssVar('--c-chip-fill') || T.fg(0.06);
-        var pinStub = window.CMP.cssVar('--c-pin-stub') || T.fg(0.55);
+        var pinStub = window.CMP.cssVar('--c-pin-pad') || T.fg(0.55);
 
         // Package body: rounded rectangle, ~280×360
         var BODY = { x: 220, y: 50, w: 280, h: 360 };
@@ -94,11 +94,11 @@
             // Pin number outside the pad
             window.renderKatex(svg, String(p.n),
                 BODY.x - pinW - 18, py,
-                { width: 22, height: 16, size: 12, color: muted });
+                { width: 22, height: 16, size: 15, color: muted });
             // Pin function name inside the package, near the pin
             window.renderKatex(svg, p.latex,
                 BODY.x + 56, py,
-                { width: 100, height: 18, size: 13, color: text, align: 'left' });
+                { width: 100, height: 18, size: 16, color: text, align: 'left' });
         }
 
         // Draw right-side pins
@@ -112,10 +112,10 @@
                 .attr('fill', pinStub).attr('stroke', wire).attr('stroke-width', 1.2);
             window.renderKatex(svg, String(p2.n),
                 BODY.x + BODY.w + pinW + 18, py2,
-                { width: 22, height: 16, size: 12, color: muted });
+                { width: 22, height: 16, size: 15, color: muted });
             window.renderKatex(svg, p2.latex,
                 BODY.x + BODY.w - 56, py2,
-                { width: 100, height: 18, size: 13, color: text, align: 'right' });
+                { width: 100, height: 18, size: 16, color: text, align: 'right' });
         }
 
         // Package label inside, centred
@@ -124,14 +124,13 @@
             { width: 120, height: 28, size: 22, color: text });
 
         // Top reference: small label "top view" near the notch
-        window.renderKatex(svg, '\\text{top view}',
+        window.renderKatex(svg, '\\text{Top view}',
             NOTCH.cx, BODY.y - 24,
-            { width: 80, height: 16, size: 11, color: muted });
+            { width: 80, height: 16, size: 15, color: muted });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

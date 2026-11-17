@@ -1,7 +1,9 @@
 // Section 03 · Magnitude response of each analysis band: the high-pass
 // biquad at the lower edge times the low-pass biquad at the upper edge,
 // evaluated on the unit circle. Above 40 channels an evenly spaced subset
-// of 40 is drawn and the plot-box label says so. No in-plot text.
+// of 40 is drawn and the plot-box label says so. The lowest and highest
+// bands carry an electrode label above the 0 dB line, so the colour ramp is
+// not the only cue to channel order.
 (function () {
     var sel = '#plot-bank';
     var MAXDRAW = 40;
@@ -36,6 +38,14 @@
             });
             traces.append('path').attr('fill', 'none').attr('stroke', cfg.colors[i])
                 .attr('stroke-width', n > 16 ? 1.2 : 2).attr('d', d3.line()(pts));
+        });
+
+        // Peak gain never exceeds 0 dB, so the strip between 0 and 3 dB is free.
+        var ends = n > 1 && x(cfg.freqs[n - 1]) - x(cfg.freqs[0]) > 48 ? [0, n - 1] : [0];
+        ends.forEach(function (i) {
+            f.g.append('text').attr('x', x(cfg.freqs[i])).attr('y', y(0) - 6)
+                .attr('text-anchor', 'middle').attr('font-size', 13).attr('fill', window.T.text)
+                .text('E' + (n - i));
         });
 
         var lab = document.getElementById('bank-label');

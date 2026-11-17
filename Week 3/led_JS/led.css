@@ -2,31 +2,30 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-hole:  #ff6b6b;   /* holes, acceptor ions, valence band */
-    --c-elec:  #4ecdc4;   /* electrons, donor ions, conduction band */
-    --c-field: #ffc832;   /* built-in field arrow */
-    --c-em-ingan:   #4f8fff;   /* InGaN, 470 nm */
-    --c-em-algainp: #ff4d4d;   /* AlGaInP, 635 nm */
-    --c-em-gaas:    #d04478;   /* GaAs, 870 nm (false colour) */
-    --c-on: #4ade80;
-    --hero-a: var(--c-hole);
-    --hero-b: var(--c-em-ingan);
-}
-
-[data-theme="light"] {
-    --c-hole:  #d63a3a;
-    --c-elec:  #0f8f87;
-    --c-field: #b7791f;
-    --c-em-ingan:   #1d4ed8;
-    --c-em-algainp: #c81e1e;
-    --c-em-gaas:    #9d174d;
-    --c-on: #15803d;
+    --c-hole:  var(--d-violet);   /* holes, acceptor ions, valence band */
+    --c-elec:  var(--d-green);    /* electrons, donor ions, conduction band */
+    --c-field: var(--d-slate);    /* built-in field arrow */
+    /* Emission colours encode the emitted wavelength and are independent of the site palette. */
+    --c-em-ingan:   var(--d-blue);   /* InGaN, 470 nm */
+    --c-em-algainp: #d42a2a;         /* AlGaInP, 635 nm */
+    --c-em-gaas:    var(--d-pink);   /* GaAs, 870 nm (false colour) */
 }
 
 .plot-box.sim   { aspect-ratio: 1.6 / 1; }
 .plot-box.bands { aspect-ratio: 2.6 / 1; }
 .plot-box.emit  { aspect-ratio: 1.5 / 1; }
 
-.readout .item .v.on { color: var(--c-on); }
 .legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
 .legend .dot.ring { background: transparent; border: 1.5px solid; }
+
+/* Material buttons show chemical formulae, which keep their own capitalisation. */
+.seg-btn[data-param="mat"] { text-transform: none; }
+
+/* A dashed border on a rounded 18px box renders solid; square the swatch so the dashes show. */
+.legend .sw.dash { border-radius: 0; width: 22px; }
+
+/* Narrow screens: the fixed plot margins leave too little height at the wide aspect ratio. */
+@media (max-width: 600px) {
+    .plot-box.bands { aspect-ratio: 1.5 / 1; }
+    .plot-box.sim   { aspect-ratio: 1.2 / 1; }
+}

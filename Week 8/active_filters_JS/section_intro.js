@@ -23,10 +23,10 @@
         });
 
         var families = [
-            { name: 'butterworth',  filt: window.FilterMath.butterworth(4),     css: 'butter' },
-            { name: 'chebyshev I',  filt: window.FilterMath.chebyshev1(4, 0.35), css: 'cheb1' },
-            { name: 'chebyshev II', filt: window.FilterMath.chebyshev2(4, 0.10), css: 'cheb2' },
-            { name: 'elliptic',     filt: window.FilterMath.elliptic(4),         css: 'ellip' }
+            { name: 'Butterworth',  filt: window.FilterMath.butterworth(4),     css: 'butter' },
+            { name: 'Chebyshev I',  filt: window.FilterMath.chebyshev1(4, 0.35), css: 'cheb1' },
+            { name: 'Chebyshev II', filt: window.FilterMath.chebyshev2(4, 0.10), css: 'cheb2' },
+            { name: 'Elliptic',     filt: window.FilterMath.elliptic(4),         css: 'ellip' }
         ];
 
         var lineMag = window.AFPlots.makeMagLine(BD.x, BD.yMag);
@@ -47,21 +47,21 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_{\\mathrm{edge}} = 1',
             xc, BD.innerH - 16,
-            { width: 120, height: 22, size: 11, pill: true });
+            { width: 120, height: 22, size: 13, pill: true });
 
-        // Legend along upper-right
+        // Legend in the lower-left corner: below the passband and left of
+        // the edge marker, where no trace or reference line passes.
         var legend = [
-            { color: col.butter, label: 'butterworth' },
-            { color: col.cheb1,  label: 'chebyshev i' },
-            { color: col.cheb2,  label: 'chebyshev ii' },
-            { color: col.ellip,  label: 'elliptic' }
+            { color: col.butter, label: 'Butterworth' },
+            { color: col.cheb1,  label: 'Chebyshev I' },
+            { color: col.cheb2,  label: 'Chebyshev II' },
+            { color: col.ellip,  label: 'Elliptic' }
         ];
-        window.AFPlots.drawLegend(BD.gMag, BD.innerW - 8, 8, legend, T);
+        window.AFPlots.drawLegend(BD.gMag, 150, BD.innerH - 14 - 18 * legend.length, legend, T);
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

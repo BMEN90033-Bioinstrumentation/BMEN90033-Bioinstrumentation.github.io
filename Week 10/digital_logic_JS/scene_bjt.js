@@ -18,18 +18,18 @@
             .attr('x2', x2).attr('y2', y);
         if (label) {
             g.append('text').attr('class', 'rail-lbl')
-                .attr('x', x2).attr('y', y - 5)
-                .attr('text-anchor', 'end').text(label);
+                .attr('x', x2).attr('y', y - 10)
+                .attr('text-anchor', 'end').call(DL.sub, label);
         }
     }
 
     function ground(g, x, y) {
         g.append('line').attr('x1', x - 12).attr('y1', y).attr('x2', x + 12).attr('y2', y)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('line').attr('x1', x - 8).attr('y1', y + 4).attr('x2', x + 8).attr('y2', y + 4)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('line').attr('x1', x - 4).attr('y1', y + 8).attr('x2', x + 4).attr('y2', y + 8)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.2);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.2);
     }
 
     function resistorV(g, cx, yTop, length, label, labelSide) {
@@ -37,14 +37,14 @@
         labelSide = labelSide || 'right';
         g.append('rect').attr('x', cx - w / 2).attr('y', yTop)
             .attr('width', w).attr('height', length)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.5);
+            .attr('fill', 'var(--hydro-blue-100)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.5);
         if (label) {
             var lx = labelSide === 'right' ? cx + 12 : cx - 12;
             var anchor = labelSide === 'right' ? 'start' : 'end';
             g.append('text').attr('x', lx).attr('y', yTop + length / 2 + 4)
                 .attr('text-anchor', anchor)
-                .attr('class', 'lbl').text(label);
+                .attr('class', 'lbl').call(DL.sub, label);
         }
         return { top: { x: cx, y: yTop }, bottom: { x: cx, y: yTop + length } };
     }
@@ -53,12 +53,12 @@
         var h = 12;
         g.append('rect').attr('x', xLeft).attr('y', cy - h / 2)
             .attr('width', length).attr('height', h)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.5);
+            .attr('fill', 'var(--hydro-blue-100)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.5);
         if (label) {
-            g.append('text').attr('x', xLeft + length / 2).attr('y', cy - 10)
+            g.append('text').attr('x', xLeft + length / 2).attr('y', cy - 14)
                 .attr('text-anchor', 'middle')
-                .attr('class', 'lbl').text(label);
+                .attr('class', 'lbl').call(DL.sub, label);
         }
         return { left: { x: xLeft, y: cy }, right: { x: xLeft + length, y: cy } };
     }
@@ -70,7 +70,7 @@
         var sx = (side === 'left') ? -1 : 1;
         var ox = -sx;
 
-        var color = conducting ? 'var(--c-hi)' : 'var(--text-dim)';
+        var color = conducting ? 'var(--c-hi)' : 'var(--fg)';
         var bodyW = conducting ? 3.0 : 2.4;
         var leadW = conducting ? 2.0 : 1.6;
         var bodyHalf  = 14;
@@ -80,7 +80,7 @@
         var baseLen   = 26;
 
         g.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 19)
-            .attr('fill', 'var(--bg-panel)')
+            .attr('fill', 'var(--hydro-blue-100)')
             .attr('stroke', color).attr('stroke-width', 1.0)
             .attr('opacity', 0.45);
 
@@ -133,7 +133,7 @@
             var anchor = ox > 0 ? 'start' : 'end';
             g.append('text').attr('x', labelX).attr('y', cy + 4)
                 .attr('text-anchor', anchor)
-                .attr('class', 'lbl' + (conducting ? ' lit' : '')).text(label);
+                .attr('class', 'lbl' + (conducting ? ' lit' : '')).call(DL.sub, label);
         }
 
         return {
@@ -145,22 +145,22 @@
 
     // Base resistor + input wire + label coming in from the left.
     function inputLeft(g, basePin, label, value, rLabel) {
-        var stub = 8, rLen = 20, wireLen = 18;
+        var stub = 8, rLen = 20, wireLen = 12;
         var rb = resistorH(g, basePin.x - stub - rLen, basePin.y, rLen, rLabel);
         DL.wire(g, basePin.x, basePin.y, rb.right.x, basePin.y, !!value);
         DL.wire(g, rb.left.x, basePin.y, rb.left.x - wireLen, basePin.y, !!value);
         g.append('text').attr('x', rb.left.x - wireLen - 6).attr('y', basePin.y + 4)
             .attr('text-anchor', 'end')
-            .attr('class', 'lbl' + (value ? ' lit' : '')).text(label);
+            .attr('class', 'lbl' + (value ? ' lit' : '')).call(DL.sub, label);
     }
 
     function inputRight(g, basePin, label, value, rLabel) {
-        var stub = 8, rLen = 20, wireLen = 18;
+        var stub = 8, rLen = 20, wireLen = 12;
         var rb = resistorH(g, basePin.x + stub, basePin.y, rLen, rLabel);
         DL.wire(g, basePin.x, basePin.y, rb.left.x, basePin.y, !!value);
         DL.wire(g, rb.right.x, basePin.y, rb.right.x + wireLen, basePin.y, !!value);
         g.append('text').attr('x', rb.right.x + wireLen + 6).attr('y', basePin.y + 4)
-            .attr('class', 'lbl' + (value ? ' lit' : '')).text(label);
+            .attr('class', 'lbl' + (value ? ' lit' : '')).call(DL.sub, label);
     }
 
     // Connect the V_CC rail to the top of R_C with an explicit lead, then
@@ -200,14 +200,14 @@
         DL.dot(g, col, outY, !!out);
         DL.wire(g, col, outY, col + 80, outY, !!out);
         g.append('text').attr('x', col + 86).attr('y', outY + 4)
-            .attr('class', 'lbl' + (out ? ' lit' : '')).text('Y = ' + out);
+            .attr('class', 'lbl' + (out ? ' lit' : '')).call(DL.sub, 'Y = ' + out);
 
-        // Emitter drops straight down to its own GND symbol — no horizontal
+        // Emitter drops straight down to its own GND symbol with no horizontal
         // bend, so the GND top bar lines up with the wire endpoint.
         DL.wire(g, pin.emitter.x, pin.emitter.y, pin.emitter.x, GND_Y);
         ground(g, pin.emitter.x, GND_Y);
 
-        inputLeft(g, pin.base, 'A = ' + a, a, 'R_B');
+        inputLeft(g, pin.base, 'A=' + a, a, 'R_B');
     }
 
     function drawNorPanel(g, a, b) {
@@ -230,7 +230,7 @@
 
         DL.wire(g, pinB.collector.x, outY, 250, outY, !!out);
         g.append('text').attr('x', 256).attr('y', outY + 4)
-            .attr('class', 'lbl' + (out ? ' lit' : '')).text('Y = ' + out);
+            .attr('class', 'lbl' + (out ? ' lit' : '')).call(DL.sub, 'Y = ' + out);
 
         // Common emitter (ground) bus sits 12 above the GND symbol so a
         // short lead clearly connects the bus to the symbol below.
@@ -243,8 +243,8 @@
         DL.wire(g, rcCx, busY, rcCx, GND_Y);
         ground(g, rcCx, GND_Y);
 
-        inputLeft (g, pinA.base, 'A = ' + a, a, 'R_A');
-        inputRight(g, pinB.base, 'B = ' + b, b, 'R_B');
+        inputLeft (g, pinA.base, 'A=' + a, a, 'R_A');
+        inputRight(g, pinB.base, 'B=' + b, b, 'R_B');
     }
 
     function drawNandPanel(g, a, b) {
@@ -264,7 +264,7 @@
         DL.dot(g, col, outY, !!out);
         DL.wire(g, col, outY, col + 80, outY, !!out);
         g.append('text').attr('x', col + 86).attr('y', outY + 4)
-            .attr('class', 'lbl' + (out ? ' lit' : '')).text('Y = ' + out);
+            .attr('class', 'lbl' + (out ? ' lit' : '')).call(DL.sub, 'Y = ' + out);
 
         // Inter-stage node carries current only when both devices conduct.
         var midActive = (a === 1 && b === 1);
@@ -276,8 +276,8 @@
         DL.wire(g, pinBot.emitter.x, pinBot.emitter.y, pinBot.emitter.x, GND_Y);
         ground(g, pinBot.emitter.x, GND_Y);
 
-        inputLeft(g, pinTop.base, 'A = ' + a, a, 'R_A');
-        inputLeft(g, pinBot.base, 'B = ' + b, b, 'R_B');
+        inputLeft(g, pinTop.base, 'A=' + a, a, 'R_A');
+        inputLeft(g, pinBot.base, 'B=' + b, b, 'R_B');
     }
 
     function drawAll() {
@@ -306,7 +306,7 @@
                 .attr('x', PANEL_W / 2).attr('y', TITLE_Y)
                 .attr('text-anchor', 'middle')
                 .attr('class', 'gate-title')
-                .text(p.title);
+                .call(DL.sub, p.title);
             p.draw(sg);
         });
     }
@@ -315,7 +315,6 @@
         DL.bindBitButton(aBtn, drawAll);
         DL.bindBitButton(bBtn, drawAll);
         drawAll();
-        window.addEventListener('themechange', drawAll);
         window.addEventListener('resize', drawAll);
     }
 

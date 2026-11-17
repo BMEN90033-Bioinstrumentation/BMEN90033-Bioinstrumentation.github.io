@@ -46,12 +46,28 @@
         readout.textContent = fs.toFixed(0) + ' Hz, alias ' + fa.toFixed(1) + ' Hz';
 
         var time = window.WCGW.setupPlot('#plot-alias-time', {
+            legend: [
+                { key: 'clean', label: 'true signal', opacity: 0.45, dash: true },
+                { key: 'distort', label: 'apparent sampled signal' },
+                { key: 'sample', label: 'sample points' }
+            ],
             xDomain: [0, 1.1],
             yDomain: [-0.9, 1.0],
             xLabel: 't\\,[\\mathrm{s}]',
             yLabel: 'v\\,[\\mathrm{mV}]'
         });
+        var aliased = fs < 80;
         var spectrum = window.WCGW.setupPlot('#plot-alias-spectrum', {
+            legend: [
+                { key: 'clean', label: 'ECG band' },
+                { key: 'noise', label: '40 Hz input' },
+                { key: 'mark', dash: true, label: 'Nyquist f_N' }
+            ].concat(aliased && fa <= 70 ? [
+                { key: 'distort', label: 'observed alias' },
+                { key: 'distort', dash: true, label: 'fold about f_N' }
+            ] : [
+                { label: aliased ? 'alias lies above 70 Hz' : '40 Hz is below f_N' }
+            ]),
             xDomain: [0, 70],
             yDomain: [0, 1],
             xLabel: 'f\\,[\\mathrm{Hz}]',
@@ -70,11 +86,11 @@
         drawAliasLine(time, apparent, 'distort');
         time.g.selectAll('circle.sample').data(samples).join('circle')
             .attr('class', 'sample').attr('cx', function (d) { return time.x(d.t); }).attr('cy', function (d) { return time.y(d.y); })
-            .attr('r', 3).attr('fill', time.colors.noise).attr('stroke', time.colors.bg).attr('stroke-width', 1);
+            .attr('r', 3).attr('fill', time.colors.sample).attr('stroke', time.colors.bg).attr('stroke-width', 1);
         var fN = fs / 2;
         var spec = [
             { f: 1.2, y: 0.65, cls: 'clean' },
-            { f: 40, y: 0.95, cls: fs >= 80 ? 'clean' : 'noise' },
+            { f: 40, y: 0.95, cls: 'noise' },
             { f: fa, y: fs >= 80 ? 0.1 : 0.75, cls: 'distort' }
         ].filter(function (d) { return d.f >= 0 && d.f <= 70; });
         spectrum.g.selectAll('line.stem').data(spec).join('line')
@@ -82,14 +98,7 @@
             .attr('y1', spectrum.y(0)).attr('y2', function (d) { return spectrum.y(d.y); })
             .attr('stroke', function (d) { return spectrum.colors[d.cls]; }).attr('stroke-width', 3);
         spectrum.g.append('line').attr('class', 'marker-line').attr('x1', spectrum.x(fN)).attr('x2', spectrum.x(fN)).attr('y1', 0).attr('y2', spectrum.innerH);
-        spectrum.g.append('text').attr('x', spectrum.x(fN) + 6).attr('y', 16).attr('fill', spectrum.colors.mark)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('Nyquist');
         drawSpectrumFold(spectrum, fs, fa);
-        window.WCGW.legend(time.svg, [
-            { key: 'clean', label: 'true signal' },
-            { key: 'distort', label: 'apparent sampled signal' },
-            { key: 'noise', label: 'sample points' }
-        ], time.margin.left + 12, time.margin.top + 18);
 
         drawNyquist(fs, fa, faSigned);
     }
@@ -110,13 +119,6 @@
         var fN = fs / 2;
         if (fHigh <= fN || fa > 70) {
             foldTarget = null;
-            P.g.append('text')
-                .attr('x', P.x(Math.min(52, fN + 4)))
-                .attr('y', P.innerH - 14)
-                .attr('fill', P.colors.fixed)
-                .attr('font-size', 11)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .text('40 Hz is below Nyquist');
             return;
         }
 
@@ -139,7 +141,7 @@
 
         var mover = P.g.append('circle')
             .attr('r', 5)
-            .attr('fill', P.colors.sample)
+            .attr('fill', P.colors.distort)
             .attr('stroke', P.colors.bg)
             .attr('stroke-width', 1.5);
 
@@ -147,20 +149,6 @@
         ensureFoldTimer();
         updateFoldMarker();
 
-        P.g.append('text')
-            .attr('x', P.x(Math.max(1, fN)) + 8)
-            .attr('y', P.y(0.47))
-            .attr('fill', P.colors.mark)
-            .attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('fold at f_N');
-        P.g.append('text')
-            .attr('x', P.x(fa) + 8)
-            .attr('y', P.y(0.72))
-            .attr('fill', P.colors.fixed)
-            .attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('observed alias');
     }
 
     function ensureFoldTimer() {
@@ -183,6 +171,14 @@
         var fN = fs / 2;
         var fHigh = 40;
         var P = window.WCGW.setupPlot('#plot-alias-nyquist', {
+            legend: [
+                { key: 'noise', label: '40 Hz input', opacity: 0.38 },
+                { key: 'distort', label: fa.toFixed(1) + ' Hz alias' },
+                { key: 'sample', label: 'sampled values' },
+                { label: fs >= 80
+                    ? '40 Hz is below f_N = ' + (fs / 2).toFixed(1) + ' Hz and is represented uniquely'
+                    : '40 Hz is above f_N = ' + (fs / 2).toFixed(1) + ' Hz; the samples also fit ' + fa.toFixed(1) + ' Hz' }
+            ],
             xDomain: [0, 0.32],
             yDomain: [-1.35, 1.35],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -210,8 +206,8 @@
             .attr('fill', P.colors.sample)
             .attr('opacity', 0.12);
 
-        drawAliasLine(P, high, (fs >= 80 ? 'clean' : 'distort') + ' reference');
-        drawAliasLine(P, alias, 'fixed');
+        drawAliasLine(P, high, 'noise reference');
+        drawAliasLine(P, alias, 'distort');
         P.g.selectAll('line.sample-stem').data(samples).join('line')
             .attr('x1', function (d) { return P.x(d.t); }).attr('x2', function (d) { return P.x(d.t); })
             .attr('y1', P.y(0)).attr('y2', function (d) { return P.y(d.y); })
@@ -221,22 +217,7 @@
             .attr('r', 4).attr('fill', P.colors.sample).attr('stroke', P.colors.bg).attr('stroke-width', 1.4);
         P.g.append('line').attr('x1', 0).attr('x2', P.innerW).attr('y1', P.y(0)).attr('y2', P.y(0)).attr('stroke', P.colors.axis);
 
-        window.WCGW.legend(P.svg, [
-            { key: fs >= 80 ? 'clean' : 'distort', label: '40 Hz input' },
-            { key: 'fixed', label: fa.toFixed(1) + ' Hz alias' },
-            { key: 'sample', label: 'sampled values' }
-        ], P.margin.left + 12, P.margin.top + 18);
 
-        var note = fs >= 80
-            ? '40 Hz is below f_N = ' + fN.toFixed(1) + ' Hz, so it is represented uniquely'
-            : '40 Hz is above f_N = ' + fN.toFixed(1) + ' Hz, so the samples also fit ' + fa.toFixed(1) + ' Hz';
-        P.svg.append('text')
-            .attr('x', P.margin.left + P.innerW - 390)
-            .attr('y', P.margin.top + 18)
-            .attr('fill', P.colors.fg)
-            .attr('font-size', 12)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text(note);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -244,7 +225,6 @@
         readout = document.getElementById('alias-fs-val');
         if (!slider) return;
         slider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

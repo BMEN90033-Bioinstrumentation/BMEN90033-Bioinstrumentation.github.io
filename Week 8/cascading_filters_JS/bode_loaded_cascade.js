@@ -15,6 +15,7 @@
     // Normalised: each stage has R = 1 ohm, C = 1 F, so the single-stage
     // cutoff is wc = 1 rad/s.
     var state = { N: 3, showIdeal: true };
+    var SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶'];
 
     // Shared semantic colours (match cascading_filters.css palette).
     var realColor = function () { return getCssVar('--c-real'); };
@@ -41,7 +42,7 @@
         var W = rect.width;
         var H = rect.height || 360;
 
-        var margin = { top: 42, right: 24, bottom: 60, left: 60 };
+        var margin = { top: 42, right: 24, bottom: 60, left: 70 };
         var midGap = 70;
         var panelW = (W - margin.left - margin.right - midGap) / 2;
         var innerH = H - margin.top - margin.bottom;
@@ -83,7 +84,7 @@
             20, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(svg, '\\angle H(j\\omega)\\,[^\\circ]',
-            phaseLeft - 44, margin.top + innerH / 2,
+            phaseLeft - 46, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(svg, '\\omega\\,[\\mathrm{rad/s}]',
             margin.left + panelW / 2, H - 14,
@@ -226,11 +227,11 @@
         xTicks.forEach(function (v) {
             if (v === 0) return;
             realLabels.append('text')
-                .attr('x', x(v)).attr('y', y(0) + 16)
+                .attr('x', x(v)).attr('y', y(0) + 24)
                 .attr('text-anchor', 'middle')
                 .attr('fill', T.fg(0.55))
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(v);
         });
 
@@ -243,7 +244,7 @@
                 .attr('text-anchor', 'end')
                 .attr('fill', T.fg(0.55))
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(v.toFixed(1));
         });
 
@@ -270,11 +271,10 @@
                 .attr('text-anchor', 'middle')
                 .attr('fill', ic)
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text('×' + N + ' ideal at s = −1');
 
-            // Arrow head shape (filled triangle), defined per-render so theme
-            // changes pick up the live colour.
+            // Arrow head shape (filled triangle).
             var defs = svg.append('defs');
             defs.append('marker')
                 .attr('id', 'idealPoleArrow')
@@ -291,7 +291,7 @@
                 .attr('marker-end', 'url(#idealPoleArrow)');
         }
 
-        // Loaded poles (red X marks on the negative real axis)
+        // Loaded poles (orange X marks on the negative real axis)
         var poles = computePoles(N);
         var rc = realColor();
         var poleG = g.append('g');
@@ -313,14 +313,16 @@
             // Label only the slowest (rightmost) and fastest (leftmost) to
             // avoid stacked text on top of overlapping markers.
             if (idx === 0 || idx === poles.length - 1) {
+                // The slowest-pole label sits below the tick labels and is
+                // kept left of the imaginary axis.
                 var below = (idx === 0);
                 poleG.append('text')
-                    .attr('x', px)
-                    .attr('y', below ? py + sz + 16 : py - sz - 8)
-                    .attr('text-anchor', 'middle')
+                    .attr('x', below ? Math.min(px + 40, x(0) - 8) : px)
+                    .attr('y', below ? py + sz + 38 : py - sz - 8)
+                    .attr('text-anchor', below ? 'end' : 'middle')
                     .attr('fill', T.text)
                     .attr('font-family', "'JetBrains Mono', monospace")
-                    .attr('font-size', 11)
+                    .attr('font-size', 13)
                     .text('s = ' + p.toFixed(3));
             }
         });
@@ -341,7 +343,7 @@
         var entries = [{ kind: 'real', label: 'loaded poles' }];
         if (state.showIdeal) entries.unshift({ kind: 'ideal', label: 'ideal pole (×N)' });
         entries.forEach(function (e, idx) {
-            var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 16) + ')');
+            var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
             if (e.kind === 'real') {
                 row.append('line')
                     .attr('x1', 0).attr('x2', 12).attr('y1', 0).attr('y2', 12)
@@ -362,9 +364,10 @@
                 .attr('x', 18).attr('y', 10)
                 .attr('fill', T.text)
                 .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
+                .attr('font-size', 13)
                 .text(e.label);
         });
+        if (entries.length) window.legendBacking(lg);
 
         return { svg: svg, g: g, x: x, y: y, innerW: innerW, innerH: innerH };
     }
@@ -380,7 +383,7 @@
             xDomain: [0.01, 100],
             magDomain: [-160, 6],
             phaseDomain: [-540, 10],
-            magTicks: [-160, -120, -80, -40, -20, -3, 0],
+            magTicks: [-160, -120, -80, -40, -20, 0],
             phaseTicks: [-540, -450, -360, -270, -180, -90, 0]
         });
 
@@ -459,13 +462,12 @@
                 .attr('x1', xr).attr('x2', xr).attr('y1', 0).attr('y2', BD.innerH);
             BD.gMag.append('circle').attr('class', 'marker-dot')
                 .attr('cx', xr).attr('cy', yMag(-3)).attr('r', 5);
-            // Pill centred on the composite cutoff line. The foreignObject is
-            // generous; the pill inside auto-sizes to its no-wrap content.
-            var pillCx3 = Math.max(60,
-                Math.min(BD.innerW - 60, xr));
+            // Pill placed below and to the left of the marker dot, where no
+            // trace passes.
+            var pillCx3 = Math.max(56, xr - 60);
             window.renderKatex(BD.gMag, '\\text{loaded}\\ -3\\,\\mathrm{dB}',
-                pillCx3, 14,
-                { width: 200, height: 22, size: 9, pill: true, pillPad: '1px 6px' });
+                pillCx3, yMag(-3) + 26,
+                { width: 200, height: 22, size: 12, pill: true, pillPad: '2px 6px' });
         }
         if (wIdeal3) {
             var xi = x(wIdeal3);
@@ -477,19 +479,22 @@
                 .attr('stroke', T.fg(0.45)).attr('stroke-width', 1).attr('stroke-dasharray', '2 4');
         }
 
-        // Legend (top-right of magnitude panel)
-        var lg = BD.gMag.append('g').attr('transform', 'translate(' + (BD.innerW - 12) + ',12)');
-        var entries = [{ c: 'real', label: 'loaded N = ' + N }];
-        if (state.showIdeal) entries.unshift({ c: 'ideal', label: 'ideal 1/(1+sRC)^' + N });
+        // Legend, bottom-left of the magnitude panel above the cutoff pill,
+        // where no trace passes.
+        var entries = [{ c: 'real', label: 'loaded, N = ' + N }];
+        if (state.showIdeal) entries.unshift({ c: 'ideal', label: 'ideal, 1/(1+sRC)' + SUP[N] });
+        var lg = BD.gMag.append('g').attr('transform',
+            'translate(12,' + (BD.innerH - 38 - entries.length * 18) + ')');
         entries.forEach(function (e, idx) {
             var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
             row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8).attr('y1', 8).attr('y2', 8);
+                .attr('x1', 0).attr('x2', 28).attr('y1', 8).attr('y2', 8);
             row.append('text')
-                .attr('x', -42).attr('y', 11).attr('text-anchor', 'end')
+                .attr('x', 34).attr('y', 12).attr('text-anchor', 'start')
                 .attr('fill', T.text).attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11).text(e.label);
+                .attr('font-size', 13).text(e.label);
         });
+        if (entries.length) window.legendBacking(lg);
 
         // S-plane below
         setupSPlane(N);
@@ -511,7 +516,6 @@
             });
         }
         if (slider) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

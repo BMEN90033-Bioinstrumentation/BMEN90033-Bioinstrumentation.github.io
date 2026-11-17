@@ -9,13 +9,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const host = document.getElementById('arm-three');
+const T = window.T;
 if (host) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     host.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(window.T && window.T.sceneBg ? window.T.sceneBg : 0x111111);
+    scene.background = new THREE.Color(T.sceneBg);
 
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
     camera.position.set(2.6, 2.4, 3.6);
@@ -28,34 +29,34 @@ if (host) {
     controls.maxDistance = 8;
     controls.maxPolarAngle = Math.PI * 0.95;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.30));
-    scene.add(new THREE.HemisphereLight(0xe8ecff, 0x1a1a22, 0.55));
-    const key = new THREE.DirectionalLight(0xffffff, 0.85);
+    // Neutral white lighting so the finger hues match the trace colours.
+    scene.add(new THREE.AmbientLight(T.sceneBg, 0.30));
+    scene.add(new THREE.HemisphereLight(T.sceneBg, T.hex('grey'), 0.55));
+    const key = new THREE.DirectionalLight(T.sceneBg, 0.85);
     key.position.set(4, 6, 3);
     scene.add(key);
-    const rim = new THREE.DirectionalLight(0x9bb6ff, 0.45);
+    const rim = new THREE.DirectionalLight(T.sceneBg, 0.45);
     rim.position.set(-4, 3, -3);
     scene.add(rim);
-    const fill = new THREE.DirectionalLight(0xffe6c2, 0.20);
+    const fill = new THREE.DirectionalLight(T.sceneBg, 0.20);
     fill.position.set(0, 1, 5);
     scene.add(fill);
 
     const grid = new THREE.GridHelper(8, 16,
-        new THREE.Color(0xffffff).multiplyScalar(0.25),
-        new THREE.Color(0xffffff).multiplyScalar(0.10));
+        T.hex('grey'), new THREE.Color(T.sceneBg).lerp(new THREE.Color(T.hex('grey')), 0.4));
     grid.position.y = 0;
     scene.add(grid);
 
-    const matBase     = new THREE.MeshStandardMaterial({ color: 0x1d1f27, roughness: 0.45, metalness: 0.55 });
-    const matBody     = new THREE.MeshStandardMaterial({ color: 0x2c2f39, roughness: 0.40, metalness: 0.55 });
-    const matJoint    = new THREE.MeshStandardMaterial({ color: 0x6f7682, roughness: 0.30, metalness: 0.75 });
-    const matKnuckle  = new THREE.MeshStandardMaterial({ color: 0x55596a, roughness: 0.32, metalness: 0.70 });
-    const matAccent   = new THREE.MeshStandardMaterial({ color: 0x8e95a8, roughness: 0.25, metalness: 0.70 });
+    const matBase     = new THREE.MeshStandardMaterial({ color: T.hex('ink'), roughness: 0.45, metalness: 0.55 });
+    const matBody     = new THREE.MeshStandardMaterial({ color: T.hex('slate'), roughness: 0.40, metalness: 0.55 });
+    const matJoint    = new THREE.MeshStandardMaterial({ color: T.hex('grey'), roughness: 0.30, metalness: 0.75 });
+    const matKnuckle  = new THREE.MeshStandardMaterial({ color: T.hex('grey'), roughness: 0.32, metalness: 0.70 });
+    const matAccent   = new THREE.MeshStandardMaterial({ color: T.hex('grey'), roughness: 0.25, metalness: 0.70 });
 
     const root = new THREE.Group();
     scene.add(root);
 
-    // Pedestal — chamfered base.
+    // Pedestal: chamfered base.
     const pedestalTop = new THREE.Mesh(
         new THREE.CylinderGeometry(0.42, 0.50, 0.05, 48),
         matBase
@@ -69,7 +70,7 @@ if (host) {
     pedestalBody.position.y = 0.08;
     root.add(pedestalBody);
 
-    // Wrist — slim tapered shaft with a polished cuff at the palm pivot.
+    // Wrist: slim tapered shaft with a polished cuff at the palm pivot.
     const wristShaft = new THREE.Mesh(
         new THREE.CylinderGeometry(0.16, 0.20, 0.42, 32),
         matBody
@@ -96,13 +97,13 @@ if (host) {
     palm.position.y = 0.18 + 0.50;
     root.add(palm);
 
-    // Main palm body — rounded box for a smoother silhouette.
+    // Main palm body: rounded box for a smoother silhouette.
     const palmGeom = new RoundedBoxGeometry(0.82, 0.92, 0.22, 6, 0.10);
     const palmBlock = new THREE.Mesh(palmGeom, matBody);
     palmBlock.position.y = 0.46;
     palm.add(palmBlock);
 
-    // Thenar eminence — the thick muscular pad at the base of the thumb.
+    // Thenar eminence: the thick muscular pad at the base of the thumb.
     // Bulged forward so its apex reaches z ≈ 0.22, where the thumb's CMC
     // joint sits; the thumb base then visually emerges from the pad.
     const thenarPad = new THREE.Mesh(
@@ -113,7 +114,7 @@ if (host) {
     thenarPad.position.set(-0.20, 0.32, 0.08);
     palm.add(thenarPad);
 
-    // Hypothenar eminence — the smaller pad along the pinky-side edge.
+    // Hypothenar eminence: the smaller pad along the pinky-side edge.
     const hypoPad = new THREE.Mesh(
         new THREE.SphereGeometry(0.14, 24, 18),
         matBody
@@ -122,7 +123,7 @@ if (host) {
     hypoPad.position.set(0.30, 0.42, 0.06);
     palm.add(hypoPad);
 
-    // Metacarpal heads — the four knuckle bumps that show on the back of
+    // Metacarpal heads: the four knuckle bumps that show on the back of
     // the hand at the base of each long finger. Slightly staggered in
     // height so the silhouette mirrors a real metacarpal arch.
     const metaPositions = [
@@ -141,7 +142,7 @@ if (host) {
         palm.add(head);
     }
 
-    // Palm hollow — a small darker inset on the palm side, offset away
+    // Palm hollow: a small darker inset on the palm side, offset away
     // from the thenar pad so it sits where a real palm hollows out.
     const palmInset = new THREE.Mesh(
         new RoundedBoxGeometry(0.34, 0.46, 0.03, 4, 0.10),
@@ -150,7 +151,7 @@ if (host) {
     palmInset.position.set(0.06, 0.50, 0.106);
     palm.add(palmInset);
 
-    // Distal palm crease — a fine horizontal line just below the
+    // Distal palm crease: a fine horizontal line just below the
     // metacarpal arch, approximating the natural skin fold.
     const palmCrease = new THREE.Mesh(
         new THREE.CylinderGeometry(0.011, 0.011, 0.50, 8),
@@ -159,7 +160,7 @@ if (host) {
     palmCrease.rotation.z = Math.PI / 2;
     palmCrease.position.set(0, 0.66, 0.108);
     palm.add(palmCrease);
-    // Proximal palm crease — a shorter line lower down.
+    // Proximal palm crease: a shorter line lower down.
     const palmCrease2 = new THREE.Mesh(
         new THREE.CylinderGeometry(0.010, 0.010, 0.34, 8),
         matBase
@@ -172,7 +173,7 @@ if (host) {
     const statusLed = new THREE.Mesh(
         new THREE.SphereGeometry(0.022, 14, 10),
         new THREE.MeshStandardMaterial({
-            color: 0x7be089, emissive: 0x7be089, emissiveIntensity: 0.9,
+            color: T.hex('green'), emissive: T.hex('green'), emissiveIntensity: 0.9,
             roughness: 0.3, metalness: 0.1
         })
     );
@@ -182,7 +183,8 @@ if (host) {
     // ─── Finger builder ──────────────────────────────────────────────
     // Returns { mcp, pip, dip, mat } so the animation loop can rotate each
     // joint and tint the material.
-    const FINGER_COLORS = [0x58a6ff, 0xfb923c, 0x7be089, 0xff5c7a, 0xffcf5c];
+    // Thumb, index, middle, ring, little: the same hues as the trace plots.
+    const FINGER_COLORS = ['blue', 'orange', 'green', 'pink', 'violet'].map((n) => T.hex(n));
 
     // Build a phalanx: a capsule tube along +Y rooted at the parent group
     // origin, with a knuckle sphere at the joint and a small accent ring at
@@ -208,7 +210,7 @@ if (host) {
 
     function makeFinger(parent, basePos, baseEuler, lengths, colorHex, widths) {
         const skinMat = new THREE.MeshStandardMaterial({
-            color: 0x3b3f4c, roughness: 0.35, metalness: 0.55
+            color: T.hex('slate'), roughness: 0.35, metalness: 0.55
         });
         const tipMat = new THREE.MeshStandardMaterial({
             color: colorHex, roughness: 0.35, metalness: 0.20,
@@ -229,7 +231,7 @@ if (host) {
         mcp.add(k1);
         buildPhalanx(mcp, lengths[0], widths[0], skinMat);
 
-        // Coloured ring near the proximal tip — the per-finger identifier.
+        // Coloured ring near the proximal tip: the per-finger identifier.
         const idRing = new THREE.Mesh(
             new THREE.TorusGeometry(widths[0] * 0.55, widths[0] * 0.08, 8, 18),
             accentBandMat
@@ -252,7 +254,7 @@ if (host) {
         dip.add(k3);
         buildPhalanx(dip, lengths[2], widths[2], skinMat);
 
-        // Glowing fingertip cap — the "sensor pad".
+        // Self-lit fingertip cap marking the sensor pad.
         const tip = new THREE.Mesh(
             new THREE.SphereGeometry(widths[2] * 0.62, 20, 14),
             tipMat
@@ -269,7 +271,7 @@ if (host) {
     // tip across the palm.
     const fingers = [];
 
-    // Thumb — base sits at the forward apex of the thenar pad so the
+    // Thumb: base sits at the forward apex of the thenar pad so the
     // CMC joint is visually anchored to the muscular pad. The curl
     // plane sits in front of the palm body, so a pure in-plane sweep
     // closes the thumb across the palm without intersecting it.
@@ -331,10 +333,6 @@ if (host) {
     const ro = new ResizeObserver(resize);
     ro.observe(host);
     window.addEventListener('resize', resize);
-
-    window.addEventListener('themechange', () => {
-        scene.background = new THREE.Color(window.T && window.T.sceneBg ? window.T.sceneBg : 0x111111);
-    });
 
     // ─── Animation loop ──────────────────────────────────────────────
     // The chain output sits in roughly [0, 1] when the canonical order is in

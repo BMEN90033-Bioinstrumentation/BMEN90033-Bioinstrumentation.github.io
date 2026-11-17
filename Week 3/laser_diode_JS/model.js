@@ -52,12 +52,11 @@
         CAVITY_LENGTH_UM: CAVITY_LENGTH_UM, FACET_REFLECTIVITY: FACET_REFLECTIVITY,
         REAR_FACET_REFLECTIVITY: REAR_FACET_REFLECTIVITY, WAVELENGTH: WAVELENGTH, I_MAX: I_MAX,
         p: p, aboveThreshold: aboveThreshold, bands: bands, power: power,
-        // Run fn after DOM ready and on every parameter, theme or size change.
+        // Run fn after DOM ready and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ldchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

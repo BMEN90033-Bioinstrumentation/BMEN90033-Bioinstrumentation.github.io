@@ -44,7 +44,14 @@
             xTitle: 't \\, [\\mathrm{s}]',
             yTitle: '\\text{ECG amplitude} \\, [\\mathrm{mV}]',
             xTicks: [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0],
-            yTicks: [-1.0, -0.5, 0, 0.5, 1.0, 1.5]
+            yTicks: [-1.0, -0.5, 0, 0.5, 1.0, 1.5],
+            legend: [
+                { color: getColor('--c-drift'),       label: 'baseline drift', dashed: true },
+                { color: getColor('--c-noisy'),     label: 'recorded ECG',   dashed: false },
+                { color: getColor('--c-clean'),     label: 'clean reference', dashed: true,
+                  show: state.showTruth },
+                { color: getColor('--c-filtered'),  label: 'high-pass output', dashed: false }
+            ]
         });
 
         var x = H.x, y = H.y;
@@ -56,7 +63,7 @@
         H.g.append('path').datum(drift)
             .attr('d', line)
             .attr('fill', 'none')
-            .attr('stroke', getColor('--muted'))
+            .attr('stroke', getColor('--c-drift'))
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '3 3')
             .attr('opacity', 0.7);
@@ -74,13 +81,6 @@
         H.g.append('path').datum(filt)
             .attr('class', 'trace filtered').attr('d', line);
 
-        drawLegend(H, [
-            { color: getColor('--muted'),       label: 'baseline drift', dashed: true,  faint: true },
-            { color: getColor('--c-noisy'),     label: 'recorded ECG',   dashed: false, faint: false },
-            { color: getColor('--c-clean'),     label: 'clean reference', dashed: true, faint: true,
-              show: state.showTruth },
-            { color: getColor('--c-filtered'),  label: 'high-pass output', dashed: false, faint: false }
-        ]);
     }
 
     function renderMag() {
@@ -93,7 +93,7 @@
             yTitle: '|H(f)|^2',
             xTicks: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
             yTicks: [0, 0.25, 0.5, 0.707, 1.0],
-            margin: { top: 80, right: 36, bottom: 50, left: 60 }
+            margin: { top: 80, right: 36, bottom: 50, left: 78 }
         });
 
         var x = H.x, y = H.y;
@@ -121,9 +121,9 @@
                 .attr('stroke', color).attr('stroke-width', 1.2)
                 .attr('stroke-dasharray', '3 3').attr('opacity', 0.7);
             window.renderKatex(H.g, label, xc, -46,
-                { width: 100, height: 16, size: 11, color: color });
+                { width: 100, height: 16, size: 13, color: color });
         }
-        vmark(0.30, getColor('--muted'),  '\\text{drift}');
+        vmark(0.30, getColor('--c-drift'),  '\\text{drift}');
         vmark(10,   getColor('--c-clean'), '\\text{QRS band}');
 
         // Cutoff marker (own row, clamped inside the plot horizontally)
@@ -135,39 +135,8 @@
                 .attr('y1', 0).attr('y2', H.innerH);
             var fcLabelX = Math.min(Math.max(xc, 24), H.innerW - 24);
             window.renderKatex(H.g, 'f_c', fcLabelX, -18,
-                { width: 50, height: 16, size: 12, color: getColor('--c-mark') });
+                { width: 50, height: 16, size: 14, color: getColor('--c-mark') });
         }
-    }
-
-    function drawLegend(H, items) {
-        var visible = items.filter(function (it) { return it.show !== false; });
-        var pad = 8;
-        var rowH = 14;
-        var w = 180;
-        var h = pad * 2 + rowH * visible.length;
-        var x0 = H.innerW - w - 8;
-        var y0 = 8;
-        var grp = H.g.append('g');
-        grp.append('rect')
-            .attr('x', x0).attr('y', y0)
-            .attr('width', w).attr('height', h)
-            .attr('rx', 6).attr('ry', 6)
-            .attr('fill', window.T.panelBg)
-            .attr('stroke', window.T.gridStrong);
-        visible.forEach(function (it, i) {
-            var yy = y0 + pad + 6 + i * rowH;
-            grp.append('line')
-                .attr('x1', x0 + pad).attr('x2', x0 + pad + 18)
-                .attr('y1', yy - 3).attr('y2', yy - 3)
-                .attr('stroke', it.color).attr('stroke-width', 2.2)
-                .attr('stroke-dasharray', it.dashed ? '4 4' : null)
-                .attr('opacity', it.faint ? 0.65 : 1);
-            grp.append('text')
-                .attr('x', x0 + pad + 24).attr('y', yy)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10).attr('fill', window.T.text)
-                .text(it.label);
-        });
     }
 
     function getColor(varName) {
@@ -195,7 +164,6 @@
             pillTruth.classList.toggle('active', state.showTruth);
             renderAll();
         });
-        window.addEventListener('themechange', renderAll);
         window.addEventListener('resize', renderAll);
     }
 

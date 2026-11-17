@@ -36,9 +36,9 @@
 
         // Input labels and rails
         f.g.append('text').attr('x', 52).attr('y', a1Y + 4)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (a1 ? ' lit' : '')).text('A1 = ' + a1);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (a1 ? ' lit' : '')).call(DL.sub, 'A_1 = ' + a1);
         f.g.append('text').attr('x', 52).attr('y', a0Y + 4)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (a0 ? ' lit' : '')).text('A0 = ' + a0);
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (a0 ? ' lit' : '')).call(DL.sub, 'A_0 = ' + a0);
 
         // A1 bus
         DL.wire(f.g, busLeft, a1Y, busRight, a1Y, !!a1);
@@ -59,20 +59,20 @@
 
         // Bus labels at the right end
         f.g.append('text').attr('x', busRight + 8).attr('y', a1Y + 4)
-            .attr('class', 'lbl' + (a1 ? ' lit' : '')).text('A1');
+            .attr('class', 'lbl' + (a1 ? ' lit' : '')).call(DL.sub, 'A_1');
         f.g.append('text').attr('x', busRight + 8).attr('y', a1BarY + 4)
-            .attr('class', 'lbl' + (a1Bar ? ' lit' : '')).text('Ā1');
+            .attr('class', 'lbl' + (a1Bar ? ' lit' : '')).call(DL.sub, 'Ā_1');
         f.g.append('text').attr('x', busRight + 8).attr('y', a0Y + 4)
-            .attr('class', 'lbl' + (a0 ? ' lit' : '')).text('A0');
+            .attr('class', 'lbl' + (a0 ? ' lit' : '')).call(DL.sub, 'A_0');
         f.g.append('text').attr('x', busRight + 8).attr('y', a0BarY + 4)
-            .attr('class', 'lbl' + (a0Bar ? ' lit' : '')).text('Ā0');
+            .attr('class', 'lbl' + (a0Bar ? ' lit' : '')).call(DL.sub, 'Ā_0');
 
         // Four AND gates, each picking one of {A1, Ā1} and one of {A0, Ā0}.
         var defs = [
-            { name: 'Y0', i1: a1Bar, i0: a0Bar, topY: a1BarY, botY: a0BarY, x: 160 },
-            { name: 'Y1', i1: a1Bar, i0: a0,    topY: a1BarY, botY: a0Y,    x: 300 },
-            { name: 'Y2', i1: a1,    i0: a0Bar, topY: a1Y,    botY: a0BarY, x: 440 },
-            { name: 'Y3', i1: a1,    i0: a0,    topY: a1Y,    botY: a0Y,    x: 580 }
+            { name: 'Y_0', i1: a1Bar, i0: a0Bar, topY: a1BarY, botY: a0BarY, x: 160 },
+            { name: 'Y_1', i1: a1Bar, i0: a0,    topY: a1BarY, botY: a0Y,    x: 300 },
+            { name: 'Y_2', i1: a1,    i0: a0Bar, topY: a1Y,    botY: a0BarY, x: 440 },
+            { name: 'Y_3', i1: a1,    i0: a0,    topY: a1Y,    botY: a0Y,    x: 580 }
         ];
 
         defs.forEach(function (gd) {
@@ -88,15 +88,15 @@
             DL.wire(f.g, gate.out.x, gate.out.y, gate.out.x + 30, gate.out.y, !!out);
             f.g.append('text').attr('x', gate.out.x + 34).attr('y', gate.out.y + 4)
                 .attr('class', 'lbl' + (out ? ' lit' : ''))
-                .text(gd.name + ' = ' + out);
+                .call(DL.sub, gd.name + ' = ' + out);
         });
 
         // EN annotation below
         f.g.append('text').attr('x', 52).attr('y', 354)
-            .attr('text-anchor', 'end').attr('class', 'lbl' + (en ? ' lit' : '')).text('EN = ' + en);
-        f.g.append('text').attr('x', 60).attr('y', 354)
-            .attr('class', 'gate-expr')
-            .text('when EN = 0, every Y_k is forced to 0');
+            .attr('text-anchor', 'end').attr('class', 'lbl' + (en ? ' lit' : '')).call(DL.sub, 'EN = ' + en);
+        f.g.append('text').attr('x', busRight).attr('y', 354)
+            .attr('text-anchor', 'end').attr('class', 'gate-expr')
+            .call(DL.sub, 'EN = 0 forces every Y_k to 0');
     }
 
     // ---------------- 3-to-8 decoder ----------------
@@ -116,24 +116,24 @@
                    ' L ' + bx + ',' + (by + bh - 20) + ' Z';
         f.g.append('path').attr('class', 'gate' + (en ? ' hi' : '')).attr('d', path);
         f.g.append('text').attr('x', bx + bw / 2).attr('y', by + bh / 2 + 4)
-            .attr('text-anchor', 'middle').attr('class', 'gate-title').text('3-to-8 DECODER');
+            .attr('text-anchor', 'middle').attr('class', 'gate-title').call(DL.sub, '3-to-8 DECODER');
 
         // Address inputs at left
         var inX = 60;
         var addrY = [by + 80, by + 140, by + 200];
         var addrBits = [a2, a1, a0];
-        var addrLabels = ['A2', 'A1', 'A0'];
+        var addrLabels = ['A_2', 'A_1', 'A_0'];
         for (var i = 0; i < 3; i++) {
             f.g.append('text').attr('x', inX - 8).attr('y', addrY[i] + 4)
                 .attr('text-anchor', 'end').attr('class', 'lbl' + (addrBits[i] ? ' lit' : ''))
-                .text(addrLabels[i] + ' = ' + addrBits[i]);
+                .call(DL.sub, addrLabels[i] + ' = ' + addrBits[i]);
             DL.wire(f.g, inX, addrY[i], bx, addrY[i], !!addrBits[i]);
         }
         // Enable input
         var enY = by + 280;
         f.g.append('text').attr('x', inX - 8).attr('y', enY + 4)
             .attr('text-anchor', 'end').attr('class', 'lbl' + (en ? ' lit' : ''))
-            .text('EN = ' + en);
+            .call(DL.sub, 'EN = ' + en);
         DL.wire(f.g, inX, enY, bx, enY, !!en);
 
         // Eight outputs on the right
@@ -143,7 +143,7 @@
             var asserted = en && (k === addr);
             DL.wire(f.g, outX, oy, outX + 80, oy, !!asserted);
             f.g.append('text').attr('x', outX + 86).attr('y', oy + 4)
-                .attr('class', 'lbl' + (asserted ? ' lit' : '')).text('Y' + k + ' = ' + (asserted ? 1 : 0));
+                .attr('class', 'lbl' + (asserted ? ' lit' : '')).call(DL.sub, 'Y_' + k + ' = ' + (asserted ? 1 : 0));
             if (asserted) {
                 f.g.append('circle').attr('cx', outX - 14).attr('cy', oy)
                     .attr('r', 5).attr('fill', 'var(--c-hi)');
@@ -153,11 +153,11 @@
         // expression below
         f.g.append('text').attr('x', bx + bw / 2).attr('y', by + bh + 30)
             .attr('text-anchor', 'middle').attr('class', 'gate-expr')
-            .text('Y_k = 1 iff (A2 A1 A0) = k and EN = 1');
+            .call(DL.sub, 'Y_k = 1 if and only if A_2 A_1 A_0 = k and EN = 1');
 
         rdAddr.textContent = '' + a2 + a1 + a0;
         rdInt.textContent = '' + addr;
-        rdLine.textContent = en ? ('Y' + addr) : 'none';
+        rdLine.innerHTML = en ? ('Y<sub>' + addr + '</sub>') : 'none';
     }
 
     function drawAll() {
@@ -168,7 +168,6 @@
     function init() {
         btns.forEach(function (b) { DL.bindBitButton(b, drawAll); });
         drawAll();
-        window.addEventListener('themechange', drawAll);
         window.addEventListener('resize', drawAll);
     }
 

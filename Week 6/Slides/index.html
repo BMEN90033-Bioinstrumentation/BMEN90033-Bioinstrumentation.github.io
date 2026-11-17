@@ -4,46 +4,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BMEN90033: Week 6, Operational Amplifiers</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <title>BMEN90033: Week 6, operational amplifiers</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    // Presenter theme persistence. theme.js hardcodes 'light' at every page
-    // load, so we shadow that with a sessionStorage entry that survives our
-    // own reloads and that we push into child iframes via ?theme=.
-    (function () {
-      try {
-        var ss = sessionStorage.getItem('slideTheme');
-        if (ss === 'dark' || ss === 'light') {
-          document.documentElement.setAttribute('data-theme', ss);
-        }
-      } catch (e) { /* ignore */ }
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { /* ignore */ }
-      });
-    })();
-  </script>
 </head>
 
 <body class="presenter">
-  <a class="back-btn" href="../../index.html">← Back</a>
+  <a class="back-btn" href="../../index.html">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5" />
+      <path d="M12 19l-7-7 7-7" />
+    </svg>
+    Back
+  </a>
 
   <aside class="deck-sidebar" id="sidebar">
-    <h2>Week 6 · Op-Amps</h2>
+    <h2>Week 6 · Operational amplifiers</h2>
     <ol id="slide-list"></ol>
   </aside>
 
   <main class="deck-main">
-    <iframe class="slide-frame" id="stage" src="about:blank" title="current slide"></iframe>
+    <iframe class="slide-frame" id="stage" src="about:blank" title="Current slide"></iframe>
     <div class="deck-controls">
-      <button id="prev">← Prev</button>
+      <button id="prev" class="ctrl-btn" type="button">Previous</button>
       <span class="deck-counter" id="counter">1 / 20</span>
-      <button id="next">Next →</button>
+      <button id="next" class="ctrl-btn" type="button">Next</button>
     </div>
   </main>
 
@@ -51,27 +38,27 @@
     const slides = [
       { file: '00_perusal.html', title: 'Perusall' },
       { file: '00_preamble.html', title: 'Preamble' },
-      { file: '01_intro.html', title: 'Op-Amp Introduction' },
-      { file: '02_transfer_characteristic.html', title: 'Transfer Characteristic' },
-      { file: '03_equivalent_circuit.html', title: 'Equivalent Circuit Model' },
-      { file: '04_lm741_pinout.html', title: 'LM741 Pinout' },
-      { file: '05_lm741_internal.html', title: 'LM741 Internal Circuitry' },
-      { file: '06_noninv.html', title: 'Non-Inverting Amplifier' },
-      { file: '06b_inv.html', title: 'Inverting Amplifier' },
-      { file: '07_thermostat.html', title: 'Thermostat Analogy' },
-      { file: '08_feedback_formal.html', title: 'Negative Feedback (Formal)' },
-      { file: '09_feedback_effects.html', title: 'Gain-Bandwidth Tradeoff with Feedback' },
-      { file: '10_gain_setting.html', title: 'How Negative Feedback Controls Gain' },
-      //{ file: '11_virtual_short.html',           title: 'Virtual Short' },
-      //{ file: '12_resistor_choice.html',         title: 'Resistor Choice' },
-      { file: '13_offset_voltage.html', title: 'DC Offset Voltage' },
-      { file: '14_summing_amp.html', title: 'Summing Amplifier' },
-      { file: '15_common_mode_noise.html', title: 'Common-Mode Noise' },
-      { file: '17_difference_amp.html', title: 'Difference Amplifier' },
+      { file: '01_intro.html', title: 'Op-amp introduction' },
+      { file: '02_transfer_characteristic.html', title: 'Transfer characteristic' },
+      { file: '03_equivalent_circuit.html', title: 'Equivalent circuit model' },
+      { file: '04_lm741_pinout.html', title: 'LM741 pinout' },
+      { file: '05_lm741_internal.html', title: 'LM741 internal circuitry' },
+      { file: '06_noninv.html', title: 'Non-inverting amplifier' },
+      { file: '06b_inv.html', title: 'Inverting amplifier' },
+      { file: '07_thermostat.html', title: 'Thermostat analogy' },
+      { file: '08_feedback_formal.html', title: 'Negative feedback (formal)' },
+      { file: '09_feedback_effects.html', title: 'Gain-bandwidth trade-off with feedback' },
+      { file: '10_gain_setting.html', title: 'Gain control by negative feedback' },
+      //{ file: '11_virtual_short.html',           title: 'Virtual short' },
+      //{ file: '12_resistor_choice.html',         title: 'Resistor choice' },
+      { file: '13_offset_voltage.html', title: 'DC offset voltage' },
+      { file: '14_summing_amp.html', title: 'Summing amplifier' },
+      { file: '15_common_mode_noise.html', title: 'Common-mode noise' },
+      { file: '17_difference_amp.html', title: 'Difference amplifier' },
       //{ file: '16_cmrr.html',                    title: 'CMRR' },
-      { file: '18_instrumentation_amp.html', title: 'Instrumentation Amplifier' },
-      { file: '19_isolation_amp.html', title: 'Isolation Amplifier' },
-      { file: '20_iv_vi_converter.html', title: 'I/V & V/I Converters' }
+      { file: '18_instrumentation_amp.html', title: 'Instrumentation amplifier' },
+      { file: '19_isolation_amp.html', title: 'Isolation amplifier' },
+      { file: '20_iv_vi_converter.html', title: 'I/V and V/I converters' }
     ];
 
     const stage = document.getElementById('stage');
@@ -80,11 +67,8 @@
     const btnPrev = document.getElementById('prev');
     const btnNext = document.getElementById('next');
 
-    function getTheme() {
-      return document.documentElement.getAttribute('data-theme') || 'light';
-    }
     function slideSrc(i) {
-      return slides[i].file + '?theme=' + getTheme();
+      return slides[i].file;
     }
 
     // Build the sidebar once
@@ -118,7 +102,7 @@
       try { localStorage.setItem('week6-slide', String(i)); } catch (e) { /* ignore */ }
     }
 
-    // Initial position: hash → localStorage → 0
+    // Initial position: hash, then localStorage, then 0
     function initialIndex() {
       const hashN = parseInt((location.hash || '').replace('#', ''), 10);
       if (!isNaN(hashN) && hashN >= 1 && hashN <= slides.length) return hashN - 1;
@@ -156,13 +140,6 @@
     window.addEventListener('hashchange', () => {
       const n = parseInt(location.hash.replace('#', ''), 10);
       if (!isNaN(n) && n >= 1 && n <= slides.length) goTo(n - 1, { push: false });
-    });
-
-    // Theme change: reload the current slide with the new ?theme= param.
-    // theme.js dispatches the event after flipping data-theme, so getTheme()
-    // returns the fresh value by the time we read it here.
-    window.addEventListener('themechange', () => {
-      stage.src = slideSrc(current);
     });
   </script>
 </body>

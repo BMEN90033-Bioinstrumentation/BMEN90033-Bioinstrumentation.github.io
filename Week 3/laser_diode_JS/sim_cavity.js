@@ -7,8 +7,8 @@
 // insets are now separate D3 figures, and the in-canvas status text moved to
 // the readouts. Drawing is shifted down by DY so the plot-box label stays
 // clear; the facet reflectivities are KaTeX overlays above the mirrors, the
-// left one right-aligned to the rear facet and the right one left-aligned to
-// the front facet, so they never meet over the active region.
+// left one right-aligned and the right one left-aligned just outside the
+// widest depletion edge, so they never meet over the active region.
 (function () {
     var DY = 24;
 
@@ -67,7 +67,10 @@
             W = w; H = rect.height - DY;
             if (big) initParticles();
             ovl.forEach(function (d, i) {
-                d.style.left = (W * 0.5 + (i === 0 ? -40 : 40)) + 'px';
+                // Outside the widest (unbiased) depletion edge, so the dashed
+                // guides never cross a label at low current.
+                var off = Math.max(40, W * 0.08 + 8);
+                d.style.left = (W * 0.5 + (i === 0 ? -off : off)) + 'px';
                 d.style.top = (DY + 28) + 'px';
             });
         }
@@ -392,11 +395,6 @@
             photons.forEach(function (ph) {
                 ctx.save();
                 ctx.globalAlpha = Math.min(ph.life, 1);
-                var grad = ctx.createRadialGradient(ph.x, ph.y, 0, ph.x, ph.y, 14);
-                grad.addColorStop(0, col('--c-photon', 0.33));
-                grad.addColorStop(1, col('--c-photon', 0));
-                ctx.fillStyle = grad;
-                ctx.fillRect(ph.x - 14, ph.y - 14, 28, 28);
                 ctx.beginPath(); ctx.arc(ph.x, ph.y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-photon', ph.stimulated ? 1 : 0.7); ctx.fill();
                 ctx.strokeStyle = col('--c-photon', 0.4); ctx.lineWidth = 1;
@@ -422,30 +420,28 @@
             if (step < 5 || !isAboveThreshold()) return;
             var a = getActiveRegionBounds();
             var by = (a.top + a.bottom) / 2, bx = a.right + 30;
-            var grad = ctx.createLinearGradient(bx, 0, W, 0);
-            grad.addColorStop(0, col('--c-photon', 0.3));
-            grad.addColorStop(0.5, col('--c-photon', 0.15));
-            grad.addColorStop(1, col('--c-photon', 0));
-            ctx.fillStyle = grad;
+            ctx.fillStyle = col('--c-photon', 0.2);
             var bw = 4 + Math.sin(time * 3) * 0.5;
             ctx.fillRect(bx, by - bw, W - bx, bw * 2);
         }
 
         function drawLabels() {
             var T = window.T, jx = W * 0.5, a = getActiveRegionBounds();
-            ctx.font = '600 14px Inter';
+            ctx.font = '400 14px Inter';
             ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = col('--c-hole', 0.9);
-            ctx.fillText('P-type', jx * 0.4, 28);
+            ctx.fillText('p-type', jx * 0.4, 28);
             ctx.fillStyle = col('--c-elec', 0.9);
-            ctx.fillText('N-type', jx * 1.6, 28);
+            ctx.fillText('n-type', jx * 1.6, 28);
             if (step >= 1) {
-                ctx.font = '500 11px JetBrains Mono';
+                ctx.font = '400 13px JetBrains Mono';
                 ctx.fillStyle = T.textDim;
-                ctx.fillText('active region', jx, a.bottom + 24);
+                // Right-aligned left of the depletion edge, clear of the dashed guides.
+                ctx.textAlign = 'right';
+                ctx.fillText('active region', jx - getDepletionHalf() - 8, a.bottom + 24);
             }
             if (step > 0 && current() > 0) {
-                ctx.font = '500 12px JetBrains Mono';
+                ctx.font = '400 13px JetBrains Mono';
                 ctx.textAlign = 'left';
                 ctx.fillStyle = col('--c-hole', 0.9);
                 ctx.fillText('+ anode', 10, H - 6);
@@ -484,7 +480,6 @@
         resize();
         draw();
         window.addEventListener('resize', function () { resize(); draw(); });
-        window.addEventListener('themechange', draw);
         new IntersectionObserver(function (es) {
             es.forEach(function (e) { if (e.isIntersecting) start(); else stop(); });
         }, { threshold: 0.05 }).observe(canvas);

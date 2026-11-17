@@ -23,7 +23,7 @@
         var ya = g.append('g').call(d3.axisLeft(y).tickValues(yt).tickSizeOuter(0));
         var xa = g.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(d3.axisBottom(x).tickSizeOuter(0).tickFormat(function () { return ''; }));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(A.styleAxis);
 
         cats.forEach(function (c, i) {
             var v = Math.min(c.v, P_MAX), bx = x(i), bw = x.bandwidth();

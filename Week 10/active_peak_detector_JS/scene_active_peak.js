@@ -51,7 +51,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = opts.margin || { top: 24, right: 28, bottom: 44, left: 56 };
+        var m = opts.margin || { top: 40, right: 36, bottom: 52, left: 68 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -64,64 +64,61 @@
     function wire(g, x1, y1, x2, y2) {
         if (x1 === x2 || y1 === y2) {
             g.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2)
-                .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+                .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         } else {
             g.append('polyline')
                 .attr('points', x1 + ',' + y1 + ' ' + x2 + ',' + y1 + ' ' + x2 + ',' + y2)
-                .attr('fill', 'none').attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+                .attr('fill', 'none').attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         }
     }
     function source(g, x, y, label) {
         g.append('circle').attr('cx', x).attr('cy', y).attr('r', 22)
-            .attr('fill', 'var(--bg-2)').attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('path').attr('d',
             'M ' + (x - 13) + ',' + y + ' Q ' + (x - 6.5) + ',' + (y - 11) + ' ' + x + ',' + y +
             ' T ' + (x + 13) + ',' + y)
             .attr('fill', 'none').attr('stroke', 'var(--c-input)').attr('stroke-width', 1.6);
         g.append('text').attr('x', x).attr('y', y + 42).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--muted)').text(label);
+            .attr('class', 'lbl').text(label);
     }
     function diodeH(g, cx, cy, label) {
         g.append('polygon')
             .attr('points', (cx - 12) + ',' + (cy - 11) + ' ' + (cx - 12) + ',' + (cy + 11) + ' ' + (cx + 12) + ',' + cy)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('fill', 'var(--white)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', cx + 12).attr('y1', cy - 13).attr('x2', cx + 12).attr('y2', cy + 13)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.2);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.2);
         if (label) {
             g.append('text').attr('x', cx).attr('y', cy - 20).attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-                .attr('fill', 'var(--muted)').text(label);
+                .attr('class', 'lbl').text(label);
         }
     }
     function capV(g, x, y0, y1, label) {
         var midY = (y0 + y1) / 2;
         g.append('line').attr('x1', x).attr('y1', y0).attr('x2', x).attr('y2', midY - 5)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', x - 14).attr('y1', midY - 5).attr('x2', x + 14).attr('y2', midY - 5)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.4);
         g.append('line').attr('x1', x - 14).attr('y1', midY + 5).attr('x2', x + 14).attr('y2', midY + 5)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.4);
         g.append('line').attr('x1', x).attr('y1', midY + 5).attr('x2', x).attr('y2', y1)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         if (label) {
             g.append('text').attr('x', x - 18).attr('y', midY + 4).attr('text-anchor', 'end')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-                .attr('fill', 'var(--muted)').text(label);
+                .attr('class', 'lbl').text(label);
         }
     }
     function ground(g, x, y) {
         // Earth-ground symbol: a short vertical stub from the connection point
         // down to three horizontal lines of decreasing width.
         g.append('line').attr('x1', x).attr('y1', y).attr('x2', x).attr('y2', y + 4)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', x - 12).attr('y1', y + 4).attr('x2', x + 12).attr('y2', y + 4)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('line').attr('x1', x - 8).attr('y1', y + 8).attr('x2', x + 8).attr('y2', y + 8)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('line').attr('x1', x - 4).attr('y1', y + 12).attr('x2', x + 4).attr('y2', y + 12)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.2);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.2);
     }
     function opAmp(g, lx, cy, opts) {
         opts = opts || {};
@@ -130,23 +127,20 @@
         var rx = lx + w;
         g.append('polygon')
             .attr('points', lx + ',' + (cy - halfH) + ' ' + lx + ',' + (cy + halfH) + ' ' + rx + ',' + cy)
-            .attr('fill', 'var(--bg-panel)')
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('fill', 'var(--white)')
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         var topY    = cy - halfH * 0.45;
         var botY    = cy + halfH * 0.45;
         var inPlusY  = opts.flipInputs ? botY : topY;
         var inMinusY = opts.flipInputs ? topY : botY;
         g.append('text').attr('x', lx + 6).attr('y', inPlusY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--text-dim)').text('+');
+            .attr('class', 'ink').text('+');
         g.append('text').attr('x', lx + 6).attr('y', inMinusY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--text-dim)').text('−');
+            .attr('class', 'ink').text('−');
         if (opts.label) {
             g.append('text').attr('x', lx + w / 2 - 4).attr('y', cy + halfH + 14)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-                .attr('fill', 'var(--muted)').text(opts.label);
+                .attr('class', 'lbl').text(opts.label);
         }
         return {
             inPlus:  { x: lx, y: inPlusY },
@@ -170,15 +164,15 @@
         var exitX = gateSide === 'right' ? insX + 5 : insX - 5;
 
         g.append('line').attr('x1', cx).attr('y1', drainY).attr('x2', cx).attr('y2', midY - hh)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', cx).attr('y1', midY + hh).attr('x2', cx).attr('y2', sourceY)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', cx).attr('y1', midY - hh).attr('x2', cx).attr('y2', midY + hh)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.6);
         g.append('line').attr('x1', insX).attr('y1', midY - hh - 1).attr('x2', insX).attr('y2', midY + hh + 1)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('line').attr('x1', insX).attr('y1', midY).attr('x2', exitX).attr('y2', midY)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         var aTip  = midY + hh + 2;
         var aBase = midY + hh + 8;
         g.append('polygon')
@@ -186,17 +180,17 @@
                 cx + ',' + aTip + ' ' +
                 (cx - 4) + ',' + aBase + ' ' +
                 (cx + 4) + ',' + aBase)
-            .attr('fill', 'var(--text-dim)');
+            .attr('fill', 'var(--fg)');
         return { gate: { x: exitX, y: midY }, drain: { x: cx, y: drainY }, source: { x: cx, y: sourceY } };
     }
     function dot(g, x, y) {
         g.append('circle').attr('cx', x).attr('cy', y).attr('r', 3.2)
-            .attr('fill', 'var(--text-dim)');
+            .attr('fill', 'var(--fg)');
     }
 
     function drawCircuit() {
-        var W0 = 800, H0 = 460;
-        circSvg.attr('viewBox', '0 0 ' + W0 + ' ' + H0);
+        // The viewBox is cropped to the drawn extent so the circuit fills its box.
+        circSvg.attr('viewBox', '25 95 700 345');
         circSvg.selectAll('*').remove();
         var g = circSvg.append('g');
 
@@ -214,7 +208,7 @@
         // needed to clear neighbouring panels or wires.
         var panels = [
             { x: 100, y: 145, w: 168, h:  90, label: 'super diode',    color: 'var(--c-output)' },
-            { x: 288, y: 145, w:  72, h: 175, label: 'storage',        color: 'var(--accent)'   },
+            { x: 288, y: 145, w:  72, h: 175, label: 'storage',        color: 'var(--fg)'   },
             { x: 370, y: 145, w: 110, h: 175, label: 'reset',          color: 'var(--c-thresh)' },
             { x: 500, y: 145, w: 110, h:  90, label: 'output buffer',  color: 'var(--c-buffer)', labelDy: -20 }
         ];
@@ -227,9 +221,7 @@
             // Panel label sits in the margin above each rectangle so it never
             // overlaps the component drawn inside.
             g.append('text').attr('x', p.x + 4).attr('y', p.y - 6 + (p.labelDy || 0))
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-                .attr('letter-spacing', '0.10em')
-                .attr('fill', p.color).attr('opacity', 0.95)
+                .style('fill', p.color)
                 .text(p.label);
         });
 
@@ -237,7 +229,7 @@
         source(g, srcX, yRail, 'v_in');
 
         // ---- A1 (super diode) -----------------------------------------------
-        var op1 = opAmp(g, 130, yRail, { label: 'A1', w: 58 });
+        var op1 = opAmp(g, 130, yRail, { label: 'A_1', w: 58 });
         // v_in to A1 (+)
         wire(g, srcX + 22, yRail, op1.inPlus.x - 12, yRail);
         wire(g, op1.inPlus.x - 12, yRail, op1.inPlus.x - 12, op1.inPlus.y);
@@ -246,10 +238,10 @@
         // ---- D1 -------------------------------------------------------------
         var dCx = 232;
         wire(g, op1.out.x, yRail, dCx - 12, yRail);
-        diodeH(g, dCx, yRail, 'D1');
+        diodeH(g, dCx, yRail, 'D_1');
 
         // ---- A2 (output buffer) ---------------------------------------------
-        var op2 = opAmp(g, a2X, yRail, { label: 'A2', w: 58, flipInputs: true });
+        var op2 = opAmp(g, a2X, yRail, { label: 'A_2', w: 58, flipInputs: true });
         // Storage rail from D1 cathode to A2 (+) input (which is at the bottom
         // input pin because the symbol is drawn flipped).
         wire(g, dCx + 12, yRail, op2.inPlus.x - 12, yRail);
@@ -274,12 +266,10 @@
         g.append('circle').attr('cx', phiX).attr('cy', mos.gate.y).attr('r', 4)
             .attr('fill', 'var(--c-thresh)');
         g.append('text').attr('x', phiX).attr('y', mos.gate.y - 10).attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--c-thresh)').text('φ_rst');
+            .attr('class', 't-thresh').text('φ_rst');
         // M_rst body label, placed to the right of the channel
         g.append('text').attr('x', mosX + 22).attr('y', mos.gate.y + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--muted)').text('M_rst');
+            .attr('class', 'lbl').text('M_rst');
 
         // ---- Bottom rail (cap bottom + MOSFET source to a single ground) ----
         wire(g, capX, yGnd, mosX, yGnd);
@@ -292,8 +282,7 @@
         g.append('circle').attr('cx', outX).attr('cy', op2.out.y).attr('r', 4)
             .attr('fill', 'var(--c-output)');
         g.append('text').attr('x', outX + 10).attr('y', op2.out.y + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
-            .attr('fill', 'var(--c-output)').text('v_out');
+            .attr('class', 't-output').text('v_out');
 
         // Tap node where both feedback paths leave the buffer output
         var fbTapX = op2.out.x + 14;
@@ -318,15 +307,14 @@
                 outerLeadX + ',' + op1.inMinus.y + ' ' +
                 op1.inMinus.x + ',' + op1.inMinus.y)
             .attr('fill', 'none')
-            .attr('stroke', 'var(--accent)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('text')
             .attr('x', (fbTapX + outerLeadX) / 2)
             .attr('y', yOuterFb - 10)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('letter-spacing', '0.06em')
-            .attr('fill', 'var(--accent)')
-            .text('outer feedback · absorbs V_F and buffer offset');
+            .attr('class', 'ink')
+            .text('outer feedback: corrects V_F and buffer offset');
+        APD.sub(circSvg);
     }
 
     // ---- simulation --------------------------------------------------------
@@ -358,7 +346,7 @@
 
     function drawTrace() {
         var pts = simulate();
-        var f = makeFrame(traceSvg, { margin: { top: 44, right: 28, bottom: 44, left: 56 } });
+        var f = makeFrame(traceSvg, { margin: { top: APD.legendTop(3), right: 36, bottom: 52, left: 68 } });
         f.g.selectAll('*').remove();
 
         var yMax = Math.max(0.6, state.amp + 0.2);
@@ -400,9 +388,7 @@
             if (!firstLabelled && t0 + state.rstW < T_VIEW) {
                 rb.append('text')
                     .attr('x', x1 + 4).attr('y', 12)
-                    .attr('font-family', "'JetBrains Mono', monospace")
-                    .attr('font-size', 10).attr('letter-spacing', '0.10em')
-                    .attr('fill', 'var(--c-thresh)').text('reset');
+                    .attr('class', 't-thresh').text('reset');
                 firstLabelled = true;
             }
         }
@@ -413,10 +399,10 @@
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
                 .tickFormat(function (d) { return d.toFixed(2) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).ticks(5)
@@ -425,29 +411,24 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle').text('Time');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-54) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle').text('Voltage (V)');
 
         // Legend
-        var lg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 12) + ',8)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 10)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-input)').text('v_in(t)');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 26)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-passive)').text('passive RC peak');
-        lg.append('text').attr('text-anchor', 'end').attr('y', 42)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', 'var(--c-precision)').text('precision active peak');
+        APD.legend(f.g, f.iw, [
+            { color: 'var(--c-input)', label: 'v_in(t)' },
+            { color: 'var(--c-passive)', label: 'passive RC detector' },
+            { color: 'var(--c-precision)', label: 'precision detector' }
+        ]);
 
         return pts;
     }
 
     function drawReset() {
-        var f = makeFrame(rstSvg, { margin: { top: 18, right: 28, bottom: 32, left: 56 }, minH: 90 });
+        var f = makeFrame(rstSvg, { margin: { top: 34, right: 36, bottom: 52, left: 68 }, minH: 90 });
         f.g.selectAll('*').remove();
         var x = d3.scaleLinear().domain([0, T_VIEW]).range([0, f.iw]);
         var y = d3.scaleLinear().domain([-0.2, 1.3]).range([f.ih, 0]);
@@ -464,23 +445,32 @@
             pts.push([t, rstActive(t) ? 1 : 0]);
         }
         f.g.append('path').datum(pts)
-            .attr('class', 'trace amber')
-            .attr('stroke', 'var(--c-thresh)')
+            .attr('class', 'trace')
+            .style('stroke', 'var(--c-thresh)')
             .attr('d', d3.line()
                 .x(function (d) { return x(d[0]); })
                 .y(function (d) { return y(d[1]); })
                 .curve(d3.curveStepAfter));
 
         var ax = f.g.append('g').attr('class', 'axis')
-            .attr('transform', 'translate(0,' + y(0) + ')')
+            .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(6)
                 .tickFormat(function (d) { return d.toFixed(2) + ' s'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
 
+        var ay = f.g.append('g').attr('class', 'axis')
+            .call(d3.axisLeft(y).tickValues([0, 1])
+                .tickFormat(function (d) { return d.toFixed(0); })
+                .tickSize(0).tickPadding(8));
+        ay.select('.domain').remove();
+
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 26)
+            .attr('x', f.iw / 2).attr('y', f.ih + 42)
             .attr('text-anchor', 'middle').text('Time');
+        f.g.append('text').attr('class', 'axis-title')
+            .attr('transform', 'translate(' + (-54) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('text-anchor', 'middle').text('Logic level');
     }
 
     function updateReadout(pts) {
@@ -490,12 +480,6 @@
         var last = pts[pts.length - 1];
         rdPas.textContent = last[3].toFixed(2) + ' V';
         rdPre.textContent = last[2].toFixed(2) + ' V';
-        if (state.amp <= state.vf) {
-            rdPas.className = 'v warn';
-        } else {
-            rdPas.className = 'v amber';
-        }
-        rdPre.className = 'v on';
     }
 
     function refresh() {
@@ -526,7 +510,6 @@
             fcL.textContent = state.fc.toFixed(1) + ' Hz';
             refresh();
         });
-        window.addEventListener('themechange', function () { drawCircuit(); refresh(); });
         window.addEventListener('resize', function () { drawCircuit(); refresh(); });
         refresh();
     }

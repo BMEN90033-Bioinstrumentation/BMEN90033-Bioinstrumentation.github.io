@@ -41,21 +41,22 @@ controls.minDistance = 15;
 controls.maxDistance = 90;
 guardWheel(controls, renderer.domElement, host.parentElement.querySelector('.hint'));
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+const WHITE = window.T.sceneBg;   // white light
+scene.add(new THREE.AmbientLight(WHITE, 0.5));
+const dirLight = new THREE.DirectionalLight(WHITE, 0.7);
 dirLight.position.set(15, 20, 15);
 scene.add(dirLight);
-const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
+const backLight = new THREE.DirectionalLight(WHITE, 0.2);
 backLight.position.set(-10, 10, -10);
 scene.add(backLight);
 
 // ── Electrode, coating, wire, amplifier ──
-const agMat = new THREE.MeshPhongMaterial({ shininess: 80, specular: 0x999999 });
+const agMat = new THREE.MeshPhongMaterial({ shininess: 80, specular: window.T.hex('grey') });
 const agMesh = new THREE.Mesh(new THREE.BoxGeometry(ELECTRODE_D, ELECTRODE_H, ELECTRODE_W), agMat);
 agMesh.position.set(ELECTRODE_X, 0, 0);
 scene.add(agMesh);
 
-const agclMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.7, emissiveIntensity: 0.3 });
+const agclMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.7 });
 const agclMesh = new THREE.Mesh(new THREE.BoxGeometry(AGCL_THICKNESS, ELECTRODE_H, ELECTRODE_W), agclMat);
 agclMesh.position.set(INTERFACE_X, 0, 0);
 scene.add(agclMesh);
@@ -74,11 +75,11 @@ scene.add(ampMesh);
 
 // ── Electrolyte volume ──
 const elecGeo = new THREE.BoxGeometry(ELECTROLYTE_W, ELECTROLYTE_H, ELECTROLYTE_D);
-const elecMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false });
+const elecMat = new THREE.MeshPhongMaterial({ transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false });
 const elecMesh = new THREE.Mesh(elecGeo, elecMat);
 elecMesh.position.set(ELECTROLYTE_CX, 0, 0);
 scene.add(elecMesh);
-const edgeMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.14 });
+const edgeMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.3 });
 const edges = new THREE.LineSegments(new THREE.EdgesGeometry(elecGeo), edgeMat);
 edges.position.copy(elecMesh.position);
 scene.add(edges);
@@ -89,13 +90,9 @@ const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.3, ELECTRODE_H + 2), plan
 plane.position.set(INTERFACE_X + AGCL_THICKNESS / 2, 0, 0);
 scene.add(plane);
 
-let grid = null;
-function buildGrid() {
-    if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
-    grid = new THREE.GridHelper(60, 30, new THREE.Color(css('--c-grid-a')), new THREE.Color(css('--c-grid-b')));
-    grid.position.y = -ELECTRODE_H / 2 - 0.5;
-    scene.add(grid);
-}
+const grid = new THREE.GridHelper(60, 30, new THREE.Color(css('--c-grid-a')), new THREE.Color(css('--c-grid-b')));
+grid.position.y = -ELECTRODE_H / 2 - 0.5;
+scene.add(grid);
 
 // ── CSS2D labels ──
 function label(html, x, y, z, cx, tex) {
@@ -157,10 +154,8 @@ const speciesSize = { cl: 0.45, na: 0.35, k: 0.38, electron: 0.2 };
 const mats = {};
 Object.keys(speciesVar).forEach(function (k) {
     mats[k] = {
-        core: new THREE.MeshPhongMaterial({ emissiveIntensity: 0.3, transparent: true, opacity: 0.9 }),
-        glow: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }),
-        geo: new THREE.SphereGeometry(speciesSize[k], 16, 16),
-        glowGeo: new THREE.SphereGeometry(speciesSize[k] * 2, 12, 12)
+        core: new THREE.MeshPhongMaterial({ emissiveIntensity: 0.3 }),
+        geo: new THREE.SphereGeometry(speciesSize[k], 16, 16)
     };
 });
 let parts = [];
@@ -169,14 +164,13 @@ function spawn() {
     parts = B.spawn(p.ions).map(function (o) {
         const m = mats[o.type];
         const mesh = new THREE.Mesh(m.geo, m.core);
-        mesh.add(new THREE.Mesh(m.glowGeo, m.glow));
         mesh.position.set(o.pos.x, o.pos.y, o.pos.z);
         scene.add(mesh);
         return { o: o, mesh: mesh };
     });
 }
 
-// Reaction sparkles on the AgCl surface.
+// Reaction-site markers on the AgCl surface.
 const sparkGeo = new THREE.SphereGeometry(0.1, 8, 8);
 const sparkles = [];
 for (let i = 0; i < 20; i++) {
@@ -190,28 +184,23 @@ for (let i = 0; i < 20; i++) {
     sparkles.push(s);
 }
 
-// ── Theme ──
-function applyTheme() {
-    const T = window.T;
-    scene.background = new THREE.Color(T.sceneBg);
-    scene.fog.color.set(T.sceneBg);
+// ── Colours from the page palette ──
+function applyColours() {
     agMat.color.set(css('--c-ag'));
     agclMat.color.set(css('--c-agcl'));
-    agclMat.emissive.set(css('--c-agcl-em'));
     wireMat.color.set(css('--c-wire'));
     ampMat.color.set(css('--c-amp'));
     elecMat.color.set(css('--c-body'));
     edgeMat.color.set(css('--c-edge'));
     Object.keys(mats).forEach(function (k) {
         const c = css(speciesVar[k]);
-        mats[k].core.color.set(c); mats[k].core.emissive.set(c); mats[k].glow.color.set(c);
+        mats[k].core.color.set(c); mats[k].core.emissive.set(c);
     });
-    buildGrid();
     buildArrows();
 }
 
 function modeColour() {
-    return css(p.mode === 'reduce' ? '--c-reduce' : p.mode === 'oxidize' ? '--c-oxidise' : '--c-equil');
+    return css(p.mode === 'equil' ? '--c-idle' : '--c-i');
 }
 
 // ── Loop ──
@@ -267,7 +256,7 @@ function resize() {
     labelRenderer.render(scene, camera);
 }
 
-applyTheme();
+applyColours();
 spawn();
 new ResizeObserver(resize).observe(host);
 resize();
@@ -275,7 +264,6 @@ new IntersectionObserver(function (es) {
     es.forEach(function (e) { if (e.isIntersecting) start(); else stop(); });
 }, { threshold: 0.05 }).observe(host);
 
-window.addEventListener('themechange', applyTheme);
 window.addEventListener('elichange', function (e) {
     const k = e.detail && e.detail.key;
     if (k === 'mode') buildArrows();

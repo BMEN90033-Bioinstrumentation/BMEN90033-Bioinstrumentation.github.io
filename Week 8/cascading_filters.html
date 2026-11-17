@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Cascading Low-Pass Filters</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Cascading low-pass filters</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="cascading_filters_JS/cascading_filters.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -48,7 +43,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 8 · CASCADING FILTERS</div>
-            <h1 class="hero">Cascading <em>first-order low-pass</em> stages</h1>
+            <h1 class="hero">Cascading first-order low-pass stages</h1>
             <p class="sub">A first-order low-pass filter has one pole and rolls off at $20\,\text{dB}$ per decade.
                 Chaining $N$ stages multiplies their transfer functions in the ideal case and yields an $N$th-order
                 response with steeper stopband attenuation. The product rule holds only when the stages do not
@@ -102,13 +97,13 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">cutoff</span>
+                        <span class="lab">cutoff $\omega_c$</span>
                         <input type="range" id="fc1-slider" min="-1" max="3" step="0.01" value="1">
                         <span class="val" id="fc1-val">10.0 rad/s</span>
                     </span>
                 </div>
                 <div class="plot-box bode-pair">
-                    <div class="label">bode response · <b>H(s) = 1 / (1 + sRC)</b></div>
+                    <div class="label">Bode response · $H(s) = 1/(1 + sRC)$</div>
                     <svg class="bode" id="plot-bode-first"></svg>
                 </div>
             </div>
@@ -154,7 +149,7 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">N stages</span>
+                        <span class="lab">$N$ stages</span>
                         <input type="range" id="nstage-slider" min="1" max="6" step="1" value="3">
                         <span class="val" id="nstage-val">3</span>
                     </span>
@@ -162,7 +157,7 @@
                     <span class="pill active" id="show-stages">show individual stages</span>
                 </div>
                 <div class="plot-box bode-pair">
-                    <div class="label">bode response · <b>H<sub>N</sub>(s) = 1 / (1 + sRC)<sup>N</sup></b></div>
+                    <div class="label">Bode response · $H_N(s) = 1/(1 + sRC)^N$</div>
                     <svg class="bode" id="plot-bode-cascade"></svg>
                 </div>
             </div>
@@ -173,7 +168,7 @@
     <section class="scene" id="sec-loaded-cascade">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>loaded passive cascade</span></div>
-            <h2>Response of an N-stage passive cascade</h2>
+            <h2>Response of an $N$-stage passive cascade</h2>
 
             <p class="lead">In a passive cascade the stages are wired directly together and each stage loads the
                 previous one. The product rule no longer applies, and the composite poles differ from the
@@ -200,7 +195,7 @@
                 slowest pole drifts toward the origin and pulls the composite $-3\,\text{dB}$ frequency below the ideal
                 value; the fastest pole moves outward but does not compensate, since both contribute to the same
                 magnitude. The asymptotic slope remains $-20N\,\text{dB}$ per decade, but the transition broadens, the
-                passband sags, and the phase rolls off earlier. The plot compares the loaded cascade (red) against the
+                passband sags, and the phase rolls off earlier. The plot compares the loaded cascade (orange) against the
                 ideal product $1/(1+sRC)^N$ (blue).</p>
 
             <div class="callout">
@@ -215,7 +210,7 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">N stages</span>
+                        <span class="lab">$N$ stages</span>
                         <input type="range" id="nload-slider" min="1" max="6" step="1" value="3">
                         <span class="val" id="nload-val">3</span>
                     </span>
@@ -223,11 +218,11 @@
                     <span class="pill active" id="show-ideal-overlay">show ideal product</span>
                 </div>
                 <div class="plot-box bode-side">
-                    <div class="label">bode response · <b>loaded N-stage passive cascade vs ideal</b></div>
+                    <div class="label">Bode response · <b>loaded $N$-stage passive cascade and ideal product</b></div>
                     <svg class="bode" id="plot-bode-loaded-cascade"></svg>
                 </div>
                 <div class="plot-box splane">
-                    <div class="label">s-plane · <b>poles of H<sub>loaded</sub>(s)</b></div>
+                    <div class="label">$s$-plane · <b>poles of</b> $H_{\text{loaded}}(s)$</div>
                     <svg class="bode" id="plot-splane-loaded"></svg>
                 </div>
             </div>
@@ -273,7 +268,7 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">impedance ratio k</span>
+                        <span class="lab">impedance ratio $k$</span>
                         <input type="range" id="imp-ratio-slider" min="0" max="2" step="0.01" value="0">
                         <span class="val" id="imp-ratio-val">1.0</span>
                     </span>
@@ -282,7 +277,7 @@
                     <svg class="circuit" id="circuit-loading" viewBox="0 0 720 280" preserveAspectRatio="xMidYMid meet"></svg>
                 </div>
                 <div class="plot-box bode-pair">
-                    <div class="label">bode response · <b>two-stage passive cascade vs ideal product</b></div>
+                    <div class="label">Bode response · <b>two-stage passive cascade and ideal product</b></div>
                     <svg class="bode" id="plot-bode-loading"></svg>
                 </div>
             </div>
@@ -306,13 +301,13 @@
                 input is tied to the output, so $V_{\text{out}} = V_+$ and the input draws no current.</p>
 
             <h3>Comparison of buffered and passive cascades</h3>
-            <p>The plot shows the buffered $N$-stage response (blue) against the unbuffered passive cascade (red) for
+            <p>The plot shows the buffered $N$-stage response (blue) against the unbuffered passive cascade (orange) for
                 the same $N$. The buffered curve follows the ideal $-20N\,\text{dB}$ per decade slope. The passive
                 curve sits below it in the passband and has a broader transition, since its poles are no longer
                 coincident.</p>
 
             <div class="callout">
-                The buffer fixes the loading problem at the cost of an active component and a power supply. The same
+                The buffer eliminates inter-stage loading at the cost of an active component and a power supply. The same
                 isolation principle underlies Sallen-Key and other active topologies, where the op-amp also
                 shapes pole locations to produce Butterworth, Chebyshev, or Bessel responses rather than the
                 repeated-pole product.
@@ -323,7 +318,7 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">N stages</span>
+                        <span class="lab">$N$ stages</span>
                         <input type="range" id="nbuf-slider" min="2" max="5" step="1" value="3">
                         <span class="val" id="nbuf-val">3</span>
                     </span>
@@ -335,7 +330,7 @@
                     <svg class="circuit" id="circuit-buffered" viewBox="0 0 720 280" preserveAspectRatio="xMidYMid meet"></svg>
                 </div>
                 <div class="plot-box bode-pair">
-                    <div class="label">bode response · <b>buffered vs unbuffered cascade</b></div>
+                    <div class="label">Bode response · <b>buffered and unbuffered cascades</b></div>
                     <svg class="bode" id="plot-bode-buffered"></svg>
                 </div>
             </div>

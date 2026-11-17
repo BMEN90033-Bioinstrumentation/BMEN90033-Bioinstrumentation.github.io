@@ -24,7 +24,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(260, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 24, right: 28, bottom: 40, left: 60 };
+        var m = { top: 34, right: 40, bottom: 48, left: 70 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -34,6 +34,7 @@
     }
 
     function fmtTime(seconds) {
+        seconds = +seconds.toPrecision(12);   // remove floating-point residue before choosing the prefix
         if (seconds < 1e-9) return (seconds * 1e12).toFixed(1) + ' ps';
         if (seconds < 1e-6) return (seconds * 1e9).toFixed(1) + ' ns';
         if (seconds < 1e-3) return (seconds * 1e6).toFixed(1) + ' µs';
@@ -49,7 +50,7 @@
     function refresh() {
         var tau   = state.ron * state.ch;          // seconds
         var halfLsb = 1 / Math.pow(2, state.bits + 1);
-        // Settling to within ½-LSB: 1 − e^{−t/τ} = 1 − halfLsb  →  t = τ ln(1/halfLsb) = τ (N+1) ln 2
+        // Settling to within ½-LSB: 1 − e^{−t/τ} = 1 − halfLsb  to  t = τ ln(1/halfLsb) = τ (N+1) ln 2
         var tAcq = tau * (state.bits + 1) * Math.LN2;
         var fMax = TRACK_DUTY / tAcq;
 
@@ -99,14 +100,11 @@
             f.g.append('line')
                 .attr('x1', x(tAcq)).attr('x2', x(tAcq))
                 .attr('y1', y(0)).attr('y2', y(1.05))
-                .attr('stroke', 'var(--accent)')
+                .attr('stroke', 'var(--fg)')
                 .attr('stroke-width', 1.4)
                 .attr('stroke-dasharray', '4 3');
-            f.g.append('text')
-                .attr('x', x(tAcq) + 6).attr('y', 14)
-                .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-                .attr('fill', 'var(--accent)')
-                .text('t_acq = ' + fmtTime(tAcq));
+            window.renderKatex(f.g, 't_\\mathrm{acq} = \\text{' + fmtTime(tAcq).replace('µ', '}\\mu\\text{') + '}',
+                x(tAcq) + 6 + 80, 10, { width: 160, height: 20, align: 'left', size: 13 });
         }
 
         // Tau marker
@@ -115,18 +113,16 @@
             .attr('y1', y(1 - 1 / Math.E)).attr('y2', y(0))
             .attr('stroke', 'var(--muted)')
             .attr('stroke-dasharray', '2 3').attr('stroke-width', 1);
-        f.g.append('text')
-            .attr('x', x(tau) + 4).attr('y', y(1 - 1 / Math.E) - 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--muted)')
-            .text('τ');
+        // Placed to the right of the marker and below the curve, clear of both.
+        window.renderKatex(f.g, '\\tau', x(tau) + 6 + 10, y(0.3),
+            { width: 20, height: 20, align: 'left', size: 14 });
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5)
-                .tickFormat(function (d) { return fmtTime(d); })
-                .tickSize(0).tickPadding(8));
+            .call(d3.axisBottom(x).ticks(f.iw < 420 ? 3 : 5)
+                .tickFormat(function (d) { return d === 0 ? '0' : fmtTime(d); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues([0, 0.5, 1.0])
@@ -136,14 +132,10 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
             .text('time after switch closure');
-        f.g.append('text')
-            .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-46) + ',' + (f.ih / 2) + ') rotate(-90)')
-            .attr('text-anchor', 'middle')
-            .text('v_C / V_in');
+        window.renderKatex(f.g, 'v_C / V_\\mathrm{in}', -56, f.ih / 2, { rotate: -90, size: 15 });
 
         rdTau.textContent = fmtTime(tau);
         rdTacq.textContent = fmtTime(tAcq);
@@ -166,7 +158,6 @@
             bitsL.textContent = state.bits.toString();
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

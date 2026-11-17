@@ -3,55 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide 19: Instrumentation Amplifier</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Slide 18: Instrumentation amplifier</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    (function () {
-      var qp = new URLSearchParams(location.search);
-      var qt = qp.get('theme');
-      var ss = null;
-      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { }
-      var pick = (qt === 'dark' || qt === 'light') ? qt
-        : (ss === 'dark' || ss === 'light') ? ss
-          : null;
-      if (pick) document.documentElement.setAttribute('data-theme', pick);
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { }
-      });
-      if (window.parent !== window) {
-        var style = document.createElement('style');
-        style.textContent = '#theme-toggle{display:none !important;}';
-        document.head.appendChild(style);
-      }
-    })();
-  </script>
   <style>
+    /* manim-web sets an inline 1280 x 720 px size on its canvas; scale it to the stage */
+    .manim-stage > canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
     .ol-panel {
       position: absolute;
       bottom: 52px;
       left: 14px;
       width: 42%;
       z-index: 9;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--slide-border);
-      background: var(--slide-surface);
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+      padding: 8px 14px;
+      border-radius: var(--radius-4);
+      border: 1px solid var(--calcium-white-800);
+      background: var(--white);
       display: none;
-      gap: 5px 12px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    [data-theme="light"] .ol-panel {
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+      gap: 6px 12px;
     }
 
     .ol-panel.visible {
@@ -60,102 +34,126 @@
     }
 
     .ol-title {
-      font-family: 'IBM Plex Mono', monospace;
-      color: var(--slide-accent);
-      font-size: 11px;
-      letter-spacing: 1.6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+
+    .ol-sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
 
     .ol-row {
       display: grid;
-      gap: 3px;
+      gap: 8px;
+      padding-bottom: 6px;
     }
 
     .ol-row label {
       display: flex;
       justify-content: space-between;
-      color: var(--slide-text-dim);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
+      font-size: 13px;
     }
 
-    .ol-row .v {
-      color: var(--slide-text);
+    .ol-row .v,
+    .ol-readout .v {
+      font-family: var(--font-mono);
+      font-size: 12px;
       font-variant-numeric: tabular-nums;
     }
 
     .ol-panel input[type="range"] {
       width: 100%;
-      accent-color: var(--slide-accent);
-      cursor: pointer;
-      height: 18px;
+      margin: 0;
     }
 
     .ol-readout {
-      border-top: 1px solid var(--slide-border);
-      padding-top: 5px;
+      border-top: 1px solid var(--calcium-white-800);
+      padding-top: 6px;
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: auto 1fr auto 1fr;
       gap: 2px 10px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-    }
-
-    .ol-readout .k {
-      color: var(--slide-text-dim);
+      font-size: 13px;
     }
 
     .ol-readout .v {
       text-align: right;
-      color: var(--slide-text);
-      font-weight: 500;
-      font-variant-numeric: tabular-nums;
+    }
+
+    .ol-readout .v:nth-of-type(4n + 2) {
+      padding-right: 6px;
+    }
+
+    /* Swatch that ties a readout row to its trace colour */
+    .ol-readout .sw {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 6px;
+      border-radius: var(--radius-dot);
     }
 
     .ol-strip {
-      margin-top: 2px;
-      border-left: 3px solid var(--slide-yellow);
-      border-radius: 4px;
-      padding: 4px 8px;
-      background: rgba(255, 204, 68, 0.12);
-      color: var(--slide-yellow);
-      line-height: 1.35;
-      font-size: 10px;
+      border-top: 1px solid var(--calcium-white-800);
+      padding-top: 6px;
+      line-height: 1.4;
+      font-size: 12px;
+    }
+
+    .ol-row label span,
+    .ol-readout span {
+      white-space: nowrap;
+    }
+
+    /* The panel is sized in px while the stage scales; compact it on narrow stages */
+    @media (max-width: 1100px) {
+      .ol-panel { width: 45%; bottom: 46px; padding: 6px 10px; gap: 4px; }
+      .ol-title { display: none; }
+      /* Keep the px-sized stepper clear of the scaled-down stage labels */
+      .step-indicator { min-width: 0; }
+      .ol-sliders { gap: 10px; }
+      .ol-row label, .ol-readout { font-size: 11px; }
+      .ol-row .v, .ol-readout .v { font-size: 10px; }
+      .ol-strip { font-size: 11px; line-height: 1.3; }
     }
   </style>
 </head>
 <body class="slide">
   <header class="slide-header">
-    <span class="slide-num">17 / 19</span>
+    <span class="slide-num">18 / 20</span>
   </header>
 
   <div id="stage" class="manim-stage">
-    <div class="stage-fallback">Loading manim-web scene…</div>
+    <div class="stage-fallback">Loading scene</div>
 
     <div class="ol-panel" id="olPanel" aria-hidden="true">
-      <div class="ol-title">Gain Explorer</div>
-      <div class="ol-row">
-        <label>R<sub>G</sub> <span class="v" id="rgVal">3.2 k&Omega;</span></label>
-        <input type="range" id="rgSlider" min="0" max="1000" step="1" value="500">
-      </div>
-      <div class="ol-row">
-        <label>Source Z<sub>s</sub> <span class="v" id="zsVal">63 &Omega;</span></label>
-        <input type="range" id="zsSlider" min="0" max="1000" step="1" value="200">
+      <div class="ol-title">Gain explorer</div>
+      <div class="ol-sliders">
+        <div class="ol-row">
+          <label><span>Gain resistor R<sub>G</sub></span> <span class="v" id="rgVal">3.2 k&Omega;</span></label>
+          <input type="range" id="rgSlider" min="0" max="1000" step="1" value="500">
+        </div>
+        <div class="ol-row">
+          <label><span>Source impedance Z<sub>s</sub></span> <span class="v" id="zsVal">63 &Omega;</span></label>
+          <input type="range" id="zsSlider" min="0" max="1000" step="1" value="200">
+        </div>
       </div>
       <div class="ol-readout">
         <span class="k">Gain A<sub>v</sub> (R&Prime; = R&prime;)</span><span class="v" id="gainVal">16.8</span>
-        <span class="k">V<sub>out</sub> (buf)</span><span class="v" id="voutVal" style="color:var(--slide-yellow)">168.1 mV</span>
-        <span class="k">V<sub>out</sub> (no buf)</span><span class="v" id="voutNoBufVal" style="color:var(--slide-red)">167.1 mV</span>
-        <span class="k">Signal lost</span><span class="v" id="lossVal" style="color:var(--slide-red)">0.6%</span>
+        <span class="k">Signal loss</span><span class="v" id="lossVal">0.6%</span>
+        <span class="k"><span class="sw" style="background:var(--d-orange)"></span>V<sub>out</sub>, buffered</span><span class="v" id="voutVal">168.1 mV</span>
+        <span class="k"><span class="sw" style="background:var(--d-pink)"></span>V<sub>out</sub>, unbuffered</span><span class="v" id="voutNoBufVal">167.1 mV</span>
       </div>
-      <div class="ol-strip" id="gainExplain">Drag Source Z to see why the buffer stage matters.</div>
+      <div class="ol-strip" id="gainExplain">Drag the source impedance slider to compare the buffered and unbuffered outputs.</div>
     </div>
 
     <div class="stepper-row" id="stepper">
-      <button type="button" class="stepper-btn" id="sec-prev" disabled>← Prev Section</button>
+      <button type="button" class="stepper-btn" id="sec-prev" disabled>Previous section</button>
       <span class="step-indicator" id="sec-indicator">Section 1 · Circuit</span>
-      <button type="button" class="stepper-btn" id="sec-next">Next Section →</button>
+      <button type="button" class="stepper-btn" id="sec-next">Next section</button>
     </div>
   </div>
 
@@ -167,25 +165,25 @@
     } from 'https://esm.sh/manim-web@0.3.18';
 
     const FONT_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/fonts/KaTeX_Main-Regular.ttf';
-    const IS_LIGHT = document.documentElement.getAttribute('data-theme') === 'light';
-    const BG     = IS_LIGHT ? '#f5f5f7' : '#0a0e14';
-    const FG     = IS_LIGHT ? '#1a1a1e' : '#ffffff';
-    const MUTED  = IS_LIGHT ? '#6a6a72' : '#8892a4';
-    const MUTED2 = IS_LIGHT ? '#b0b0b6' : '#505868';
-    const ACCENT = IS_LIGHT ? '#3d8b6e' : '#6aaa8e';
-    const YELLOW = IS_LIGHT ? '#b8860b' : '#ffcc44';
-    const RED    = IS_LIGHT ? '#c74034' : '#e06050';
-    const BLUE   = IS_LIGHT ? '#3a68c8' : '#5a8dee';
-    const MAG    = IS_LIGHT ? '#a050a0' : '#d070d0';
-    const CYAN   = IS_LIGHT ? '#3d8ea0' : '#58c0d8';
-    window.addEventListener('themechange', () => location.reload());
+    // manim-web needs literal hex strings; read once from the theme.css data palette
+    const BG    = T.plotBg;
+    const FG    = T.c('ink');      // wires, terminals, feedback resistor R, stage labels
+    const MUTED = T.c('slate');    // axes, tick labels, secondary text
+    const RAIL  = T.c('grey');     // op-amp outlines, stage frames, plot guides
+    const V1C   = T.c('blue');     // input V_1
+    const V2C   = T.c('violet');   // input V_2
+    const VOUT  = T.c('orange');   // V_out and every buffered quantity
+    const LOAD  = T.c('pink');     // source impedance Z_s and every unbuffered quantity
+    const RGC   = T.c('olive');    // gain resistor R_G (always labelled directly)
+    const RP    = T.c('green');    // difference-stage input resistor R'
+    const RPP   = T.c('slate');    // difference-stage feedback resistor R''
 
     const stage = document.getElementById('stage');
     stage.querySelector('.stage-fallback')?.remove();
     const scene = new Scene(stage, { width: 1280, height: 720, backgroundColor: BG });
 
     // ── Title ──
-    const title = new Text({ text: 'Instrumentation Amplifier', fontSize: 40, color: FG, fontUrl: FONT_URL });
+    const title = new Text({ text: 'Instrumentation amplifier', fontSize: 40, color: FG, fontUrl: FONT_URL });
     await title.loadGlyphs?.();
     title.moveTo([-3.5, 3.5, 0]);
     if (typeof title.getLeft === 'function') {
@@ -193,7 +191,7 @@
     }
 
     // ═══════════════════════════════════════════════
-    //  CIRCUIT DIAGRAM — left half
+    //  CIRCUIT DIAGRAM: left half
     //  Three op-amps: A1 (top buffer), A2 (bottom buffer), A3 (diff amp)
     // ═══════════════════════════════════════════════
 
@@ -214,7 +212,7 @@
           [cx - TRI_HALF_W, cy + TRI_HALF_H, 0],
           [cx + TRI_HALF_W, cy, 0]
         ],
-        color: MUTED2, strokeWidth: 1.7, fillOpacity: 0.13
+        color: RAIL, strokeWidth: 1.7, fillOpacity: 0.13
       });
     }
 
@@ -225,8 +223,8 @@
     // +/- symbols for each op-amp
     async function mkTerminals(cx, cy) {
       const pY = cy - 0.25, mY = cy + 0.25;
-      const p = new Text({ text: '+', fontSize: 14, color: ACCENT, fontUrl: FONT_URL });
-      const m = new Text({ text: '−', fontSize: 14, color: RED, fontUrl: FONT_URL });
+      const p = new Text({ text: '+', fontSize: 14, color: FG, fontUrl: FONT_URL });
+      const m = new Text({ text: '−', fontSize: 14, color: FG, fontUrl: FONT_URL });
       await Promise.all([p.loadGlyphs?.(), m.loadGlyphs?.()]);
       p.moveTo([cx - TRI_HALF_W + 0.22, pY, 0]);
       m.moveTo([cx - TRI_HALF_W + 0.22, mY, 0]);
@@ -239,8 +237,8 @@
 
     // ── Input labels ──
     const VIN_X = -6.2;
-    const vaLbl = new MathTex({ latex: 'V_{1}', color: BLUE });
-    const vbLbl = new MathTex({ latex: 'V_{2}', color: MAG });
+    const vaLbl = new MathTex({ latex: 'V_{1}', color: V1C });
+    const vbLbl = new MathTex({ latex: 'V_{2}', color: V2C });
     await Promise.all([vaLbl.waitForRender?.(), vbLbl.waitForRender?.()]);
     vaLbl.scale(0.6).moveTo([VIN_X, t1.plusY, 0]);
     vbLbl.scale(0.6).moveTo([VIN_X, t2.plusY, 0]);
@@ -249,17 +247,17 @@
     const ZS_CX = (VIN_X + 0.25 + A1_CX - TRI_HALF_W) / 2; // midpoint of input wire
     // Top input: V1 → Zs → A1+
     const inW1a = new Line({ start: [VIN_X + 0.25, t1.plusY, 0], end: [ZS_CX - R_W / 2, t1.plusY, 0], color: FG, strokeWidth: 1.8 });
-    const Zs1 = new Rectangle({ width: R_W, height: R_H, color: RED, strokeWidth: 2, fillOpacity: 0.22 });
+    const Zs1 = new Rectangle({ width: R_W, height: R_H, color: LOAD, strokeWidth: 2, fillOpacity: 0.22 });
     Zs1.moveTo([ZS_CX, t1.plusY, 0]);
-    const Zs1L = new MathTex({ latex: 'Z_s', color: RED });
+    const Zs1L = new MathTex({ latex: 'Z_s', color: LOAD });
     await Zs1L.waitForRender?.();
     Zs1L.scale(0.45).moveTo([ZS_CX, t1.plusY + R_H / 2 + 0.18, 0]);
     const inW1b = new Line({ start: [ZS_CX + R_W / 2, t1.plusY, 0], end: [A1_CX - TRI_HALF_W, t1.plusY, 0], color: FG, strokeWidth: 1.8 });
     // Bottom input: V2 → Zs → A2+
     const inW2a = new Line({ start: [VIN_X + 0.25, t2.plusY, 0], end: [ZS_CX - R_W / 2, t2.plusY, 0], color: FG, strokeWidth: 1.8 });
-    const Zs2 = new Rectangle({ width: R_W, height: R_H, color: RED, strokeWidth: 2, fillOpacity: 0.22 });
+    const Zs2 = new Rectangle({ width: R_W, height: R_H, color: LOAD, strokeWidth: 2, fillOpacity: 0.22 });
     Zs2.moveTo([ZS_CX, t2.plusY, 0]);
-    const Zs2L = new MathTex({ latex: 'Z_s', color: RED });
+    const Zs2L = new MathTex({ latex: 'Z_s', color: LOAD });
     await Zs2L.waitForRender?.();
     Zs2L.scale(0.45).moveTo([ZS_CX, t2.plusY - R_H / 2 - 0.18, 0]);
     const inW2b = new Line({ start: [ZS_CX + R_W / 2, t2.plusY, 0], end: [A2_CX - TRI_HALF_W, t2.plusY, 0], color: FG, strokeWidth: 1.8 });
@@ -283,9 +281,9 @@
 
     const R1_CX = (NODE1_X + TAP1_X) / 2;
     const fb1toR = new Line({ start: [NODE1_X, FB1_Y, 0], end: [R1_CX - R_W / 2, FB1_Y, 0], color: FG, strokeWidth: 1.8 });
-    const R1 = new Rectangle({ width: R_W, height: R_H, color: ACCENT, strokeWidth: 2, fillOpacity: 0.22 });
+    const R1 = new Rectangle({ width: R_W, height: R_H, color: FG, strokeWidth: 2, fillOpacity: 0.22 });
     R1.moveTo([R1_CX, FB1_Y, 0]);
-    const R1L = new MathTex({ latex: 'R', color: ACCENT });
+    const R1L = new MathTex({ latex: 'R', color: FG });
     await R1L.waitForRender?.();
     R1L.scale(0.5).moveTo([R1_CX, FB1_Y + R_H / 2 + 0.18, 0]);
     const fb1fromR = new Line({ start: [R1_CX + R_W / 2, FB1_Y, 0], end: [TAP1_X, FB1_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -302,9 +300,9 @@
 
     const R2_CX = (NODE2_X + TAP1_X) / 2;
     const fb2toR = new Line({ start: [NODE2_X, FB2_Y, 0], end: [R2_CX - R_W / 2, FB2_Y, 0], color: FG, strokeWidth: 1.8 });
-    const R2 = new Rectangle({ width: R_W, height: R_H, color: ACCENT, strokeWidth: 2, fillOpacity: 0.22 });
+    const R2 = new Rectangle({ width: R_W, height: R_H, color: FG, strokeWidth: 2, fillOpacity: 0.22 });
     R2.moveTo([R2_CX, FB2_Y, 0]);
-    const R2L = new MathTex({ latex: 'R', color: ACCENT });
+    const R2L = new MathTex({ latex: 'R', color: FG });
     await R2L.waitForRender?.();
     R2L.scale(0.5).moveTo([R2_CX, FB2_Y - R_H / 2 - 0.18, 0]);
     const fb2fromR = new Line({ start: [R2_CX + R_W / 2, FB2_Y, 0], end: [TAP1_X, FB2_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -316,9 +314,9 @@
     // ── R_gain connecting the two inverting-input nodes vertically ──
     const RG_CY = (t1.minusY + t2.minusY) / 2;
     const rgWireTop = new Line({ start: [NODE1_X, t1.minusY, 0], end: [NODE1_X, RG_CY + 0.4, 0], color: FG, strokeWidth: 1.8 });
-    const Rg = new Rectangle({ width: 0.28, height: 0.8, color: YELLOW, strokeWidth: 2, fillOpacity: 0.22 });
+    const Rg = new Rectangle({ width: 0.28, height: 0.8, color: RGC, strokeWidth: 2, fillOpacity: 0.22 });
     Rg.moveTo([NODE1_X, RG_CY, 0]);
-    const RgL = new MathTex({ latex: 'R_{G}', color: YELLOW });
+    const RgL = new MathTex({ latex: 'R_{G}', color: RGC });
     await RgL.waitForRender?.();
     RgL.scale(0.55).nextTo(Rg, LEFT, 0.14);
     const rgWireBot = new Line({ start: [NODE1_X, RG_CY - 0.4, 0], end: [NODE1_X, t2.minusY, 0], color: FG, strokeWidth: 1.8 });
@@ -329,9 +327,9 @@
     const R3_Y = t3.minusY;
     const diffIn1a = new Line({ start: [TAP1_X, A1_CY, 0], end: [TAP1_X, R3_Y, 0], color: FG, strokeWidth: 1.8 });
     const diffIn1b = new Line({ start: [TAP1_X, R3_Y, 0], end: [R3_CX - R_W / 2, R3_Y, 0], color: FG, strokeWidth: 1.8 });
-    const R3 = new Rectangle({ width: R_W, height: R_H, color: BLUE, strokeWidth: 2, fillOpacity: 0.22 });
+    const R3 = new Rectangle({ width: R_W, height: R_H, color: RP, strokeWidth: 2, fillOpacity: 0.22 });
     R3.moveTo([R3_CX, R3_Y, 0]);
-    const R3L = new MathTex({ latex: 'R\'', color: BLUE });
+    const R3L = new MathTex({ latex: 'R\'', color: RP });
     await R3L.waitForRender?.();
     R3L.scale(0.5).moveTo([R3_CX, R3_Y + R_H / 2 + 0.20, 0]);
     const diffIn1c = new Line({ start: [R3_CX + R_W / 2, R3_Y, 0], end: [A3_CX - TRI_HALF_W, R3_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -342,9 +340,9 @@
     const R4_Y = t3.plusY;
     const diffIn2a = new Line({ start: [TAP1_X, A2_CY, 0], end: [TAP1_X, R4_Y, 0], color: FG, strokeWidth: 1.8 });
     const diffIn2b = new Line({ start: [TAP1_X, R4_Y, 0], end: [R4_CX - R_W / 2, R4_Y, 0], color: FG, strokeWidth: 1.8 });
-    const R4 = new Rectangle({ width: R_W, height: R_H, color: BLUE, strokeWidth: 2, fillOpacity: 0.22 });
+    const R4 = new Rectangle({ width: R_W, height: R_H, color: RP, strokeWidth: 2, fillOpacity: 0.22 });
     R4.moveTo([R4_CX, R4_Y, 0]);
-    const R4L = new MathTex({ latex: 'R\'', color: BLUE });
+    const R4L = new MathTex({ latex: 'R\'', color: RP });
     await R4L.waitForRender?.();
     R4L.scale(0.5).moveTo([R4_CX, R4_Y - R_H / 2 - 0.20, 0]);
     const diffIn2c = new Line({ start: [R4_CX + R_W / 2, R4_Y, 0], end: [A3_CX - TRI_HALF_W, R4_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -358,9 +356,9 @@
     const fb3up = new Line({ start: [R3_CX + R_W / 2 + 0.15, R3_Y, 0], end: [R3_CX + R_W / 2 + 0.15, FB3_Y, 0], color: FG, strokeWidth: 1.8 });
     const RF_CX = (R3_CX + R_W / 2 + 0.15 + FINAL_TAP_X) / 2;
     const fb3toR = new Line({ start: [R3_CX + R_W / 2 + 0.15, FB3_Y, 0], end: [RF_CX - R_W / 2, FB3_Y, 0], color: FG, strokeWidth: 1.8 });
-    const Rf = new Rectangle({ width: R_W, height: R_H, color: MAG, strokeWidth: 2, fillOpacity: 0.22 });
+    const Rf = new Rectangle({ width: R_W, height: R_H, color: RPP, strokeWidth: 2, fillOpacity: 0.22 });
     Rf.moveTo([RF_CX, FB3_Y, 0]);
-    const RfL = new MathTex({ latex: 'R\'\'', color: MAG });
+    const RfL = new MathTex({ latex: 'R\'\'', color: RPP });
     await RfL.waitForRender?.();
     RfL.scale(0.5).moveTo([RF_CX, FB3_Y + R_H / 2 + 0.20, 0]);
     const fb3fromR = new Line({ start: [RF_CX + R_W / 2, FB3_Y, 0], end: [FINAL_TAP_X, FB3_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -373,9 +371,9 @@
     const RG2_CY = (R4_Y + GND_Y) / 2;
     const plusNode3 = new Dot({ point: [GND_X, R4_Y, 0], color: FG, radius: 0.05 });
     const gndWireTop = new Line({ start: [GND_X, R4_Y, 0], end: [GND_X, RG2_CY + 0.35, 0], color: FG, strokeWidth: 1.8 });
-    const Rg2 = new Rectangle({ width: 0.28, height: 0.7, color: MAG, strokeWidth: 2, fillOpacity: 0.22 });
+    const Rg2 = new Rectangle({ width: 0.28, height: 0.7, color: RPP, strokeWidth: 2, fillOpacity: 0.22 });
     Rg2.moveTo([GND_X, RG2_CY, 0]);
-    const Rg2L = new MathTex({ latex: 'R\'\'', color: MAG });
+    const Rg2L = new MathTex({ latex: 'R\'\'', color: RPP });
     await Rg2L.waitForRender?.();
     Rg2L.scale(0.5).nextTo(Rg2, RIGHT, 0.12);
     const gndWireBot = new Line({ start: [GND_X, RG2_CY - 0.35, 0], end: [GND_X, GND_Y, 0], color: FG, strokeWidth: 1.8 });
@@ -388,8 +386,8 @@
     // ── Output wire + label ──
     const OUT_X = 1.6;
     const outWire = new Line({ start: [A3_OUT_X, A3_CY, 0], end: [OUT_X, A3_CY, 0], color: FG, strokeWidth: 1.8 });
-    const outPort = new Circle({ radius: 0.07, color: FG, strokeWidth: 2, fillColor: '#000000', fillOpacity: 1 }).moveTo([OUT_X, A3_CY, 0]);
-    const outLbl = new MathTex({ latex: 'V_{out}', color: YELLOW });
+    const outPort = new Circle({ radius: 0.07, color: FG, strokeWidth: 2, fillColor: BG, fillOpacity: 1 }).moveTo([OUT_X, A3_CY, 0]);
+    const outLbl = new MathTex({ latex: 'V_{out}', color: VOUT });
     await outLbl.waitForRender?.();
     outLbl.scale(0.6).nextTo([OUT_X, A3_CY, 0], RIGHT, 0.1);
 
@@ -405,11 +403,11 @@
     // ── Stage highlight boxes (animated in after circuit is drawn) ──
     // Buffer box: left = -6.45, right = -2.35 (extends past TAP1_X)
     // bottom = -4.0 (room for label below R2 + R2L which end at ~-3.45)
-    const BUF_HL_CX = -4.4, BUF_HL_CY = -0.45;
-    const BUF_HL_W = 4.1, BUF_HL_H = 7.1;
+    const BUF_HL_CX = -4.4, BUF_HL_CY = -0.4;
+    const BUF_HL_W = 4.1, BUF_HL_H = 7.0;
     const bufHighlight = new Rectangle({
       width: BUF_HL_W, height: BUF_HL_H,
-      color: ACCENT, strokeWidth: 1.4, fillOpacity: 0.04,
+      color: RAIL, strokeWidth: 1.4, fillOpacity: 0.04,
     });
     bufHighlight.moveTo([BUF_HL_CX, BUF_HL_CY, 0]);
 
@@ -418,13 +416,13 @@
     const DIFF_HL_W = 4.5, DIFF_HL_H = 3.8;
     const diffHighlight = new Rectangle({
       width: DIFF_HL_W, height: DIFF_HL_H,
-      color: CYAN, strokeWidth: 1.4, fillOpacity: 0.04,
+      color: RAIL, strokeWidth: 1.4, fillOpacity: 0.04,
     });
     diffHighlight.moveTo([DIFF_HL_CX, DIFF_HL_CY, 0]);
 
-    // ── Stage labels — large, horizontally centred on highlight boxes ──
-    const stg1Lbl = new Text({ text: 'Buffer Stage', fontSize: 20, color: ACCENT, fontUrl: FONT_URL });
-    const stg2Lbl = new Text({ text: 'Difference Stage', fontSize: 20, color: CYAN, fontUrl: FONT_URL });
+    // ── Stage labels: large, horizontally centred on highlight boxes ──
+    const stg1Lbl = new Text({ text: 'Buffer stage', fontSize: 20, color: FG, fontUrl: FONT_URL });
+    const stg2Lbl = new Text({ text: 'Difference stage', fontSize: 20, color: FG, fontUrl: FONT_URL });
     await Promise.all([stg1Lbl.loadGlyphs?.(), stg2Lbl.loadGlyphs?.()]);
     // Buffer label: centred on box, below bottom resistor label (~y -3.45)
     stg1Lbl.moveTo([BUF_HL_CX, -3.72, 0]);
@@ -432,7 +430,7 @@
     stg2Lbl.moveTo([DIFF_HL_CX, DIFF_HL_CY - DIFF_HL_H / 2 + 0.28, 0]);
 
     // ═══════════════════════════════════════════════
-    //  RHS INFO PANEL — explanation bullets
+    //  RHS INFO PANEL: explanation bullets
     // ═══════════════════════════════════════════════
 
     const BS = 0.38;  // bullet scale
@@ -461,29 +459,29 @@
     // Row positions
     const LS = 0.40;  // line spacing
     const BG_GAP = 0.65;
-    let Y = 2.6;
+    let Y = 2.9;
 
     // Bullet 1: What it is
     const d1 = mkDot(DX, Y);
-    const b1l1 = await mkMath('\\text{Combines two buffer amplifiers}', FG, BS, RX, Y);
+    const b1l1 = await mkMath('\\text{Two buffer amplifiers are combined}', FG, BS, RX, Y);
     const b1l2 = await mkMath('\\text{with a difference amplifier.}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 2: Key benefit
     const d2 = mkDot(DX, Y);
-    const b2l1 = await mkMath('\\text{Very high input impedance:}', FG, BS, RX, Y);
-    const b2l2 = await mkMath('\\text{does not load the signal source.}', FG, BS, RX, Y - LS);
+    const b2l1 = await mkMath('\\text{The input impedance is very high,}', FG, BS, RX, Y);
+    const b2l2 = await mkMath('\\text{so the source is not loaded.}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 3: CMRR
     const d3 = mkDot(DX, Y);
-    const b3l1 = await mkMath('\\text{Excellent common-mode rejection}', FG, BS, RX, Y);
-    const b3l2 = await mkMath('\\text{(CMRR), rejects shared noise.}', FG, BS, RX, Y - LS);
+    const b3l1 = await mkMath('\\text{The common-mode rejection ratio}', FG, BS, RX, Y);
+    const b3l2 = await mkMath('\\text{(CMRR) is high.}', FG, BS, RX, Y - LS);
 
     Y -= LS + BG_GAP;
     // Bullet 4: Single resistor gain
     const d4 = mkDot(DX, Y);
-    const b4l1 = await mkMath('\\text{Gain set by a single resistor } R_G\\text{.}', FG, BS, RX, Y);
+    const b4l1 = await mkMath('\\text{A single resistor } R_G \\text{ sets the gain.}', FG, BS, RX, Y);
 
     // ── Equation box ──
     Y -= 0.65;
@@ -494,12 +492,12 @@
 
     const eqBox = new Rectangle({
       width: EQ_BOX_W, height: EQ_BOX_H,
-      color: ACCENT, strokeWidth: 1.4, fillOpacity: 0.10,
+      color: FG, strokeWidth: 1, fillOpacity: 0,
     });
     eqBox.moveTo([EQ_BOX_CX, EQ_BOX_CY, 0]);
 
     const eqn = new MathTex({
-      latex: `A_v = \\left(1 + \\frac{2R}{\\textcolor{${YELLOW}}{R_G}}\\right) \\frac{\\textcolor{${MAG}}{R''}}{\\textcolor{${BLUE}}{R'}}`,
+      latex: `A_v = \\left(1 + \\frac{2R}{\\textcolor{${RGC}}{R_G}}\\right) \\frac{\\textcolor{${RPP}}{R''}}{\\textcolor{${RP}}{R'}}`,
       color: FG
     });
     await eqn.waitForRender?.();
@@ -508,7 +506,7 @@
     // ── Use-case subtitle ──
     Y = EQ_BOX_CY - EQ_BOX_H / 2 - 0.55;
     const d5 = mkDot(DX, Y);
-    const b5l1 = await mkMath('\\text{Used in: medical sensors, strain}', MUTED, 0.36, RX, Y);
+    const b5l1 = await mkMath('\\text{Applications: medical sensors, strain}', MUTED, 0.36, RX, Y);
     const b5l2 = await mkMath('\\text{gauges, thermocouples, bridges.}', MUTED, 0.36, RX, Y - LS * 0.85);
 
     // ── All RHS objects for toggling ──
@@ -542,7 +540,7 @@
 
     const MINI_S = 0.55;
     const _MCX = -2.2, _MCY = -0.3;                    // original circuit centre
-    const _MOX = -2.8, _MOY = 1.2;                     // target centre for mini
+    const _MOX = -2.8, _MOY = 1.4;                     // target centre for mini
     const mp = (x, y) => [_MOX + MINI_S*(x - _MCX), _MOY + MINI_S*(y - _MCY), 0];
 
     const miniCircuitObjs = [];
@@ -551,15 +549,15 @@
     for (const [cx, cy] of [[A1_CX,A1_CY],[A2_CX,A2_CY],[A3_CX,A3_CY]]) {
       miniCircuitObjs.push(new Polygon({
         vertices: [mp(cx-TRI_HALF_W,cy-TRI_HALF_H), mp(cx-TRI_HALF_W,cy+TRI_HALF_H), mp(cx+TRI_HALF_W,cy)],
-        color: MUTED2, strokeWidth: 1.2, fillOpacity: 0.13
+        color: RAIL, strokeWidth: 1.2, fillOpacity: 0.13
       }));
     }
 
     // ── Terminal labels (+/−) ──
     for (const [cx, cy] of [[A1_CX,A1_CY],[A2_CX,A2_CY],[A3_CX,A3_CY]]) {
       const px = cx - TRI_HALF_W + 0.22;
-      const p = new Text({ text: '+', fontSize: 8, color: ACCENT, fontUrl: FONT_URL });
-      const m = new Text({ text: '\u2212', fontSize: 8, color: RED, fontUrl: FONT_URL });
+      const p = new Text({ text: '+', fontSize: 8, color: FG, fontUrl: FONT_URL });
+      const m = new Text({ text: '\u2212', fontSize: 8, color: FG, fontUrl: FONT_URL });
       await Promise.all([p.loadGlyphs?.(), m.loadGlyphs?.()]);
       p.moveTo(mp(px, cy - 0.25));
       m.moveTo(mp(px, cy + 0.25));
@@ -642,20 +640,20 @@
 
     // Output port circle
     miniCircuitObjs.push(
-      new Circle({ radius: 0.04, color: FG, strokeWidth: 1.2, fillColor: '#000000', fillOpacity: 1 }).moveTo(mp(OUT_X, A3_CY))
+      new Circle({ radius: 0.04, color: FG, strokeWidth: 1.2, fillColor: BG, fillOpacity: 1 }).moveTo(mp(OUT_X, A3_CY))
     );
 
     // ── Resistor boxes ──
     for (const [cx,cy,w,h,c] of [
-      [ZS_CX, t1.plusY, R_W, R_H, RED],    // Zs top
-      [ZS_CX, t2.plusY, R_W, R_H, RED],    // Zs bottom
-      [R1_CX, FB1_Y, R_W, R_H, ACCENT],
-      [R2_CX, FB2_Y, R_W, R_H, ACCENT],
-      [NODE1_X, RG_CY, 0.28, 0.8, YELLOW],
-      [R3_CX, R3_Y, R_W, R_H, BLUE],
-      [R4_CX, R4_Y, R_W, R_H, BLUE],
-      [RF_CX, FB3_Y, R_W, R_H, MAG],
-      [GND_X, RG2_CY, 0.28, 0.7, MAG],
+      [ZS_CX, t1.plusY, R_W, R_H, LOAD],    // Zs top
+      [ZS_CX, t2.plusY, R_W, R_H, LOAD],    // Zs bottom
+      [R1_CX, FB1_Y, R_W, R_H, FG],
+      [R2_CX, FB2_Y, R_W, R_H, FG],
+      [NODE1_X, RG_CY, 0.28, 0.8, RGC],
+      [R3_CX, R3_Y, R_W, R_H, RP],
+      [R4_CX, R4_Y, R_W, R_H, RP],
+      [RF_CX, FB3_Y, R_W, R_H, RPP],
+      [GND_X, RG2_CY, 0.28, 0.7, RPP],
     ]) {
       const r = new Rectangle({ width: w*MINI_S, height: h*MINI_S, color: c, strokeWidth: 1.2, fillOpacity: 0.22 });
       r.moveTo(mp(cx, cy));
@@ -664,18 +662,18 @@
 
     // ── MathTex labels ──
     for (const [latex, x, y, sc, c] of [
-      ['V_{1}', VIN_X, t1.plusY, 0.6, BLUE],
-      ['V_{2}', VIN_X, t2.plusY, 0.6, MAG],
-      ['Z_s', ZS_CX, t1.plusY + R_H/2 + 0.18, 0.45, RED],
-      ['Z_s', ZS_CX, t2.plusY - R_H/2 - 0.18, 0.45, RED],
-      ['R', R1_CX, FB1_Y + R_H/2 + 0.18, 0.5, ACCENT],
-      ['R', R2_CX, FB2_Y - R_H/2 - 0.18, 0.5, ACCENT],
-      ['R_{G}', NODE1_X - 0.42, RG_CY, 0.55, YELLOW],
-      ["R'", R3_CX, R3_Y + R_H/2 + 0.20, 0.5, BLUE],
-      ["R'", R4_CX, R4_Y - R_H/2 - 0.20, 0.5, BLUE],
-      ["R''", RF_CX, FB3_Y + R_H/2 + 0.20, 0.5, MAG],
-      ["R''", GND_X + 0.32, RG2_CY, 0.5, MAG],
-      ['V_{out}', OUT_X + 0.35, A3_CY, 0.6, YELLOW],
+      ['V_{1}', VIN_X, t1.plusY, 0.6, V1C],
+      ['V_{2}', VIN_X, t2.plusY, 0.6, V2C],
+      ['Z_s', ZS_CX, t1.plusY + R_H/2 + 0.18, 0.45, LOAD],
+      ['Z_s', ZS_CX, t2.plusY - R_H/2 - 0.18, 0.45, LOAD],
+      ['R', R1_CX, FB1_Y + R_H/2 + 0.18, 0.5, FG],
+      ['R', R2_CX, FB2_Y - R_H/2 - 0.18, 0.5, FG],
+      ['R_{G}', NODE1_X - 0.42, RG_CY, 0.55, RGC],
+      ["R'", R3_CX, R3_Y + R_H/2 + 0.20, 0.5, RP],
+      ["R'", R4_CX, R4_Y - R_H/2 - 0.20, 0.5, RP],
+      ["R''", RF_CX, FB3_Y + R_H/2 + 0.20, 0.5, RPP],
+      ["R''", GND_X + 0.45, RG2_CY, 0.5, RPP],
+      ['V_{out}', OUT_X + 0.35, A3_CY, 0.6, VOUT],
     ]) {
       const t = new MathTex({ latex, color: c });
       await t.waitForRender?.();
@@ -717,7 +715,7 @@
     }
 
     // ── Section 2 Title ──
-    const s2Title = new Text({ text: 'Gain Explorer', fontSize: 32, color: FG, fontUrl: FONT_URL });
+    const s2Title = new Text({ text: 'Gain explorer', fontSize: 32, color: FG, fontUrl: FONT_URL });
     await s2Title.loadGlyphs?.();
     s2Title.moveTo([-3.5, 3.5, 0]);
     if (typeof s2Title.getLeft === 'function') {
@@ -725,11 +723,11 @@
     }
 
     // ── Graph frame definitions ──
-    const gainFrame = { x0: 0.8, x1: 6.3, y0: 0.6, y1: 3.0 };
+    const gainFrame = { x0: 0.8, x1: 6.3, y0: 0.8, y1: 3.1 };
     const gainXRange = [Math.log10(RG_MIN), Math.log10(RG_MAX)]; // [2, 5]
     const gainYRange = [0, 120]; // gain capped visually at 120
 
-    const sigFrame = { x0: 0.8, x1: 6.3, y0: -3.4, y1: -0.4 };
+    const sigFrame = { x0: 0.8, x1: 6.3, y0: -3.0, y1: -0.65 };
     const sigXRange = [0, 2 * Math.PI];
     const sigYRange = [-1.3, 1.3];
 
@@ -748,7 +746,7 @@
     s2StaticObjs.push(new Line({ start: [gainFrame.x0, gainFrame.y0, 0], end: [gainFrame.x0, gainFrame.y1, 0], color: MUTED, strokeWidth: 1.5 }));
 
     // X-axis tick labels: 100, 1k, 10k, 100k
-    for (const [logVal, label] of [[2, '100\u03A9'], [3, '1k\u03A9'], [4, '10k\u03A9'], [5, '100k\u03A9']]) {
+    for (const [logVal, label] of [[2, '100 \u03A9'], [3, '1 k\u03A9'], [4, '10 k\u03A9'], [5, '100 k\u03A9']]) {
       const px = mapPoint(gainFrame, logVal, 0, gainXRange, gainYRange);
       s2StaticObjs.push(new Line({ start: [px[0], gainFrame.y0, 0], end: [px[0], gainFrame.y0 - 0.12, 0], color: MUTED, strokeWidth: 1 }));
       const lbl = new Text({ text: label, fontSize: 13, color: MUTED, fontUrl: FONT_URL });
@@ -768,53 +766,54 @@
     }
 
     // Gain graph title
-    const gainTitle = new Text({ text: 'Effective Gain vs R_G', fontSize: 18, color: FG, fontUrl: FONT_URL });
-    await gainTitle.loadGlyphs?.();
-    gainTitle.moveTo([(gainFrame.x0 + gainFrame.x1) / 2, gainFrame.y1 + 0.35, 0]);
+    const gainTitle = new MathTex({ latex: '\\text{Effective gain against } R_G', color: FG });
+    await gainTitle.waitForRender?.();
+    gainTitle.scale(0.4).moveTo([(gainFrame.x0 + gainFrame.x1) / 2, gainFrame.y1 + 0.35, 0]);
     s2StaticObjs.push(gainTitle);
 
     // Gain Y-axis label (left side, rotated 90°)
-    const gainYLbl = new Text({ text: 'Gain (Av)', fontSize: 18, color: MUTED, fontUrl: FONT_URL });
+    const gainYLbl = new Text({ text: 'Effective gain', fontSize: 18, color: MUTED, fontUrl: FONT_URL });
     await gainYLbl.loadGlyphs?.();
     gainYLbl.rotate(Math.PI / 2).moveTo([gainFrame.x0 - 0.7, (gainFrame.y0 + gainFrame.y1) / 2, 0]);
     s2StaticObjs.push(gainYLbl);
 
-    // Gain graph legend — top-right inside plot
+    // Gain graph legend: top-right inside plot
     {
       const rx = gainFrame.x1 - 0.15; // right-align inside plot
       const topY = gainFrame.y1 - 0.2;
       const sp = 0.28;
       const items = [
-        ['Buffered', ACCENT, topY],
-        ['No buffers', RED, topY - sp],
+        ['Buffered', VOUT, topY],
+        ['Unbuffered', LOAD, topY - sp],
       ];
       for (const [label, color, y] of items) {
-        s2StaticObjs.push(new Circle({ radius: 0.06, color, fillColor: color, fillOpacity: 1, strokeWidth: 0 }).moveTo([rx - 0.9, y, 0]));
-        const t = new Text({ text: label, fontSize: 11, color, fontUrl: FONT_URL });
+        s2StaticObjs.push(new Circle({ radius: 0.06, color, fillColor: color, fillOpacity: 1, strokeWidth: 0 }).moveTo([rx - 1.05, y, 0]));
+        const t = new Text({ text: label, fontSize: 13, color: FG, fontUrl: FONT_URL });
         await t.loadGlyphs?.();
-        t.moveTo([rx - 0.4, y, 0]);
+        t.moveTo([rx - 0.5, y, 0]);
+        if (typeof t.getLeft === 'function') t.shift([rx - 0.92 - t.getLeft()[0], 0, 0]);
         s2StaticObjs.push(t);
       }
     }
 
-    // X-axis label (right end)
-    const gainXLbl = new MathTex({ latex: 'R_G', color: YELLOW });
+    // X-axis title, centred below the tick labels
+    const gainXLbl = new MathTex({ latex: 'R_G', color: RGC });
     await gainXLbl.waitForRender?.();
-    gainXLbl.scale(0.55).moveTo([gainFrame.x1 + 0.3, gainFrame.y0, 0]);
+    gainXLbl.scale(0.5).moveTo([(gainFrame.x0 + gainFrame.x1) / 2, gainFrame.y0 - 0.68, 0]);
     s2StaticObjs.push(gainXLbl);
 
     // -- Signal graph axes --
     s2StaticObjs.push(new Line({ start: [sigFrame.x0, sigFrame.y0, 0], end: [sigFrame.x1, sigFrame.y0, 0], color: MUTED, strokeWidth: 1.5 }));
     s2StaticObjs.push(new Line({ start: [sigFrame.x0, sigFrame.y0, 0], end: [sigFrame.x0, sigFrame.y1, 0], color: MUTED, strokeWidth: 1.5 }));
-    s2StaticObjs.push(new Line({ start: [sigFrame.x0, sigFrame.y1, 0], end: [sigFrame.x1, sigFrame.y1, 0], color: MUTED2, strokeWidth: 0.5 }));
-    s2StaticObjs.push(new Line({ start: [sigFrame.x1, sigFrame.y0, 0], end: [sigFrame.x1, sigFrame.y1, 0], color: MUTED2, strokeWidth: 0.5 }));
+    s2StaticObjs.push(new Line({ start: [sigFrame.x0, sigFrame.y1, 0], end: [sigFrame.x1, sigFrame.y1, 0], color: RAIL, strokeWidth: 0.5 }));
+    s2StaticObjs.push(new Line({ start: [sigFrame.x1, sigFrame.y0, 0], end: [sigFrame.x1, sigFrame.y1, 0], color: RAIL, strokeWidth: 0.5 }));
 
     // Zero line
     const zeroY = mapPoint(sigFrame, 0, 0, sigXRange, sigYRange)[1];
-    s2StaticObjs.push(new Line({ start: [sigFrame.x0, zeroY, 0], end: [sigFrame.x1, zeroY, 0], color: MUTED2, strokeWidth: 0.8 }));
+    s2StaticObjs.push(new Line({ start: [sigFrame.x0, zeroY, 0], end: [sigFrame.x1, zeroY, 0], color: RAIL, strokeWidth: 0.8 }));
 
     // Signal graph title
-    const sigTitle = new Text({ text: 'Input / Output Signals', fontSize: 18, color: FG, fontUrl: FONT_URL });
+    const sigTitle = new Text({ text: 'Input and output signals', fontSize: 18, color: FG, fontUrl: FONT_URL });
     await sigTitle.loadGlyphs?.();
     sigTitle.moveTo([(sigFrame.x0 + sigFrame.x1) / 2, sigFrame.y1 + 0.35, 0]);
     s2StaticObjs.push(sigTitle);
@@ -825,27 +824,34 @@
     sigYLbl.rotate(Math.PI / 2).moveTo([sigFrame.x0 - 0.35, (sigFrame.y0 + sigFrame.y1) / 2, 0]);
     s2StaticObjs.push(sigYLbl);
 
-    // Signal legend — top-right inside plot
+    // Signal X-axis title, centred below the axis
+    const sigXLbl = new Text({ text: 'Time', fontSize: 18, color: MUTED, fontUrl: FONT_URL });
+    await sigXLbl.loadGlyphs?.();
+    sigXLbl.moveTo([(sigFrame.x0 + sigFrame.x1) / 2, sigFrame.y0 - 0.28, 0]);
+    s2StaticObjs.push(sigXLbl);
+
+    // Signal legend: top-right inside plot
     {
       const rx = sigFrame.x1 - 0.15;
       const topY = sigFrame.y1 - 0.2;
       const sp = 0.28;
       const items = [
-        ['V1', BLUE, topY],
-        ['V2', MAG, topY - sp],
-        ['Buffered', YELLOW, topY - 2 * sp],
-        ['No buffers', RED, topY - 3 * sp],
+        ['Input V1', V1C, topY],
+        ['Input V2', V2C, topY - sp],
+        ['Buffered', VOUT, topY - 2 * sp],
+        ['Unbuffered', LOAD, topY - 3 * sp],
       ];
       for (const [label, color, y] of items) {
-        s2StaticObjs.push(new Circle({ radius: 0.06, color, fillColor: color, fillOpacity: 1, strokeWidth: 0 }).moveTo([rx - 0.9, y, 0]));
-        const t = new Text({ text: label, fontSize: 11, color, fontUrl: FONT_URL });
+        s2StaticObjs.push(new Circle({ radius: 0.06, color, fillColor: color, fillOpacity: 1, strokeWidth: 0 }).moveTo([rx - 1.05, y, 0]));
+        const t = new Text({ text: label, fontSize: 13, color: FG, fontUrl: FONT_URL });
         await t.loadGlyphs?.();
-        t.moveTo([rx - 0.4, y, 0]);
+        t.moveTo([rx - 0.5, y, 0]);
+        if (typeof t.getLeft === 'function') t.shift([rx - 0.92 - t.getLeft()[0], 0, 0]);
         s2StaticObjs.push(t);
       }
     }
 
-    // ── Educational annotations removed — info is in the overlay panel ──
+    // ── Educational annotations removed: info is in the overlay panel ──
 
     // All static objects start hidden
     s2StaticObjs.forEach(o => { try { o.setOpacity?.(0); } catch(e){} });
@@ -867,26 +873,26 @@
     function updateExplainText(rg, gain, zs, lf) {
       const lossPct = ((1 - lf) * 100);
       if (zs > 5000 && lossPct > 30) {
-        gainExplainEl.innerHTML = '<b>High source impedance.</b> Without buffers, the amplifier\'s input resistors (R\u2032) ' +
-          'draw current from the sensor. This forms a voltage divider with the source impedance Z<sub>s</sub>, ' +
-          'attenuating the signal by ' + Math.round(lossPct) + '%. ' +
-          'The buffers prevent this loading because their high input impedance draws negligible current.';
+        gainExplainEl.innerHTML = 'The source impedance is high. Without buffers, the input resistors R\u2032 ' +
+          'draw current from the sensor and form a voltage divider with Z<sub>s</sub>, ' +
+          'which attenuates the signal by ' + Math.round(lossPct) + '%. ' +
+          'The high input impedance of the buffers draws negligible current, so the source is not loaded.';
       } else if (lossPct > 10) {
         gainExplainEl.innerHTML = 'Without buffers, R\u2032 and Z<sub>s</sub> form a voltage divider, ' +
           'and the input resistors attenuate the signal by ' +
-          Math.round(lossPct) + '%. Buffers isolate the source and limit this current.';
+          Math.round(lossPct) + '%. The buffers isolate the source and limit this current.';
       } else if (gain > 50) {
-        gainExplainEl.innerHTML = 'High gain from small R<sub>G</sub>. ' +
-          'Buffers amplify only the <em>differential</em> signal; common-mode noise passes through unchanged.';
+        gainExplainEl.innerHTML = 'A small R<sub>G</sub> gives a high gain. ' +
+          'The buffers amplify only the differential signal; common-mode noise passes through unchanged.';
       } else {
-        gainExplainEl.innerHTML = 'Low source Z: loading is minimal because Z<sub>s</sub> \u226A R\u2032, ' +
-          'so little voltage is dropped across the source. Increasing Z<sub>s</sub> demonstrates ' +
+        gainExplainEl.innerHTML = 'The source impedance is low. Loading is minimal because Z<sub>s</sub> \u226A R\u2032, ' +
+          'so little voltage is dropped across the source. Increasing Z<sub>s</sub> shows ' +
           'the attenuation of a high-impedance sensor without buffers.';
       }
     }
 
     // ═══════════════════════════════════════════════
-    //  INTERACTIVE CURVES — create/remove per update
+    //  INTERACTIVE CURVES: create/remove per update
     //  Uses small segment counts for speed
     // ═══════════════════════════════════════════════
 
@@ -894,21 +900,21 @@
     const SIG_SEG  = 40;  // segments per signal trace
 
     // Persistent circuit highlight objects (at mini circuit positions)
-    const rgHL = new Rectangle({ width: 0.42*MINI_S, height: 0.95*MINI_S, color: YELLOW, strokeWidth: 2, fillOpacity: 0.20 });
+    const rgHL = new Rectangle({ width: 0.42*MINI_S, height: 0.95*MINI_S, color: RGC, strokeWidth: 2, fillOpacity: 0.20 });
     rgHL.moveTo(mp(NODE1_X, RG_CY));
-    const bufHL1 = new Rectangle({ width: 1.5*MINI_S, height: 1.6*MINI_S, color: ACCENT, strokeWidth: 1.5, fillOpacity: 0.08 });
+    const bufHL1 = new Rectangle({ width: 1.5*MINI_S, height: 1.6*MINI_S, color: FG, strokeWidth: 1.5, fillOpacity: 0.08 });
     bufHL1.moveTo(mp(A1_CX, A1_CY));
-    const bufHL2 = new Rectangle({ width: 1.5*MINI_S, height: 1.6*MINI_S, color: ACCENT, strokeWidth: 1.5, fillOpacity: 0.08 });
+    const bufHL2 = new Rectangle({ width: 1.5*MINI_S, height: 1.6*MINI_S, color: FG, strokeWidth: 1.5, fillOpacity: 0.08 });
     bufHL2.moveTo(mp(A2_CX, A2_CY));
     // Z_s highlights on the input resistors
-    const zsHL1 = new Rectangle({ width: (R_W+0.15)*MINI_S, height: (R_H+0.15)*MINI_S, color: RED, strokeWidth: 2, fillOpacity: 0.18 });
+    const zsHL1 = new Rectangle({ width: (R_W+0.15)*MINI_S, height: (R_H+0.15)*MINI_S, color: LOAD, strokeWidth: 2, fillOpacity: 0.18 });
     zsHL1.moveTo(mp(ZS_CX, t1.plusY));
-    const zsHL2 = new Rectangle({ width: (R_W+0.15)*MINI_S, height: (R_H+0.15)*MINI_S, color: RED, strokeWidth: 2, fillOpacity: 0.18 });
+    const zsHL2 = new Rectangle({ width: (R_W+0.15)*MINI_S, height: (R_H+0.15)*MINI_S, color: LOAD, strokeWidth: 2, fillOpacity: 0.18 });
     zsHL2.moveTo(mp(ZS_CX, t2.plusY));
 
-    // Persistent marker dots (use moveTo — always works in manim-web)
-    const mkrDotBuf = new Dot({ point: [0, 0, 0], color: YELLOW, radius: 0.08 });
-    const mkrDotNB  = new Dot({ point: [0, 0, 0], color: RED, radius: 0.07 });
+    // Persistent marker dots (use moveTo: always works in manim-web)
+    const mkrDotBuf = new Dot({ point: [0, 0, 0], color: VOUT, radius: 0.08 });
+    const mkrDotNB  = new Dot({ point: [0, 0, 0], color: LOAD, radius: 0.07 });
 
     const s2Persistent = [rgHL, bufHL1, bufHL2, zsHL1, zsHL2, mkrDotBuf, mkrDotNB];
     s2Persistent.forEach(o => { try { o.setOpacity?.(0); } catch(e){} });
@@ -963,14 +969,14 @@
       }
 
       // Gain curve (buffered)
-      traceCurve(GAIN_SEG, ACCENT, 2.5, (t) => {
+      traceCurve(GAIN_SEG, VOUT, 2.5, (t) => {
         const lr = gainXRange[0] + (gainXRange[1] - gainXRange[0]) * t;
         const g = Math.min(computeGain(Math.pow(10, lr)), gainYRange[1]);
         return mapPoint(gainFrame, lr, g, gainXRange, gainYRange);
       });
 
       // Gain curve (no buffers)
-      traceCurve(GAIN_SEG, RED, 1.8, (t) => {
+      traceCurve(GAIN_SEG, LOAD, 1.8, (t) => {
         const lr = gainXRange[0] + (gainXRange[1] - gainXRange[0]) * t;
         const g = Math.min(computeGain(Math.pow(10, lr)) * lf, gainYRange[1]);
         return mapPoint(gainFrame, lr, g, gainXRange, gainYRange);
@@ -978,35 +984,36 @@
 
       // Vertical + horizontal marker reference lines
       const axY = mapPoint(gainFrame, 0, 0, gainXRange, gainYRange)[1];
-      lines.push(new Line({ start: [mp[0], axY, 0], end: [mp[0], mp[1], 0], color: MUTED2, strokeWidth: 1.2 }));
-      lines.push(new Line({ start: [gainFrame.x0, mp[1], 0], end: [mp[0], mp[1], 0], color: MUTED2, strokeWidth: 0.8 }));
+      lines.push(new Line({ start: [mp[0], axY, 0], end: [mp[0], mp[1], 0], color: RAIL, strokeWidth: 1.2 }));
+      lines.push(new Line({ start: [gainFrame.x0, mp[1], 0], end: [mp[0], mp[1], 0], color: RAIL, strokeWidth: 0.8 }));
       // Gap bar between markers
       if (mp[1] - mpNB[1] > 0.06) {
-        lines.push(new Line({ start: [mp[0] + 0.12, mpNB[1], 0], end: [mp[0] + 0.12, mp[1], 0], color: RED, strokeWidth: 1.8 }));
+        lines.push(new Line({ start: [mp[0] + 0.12, mpNB[1], 0], end: [mp[0] + 0.12, mp[1], 0], color: LOAD, strokeWidth: 1.8 }));
       }
 
-      // Signal traces — use real voltages, auto-scale Y axis to fit
+      // Signal traces: use real voltages, auto-scale Y axis to fit
       const peakBuf = vout;          // gain × VDM_INPUT (buffered output)
       const peakNoBuf = voutNoBuf;   // gain × VDM_INPUT × loading factor
       const yMax = Math.max(peakBuf, peakNoBuf, VDM_INPUT) * 1.25; // 25% headroom
       const dynYRange = [-yMax, yMax];
       const clamp = v => Math.max(-yMax, Math.min(yMax, v));
 
-      traceCurve(SIG_SEG, BLUE, 1.8, (t) => {
+      traceCurve(SIG_SEG, V1C, 1.8, (t) => {
         const th = t * 2 * Math.PI;
         return mapPoint(sigFrame, th, VDM_INPUT * Math.sin(th), sigXRange, dynYRange);
       });
-      traceCurve(SIG_SEG, MAG, 1.8, (t) => {
+      traceCurve(SIG_SEG, V2C, 1.8, (t) => {
         const th = t * 2 * Math.PI;
         return mapPoint(sigFrame, th, -VDM_INPUT * Math.sin(th), sigXRange, dynYRange);
       });
-      traceCurve(SIG_SEG, RED, 2.0, (t) => {
-        const th = t * 2 * Math.PI;
-        return mapPoint(sigFrame, th, clamp(peakNoBuf * Math.sin(th)), sigXRange, dynYRange);
-      });
-      traceCurve(SIG_SEG, YELLOW, 2.5, (t) => {
+      traceCurve(SIG_SEG, VOUT, 2.5, (t) => {
         const th = t * 2 * Math.PI;
         return mapPoint(sigFrame, th, clamp(peakBuf * Math.sin(th)), sigXRange, dynYRange);
+      });
+      // Unbuffered is thinner and drawn last, as in the gain plot, so both show when they coincide
+      traceCurve(SIG_SEG, LOAD, 2.0, (t) => {
+        const th = t * 2 * Math.PI;
+        return mapPoint(sigFrame, th, clamp(peakNoBuf * Math.sin(th)), sigXRange, dynYRange);
       });
 
       return lines;
@@ -1066,7 +1073,17 @@
     let currentSection = 'circuit';
 
 
+    let pendingSection2 = false;
+
     function showSection(sec) {
+      // An animation in flight restores its targets when it ends, so objects hidden now would reappear.
+      // Stop the sequence and switch once the current step (at most 1.2 s) has finished.
+      if (sec === 'animation' && !s1AnimDone) {
+        s1AnimSkipped = true;
+        pendingSection2 = true;
+        nextBtn.disabled = true;
+        return;
+      }
       currentSection = sec;
       if (sec === 'circuit') {
         secIndicator.textContent = 'Section 1 \u00B7 Circuit';
@@ -1086,7 +1103,7 @@
         olPanel.classList.remove('visible');
         olPanel.setAttribute('aria-hidden', 'true');
       } else {
-        secIndicator.textContent = 'Section 2 \u00B7 Gain Explorer';
+        secIndicator.textContent = 'Section 2 \u00B7 Gain explorer';
         prevBtn.disabled = false;
         nextBtn.disabled = true;
         // Skip section 1 animation if still running, then hide full circuit
@@ -1119,7 +1136,7 @@
     let s1AnimDone = false;
     let s1AnimSkipped = false;
 
-    // Helper: skip remaining animation — make everything visible instantly
+    // Helper: skip remaining animation: make everything visible instantly
     function skipS1Anim() {
       if (s1AnimDone) return;
       s1AnimSkipped = true;
@@ -1246,6 +1263,7 @@
     }
 
     s1AnimDone = true;
+    if (pendingSection2) showSection('animation');
 
   </script>
 </body>

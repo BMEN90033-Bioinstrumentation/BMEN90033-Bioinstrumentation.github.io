@@ -27,7 +27,7 @@
             var xa = g.append('g').attr('transform', 'translate(0,' + f.ih + ')')
                 .call(d3.axisBottom(x).ticks(7).tickSizeOuter(0));
             var ya = g.append('g').call(d3.axisLeft(y).ticks(5).tickSizeOuter(0));
-            [xa, ya].forEach(window.CMP.styleAxis);
+            [xa, ya].forEach(function (a) { window.CMP.styleAxis(a); a.selectAll('text').attr('font-size', 13); });
         }
         window.renderKatex(f.svg, t.yTitle, t.bare ? 20 : 22, f.m.top + f.ih / 2,
             { width: 240, height: 22, rotate: -90, size: 16 });

@@ -16,8 +16,8 @@
     transition: stroke 0.12s ease, fill 0.12s ease;
 }
 .circuit-hot:hover {
-    stroke: var(--accent);
-    fill: var(--accent-soft-faint);
+    stroke: var(--carbon-black-500);
+    fill: var(--hydro-blue-100);
 }
 
 .circuit-tooltip {
@@ -26,16 +26,15 @@
     z-index: 9999;
     max-width: 300px;
     padding: 10px 12px;
-    background: var(--bg-panel);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border-hover);
-    border-radius: 8px;
+    background: var(--glass-white);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--carbon-black-500);
+    border-radius: var(--radius-5);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 12.5px;
-    line-height: 1.5;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    font-family: var(--font-text);
+    font-size: 13px;
+    line-height: 1.4;
     pointer-events: none;
     opacity: 0;
     transform: translateY(-3px);
@@ -46,12 +45,12 @@
     transform: translateY(0);
 }
 .circuit-tooltip .tip-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--text);
     margin-bottom: 6px;
 }
-.circuit-tooltip .tip-body i { font-style: italic; color: var(--text-dim); }
+.circuit-tooltip .tip-body i { font-style: italic; }
 .circuit-tooltip .tip-body sub { font-size: 0.78em; }

@@ -8,7 +8,7 @@
     var MATERIALS = {
         'InGaN-blue':  { name: 'InGaN',   bandgap: 2.64, wavelength: 470, threshold: 2.6, label: 'Blue (470 nm)', col: '--c-em-ingan' },
         'AlGaInP-red': { name: 'AlGaInP', bandgap: 1.95, wavelength: 635, threshold: 1.8, label: 'Red (635 nm)',  col: '--c-em-algainp' },
-        'GaAs-ir':     { name: 'GaAs',    bandgap: 1.42, wavelength: 870, threshold: 1.2, label: 'IR (870 nm)',   col: '--c-em-gaas' }
+        'GaAs-ir':     { name: 'GaAs',    bandgap: 1.42, wavelength: 870, threshold: 1.2, label: 'Near infrared (870 nm)', col: '--c-em-gaas' }
     };
 
     // Shared parameters. vf drives section 02 (forward bias), ve drives the
@@ -48,12 +48,11 @@
         MATERIALS: MATERIALS, p: p, mat: mat,
         deplFrac: deplFrac, exceeded: exceeded, bands: bands, v0: v0, vj: vj, DELTA: DELTA,
         HC: 1239.84,   // h c in eV nm
-        // Run fn after DOM ready and on every parameter, theme or size change.
+        // Run fn after DOM ready and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('ledchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

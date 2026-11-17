@@ -22,7 +22,6 @@
         var grid = T.gridLight;
         var axis = T.gridAxis;
         var hi = window.CMP.cssVar('--c-output');
-        var lo = window.CMP.cssVar('--c-cap');
         var trig = window.CMP.cssVar('--c-trigger');
         var rail = window.CMP.cssVar('--c-rail');
 
@@ -53,10 +52,10 @@
             // Panel title and subtitle
             window.renderKatex(svg, '\\text{' + p.title + '}',
                 p.x + panelW / 2, panelY - 36,
-                { width: panelW, height: 22, size: 16, color: text });
+                { width: panelW, height: 22, size: 19, color: text });
             window.renderKatex(svg, '\\text{' + p.subtitle + '}',
                 p.x + panelW / 2, panelY - 16,
-                { width: panelW, height: 18, size: 11, color: muted });
+                { width: panelW, height: 18, size: 15, color: muted });
 
             // Trace span. Reserve room on the left for the rail labels so
             // they sit clear of any state labels on the trace itself.
@@ -78,14 +77,14 @@
             // Rail labels, anchored to the left margin of each panel.
             window.renderKatex(svg, '+V_\\text{sat}',
                 p.x + 30, hiY - 12,
-                { width: 52, height: 14, size: 11, color: hi, align: 'right' });
+                { width: 52, height: 18, size: 15, color: text, align: 'right' });
             window.renderKatex(svg, '-V_\\text{sat}',
                 p.x + 30, loY + 12,
-                { width: 52, height: 14, size: 11, color: lo, align: 'right' });
+                { width: 52, height: 18, size: 15, color: text, align: 'right' });
 
             // Caller draws the trajectory and any state / trigger overlays.
             p.path(svg, p.x, panelY, panelW, panelH, hiY, loY, x0, x1,
-                   { hi: hi, lo: lo, trig: trig, dim: dim, muted: muted, axis: axis });
+                   { hi: hi, trig: trig, dim: dim, muted: muted, axis: axis });
         });
 
         // Legend
@@ -93,18 +92,19 @@
         var legends = [
             { c: hi, text: 'output trace' },
             { c: trig, text: 'external trigger' },
-            { c: rail, text: 'saturation rail' }
+            { c: rail, text: 'saturation rail', dash: '3 4' }
         ];
         var legX = pad;
         legends.forEach(function (item) {
             svg.append('line')
                 .attr('x1', legX).attr('x2', legX + 22)
                 .attr('y1', legY).attr('y2', legY)
-                .attr('stroke', item.c).attr('stroke-width', 2.4);
+                .attr('stroke', item.c).attr('stroke-width', 2.4)
+                .attr('stroke-dasharray', item.dash || null);
             window.renderKatex(svg, '\\text{' + item.text + '}',
-                legX + 24 + 50, legY,
-                { width: 110, height: 18, size: 11, color: muted, align: 'left' });
-            legX += 22 + 110 + 28;
+                legX + 28 + 70, legY,
+                { width: 140, height: 18, size: 15, color: muted, align: 'left' });
+            legX += 22 + 140 + 28;
         });
     }
 
@@ -131,15 +131,15 @@
             .attr('marker-end', 'url(#arrow-trig-bi)');
         window.renderKatex(svg, '\\text{trigger}',
             arrX, hiY - 54,
-            { width: 70, height: 14, size: 11, color: c.trig });
+            { width: 70, height: 18, size: 15, color: c.trig });
 
-        // State labels — only on the horizontal segments.
+        // State labels: only on the horizontal segments.
         window.renderKatex(svg, '\\text{state A}',
             (x0 + trigX) / 2, loY + 22,
-            { width: 80, height: 14, size: 11, color: c.muted });
+            { width: 80, height: 18, size: 15, color: c.muted });
         window.renderKatex(svg, '\\text{state B}',
             (trigX + x1) / 2, hiY - 22,
-            { width: 80, height: 14, size: 11, color: c.muted });
+            { width: 80, height: 18, size: 15, color: c.muted });
     }
 
     // Monostable: rest at one rail, trigger jumps to the other rail for a
@@ -147,7 +147,7 @@
     function monostablePath(svg, px, py, w, h, hiY, loY, x0, x1, c) {
         var span = x1 - x0;
         var trigX = x0 + span * 0.25;
-        var returnX = x0 + span * 0.75;
+        var returnX = x0 + span * 0.80;
         var path = 'M ' + x0 + ' ' + hiY +
                    ' L ' + trigX + ' ' + hiY +
                    ' L ' + trigX + ' ' + loY +
@@ -170,7 +170,7 @@
             .attr('marker-end', 'url(#arrow-trig-mono)');
         window.renderKatex(svg, '\\text{trigger}',
             arrX, hiY - 54,
-            { width: 70, height: 14, size: 11, color: c.trig });
+            { width: 70, height: 18, size: 15, color: c.trig });
 
         // Period bracket: spans the low-rail interval, sits below it.
         defineArrow(svg, 'arrow-T-mono-l', c.dim, true);
@@ -182,18 +182,18 @@
             .attr('stroke', c.dim).attr('stroke-width', 1)
             .attr('marker-start', 'url(#arrow-T-mono-l)')
             .attr('marker-end', 'url(#arrow-T-mono-r)');
-        window.renderKatex(svg, 'T = RC\\,\\ln\\frac{1}{1-\\beta}',
-            midX, loY + 38,
-            { width: 170, height: 22, size: 12, color: c.dim });
+        window.renderKatex(svg, 'T = RC\\,\\ln\\!\\big(1/(1-\\beta)\\big)',
+            midX, loY + 40,
+            { width: 190, height: 22, size: 15, color: c.dim });
 
-        // State labels — placed on horizontal segments, narrow enough that
+        // State labels: placed on horizontal segments, narrow enough that
         // the vertical legs sit just outside their bounding boxes.
         window.renderKatex(svg, '\\text{stable}',
             (x0 + trigX) / 2, hiY - 22,
-            { width: 70, height: 14, size: 11, color: c.muted });
+            { width: 70, height: 18, size: 15, color: c.muted });
         window.renderKatex(svg, '\\text{quasi-stable}',
             midX, loY - 22,
-            { width: 90, height: 14, size: 11, color: c.muted });
+            { width: 90, height: 18, size: 15, color: c.muted });
     }
 
     // Astable: continuous toggling between the rails, no triggers.
@@ -225,13 +225,13 @@
             .attr('marker-end', 'url(#arrow-T-ast-r)');
         window.renderKatex(svg, 'T',
             (x2 + x4) / 2, loY + 36,
-            { width: 28, height: 18, size: 13, color: c.dim });
+            { width: 28, height: 18, size: 15, color: c.dim });
 
         // State summary above the trace, in the empty band between the
         // panel title and the high rail.
         window.renderKatex(svg, '\\text{both rails quasi-stable}',
             (x0 + x1) / 2, py + 32,
-            { width: 200, height: 14, size: 11, color: c.muted });
+            { width: 200, height: 18, size: 15, color: c.muted });
     }
 
     function defineArrow(svg, id, color, reverse) {
@@ -250,7 +250,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

@@ -1,11 +1,11 @@
-// Scene 06 · Switch debouncing with a monostable.
-// User types into a real textarea (the "input"). Each keypress is mirrored to
-// the textarea (one character per press) and lights the corresponding key on
-// the QWERTY graphic. The keypress is replaced by a synthesised burst of
-// contact-bounce edges. A non-retriggerable monostable of width T_d filters
-// the burst, and the surviving edges are written to the "output" textarea.
-// A trace of the most recent press is shown above, with accepted edges in
-// green and rejected edges in muted grey.
+// Scene 06 · Switch debouncing with an RC low-pass and a Schmitt trigger.
+// Text is typed into a textarea (the input). Each keypress is mirrored to
+// the textarea (one character per press) and highlights the corresponding key
+// on the QWERTY graphic. The keypress is replaced by a synthesised burst of
+// contact-bounce edges. The capacitor voltage integrates the burst with
+// tau = T_d, and each LOW to HIGH transition of the Schmitt output writes one
+// character to the output line. A trace of the most recent press is shown
+// above, with the intended press marked in green and phantoms in violet.
 (function () {
     var svgSel = '#plot-db-trace';
     var slDb = document.getElementById('db-time');
@@ -188,13 +188,13 @@
     // ════════════════════════════════════════════════════════
     //  KEYBOARD VISUAL  ·  realistic ANSI-ish QWERTY layout
     //  Each entry: { id, label, w, cls }
-    //    id   — used to look up the key from the KeyboardEvent
-    //    label— glyph drawn on the keycap
-    //    w    — width in "u" units (1u ≈ 38 px)
-    //    cls  — extra css class (k-letter, k-mod, k-space, k-mod-left)
+    //    id   : used to look up the key from the KeyboardEvent
+    //    label: legend drawn on the keycap
+    //    w    : width in "u" units (1u ≈ 38 px)
+    //    cls  : extra css class (k-letter, k-mod, k-space, k-mod-left)
     // ════════════════════════════════════════════════════════
     var ROWS = [
-        // row 0 — number row
+        // row 0: number row
         [
             { id: '`',  label: '`',  w: 1 }, { id: '1', label: '1', w: 1 },
             { id: '2',  label: '2',  w: 1 }, { id: '3', label: '3', w: 1 },
@@ -203,11 +203,11 @@
             { id: '8',  label: '8',  w: 1 }, { id: '9', label: '9', w: 1 },
             { id: '0',  label: '0',  w: 1 }, { id: '-', label: '−', w: 1 },
             { id: '=',  label: '=',  w: 1 },
-            { id: 'Backspace', label: '⌫', w: 2, cls: 'k-mod' }
+            { id: 'Backspace', label: 'delete', w: 2, cls: 'k-mod' }
         ],
-        // row 1 — qwerty
+        // row 1: qwerty
         [
-            { id: 'Tab', label: '⇥ tab', w: 1.5, cls: 'k-mod k-mod-left' },
+            { id: 'Tab', label: 'tab', w: 1.5, cls: 'k-mod k-mod-left' },
             { id: 'q', label: 'Q', w: 1, cls: 'k-letter' },
             { id: 'w', label: 'W', w: 1, cls: 'k-letter' },
             { id: 'e', label: 'E', w: 1, cls: 'k-letter' },
@@ -221,9 +221,9 @@
             { id: '[', label: '[', w: 1 }, { id: ']', label: ']', w: 1 },
             { id: '\\', label: '\\', w: 1.5 }
         ],
-        // row 2 — asdfg
+        // row 2: asdfg
         [
-            { id: 'CapsLock', label: '⇪ caps', w: 1.75, cls: 'k-mod k-mod-left' },
+            { id: 'CapsLock', label: 'caps', w: 1.75, cls: 'k-mod k-mod-left' },
             { id: 'a', label: 'A', w: 1, cls: 'k-letter' },
             { id: 's', label: 'S', w: 1, cls: 'k-letter' },
             { id: 'd', label: 'D', w: 1, cls: 'k-letter' },
@@ -235,11 +235,11 @@
             { id: 'l', label: 'L', w: 1, cls: 'k-letter' },
             { id: ';', label: ';', w: 1 },
             { id: "'", label: "'", w: 1 },
-            { id: 'Enter', label: '⏎ enter', w: 2.25, cls: 'k-mod' }
+            { id: 'Enter', label: 'enter', w: 2.25, cls: 'k-mod' }
         ],
-        // row 3 — zxcv
+        // row 3: zxcv
         [
-            { id: 'ShiftLeft', label: '⇧ shift', w: 2.25, cls: 'k-mod k-mod-left' },
+            { id: 'ShiftLeft', label: 'shift', w: 2.25, cls: 'k-mod k-mod-left' },
             { id: 'z', label: 'Z', w: 1, cls: 'k-letter' },
             { id: 'x', label: 'X', w: 1, cls: 'k-letter' },
             { id: 'c', label: 'C', w: 1, cls: 'k-letter' },
@@ -249,15 +249,15 @@
             { id: 'm', label: 'M', w: 1, cls: 'k-letter' },
             { id: ',', label: ',', w: 1 }, { id: '.', label: '.', w: 1 },
             { id: '/', label: '/', w: 1 },
-            { id: 'ShiftRight', label: '⇧ shift', w: 2.75, cls: 'k-mod' }
+            { id: 'ShiftRight', label: 'shift', w: 2.75, cls: 'k-mod' }
         ],
-        // row 4 — modifiers + space
+        // row 4: modifiers and space
         [
             { id: 'ControlLeft', label: 'ctrl', w: 1.25, cls: 'k-mod k-mod-left' },
             { id: 'AltLeft',     label: 'opt',  w: 1.25, cls: 'k-mod k-mod-left' },
-            { id: 'MetaLeft',    label: '⌘',    w: 1.25, cls: 'k-mod k-mod-left' },
+            { id: 'MetaLeft',    label: 'cmd',    w: 1.25, cls: 'k-mod k-mod-left' },
             { id: ' ',           label: 'space',w: 7.5,  cls: 'k-space' },
-            { id: 'MetaRight',   label: '⌘',    w: 1.25, cls: 'k-mod' },
+            { id: 'MetaRight',   label: 'cmd',    w: 1.25, cls: 'k-mod' },
             { id: 'AltRight',    label: 'opt',  w: 1.25, cls: 'k-mod' },
             { id: 'ControlRight',label: 'ctrl', w: 1.25, cls: 'k-mod' }
         ]
@@ -276,24 +276,21 @@
     // Layout constants (viewBox units, scaled responsively by SVG width: 100%).
     var KB = { U: 38, GAP: 5, ROW_H: 40, PAD: 14, RX: 5 };
 
-    // Theme palette read from CSS variables. Refreshed when the theme toggles.
+    // Keyboard colours, resolved from the site tokens.
     var palette = readPalette();
-    function cssVar(name, fallback) {
-        var v = getComputedStyle(document.documentElement).getPropertyValue(name);
-        v = (v || '').trim();
-        return v || fallback;
+    function cssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
     function readPalette() {
         return {
-            cap:        cssVar('--bg-panel',     'rgba(22,23,32,0.75)'),
-            capStroke:  cssVar('--border-hover', 'rgba(255,255,255,0.18)'),
-            label:      cssVar('--text-dim',     '#d4d7e0'),
-            labelMod:   cssVar('--muted',        '#8b90a3'),
-            labelHi:    cssVar('--accent',       '#7ad9f3'),
-            capHi:      cssVar('--accent-soft',  'rgba(122,217,243,0.15)'),
-            capHiEdge:  cssVar('--accent',       '#7ad9f3'),
-            output:     cssVar('--c-output',     '#ffcf5c'),
-            shadow:     'rgba(0,0,0,0.18)'
+            cap:        cssVar('--white'),
+            capStroke:  cssVar('--neutral-grey'),
+            label:      cssVar('--carbon-black-500'),
+            labelMod:   cssVar('--carbon-black-500'),
+            labelHi:    cssVar('--white'),
+            capHi:      cssVar('--carbon-black-500'),
+            capHiEdge:  cssVar('--carbon-black-500'),
+            output:     cssVar('--c-output')
         };
     }
 
@@ -339,13 +336,6 @@
                     transform: 'translate(' + x + ',' + y + ')'
                 });
 
-                // Soft drop shadow under the cap.
-                g.appendChild(svgEl('rect', {
-                    x: 0, y: 2, width: kw, height: KB.ROW_H,
-                    rx: KB.RX, ry: KB.RX,
-                    fill: palette.shadow
-                }));
-
                 // The cap itself. fill / stroke set as presentation attributes
                 // so the SVG renders correctly without relying on CSS.
                 var cap = svgEl('rect', {
@@ -357,7 +347,7 @@
                 });
                 g.appendChild(cap);
 
-                // Debounce drain overlay — its y / height are animated.
+                // Debounce drain overlay: its y and height are animated.
                 var fill = svgEl('rect', {
                     x: 0, y: KB.ROW_H, width: kw, height: 0,
                     rx: KB.RX, ry: KB.RX,
@@ -368,11 +358,11 @@
                 // Label placement matches a real keycap.
                 var fontSize, anchor, lx, ly, labelFill;
                 if (isSpace) {
-                    fontSize = 10; anchor = 'middle';
-                    lx = kw / 2; ly = KB.ROW_H / 2 + 3.5;
+                    fontSize = 11; anchor = 'middle';
+                    lx = kw / 2; ly = KB.ROW_H / 2 + 4;
                     labelFill = palette.labelMod;
                 } else if (isMod) {
-                    fontSize = 9.5;
+                    fontSize = 11;
                     anchor = isLeft ? 'start' : 'end';
                     lx = isLeft ? 7 : (kw - 7);
                     ly = KB.ROW_H - 7;
@@ -445,13 +435,11 @@
             entry.cap.setAttribute('stroke', palette.capHiEdge);
             entry.cap.setAttribute('stroke-width', 1.5);
             entry.label.setAttribute('fill',  palette.labelHi);
-            entry.label.setAttribute('font-weight', '600');
         } else {
             entry.cap.setAttribute('fill',   entry.baseFill);
             entry.cap.setAttribute('stroke', entry.baseStroke);
             entry.cap.setAttribute('stroke-width', 1);
             entry.label.setAttribute('fill', entry.baseLabel);
-            entry.label.removeAttribute('font-weight');
         }
     }
 
@@ -527,16 +515,15 @@
     }
 
     // ════════════════════════════════════════════════════════
-    //  TRACE — input bounce + monostable output for the most recent press
+    //  TRACE: input bounce and capacitor voltage for the most recent press
     //  Two stacked tracks share the same x-axis (time since first contact):
     //    top track   = bouncing contact line (input)
-    //    bottom track = monostable output, a clean pulse of width T_d on each
-    //                   accepted edge. With T_d = 0 the output reduces to
-    //                   instantaneous spikes (drawn as thin ticks).
+    //    bottom track = capacitor voltage V_C with the Schmitt thresholds and
+    //                   a marker at each LOW to HIGH output transition.
     // ════════════════════════════════════════════════════════
     var svg = d3.select(svgSel).classed('ov', true);
     var W = 600, H = 320;
-    var margin = { top: 30, right: 28, bottom: 40, left: 62 };
+    var margin = { top: 32, right: 28, bottom: 48, left: 72 };
     var iw, ih, x, yIn, yOut, bandH, bandSep, outBaseY;
 
     var gRoot = svg.append('g');
@@ -558,8 +545,8 @@
         gRoot.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
         // x scale depends on mode:
-        //   snapshot — domain [0, winMs()]: time since first contact
-        //   scroll   — domain [-windowMs, 0]: time relative to "now"
+        //   snapshot: domain [0, winMs()], time since first contact
+        //   scroll:   domain [-windowMs, 0], time relative to the present
         if (state.scrollMode) {
             x = d3.scaleLinear().domain([-SCROLL_WINDOW_MS, 0]).range([0, iw]);
         } else {
@@ -567,7 +554,7 @@
         }
 
         // Two equal-height bands separated by a small gap.
-        bandSep = Math.max(18, ih * 0.10);
+        bandSep = Math.max(34, ih * 0.13);
         bandH = (ih - bandSep) / 2;
         yIn  = d3.scaleLinear().domain([-0.2, 1.6]).range([bandH, 0]);
         outBaseY = bandH + bandSep;
@@ -616,7 +603,7 @@
                 .attr('y1', 0).attr('y2', ih);
         });
 
-        // Y axes — one per band, OPEN/CLOSED for input, LOW/HIGH for output.
+        // Y axes: one per band, OPEN/CLOSED for input, LOW/HIGH for output.
         var yAxisIn = d3.axisLeft(yIn).tickValues([0, 1])
             .tickFormat(function (d) { return d === 0 ? 'OPEN' : 'CLOSED'; })
             .tickSize(0).tickPadding(8);
@@ -628,41 +615,35 @@
         gAxis.append('g').call(yAxisOut).select('.domain').remove();
 
         var xAxis = d3.axisBottom(x).tickValues(ticks)
-            .tickFormat(function (d) {
-                if (!state.scrollMode) return d + ' ms';
-                if (d === 0) return 'now';
-                return d + ' ms';
-            })
+            .tickFormat(function (d) { return d + ''; })
             .tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 
         // Axis titles.
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 32)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
             .text(state.scrollMode
-                ? 'time, ms · scrolling left'
-                : 'time since first contact, ms');
+                ? 'Time relative to present (ms)'
+                : 'Time since first contact (ms)');
 
         // Per-band labels at the top-left of each band.
         gTitles.append('text')
-            .attr('x', 0).attr('y', -10)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10)
-            .attr('letter-spacing', '0.10em')
+            .attr('x', 0).attr('y', -12)
             .style('fill', 'var(--c-input)')
-            .style('text-transform', 'uppercase')
-            .text('input · contact');
+            .text('Contact state');
 
         gTitles.append('text')
-            .attr('x', 0).attr('y', outBaseY - 8)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10)
-            .attr('letter-spacing', '0.10em')
+            .attr('x', 0).attr('y', outBaseY - 16)
             .style('fill', 'var(--c-output)')
-            .style('text-transform', 'uppercase')
-            .text('output · V_C');
+            .text('Capacitor voltage');
+        // Threshold values are stated here, clear of the voltage curve.
+        gTitles.append('text')
+            .attr('x', iw).attr('y', outBaseY - 16)
+            .attr('text-anchor', 'end')
+            .style('fill', 'var(--c-thresh)')
+            .text('Schmitt thresholds ' + V_TH_LO.toFixed(2) + ' and ' + V_TH_HI.toFixed(2));
     }
 
     function drawTrace() {
@@ -679,39 +660,42 @@
         // Shaded debounce window (full height across both bands).
         if (state.debounceMs > 0) {
             var bandX = Math.max(0, x(Math.min(state.debounceMs, winMs())) - x(0));
-            gBand.append('rect')
-                .attr('x', x(0)).attr('y', 0)
-                .attr('width', bandX).attr('height', ih)
-                .style('fill', 'var(--c-output)').attr('opacity', 0.08);
-            gBand.append('line')
-                .attr('x1', x(Math.min(state.debounceMs, winMs())))
-                .attr('x2', x(Math.min(state.debounceMs, winMs())))
-                .attr('y1', 0).attr('y2', ih)
-                .style('stroke', 'var(--c-output)')
-                .attr('stroke-width', 1.2).attr('stroke-dasharray', '4 4');
+            // Drawn per band so that the boundary line stays clear of the
+            // titles in the gap between the two bands.
+            var xTd = x(Math.min(state.debounceMs, winMs()));
+            [[0, bandH], [outBaseY, ih]].forEach(function (seg) {
+                gBand.append('rect')
+                    .attr('x', x(0)).attr('y', seg[0])
+                    .attr('width', bandX).attr('height', seg[1] - seg[0])
+                    .style('fill', 'var(--d-orange-soft)').attr('opacity', 0.5);
+                gBand.append('line')
+                    .attr('x1', xTd).attr('x2', xTd)
+                    .attr('y1', seg[0]).attr('y2', seg[1])
+                    .style('stroke', 'var(--c-output)')
+                    .attr('stroke-width', 1.2).attr('stroke-dasharray', '4 4');
+            });
             if (state.debounceMs <= winMs()) {
-                gBand.append('text')
-                    .attr('x', Math.min(iw - 4, x(state.debounceMs) + 6))
-                    .attr('y', 12)
-                    .attr('font-family', "'JetBrains Mono', monospace")
-                    .attr('font-size', 10).style('fill', 'var(--c-output)')
-                    .text('T_d = ' + state.debounceMs.toFixed(1) + ' ms');
+                // Left of the boundary when it lies near the right edge.
+                var tdRight = x(state.debounceMs) < iw - 130;
+                window.renderKatex(gBand,
+                    'T_d = ' + state.debounceMs.toFixed(1) + '\\,\\text{ms}',
+                    x(state.debounceMs) + (tdRight ? 6 + 65 : -6 - 65), 10,
+                    { size: 14, color: 'var(--c-output)', align: tdRight ? 'left' : 'right',
+                      width: 130, height: 18 });
             }
         }
 
-        // Empty state — show a hint in the centre.
+        // Empty state: show a hint in the centre.
         if (state.lastEdges.length === 0) {
             gWaveIn.append('text')
-                .attr('x', iw / 2).attr('y', ih / 2)
+                .attr('x', iw / 2).attr('y', yIn(0.5) + 4)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 12).style('fill', 'var(--muted)')
-                .attr('opacity', 0.7)
-                .text('press a key to see input + output traces');
+                .style('fill', 'var(--muted)')
+                .text('Press a key to display the input and output traces');
             return;
         }
 
-        // ── INPUT trace — alternating contact level toggled by each edge.
+        // ── INPUT trace: alternating contact level toggled by each edge.
         var pts = [[0, 0]];
         var lvl = 0;
         for (var i = 0; i < state.lastEdges.length; i++) {
@@ -733,7 +717,7 @@
             .attr('stroke-width', 1.6)
             .attr('d', lineIn);
 
-        // Edge markers above the input baseline — neutral grey ticks for
+        // Edge markers above the input baseline: neutral grey ticks for
         // every bounce edge. In the RC model the cap response depends on the
         // whole stream so we no longer label individual edges accepted /
         // rejected.
@@ -744,11 +728,11 @@
             gMarks.append('line')
                 .attr('x1', xp).attr('x2', xp)
                 .attr('y1', yIn(1.06)).attr('y2', yIn(1.26))
-                .style('stroke', 'var(--muted)')
-                .attr('stroke-width', 1.2).attr('opacity', 0.65);
+                .style('stroke', 'var(--d-grey)')
+                .attr('stroke-width', 1.2);
         }
 
-        // ── OUTPUT trace — physical RC + Schmitt response.
+        // ── OUTPUT trace: physical RC + Schmitt response.
         // V(t) tracks the bouncing input through a first-order low-pass with
         // τ = T_d, drawn as a smooth curve. The Schmitt thresholds and every
         // LOW→HIGH crossing (each emits one character) are overlaid.
@@ -766,8 +750,7 @@
                 .attr('x', 0).attr('y', yOut(V_TH_HI))
                 .attr('width', iw)
                 .attr('height', Math.max(0, yOut(V_TH_LO) - yOut(V_TH_HI)))
-                .attr('fill', 'var(--c-thresh)')
-                .attr('opacity', 0.08);
+                .attr('fill', 'var(--d-pink-soft)');
 
             // Schmitt thresholds.
             [V_TH_HI, V_TH_LO].forEach(function (v) {
@@ -779,15 +762,6 @@
                     .attr('stroke-dasharray', '4 3')
                     .attr('opacity', 0.55);
             });
-            gWaveOut.append('text')
-                .attr('x', iw - 4).attr('y', yOut(V_TH_HI) - 4)
-                .attr('text-anchor', 'end')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 9)
-                .style('fill', 'var(--c-thresh)')
-                .attr('opacity', 0.85)
-                .text('Schmitt V_TH = ' + V_TH_LO.toFixed(2) + ' / ' + V_TH_HI.toFixed(2));
-
             // The cap voltage curve itself.
             gWaveOut.append('path').datum(trace)
                 .attr('fill', 'none')
@@ -811,23 +785,24 @@
                         .attr('stroke-width', 1)
                         .attr('stroke-dasharray', '2 3')
                         .attr('opacity', 0.5);
-                    gWaveOut.append('text')
-                        .attr('x', xTau + 4).attr('y', yOut(1.05) + 4)
-                        .attr('font-family', "'JetBrains Mono', monospace")
-                        .attr('font-size', 9)
-                        .style('fill', 'var(--c-output)')
-                        .attr('opacity', 0.75)
-                        .text('τ = T_d');
+                    // Left of the marker when it lies near the right edge.
+                    // There it also steps past the T_d boundary when that
+                    // line would otherwise cross the label.
+                    var tauRight = xTau < iw - 60;
+                    var tauAnchor = (!tauRight && xTau - xTd < 70) ? xTd : xTau;
+                    window.renderKatex(gWaveOut, '\\tau = T_d', tauAnchor + (tauRight ? 35 : -35), yOut(1.05) - 9,
+                        { size: 14, color: 'var(--c-output)', align: tauRight ? 'left' : 'right',
+                          width: 60, height: 18 });
                 }
             }
 
             // Mark every LOW→HIGH Schmitt transition. Each one is a character
-            // emitted on the line. Green = the expected single press; red =
-            // a phantom (the second crossing onward).
+            // emitted on the line. Green marks the expected single press;
+            // violet marks a phantom (the second crossing onward).
             for (var i = 0; i < state.lastSchmittRises.length; i++) {
                 var rt = state.lastSchmittRises[i];
                 var rx = x(Math.min(W_MS, rt));
-                var col = (i === 0) ? 'var(--c-output2)' : 'var(--c-thresh)';
+                var col = (i === 0) ? 'var(--c-output2)' : 'var(--c-phantom)';
                 gWaveOut.append('line')
                     .attr('x1', rx).attr('x2', rx)
                     .attr('y1', yOut(V_TH_HI)).attr('y2', yOut(1.18))
@@ -842,23 +817,20 @@
         }
 
         // Legend strip in top right.
-        var legX = iw - 240, legY = -16;
+        var legX = iw - 262, legY = -16;
         var lg = gMarks.append('g').attr('transform', 'translate(' + legX + ',' + legY + ')');
-        lg.append('line').attr('x1', -2).attr('x2', 10).attr('y1', 0).attr('y2', 0)
-            .style('stroke', 'var(--muted)').attr('stroke-width', 1.4);
-        lg.append('text').attr('x', 14).attr('y', 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .style('fill', 'var(--text-dim)').text('bounce edge');
-        lg.append('circle').attr('cx', 96).attr('cy', 0).attr('r', 3.2)
+        lg.append('line').attr('x1', 5).attr('x2', 5).attr('y1', -6).attr('y2', 6)
+            .style('stroke', 'var(--d-grey)').attr('stroke-width', 1.4);
+        lg.append('text').attr('x', 14).attr('y', 4)
+            .style('fill', 'var(--fg)').text('Bounce edge');
+        lg.append('circle').attr('cx', 116).attr('cy', 0).attr('r', 3.2)
             .attr('fill', 'var(--c-output2)');
-        lg.append('text').attr('x', 104).attr('y', 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .style('fill', 'var(--text-dim)').text('press');
-        lg.append('circle').attr('cx', 152).attr('cy', 0).attr('r', 3.2)
-            .attr('fill', 'var(--c-thresh)');
-        lg.append('text').attr('x', 160).attr('y', 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .style('fill', 'var(--text-dim)').text('phantom');
+        lg.append('text').attr('x', 124).attr('y', 4)
+            .style('fill', 'var(--fg)').text('Press');
+        lg.append('circle').attr('cx', 180).attr('cy', 0).attr('r', 3.2)
+            .attr('fill', 'var(--c-phantom)');
+        lg.append('text').attr('x', 188).attr('y', 4)
+            .style('fill', 'var(--fg)').text('Phantom');
     }
 
     // ════════════════════════════════════════════════════════
@@ -896,10 +868,10 @@
     }
 
     function keyDisplayLabel(ch) {
-        if (ch === '\b') return '⌫';
-        if (ch === '\n') return '↵';
-        if (ch === '\t') return '⇥';
-        if (ch === ' ')  return '␣';
+        if (ch === '\b') return 'Del';
+        if (ch === '\n') return 'Enter';
+        if (ch === '\t') return 'Tab';
+        if (ch === ' ')  return 'Space';
         return ch.toUpperCase();
     }
 
@@ -1026,7 +998,7 @@
         // Map absolute sim time → x pixel.
         function xT(t) { return x(Math.max(-SCROLL_WINDOW_MS, Math.min(0, t - tNow))); }
 
-        // ── INPUT trace — reconstruct piecewise from events that touch the
+        // ── INPUT trace: reconstruct piecewise from events that touch the
         // visible window. We sample at every transition (bounce edges, settle,
         // release) plus the window edges so the step waveform is exact.
         var checkpoints = [tLeft, tNow];
@@ -1056,7 +1028,7 @@
             .attr('stroke-width', 1.6)
             .attr('d', lineIn);
 
-        // Press labels — character above each event start, with a faint
+        // Press labels: character above each event start, with a faint
         // dashed drop-line linking the label to the moment of contact.
         state.events.forEach(function (ev) {
             if (ev.tStart < tLeft || ev.tStart > tNow) return;
@@ -1069,19 +1041,17 @@
             gMarks.append('text')
                 .attr('x', lx).attr('y', yIn(1.55))
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11).attr('font-weight', '600')
                 .style('fill', 'var(--c-input)')
                 .text(ev.label);
         });
 
-        // ── OUTPUT trace — the V_C samples we have integrated so far.
+        // ── OUTPUT trace: the V_C samples we have integrated so far.
         // Hysteresis band + thresholds first, curve on top.
         gWaveOut.append('rect')
             .attr('x', 0).attr('y', yOut(V_TH_HI))
             .attr('width', iw)
             .attr('height', Math.max(0, yOut(V_TH_LO) - yOut(V_TH_HI)))
-            .attr('fill', 'var(--c-thresh)').attr('opacity', 0.08);
+            .attr('fill', 'var(--d-pink-soft)');
         [V_TH_HI, V_TH_LO].forEach(function (v) {
             gWaveOut.append('line')
                 .attr('x1', 0).attr('x2', iw)
@@ -1118,8 +1088,6 @@
             gWaveOut.append('text')
                 .attr('x', rx).attr('y', yOut(1.20) - 6)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10)
                 .style('fill', 'var(--c-output2)')
                 .text(r.label);
         });
@@ -1128,26 +1096,16 @@
         gMarks.append('line')
             .attr('x1', iw).attr('x2', iw)
             .attr('y1', 0).attr('y2', ih)
-            .attr('stroke', 'var(--accent)').attr('stroke-width', 1)
+            .attr('stroke', 'var(--c-now)').attr('stroke-width', 1)
             .attr('opacity', 0.45);
-        gMarks.append('text')
-            .attr('x', iw - 4).attr('y', ih - 4)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 9)
-            .style('fill', 'var(--accent)')
-            .attr('opacity', 0.7)
-            .text('now');
 
         // Idle hint when nothing has been typed yet.
         if (state.events.length === 0 && state.scrollSamples.length < 8) {
             gMarks.append('text')
-                .attr('x', iw / 2).attr('y', ih / 2)
+                .attr('x', iw / 2).attr('y', yIn(0.5) + 4)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 12).style('fill', 'var(--muted)')
-                .attr('opacity', 0.7)
-                .text('type into the input box; keypresses scroll left with time');
+                .style('fill', 'var(--muted)')
+                .text('Type into the input box; keypresses scroll left with time');
         }
     }
 
@@ -1278,9 +1236,6 @@
         inEl.addEventListener('paste', onPaste);
         inEl.addEventListener('drop', function (e) { e.preventDefault(); });
 
-        window.addEventListener('themechange', function () {
-            drawStatic(); drawTrace(); buildKeyboard();
-        });
         window.addEventListener('resize', function () {
             layout(); drawStatic(); drawTrace();
         });

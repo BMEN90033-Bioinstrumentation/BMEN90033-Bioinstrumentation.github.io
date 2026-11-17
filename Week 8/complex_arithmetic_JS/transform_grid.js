@@ -1,4 +1,4 @@
-// Interactive grid map for complex multiplication and division. The accent
+// Interactive grid map for complex multiplication and division. The ink
 // handle is the image of the unit vector at 1 under multiplication by a.
 (function () {
     const AXIS_EXT = 3;
@@ -235,9 +235,10 @@
         const transformed = transformPoint(pair.subject);
         const rows = [
             ['operation', state.mode === 'mul' ? 'w ↦ aw' : 'grid: w ↦ (a/a₀)w; point: w ↦ w/a'],
-            ['a near', pair.carrierLabel + ', transforming ' + pair.subjectLabel],
-            ['handle a', fmtComplex(state.a) + ', |a| = ' + mag(state.a).toFixed(2) + ', arg(a) = ' + fmtAngle(angle(state.a))],
-            [pair.subjectLabel + ' image', fmtComplex(pair.subject) + ' ↦ ' + fmtComplex(transformed)]
+            // Row keys are rendered in uppercase, so variable names stay in the values.
+            ['nearest operand', pair.carrierLabel + ' is nearest to a; ' + pair.subjectLabel + ' is transformed'],
+            ['handle', 'a = ' + fmtComplex(state.a) + ', |a| = ' + mag(state.a).toFixed(2) + ', arg(a) = ' + fmtAngle(angle(state.a))],
+            ['image', pair.subjectLabel + ' = ' + fmtComplex(pair.subject) + ' ↦ ' + fmtComplex(transformed)]
         ];
 
         readout.replaceChildren();
@@ -338,8 +339,8 @@
         label(g, state.z1, 'z₁', 'z1', 10, -12);
         label(g, state.z2, 'z₂', 'z2', 10, 14);
         label(g, state.a, 'a', 'transform', 12, -16);
-        label(g, subjectImage, pair.resultLabel, 'result result-' + pair.subjectClass, 12, 16);
-        label(g, { x: 1, y: 0 }, '1', 'transform', 8, 16);
+        label(g, subjectImage, pair.resultLabel, 'result result-' + pair.subjectClass, -12, 16);
+        label(g, { x: 1, y: 0 }, '1', 'transform', -8, -14);
 
         const yTop = y(AXIS_EXT);
         const xRight = x(AXIS_EXT);
@@ -417,5 +418,4 @@
     setup();
     render();
     window.addEventListener('resize', function () { setup(); render(); });
-    window.addEventListener('themechange', render);
 })();

@@ -27,7 +27,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(260, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 24, right: 28, bottom: 40, left: 56 };
+        var m = { top: 34, right: 40, bottom: 48, left: 70 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -105,16 +105,10 @@
             f.g.append('line')
                 .attr('x1', 0).attr('x2', f.iw)
                 .attr('y1', y(v0)).attr('y2', y(v0))
-                .attr('stroke', 'var(--c-output2)')
+                .attr('stroke', 'var(--c-ref)')
                 .attr('stroke-width', 1.6)
                 .attr('stroke-dasharray', '4 4')
                 .attr('opacity', 0.85);
-            f.g.append('text')
-                .attr('x', 6).attr('y', y(v0) - 6)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .attr('fill', 'var(--c-output2)')
-                .text('captured  V₀ = ' + v0.toFixed(3) + ' V');
         }
 
         // DAC trajectory: stairstep across the conversion window
@@ -140,7 +134,7 @@
                 .attr('cx', x(ti)).attr('cy', y(p.dac))
                 .attr('r', 3.2)
                 .attr('fill', p.accept ? 'var(--c-output)' : 'var(--c-low)')
-                .attr('stroke', 'var(--bg-2)').attr('stroke-width', 1);
+                .attr('stroke', 'var(--white)').attr('stroke-width', 1);
         });
 
         // Final-code marker on the right edge
@@ -149,14 +143,14 @@
             .attr('cx', x(T_VIEW)).attr('cy', y(finalDac))
             .attr('r', 5)
             .attr('fill', 'var(--c-output)')
-            .attr('stroke', 'var(--bg-2)').attr('stroke-width', 1.5);
+            .attr('stroke', 'var(--white)').attr('stroke-width', 1.5);
 
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
                 .tickFormat(function (d) { return d.toFixed(1); })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).ticks(4)
@@ -166,14 +160,14 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 32)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('conversion progress');
+            .text('fraction of conversion time elapsed');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-56) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('voltage');
+            .text('voltage (V)');
 
         // Update readout
         var target = state.shOn ? v0 : v1;
@@ -184,8 +178,8 @@
         rdV0.textContent = v0.toFixed(3) + ' V';
         rdV1.textContent = v1.toFixed(3) + ' V';
         rdCode.textContent = sarRes.code;
-        rdErr.textContent = (err >= 0 ? '+' : '') + err + ' LSB';
-        rdErr.className = 'v ' + (Math.abs(err) <= 1 ? 'on' : 'warn');
+        rdErr.textContent = (err > 0 ? '+' : '') + err + ' LSB';
+        rdErr.className = 'v' + (Math.abs(err) <= 1 ? '' : ' warn');
     }
 
     function init() {
@@ -210,7 +204,6 @@
             btnOn.textContent = 'S/H on';
             draw();
         });
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', draw);
         draw();
     }

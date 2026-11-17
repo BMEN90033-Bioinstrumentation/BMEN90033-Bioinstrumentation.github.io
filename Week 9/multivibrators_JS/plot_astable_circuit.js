@@ -153,29 +153,29 @@
         // ── Labels ──
         window.renderKatex(svg, 'R',
             (X_RF_L + X_RF_R) / 2, Y_RF - 22,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'C',
             X_NODE_A - 30, Y_C_T + 14,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'R_1',
             (X_R1_L + X_R1_R) / 2, Y_R1 + 24,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
         window.renderKatex(svg, 'R_2',
             X_B + 30, (Y_R2_T + Y_R2_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'v_\\text{out}',
             X_VOUT_DOT + 40, TRI.apex[1],
-            { width: 70, height: 22, size: 16, color: text });
+            { width: 70, height: 22, size: 18, color: text });
 
         window.renderKatex(svg, 'v_C',
             X_NODE_A + 30, Y_MINUS - 22,
-            { width: 40, height: 18, size: 12, color: muted });
+            { width: 40, height: 18, size: 17, color: muted });
         window.renderKatex(svg, '\\beta\\,v_\\text{out}',
             X_B - 50, Y_PLUS - 22,
-            { width: 80, height: 20, size: 12, color: muted });
+            { width: 80, height: 20, size: 17, color: muted });
 
         // ── Hover hotspots: one per component ──
         if (window.CircuitTip) {
@@ -189,7 +189,7 @@
                 (TRI.apex[0] - TRI.topLeft[0]) + 12,
                 (TRI.botLeft[1] - TRI.topLeft[1]) + 12,
                 'Op-amp comparator',
-                'Comparator with positive feedback. Saturates at one rail until v<sub>C</sub> on the inverting input crosses the divider threshold, at which point the output flips to the opposite rail.');
+                'Comparator with positive feedback. Saturates at one rail until v<sub>C</sub> on the inverting input crosses the divider threshold, at which point the output switches to the opposite rail.');
 
             // Feedback resistor R (horizontal, top)
             tip(X_RF_L - 6, Y_RF - R_THICK / 2 - 6,
@@ -200,19 +200,19 @@
             // Capacitor C (vertical)
             tip(X_NODE_A - 20, Y_C_T - 6, 40, 40,
                 'C',
-                'Timing capacitor on the inverting node, returned to ground. Its voltage v<sub>C</sub> oscillates between &plusmn;&beta;V<sub>sat</sub>; the traversal time sets the half-period.');
+                'Timing capacitor on the inverting node, returned to ground. Its voltage v<sub>C</sub> oscillates between &plusmn;&beta;V<sub>sat</sub>; the time taken to cross between them sets the half-period.');
 
             // R_1 (horizontal)
             tip(X_R1_L - 6, Y_R1 - R_THICK / 2 - 6,
                 R_LEN + 12, R_THICK + 12,
                 'R<sub>1</sub>',
-                'Upper arm of the positive-feedback divider. With R<sub>2</sub> sets &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>) and the symmetric switching thresholds at &plusmn;&beta;V<sub>sat</sub>.');
+                'Upper arm of the positive-feedback divider. With R<sub>2</sub> it sets &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>) and the symmetric switching thresholds at &plusmn;&beta;V<sub>sat</sub>.');
 
             // R_2 (vertical)
             tip(X_B - R_THICK / 2 - 6, Y_R2_T - 6,
                 R_THICK + 12, R_LEN + 12,
                 'R<sub>2</sub>',
-                'Lower arm of the divider, returned to ground. With R<sub>1</sub> sets &beta; and therefore the period T = 2RC&middot;ln((1+&beta;)/(1&minus;&beta;)).');
+                'Lower arm of the divider, returned to ground. With R<sub>1</sub> it sets &beta; and therefore the period T = 2RC&middot;ln((1+&beta;)/(1&minus;&beta;)).');
 
             // v_out
             tip(X_OUT_TAP - 6, TRI.apex[1] - 16, (X_VOUT_DOT - X_OUT_TAP) + 80, 32,
@@ -223,7 +223,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

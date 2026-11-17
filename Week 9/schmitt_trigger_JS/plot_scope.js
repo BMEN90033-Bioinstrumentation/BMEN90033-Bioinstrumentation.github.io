@@ -154,25 +154,29 @@
     function draw() {
         var ctx = canvas.getContext('2d');
         // background
-        var bg = window.CMP.cssVar('--bg-2');
+        var bg = window.T.plotBg;
         var grid = window.CMP.cssVar('--grid-line');
         var gridZero = window.CMP.cssVar('--grid-zero');
         var muted = window.CMP.cssVar('--muted');
         var fg = window.CMP.cssVar('--fg');
         var cInput = window.CMP.cssVar('--c-input');
         var cOut   = window.CMP.cssVar('--c-output');
-        var cOut2  = window.CMP.cssVar('--c-output2');
-        var cThresh = window.CMP.cssVar('--c-thresh');
-        var cThreshH = window.CMP.cssVar('--c-thresh-h');
+        var cOut2  = window.CMP.cssVar('--c-schmitt');
+        var cRef   = window.CMP.cssVar('--c-ref');
+        var cHigh  = window.CMP.cssVar('--c-high');
+        var cLow   = window.CMP.cssVar('--c-low');
         var cBand = window.CMP.cssVar('--c-band');
 
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, dims.w, dims.h);
 
-        var marL = 64, marR = 24, marT = 28, marB = 32;
+        // Panel captions sit in the gaps above each panel and threshold
+        // labels in the right margin, so no text lies under a trace.
+        var MONO = "'JetBrains Mono', monospace";
+        var marL = 64, marR = 56, marT = 54, marB = 48;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
-        var gap = 10;
+        var gap = 28;
         // panel heights: signal large, two outputs equal smaller
         var panelW = innerW;
         var hSig = (innerH - 2 * gap) * 0.50;
@@ -205,19 +209,33 @@
         drawPanelGrid(ctx, marL, sigY0, panelW, hSig, grid, gridZero,
             [0, 0.4, 0.8, 1.2], yToPxSig);
 
-        // Threshold lines: V_ref (solid dashed pink) and V_TH/V_TL (dashed)
-        strokeLine(ctx, marL, yToPxSig(state.vref), marL + panelW, yToPxSig(state.vref),
-            cThresh, 1.6, [5, 4]);
+        // Threshold lines: V_ref (long dashes) and V_TH / V_TL (short dashes)
+        var yRef = yToPxSig(state.vref);
+        var yHi  = yToPxSig(state.vref + state.hyst / 2);
+        var yLo  = yToPxSig(state.vref - state.hyst / 2);
+        strokeLine(ctx, marL, yRef, marL + panelW, yRef, cRef, 1.6, [5, 4]);
         if (state.hyst > 0) {
-            strokeLine(ctx, marL, yToPxSig(state.vref + state.hyst / 2),
-                       marL + panelW, yToPxSig(state.vref + state.hyst / 2),
-                       cThreshH, 1.2, [3, 4]);
-            strokeLine(ctx, marL, yToPxSig(state.vref - state.hyst / 2),
-                       marL + panelW, yToPxSig(state.vref - state.hyst / 2),
-                       cThreshH, 1.2, [3, 4]);
+            strokeLine(ctx, marL, yHi, marL + panelW, yHi, cHigh, 1.4, [3, 4]);
+            strokeLine(ctx, marL, yLo, marL + panelW, yLo, cLow, 1.4, [3, 4]);
+        }
+        // Labels in the right margin. V_TH and V_TL are held at least one
+        // line of text away from V_ref when the band is narrow.
+        var labX = marL + panelW + 8;
+        ctx.fillStyle = cRef;
+        window.SCH.subText(ctx, 'V', 'ref', '', labX, yRef, 'left');
+        if (state.hyst > 0) {
+            ctx.fillStyle = cHigh;
+            window.SCH.subText(ctx, 'V', 'TH', '', labX, Math.min(yHi, yRef - 18), 'left');
+            ctx.fillStyle = cLow;
+            window.SCH.subText(ctx, 'V', 'TL', '', labX, Math.max(yLo, yRef + 18), 'left');
         }
 
-        // Noisy signal first (lower opacity haze)
+        // Noisy signal first (lower opacity haze). Both input traces are
+        // clipped to the panel so noise peaks stay clear of the captions.
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(marL, sigY0, panelW, hSig);
+        ctx.clip();
         ctx.save();
         ctx.globalAlpha = 0.45;
         ctx.strokeStyle = cInput;
@@ -231,6 +249,7 @@
         ctx.lineWidth = 1.8;
         ctx.lineJoin = 'round';
         tracePath(ctx, buf.clean, yToPxSig, marL, panelW, false);
+        ctx.restore();
 
         // ── Plain comparator panel ─────────────────────────────────
         drawPanelGrid(ctx, marL, plainY0, panelW, hOut, grid, gridZero,
@@ -250,15 +269,15 @@
 
         // ── Tick labels ────────────────────────────────────────────
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = '13px ' + MONO;
         ctx.textBaseline = 'top';
         ctx.textAlign = 'center';
-        // Time axis tick labels under bottom panel. Each tick shows the
-        // relative time (negative seconds back from the right edge),
-        // so the rightmost is 0 and leftmost is -WINDOW_SECS.
+        // Time axis tick labels under bottom panel: seconds before the
+        // newest sample, so the rightmost is 0 and the leftmost is
+        // -WINDOW_SECS.
         for (var s = 0; s <= WINDOW_SECS; s++) {
             var px = marL + (s / WINDOW_SECS) * panelW;
-            var lab = (s === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - s) + 's';
+            var lab = (s === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - s);
             ctx.fillText(lab, px, schY0 + hOut + 6);
         }
         // Y tick labels on signal panel
@@ -269,42 +288,44 @@
         });
         // Y tick labels on output panels
         [-1, 1].forEach(function (v) {
-            ctx.fillText(v.toFixed(0), marL - 6, yToPxOut(v, plainY0));
-            ctx.fillText(v.toFixed(0), marL - 6, yToPxOut(v, schY0));
+            var t = (v < 0 ? '\u2212' : '+') + '1';
+            ctx.fillText(t, marL - 6, yToPxOut(v, plainY0));
+            ctx.fillText(t, marL - 6, yToPxOut(v, schY0));
         });
 
-        // ── Axis titles (plain alphabetic, canvas text) ────────────
+        // ── Axis titles ────────────────────────────────────────────
         ctx.save();
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "13px 'Inter', Arial, sans-serif";
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
         // Time axis title
-        ctx.fillText('time (relative, s)', marL + panelW / 2, schY0 + hOut + 22);
+        ctx.fillText('relative time [s]', marL + panelW / 2, schY0 + hOut + 34);
         // Voltage labels (rotated -90) for each panel
         function vTitle(label, panelY, panelH) {
             ctx.save();
-            ctx.translate(18, panelY + panelH / 2);
+            ctx.translate(16, panelY + panelH / 2);
             ctx.rotate(-Math.PI / 2);
             ctx.textAlign = 'center';
             ctx.fillText(label, 0, 0);
             ctx.restore();
         }
-        vTitle('voltage (V)', sigY0, hSig);
+        vTitle('voltage [V]', sigY0, hSig);
         vTitle('output', plainY0, hOut);
         vTitle('output', schY0, hOut);
         ctx.restore();
 
-        // ── Panel labels in top-right corners ──────────────────────
-        ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'right';
-        ctx.fillText('clean ECG + noisy input + thresholds', marL + panelW - 8, sigY0 + 6);
+        // ── Panel captions in the gap above each panel ─────────────
+        ctx.font = '13px ' + MONO;
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = cInput;
+        ctx.fillText(panelW < 440 ? 'ECG input, clean and noisy'
+            : 'ECG input: clean (heavy line), with noise (light line)', marL, sigY0 - 8);
         ctx.fillStyle = cOut;
-        ctx.fillText('plain comparator output', marL + panelW - 8, plainY0 + 6);
+        ctx.fillText('Plain comparator output', marL, plainY0 - 8);
         ctx.fillStyle = cOut2;
-        ctx.fillText('Schmitt trigger output', marL + panelW - 8, schY0 + 6);
+        ctx.fillText('Schmitt trigger output', marL, schY0 - 8);
     }
 
     // ── Animation loop ────────────────────────────────────────────
@@ -359,7 +380,7 @@
             nL.textContent = state.noise.toFixed(2) + ' V';
             vL.textContent = state.vref.toFixed(2) + ' V';
             hL.textContent = state.hyst.toFixed(2) + ' V';
-            sL.textContent = state.speed.toFixed(2) + 'x';
+            sL.textContent = state.speed.toFixed(2) + '\u00d7';
         }
         [n, v, h, s].forEach(function (el) { el.addEventListener('input', update); });
         update();
@@ -371,7 +392,7 @@
         primeBuffer();
         draw();
 
-        // Pause when off-screen, redraw on theme change.
+        // Pause when off-screen.
         var io = new IntersectionObserver(function (entries) {
             for (var i = 0; i < entries.length; i++) {
                 if (entries[i].isIntersecting) start();
@@ -380,7 +401,6 @@
         }, { threshold: 0.15 });
         io.observe(canvas);
 
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () { setupCanvas(); draw(); });
     }
 

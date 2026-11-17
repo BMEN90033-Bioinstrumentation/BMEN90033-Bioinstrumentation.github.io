@@ -1,8 +1,8 @@
 // Section 03 · Comparison Bode plot.
 // Three responses on shared axes:
-//   passive 2-stage RC (loaded)              — dashed red, the unaided baseline
-//   buffered cascade (1+sRC)^2               — blue, two op-amps, real coincident poles, Q = 0.5
-//   Sallen-Key Butterworth (Q = 1/√2)        — amber, single op-amp, complex pole pair
+//   passive 2-stage RC (loaded)              : dashed orange, the unaided baseline
+//   buffered cascade (1+sRC)^2               : pink, two op-amps, real coincident poles, Q = 0.5
+//   Sallen-Key Butterworth (Q = 1/√2)        : blue, single op-amp, complex pole pair
 // All three share ω = 1 rad/s as the natural-frequency reference so the
 // curves can be read on the same axis.
 (function () {
@@ -117,44 +117,19 @@
             .attr('y1', 0).attr('y2', H.innerH)
             .attr('stroke', T.fg(0.35)).attr('stroke-width', 1)
             .attr('stroke-dasharray', '3 3');
-        H.gMag.append('text')
-            .attr('x', x0 - 6).attr('y', 14)
-            .attr('text-anchor', 'end')
-            .attr('fill', T.fg(0.55))
-            .attr('font-size', 11)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .text('ω0');
+        // Label at the foot of the magnitude panel, clear of every trace.
+        window.renderKatex(H.gMag, '\\omega_0', x0 - 16, H.innerH - 12,
+            { width: 20, height: 18, size: 13, color: T.textDim });
 
         H_helpers.attachHover(H, [
-            { name: 'Sallen-Key  Q = 0.71', cssClass: 'active',   pts: skPts },
+            { name: 'Sallen-Key Q = 0.71', cssClass: 'active',   pts: skPts },
             { name: 'buffered cascade',     cssClass: 'buffered', pts: bufferedPts },
-            { name: 'passive 2RC',          cssClass: 'passive',  pts: passivePts }
+            { name: 'passive cascade',     cssClass: 'passive',  pts: passivePts }
         ]);
-
-        var entries = [
-            { c: 'active',   label: 'Sallen-Key  (1 op-amp, Q = 0.71)' },
-            { c: 'buffered', label: 'buffered cascade  (2 op-amps, Q = 0.50)' },
-            { c: 'passive',  label: 'passive 2RC  (no op-amps)' }
-        ];
-        var lg = H.gMag.append('g').attr('transform', 'translate(' + (H.innerW - 12) + ',12)');
-        entries.forEach(function (e, idx) {
-            var row = lg.append('g').attr('transform', 'translate(0,' + (idx * 18) + ')');
-            row.append('line').attr('class', 'trace ' + e.c)
-                .attr('x1', -36).attr('x2', -8)
-                .attr('y1', 8).attr('y2', 8);
-            row.append('text')
-                .attr('x', -42).attr('y', 11)
-                .attr('text-anchor', 'end')
-                .attr('fill', T.text)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .text(e.label);
-        });
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

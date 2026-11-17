@@ -8,7 +8,7 @@
     var svg = d3.select(SVG);
     if (svg.empty()) return;
 
-    var VB_W = 980, VB_H = 360;
+    var VB_W = 930, VB_H = 330;
     var g;
 
     function clear() {
@@ -28,22 +28,21 @@
             .attr('stroke-width', 1.6);
         g.append('text')
             .attr('x', x + w / 2)
-            .attr('y', y + h / 2 + (sub ? -6 : 5))
+            .attr('y', y + h / 2 + (sub ? -7 : 5))
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'Inter', sans-serif")
-            .attr('font-size', 14)
-            .attr('font-weight', 600)
+            .attr('font-family', 'var(--font-text)')
+            .attr('font-size', 16)
+            .attr('font-weight', 400)
             .attr('fill', opts.titleFill || 'var(--text)')
             .text(title);
         if (sub) {
-            g.append('text')
+            EEG.label(g.append('text')
                 .attr('x', x + w / 2)
-                .attr('y', y + h / 2 + 13)
+                .attr('y', y + h / 2 + 15)
                 .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 11)
-                .attr('fill', 'var(--text-dim)')
-                .text(sub);
+                .attr('font-family', 'var(--font-mono)')
+                .attr('font-size', 14.5)
+                .attr('fill', 'var(--text-dim)'), sub);
         }
         return { x: x, y: y, w: w, h: h, l: x, r: x + w, t: y, b: y + h, cx: x + w / 2, cy: y + h / 2 };
     }
@@ -81,48 +80,36 @@
             .attr('fill', 'var(--text)');
     }
 
-    function tagLabel(x, y, txt, anchor, color, weight) {
-        g.append('text')
+    function tagLabel(x, y, txt, anchor, color) {
+        EEG.label(g.append('text')
             .attr('x', x).attr('y', y)
             .attr('text-anchor', anchor || 'start')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .attr('font-weight', weight || 600)
-            .attr('fill', color || 'var(--text-dim)')
-            .text(txt);
+            .attr('font-family', 'var(--font-mono)')
+            .attr('font-size', 14.5)
+            .attr('fill', color || 'var(--text-dim)'), txt);
     }
 
     function draw() {
         clear();
 
-        // Caption
-        g.append('text')
-            .attr('x', VB_W / 2).attr('y', 24)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10.5)
-            .attr('letter-spacing', '0.18em')
-            .attr('fill', 'var(--muted)')
-            .text('SIGNAL CHAIN · BLOCK DIAGRAM');
-
         var BH = 64;
-        var midY = 200;
+        var midY = 178;
         var topY = midY - 84;
         var botY = midY + 84;
 
         // Input
-        var inB = block(20, midY - BH / 2, 130, BH, 'EEG input', 'v_in (mV)');
-        // Pre-amp
-        var amp = block(190, midY - BH / 2, 150, BH, 'Pre-amp', 'G ≈ 1000');
+        var inB = block(20, midY - BH / 2, 120, BH, 'EEG input', 'v_{in} (mV)');
+        // Preamplifier
+        var amp = block(172, midY - BH / 2, 130, BH, 'Preamplifier', 'G ≈ 1000');
 
-        var splitX = amp.r + 36;
+        var splitX = amp.r + 30;
 
         // Top branch
-        var sch = block(splitX + 24, topY - BH / 2, 150, BH, 'Schmitt trigger', 'V_T± hysteresis');
-        var mono = block(sch.r + 24, topY - BH / 2, 150, BH, 'Monostable', 'fixed-width pulse');
+        var sch = block(splitX + 24, topY - BH / 2, 170, BH, 'Schmitt trigger', 'V_{T±} hysteresis');
+        var mono = block(sch.r + 24, topY - BH / 2, 170, BH, 'Monostable', 'fixed-width pulse');
 
         // Bottom branch
-        var pk = block(splitX + 24, botY - BH / 2, 324, BH, 'Peak detector', 'D + C ∥ R_leak');
+        var pk = block(splitX + 24, botY - BH / 2, 364, BH, 'Peak detector', 'D + C || R_{leak}');
 
         // Wiring
         flowH(inB.r, midY, amp.l);
@@ -135,22 +122,21 @@
         flowH(sch.r, topY, mono.l);
 
         // Output arrows + labels
-        var outTopX = mono.r + 70;
+        var outTopX = mono.r + 50;
         wireRaw(mono.r, topY, outTopX - 6, topY);
         arrowHead(outTopX, topY, 'right');
-        tagLabel(outTopX + 8, topY - 4, 'spike pulses', 'start', 'var(--c-output)');
-        tagLabel(outTopX + 8, topY + 14, 'detect / count', 'start', 'var(--muted)', 400);
+        tagLabel(outTopX + 8, topY - 7, 'spike pulses', 'start', 'var(--c-output)');
+        tagLabel(outTopX + 8, topY + 15, 'detect, count', 'start', 'var(--muted)');
 
-        var outBotX = pk.r + 70;
+        var outBotX = pk.r + 50;
         wireRaw(pk.r, botY, outBotX - 6, botY);
         arrowHead(outBotX, botY, 'right');
-        tagLabel(outBotX + 8, botY - 4, 'V_held', 'start', 'var(--c-output2)');
-        tagLabel(outBotX + 8, botY + 14, 'measure / track', 'start', 'var(--muted)', 400);
+        tagLabel(outBotX + 8, botY - 9, 'V_{held}', 'start', 'var(--c-output2)');
+        tagLabel(outBotX + 8, botY + 15, 'measure, track', 'start', 'var(--muted)');
     }
 
     function init() {
         draw();
-        window.addEventListener('themechange', draw);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

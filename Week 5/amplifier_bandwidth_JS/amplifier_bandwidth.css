@@ -1,43 +1,24 @@
-/* amplifier_bandwidth.html · page palette and plot sizes. Layout comes from
-   ../components/lecture_page.css. */
+/* amplifier_bandwidth.html · trace palette and plot sizes. Layout comes from
+   ../components/lecture_page.css; colours come from the --d-* data palette. */
 
 :root {
-    --c-in:     #ffcf5c;   /* input signal */
-    --c-out:    #58a6ff;   /* output, magnitude response */
-    --c-test:   #ff8ad0;   /* test frequency, phase angle */
-    --c-guide:  #7be089;   /* w0 and GBP guides */
-    --c-re:     #c8a8ff;   /* real component */
-    --c-im:     #ff9f5c;   /* imaginary component */
-    --c-phasor: #58a6ff;   /* denominator phasor */
-    --c-env:    rgba(255, 255, 255, 0.45);
-    --c-cur:    #eef0f5;   /* present A_v curve */
-    --c-g1:     rgba(255, 207, 92, 0.55);
-    --c-g2:     rgba(255, 159, 92, 0.6);
-    --c-g3:     rgba(88, 166, 255, 0.6);
-    --c-g4:     rgba(200, 168, 255, 0.65);
-    --hero-a: var(--c-out);
-    --hero-b: var(--c-in);
-}
-
-[data-theme="light"] {
-    --c-in:     #b88200;
-    --c-out:    #1d4ed8;
-    --c-test:   #be185d;
-    --c-guide:  #2f8f3f;
-    --c-re:     #7c3aed;
-    --c-im:     #c2410c;
-    --c-phasor: #1d4ed8;
-    --c-env:    rgba(0, 0, 0, 0.45);
-    --c-cur:    #1a1a1e;
-    --c-g1:     rgba(184, 130, 0, 0.6);
-    --c-g2:     rgba(194, 65, 12, 0.6);
-    --c-g3:     rgba(29, 78, 216, 0.55);
-    --c-g4:     rgba(124, 58, 237, 0.6);
+    --c-out:    var(--d-blue);     /* output, magnitude response */
+    --c-in:     var(--d-orange);   /* input signal */
+    --c-test:   var(--d-pink);     /* test frequency, phase angle */
+    --c-guide:  var(--d-green);    /* w0 and GBP guides */
+    --c-re:     var(--d-violet);   /* real component */
+    --c-im:     var(--d-olive);    /* imaginary component */
+    --c-phasor: var(--d-slate);    /* denominator phasor */
+    --c-env:    var(--d-grey);     /* open-loop envelope */
+    --c-cur:    var(--d-ink);      /* present A_v curve */
+    --c-g1:     var(--d-blue);     /* reference noise gains 1, 10, 100, 1000 */
+    --c-g2:     var(--d-orange);
+    --c-g3:     var(--d-pink);
+    --c-g4:     var(--d-violet);
 }
 
 .plot-box.circuit { aspect-ratio: 2.1 / 1; }
 .plot-box.phasor  { aspect-ratio: 1.25 / 1; }
 .plot-box.phase   { aspect-ratio: 1.9 / 1; }
 .plot-box.bode    { aspect-ratio: 1.45 / 1; }
-.legend .sw.dash { border-top-color: var(--muted); }
 .legend .sw.dot { width: 10px; height: 10px; border-radius: 50%; }

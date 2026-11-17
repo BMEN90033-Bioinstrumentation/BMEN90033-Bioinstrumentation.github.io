@@ -34,6 +34,12 @@
         var divDb = gainDb(Rin, Rin + Ze);
 
         var P = window.WCGW.setupPlot('#plot-ze-mag', {
+            legend: [
+                { key: 'clean', label: 'design (Z_e = 0)', opacity: 0.38 },
+                { key: 'distort', label: 'with electrode Z_e' },
+                { key: 'clean', dash: true, label: 'nominal f_c = ' + fcNom.toFixed(3) + ' Hz' },
+                { key: 'distort', dash: true, label: 'realised f_c = ' + fcReal.toFixed(3) + ' Hz, gain ' + divDb.toFixed(2) + ' dB' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [0.001, 100],
             yDomain: [-60, 6],
@@ -51,17 +57,9 @@
 
         [fcNom, fcReal].forEach(function (fc, i) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fc)).attr('x2', P.x(fc)).attr('y1', 0).attr('y2', P.innerH)
-                .attr('stroke', i === 0 ? P.colors.clean : P.colors.distort).attr('opacity', 0.55);
+                .style('stroke', i === 0 ? P.colors.clean : P.colors.distort).attr('opacity', 0.55);
         });
-        P.g.append('text').attr('x', P.x(fcNom) + 6).attr('y', 14).attr('fill', P.colors.clean)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('f_c nominal = ' + fcNom.toFixed(3) + ' Hz');
-        P.g.append('text').attr('x', P.x(fcReal) + 6).attr('y', 30).attr('fill', P.colors.distort)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('f_c realised = ' + fcReal.toFixed(3) + ' Hz, gain ' + divDb.toFixed(2) + ' dB');
 
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'design (Z_e = 0)' },
-            { key: 'distort', label: 'with electrode Z_e' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -72,7 +70,6 @@
         if (!zeSlider) return;
         zeSlider.addEventListener('input', draw);
         rinSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

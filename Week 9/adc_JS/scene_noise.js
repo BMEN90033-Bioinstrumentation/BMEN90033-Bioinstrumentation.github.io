@@ -19,8 +19,8 @@
     var T_VIEW = 1.0;
     var N = 600;
 
-    var aSvg = d3.select('#plot-nse-analog').classed('ov', true);
-    var dSvg = d3.select('#plot-nse-digital').classed('ov', true);
+    var aSvg = d3.select('#plot-nse-analog').classed('bode', true);
+    var dSvg = d3.select('#plot-nse-digital').classed('bode', true);
 
     // Reproducible Gaussian noise per draw call.
     function rng(seed) {
@@ -56,13 +56,19 @@
         var W = Math.max(440, rect.width);
         var H = Math.max(220, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 22, right: 28, bottom: 38, left: 56 };
+        var m = { top: 34, right: 28, bottom: 48, left: 66 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
         if (g.empty()) g = svg.append('g').attr('class', 'root');
         g.attr('transform', 'translate(' + m.left + ',' + m.top + ')');
-        return { g: g, iw: iw, ih: ih };
+        // Large noise excursions are clipped to the plot area so they do not
+        // run over the tick labels and axis titles.
+        var clipId = svg.attr('id') + '-clip';
+        var cp = svg.select('clipPath');
+        if (cp.empty()) cp = svg.append('clipPath').attr('id', clipId).call(function (c) { c.append('rect'); });
+        cp.select('rect').attr('x', 0).attr('y', 0).attr('width', iw).attr('height', ih);
+        return { g: g, iw: iw, ih: ih, clip: 'url(#' + clipId + ')' };
     }
 
     function drawAnalog() {
@@ -73,6 +79,7 @@
         var y = d3.scaleLinear().domain([-0.6, 1.6]).range([f.ih, 0]);
 
         var grid = f.g.append('g').attr('class', 'grid');
+        var plot = f.g.append('g').attr('clip-path', f.clip);
         [0, 0.5, 1].forEach(function (v) {
             grid.append('line')
                 .attr('x1', 0).attr('x2', f.iw)
@@ -104,35 +111,28 @@
             var t = (k / (N - 1)) * T_VIEW;
             clr.push([t, clean(t)]);
         }
-        f.g.append('path').datum(clr)
+        plot.append('path').datum(clr)
             .attr('fill', 'none').attr('stroke', 'var(--c-low)')
             .attr('stroke-width', 1.2).attr('stroke-dasharray', '4 4').attr('opacity', 0.55)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
-        // Plot each stage at a vertical offset (same y-domain, but small alpha
-        // ramp so the worst stage is most visible). All on a shared axis.
-        var palette = ['rgba(88,166,255,0.55)', 'rgba(88,166,255,0.85)', 'var(--c-thresh)'];
-        var labels = ['stage 1', 'stage 2', 'stage 3'];
+        // All stages share one axis. The noisiest stage is drawn first so the
+        // earlier, cleaner stages remain visible on top of it.
+        var palette = ['var(--c-input)', 'var(--c-input)', 'var(--c-stage3)'];
+        var alphas = [1, 0.5, 1];
         var widths = [1.2, 1.5, 1.8];
-        for (var s = 0; s < 3; s++) {
-            f.g.append('path').datum(stages[s])
+        for (var s = 2; s >= 0; s--) {
+            plot.append('path').datum(stages[s])
                 .attr('fill', 'none').attr('stroke', palette[s])
+                .attr('opacity', alphas[s])
                 .attr('stroke-width', widths[s])
                 .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
         }
 
-        // Legend
-        var leg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 200) + ',6)');
-        for (var s = 0; s < 3; s++) {
-            leg.append('line').attr('x1', s * 65).attr('x2', s * 65 + 18).attr('y1', 6).attr('y2', 6)
-                .attr('stroke', palette[s]).attr('stroke-width', 2);
-            leg.append('text').attr('x', s * 65 + 22).attr('y', 9).attr('font-size', 10)
-                .attr('fill', 'var(--text-dim)').text(labels[s]);
-        }
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
@@ -141,12 +141,12 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30).attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .attr('x', f.iw / 2).attr('y', f.ih + 40).attr('text-anchor', 'middle')
+            .text('Time (s)');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-52) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('voltage, normalised');
+            .text('Voltage (normalised)');
 
         // Compute analog SNR (AC signal power of clean() = 7/30 after removing the 0.5 DC mean;
         // noise power = 3 σ² for sum of three stages).
@@ -163,6 +163,7 @@
         var y = d3.scaleLinear().domain([-0.6, 1.6]).range([f.ih, 0]);
 
         var grid = f.g.append('g').attr('class', 'grid');
+        var plot = f.g.append('g').attr('clip-path', f.clip);
         [0, 0.5, 1].forEach(function (v) {
             grid.append('line')
                 .attr('x1', 0).attr('x2', f.iw)
@@ -175,11 +176,6 @@
             .attr('y1', y(state.thr)).attr('y2', y(state.thr))
             .attr('stroke', 'var(--c-thresh)').attr('stroke-width', 1.4)
             .attr('stroke-dasharray', '5 4');
-        f.g.append('text')
-            .attr('x', f.iw - 6).attr('y', y(state.thr) - 4)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', 'var(--c-thresh)').text('threshold');
 
         // Generate noisy stage 1 (analog wire), threshold to digital, then
         // re-generate noisy at each subsequent stage (regeneration).
@@ -213,15 +209,15 @@
         }
 
         // Plot the analog wire at stage 3 (after two regenerations)
-        f.g.append('path').datum(stage3)
-            .attr('fill', 'none').attr('stroke', 'var(--c-input)')
+        plot.append('path').datum(stage3)
+            .attr('fill', 'none').attr('stroke', 'var(--c-stage3)')
             .attr('stroke-width', 1.2).attr('opacity', 0.7)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); }));
 
         // Plot the resolved bit pattern at stage 3 as a step
         var bitPath = bits3.map(function (b, i) { return [stage1[i][0], b]; });
-        f.g.append('path').datum(bitPath)
-            .attr('fill', 'none').attr('stroke', 'var(--c-output2)')
+        plot.append('path').datum(bitPath)
+            .attr('fill', 'none').attr('stroke', 'var(--c-output)')
             .attr('stroke-width', 2.2)
             .attr('d', d3.line().x(function (d) { return x(d[0]); }).y(function (d) { return y(d[1]); })
                 .curve(d3.curveStepAfter));
@@ -234,14 +230,14 @@
                 if (i % 4 === 0) {
                     f.g.append('circle')
                         .attr('cx', x(stage1[i][0])).attr('cy', y(bits3[i] ? 1.18 : -0.18))
-                        .attr('r', 2.2).attr('fill', 'var(--c-hot)').attr('opacity', 0.85);
+                        .attr('r', 2.2).attr('fill', 'var(--c-thresh)').attr('opacity', 0.85);
                 }
             }
         }
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
@@ -250,23 +246,13 @@
         ay.select('.domain').remove();
 
         f.g.append('text').attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30).attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .attr('x', f.iw / 2).attr('y', f.ih + 40).attr('text-anchor', 'middle')
+            .text('Time (s)');
         f.g.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-52) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('voltage, normalised');
+            .text('Voltage (normalised)');
 
-        // Legend
-        var leg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 220) + ',6)');
-        leg.append('line').attr('x1', 0).attr('x2', 18).attr('y1', 6).attr('y2', 6)
-            .attr('stroke', 'var(--c-input)').attr('stroke-width', 2);
-        leg.append('text').attr('x', 22).attr('y', 9).attr('font-size', 10)
-            .attr('fill', 'var(--text-dim)').text('wire (stage 3)');
-        leg.append('line').attr('x1', 110).attr('x2', 128).attr('y1', 6).attr('y2', 6)
-            .attr('stroke', 'var(--c-output2)').attr('stroke-width', 2);
-        leg.append('text').attr('x', 132).attr('y', 9).attr('font-size', 10)
-            .attr('fill', 'var(--text-dim)').text('decoded bit');
 
         rdErr.textContent = errs;
         rdErr.className = 'v ' + (errs === 0 ? 'on' : (errs > 30 ? 'warn' : 'off'));
@@ -288,7 +274,6 @@
             thrL.textContent = state.thr.toFixed(2);
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

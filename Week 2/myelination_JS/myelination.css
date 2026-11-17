@@ -2,44 +2,16 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-myelin:      #6ea8d7;   /* myelin sheath, myelinated traces */
-    --c-node:        #f0c040;   /* resting node of Ranvier */
-    --c-node-active: #ff5555;   /* node at the wavefront */
-    --c-node-past:   #e08040;   /* recently depolarised node */
-    --c-depol:       #e05050;   /* unmyelinated depolarised region and traces */
-    --c-dipole:      #ffffff;
-    --c-axon:        #cccccc;
-    --c-intra:       #ffaa44;
-    --c-plus:        #ff8888;
-    --c-minus:       #8888ff;
-    --c-rec:         #50e080;   /* recording point */
-    --c-stim-lbl:    #6cc3e0;
-    --c-myel-lbl:    #6ea8d7;
-    --c-unmyel-lbl:  #e08080;
-    --c-grid3d:      #222222;
-    --c-grid3d-2:    #181818;
-    --viridis: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
-    --hero-a: var(--c-myelin);
-    --hero-b: var(--c-depol);
-}
-
-[data-theme="light"] {
-    --c-myelin:      #2b6cb0;
-    --c-node:        #b7791f;
-    --c-node-active: #dc2626;
-    --c-node-past:   #c05621;
-    --c-depol:       #c62828;
-    --c-dipole:      #1a1a1e;
-    --c-axon:        #6b7280;
-    --c-intra:       #c2410c;
-    --c-plus:        #c62828;
-    --c-minus:       #3730a3;
-    --c-rec:         #15803d;
-    --c-stim-lbl:    #0d6c88;
-    --c-myel-lbl:    #2b6cb0;
-    --c-unmyel-lbl:  #c53030;
-    --c-grid3d:      #c4c4ca;
-    --c-grid3d-2:    #dadade;
+    --c-myelin:      var(--d-blue);     /* myelin sheath, myelinated traces and labels */
+    --c-depol:       var(--d-orange);   /* depolarised membrane, unmyelinated traces and labels */
+    --c-node-active: var(--d-pink);     /* node at the wavefront */
+    --c-rec:         var(--d-green);    /* recording point */
+    --c-intra:       var(--d-violet);   /* intracellular current */
+    --c-node:        var(--d-slate);    /* resting node of Ranvier */
+    --c-dipole:      var(--d-ink);      /* dipole, its poles and neutral labels */
+    --c-axon:        var(--d-grey);
+    --c-grid3d:      var(--calcium-white-800);
+    --c-grid3d-2:    var(--neutral-lightest);
 }
 
 .plot-box.scene3d  { aspect-ratio: 1.3 / 1; }
@@ -47,5 +19,8 @@
 .plot-box.signal   { aspect-ratio: 1.6 / 1; }
 
 .legend .sw.ring { height: 10px; width: 10px; border-radius: 50%; }
-.legend .sw.grad { background: var(--viridis); height: 8px; }
+/* Viridis key (lower 80 % of the map) for the field-magnitude colour map in
+   scene_axons.js; the map encodes a quantity and is independent of the site
+   palette. */
+.legend .sw.grad { background: linear-gradient(90deg, #440154, #3b528b, #21918c, #5ec962); height: 8px; }
 .legend .sw.dash { border-top-color: var(--c-rec); }

@@ -14,8 +14,8 @@
     var T_VIEW = 1.0;
     var F_IN = 2.0;
 
-    var traceSvg = d3.select('#plot-q-trace').classed('ov', true);
-    var errSvg   = d3.select('#plot-q-err').classed('ov', true);
+    var traceSvg = d3.select('#plot-q-trace').classed('bode', true);
+    var errSvg   = d3.select('#plot-q-err').classed('bode', true);
 
     // The signal is bipolar around 0 to keep the visual centred. The quantiser
     // partitions [-vref/2, +vref/2] into 2^N equal levels.
@@ -43,7 +43,7 @@
         var W = Math.max(420, rect.width);
         var H = Math.max(opts.minH || 200, rect.height);
         svg.attr('viewBox', '0 0 ' + W + ' ' + H);
-        var m = { top: 22, right: 28, bottom: 38, left: 56 };
+        var m = { top: 34, right: 28, bottom: 48, left: 84 };
         var iw = W - m.left - m.right;
         var ih = H - m.top - m.bottom;
         var g = svg.select('g.root');
@@ -69,8 +69,8 @@
             grid.append('line')
                 .attr('x1', 0).attr('x2', f.iw)
                 .attr('y1', y(v)).attr('y2', y(v))
-                .attr('stroke', 'var(--c-output)')
-                .attr('opacity', state.N <= 5 ? 0.20 : 0.08);
+                .style('stroke', 'var(--c-output)')
+                .attr('opacity', state.N <= 5 ? 0.30 : 0.12);
         }
 
         // Continuous input
@@ -104,10 +104,10 @@
                 .curve(d3.curveStepAfter));
 
         // Axes
-        var fmtV = function (d) { return d.toFixed(1) + ' V'; };
+        var fmtV = function (d) { return d.toFixed(1); };
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
@@ -116,25 +116,15 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('Time (s)');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-68) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('voltage, V');
+            .text('Voltage (V)');
 
-        // Legend in upper right
-        var leg = f.g.append('g').attr('transform', 'translate(' + (f.iw - 200) + ',6)');
-        leg.append('line').attr('x1', 0).attr('x2', 18).attr('y1', 6).attr('y2', 6)
-            .attr('stroke', 'var(--c-input)').attr('stroke-width', 2);
-        leg.append('text').attr('x', 24).attr('y', 9).attr('font-size', 10)
-            .attr('fill', 'var(--text-dim)').text('analog v(t)');
-        leg.append('line').attr('x1', 100).attr('x2', 118).attr('y1', 6).attr('y2', 6)
-            .attr('stroke', 'var(--c-output)').attr('stroke-width', 2);
-        leg.append('text').attr('x', 124).attr('y', 9).attr('font-size', 10)
-            .attr('fill', 'var(--text-dim)').text('quantised');
     }
 
     function drawErr() {
@@ -152,7 +142,7 @@
             grid.append('line')
                 .attr('x1', 0).attr('x2', f.iw)
                 .attr('y1', y(v)).attr('y2', y(v))
-                .attr('stroke', v === 0 ? 'var(--grid-zero)' : 'var(--c-thresh)')
+                .style('stroke', v === 0 ? 'var(--grid-zero)' : 'var(--c-thresh)')
                 .attr('stroke-dasharray', v === 0 ? null : '4 3')
                 .attr('opacity', v === 0 ? 1 : 0.6);
         });
@@ -173,7 +163,7 @@
 
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2) + ' s'; })
+            .call(d3.axisBottom(x).ticks(5).tickFormat(function (d) { return d.toFixed(2); })
                 .tickSize(0).tickPadding(8));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
@@ -187,14 +177,14 @@
 
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('x', f.iw / 2).attr('y', f.ih + 30)
+            .attr('x', f.iw / 2).attr('y', f.ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('Time (s)');
         f.g.append('text')
             .attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-44) + ',' + (f.ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-68) + ',' + (f.ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('error, V');
+            .text('Error (V)');
     }
 
     function updateReadout() {
@@ -222,7 +212,6 @@
             vL.textContent = state.vref.toFixed(1) + ' V';
             refresh();
         });
-        window.addEventListener('themechange', refresh);
         window.addEventListener('resize', refresh);
         refresh();
     }

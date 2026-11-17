@@ -24,7 +24,7 @@
         var text = T.text;
         var muted = T.textMuted;
         var rcol = window.CMP.cssVar('--c-resistor') || T.fg(0.45);
-        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.yellowA(0.5);
+        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.wire;
 
         function ln(x1, y1, x2, y2, color, w) {
             svg.append('line')
@@ -59,7 +59,7 @@
         ln(X_RAIL_L, Y_VCC, X_RAIL_R, Y_VCC, vccCol, 2.6);
         ln(X_RAIL_L, Y_GND, X_RAIL_R, Y_GND, wire,   2.6);
         window.renderKatex(svg, 'V_{CC}', X_RAIL_R - 60, Y_VCC - 18,
-            { width: 56, height: 20, size: 13, color: text });
+            { width: 56, height: 20, size: 16, color: text });
         ground(X_RAIL_R - 30, Y_GND + 6);
 
         // Chip
@@ -121,21 +121,21 @@
         dot(X_OUT_DOT, p3.outY);
         window.renderKatex(svg, 'v_{\\text{out}}',
             X_OUT_DOT + 50, p3.outY,
-            { width: 70, height: 22, size: 16, color: text });
+            { width: 70, height: 22, size: 18, color: text });
 
         // Component labels (placed clear of the resistor and capacitor symbols)
         window.renderKatex(svg, 'R_1',
             X_TIMING - 40, (Y_R1_T + Y_R1_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
         window.renderKatex(svg, 'R_2',
             X_TIMING - 40, (Y_R2_T + Y_R2_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
         window.renderKatex(svg, 'C',
             X_TIMING - 40, Y_C,
-            { width: 28, height: 20, size: 14, color: text });
+            { width: 28, height: 20, size: 17, color: text });
         window.renderKatex(svg, '10\\,\\mathrm{nF}',
             p5.outX + 60, Y_CB,
-            { width: 64, height: 18, size: 11, color: muted });
+            { width: 64, height: 18, size: 15, color: muted });
 
         // Hover tooltips
         if (window.CircuitTip) {
@@ -163,7 +163,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

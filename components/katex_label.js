@@ -22,6 +22,7 @@
             .style('justify-content', opts.align === 'left' ? 'flex-start'
                 : opts.align === 'right' ? 'flex-end' : 'center')
             .style('line-height', '1')
+            .style('white-space', 'nowrap')
             .style('pointer-events', 'none');
         if (window.katex) {
             window.katex.render(latex, div.node(), { throwOnError: false, displayMode: !!opts.display });

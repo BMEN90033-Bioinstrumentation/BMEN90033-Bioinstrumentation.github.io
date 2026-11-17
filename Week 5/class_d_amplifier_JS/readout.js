@@ -36,12 +36,12 @@
         var hi = C.pwmSignal(th) === 1, s = hi ? 'hi' : 'lo';
         set('vin', vin.toFixed(2));
         set('vc', vc.toFixed(2));
-        set('cmp', hi ? 'v_in > v_c: HIGH' : 'v_in < v_c: LOW', s);
+        set('cmp', hi ? 'HIGH' : 'LOW', s);
         set('duty', (C.duty(vin) * 100).toFixed(0) + ' %');
         set('pmos', hi ? 'ON' : 'OFF', hi ? 'hi' : '');
         set('nmos', hi ? 'OFF' : 'ON', hi ? '' : 'lo');
         set('vsw', (hi ? C.VCC : 0) + ' V', s);
-        set('lcstate', hi ? 'PWM high: L and C charge' : 'PWM low: L releases stored energy', s);
+        set('lcstate', hi ? 'PWM HIGH: inductor and capacitor charge' : 'PWM LOW: inductor releases stored energy', s);
     }
 
     window.CLD.onRender(render);

@@ -34,46 +34,46 @@
         // Gate stub and (for PMOS) input-low bubble.
         g.append('line').attr('x1', gateOuterX).attr('y1', cy)
             .attr('x2', (type === 'p' ? (rightSide ? bx + w + 12 : bx - 12) : gateBarX)).attr('y2', cy)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         if (type === 'p') {
             g.append('circle').attr('cx', bubbleX).attr('cy', cy).attr('r', 4)
-                .attr('fill', 'var(--bg-2)')
-                .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+                .attr('fill', 'var(--white)')
+                .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         }
         // Vertical bar at the gate side acts as the switch's stationary
         // pivot post; preserves the visual "channel" cue from the transistor
         // symbol without claiming to be a channel.
         g.append('line').attr('x1', gateBarX).attr('y1', cy - h * 0.35)
             .attr('x2', gateBarX).attr('y2', cy + h * 0.35)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 2.0);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 2.0);
 
         // Dashed actuator showing the gate "pushes" the switch arm.
         g.append('line').attr('x1', gateBarX).attr('y1', cy)
             .attr('x2', cx).attr('y2', cy)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.0)
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.0)
             .attr('stroke-dasharray', '3 3').attr('opacity', 0.55);
 
         // Drain/source leads out of the body.
         g.append('line').attr('x1', cx).attr('y1', by)
             .attr('x2', cx).attr('y2', by - 14)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
         g.append('line').attr('x1', cx).attr('y1', by + h)
             .attr('x2', cx).attr('y2', by + h + 14)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.6);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.6);
 
         // Switch contacts (small filled dots at top and bottom).
         var topY = by + 4;
         var botY = by + h - 4;
         g.append('circle').attr('cx', cx).attr('cy', topY).attr('r', 2.6)
-            .attr('fill', 'var(--text-dim)');
+            .attr('fill', 'var(--fg)');
         g.append('circle').attr('cx', cx).attr('cy', botY).attr('r', 2.6)
-            .attr('fill', 'var(--text-dim)');
+            .attr('fill', 'var(--fg)');
 
         // Switch arm: pivots at the top contact. Closed = straight to bottom
         // contact, coloured by device type. Open = tilted away from the gate.
         var armColor = conducting
             ? (type === 'p' ? 'var(--c-pmos)' : 'var(--c-nmos)')
-            : 'var(--text-dim)';
+            : 'var(--fg)';
         var armWidth = conducting ? 2.6 : 2.0;
         var endX, endY;
         if (conducting) {
@@ -99,7 +99,7 @@
             var anchor = rightSide ? 'end' : 'start';
             g.append('text').attr('x', labelX).attr('y', cy + 4)
                 .attr('text-anchor', anchor)
-                .attr('class', 'lbl').text(label);
+                .attr('class', 'lbl').call(DL.sub, label);
         }
 
         return {
@@ -114,17 +114,17 @@
             .attr('x2', x2).attr('y2', y);
         if (label) {
             g.append('text').attr('class', 'rail-lbl')
-                .attr('x', x2 + 6).attr('y', y + 4).text(label);
+                .attr('x', x2 + 6).attr('y', y + 4).call(DL.sub, label);
         }
     }
 
     function ground(g, x, y) {
         g.append('line').attr('x1', x - 14).attr('y1', y).attr('x2', x + 14).attr('y2', y)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.8);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.8);
         g.append('line').attr('x1', x - 9).attr('y1', y + 5).attr('x2', x + 9).attr('y2', y + 5)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.4);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.4);
         g.append('line').attr('x1', x - 4).attr('y1', y + 10).attr('x2', x + 4).attr('y2', y + 10)
-            .attr('stroke', 'var(--text-dim)').attr('stroke-width', 1.2);
+            .attr('stroke', 'var(--fg)').attr('stroke-width', 1.2);
     }
 
     // ---------------- inverter ----------------
@@ -159,16 +159,16 @@
         DL.dot(f.g, inBusX, midGateY, !!a);
         f.g.append('text').attr('x', inBusX - 76).attr('y', midGateY + 4)
             .attr('text-anchor', 'end')
-            .attr('class', 'lbl' + (a ? ' lit' : '')).text('V_in = ' + (a ? 'V_DD' : 'GND'));
+            .attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'V_in = ' + (a ? 'V_DD' : 'GND'));
 
         // Output tap from the midpoint of the output bus.
         var outNodeY = (pm.bottom.y + nm.top.y) / 2;
         DL.wire(f.g, cx, outNodeY, cx + 100, outNodeY, !!out);
         DL.dot(f.g, cx, outNodeY, !!out);
         f.g.append('text').attr('x', cx + 106).attr('y', outNodeY + 4)
-            .attr('class', 'lbl' + (out ? ' lit' : '')).text('V_out = ' + (out ? 'V_DD' : 'GND'));
+            .attr('class', 'lbl' + (out ? ' lit' : '')).call(DL.sub, 'V_out = ' + (out ? 'V_DD' : 'GND'));
 
-        voutLbl.textContent = out ? 'V_DD' : 'GND';
+        voutLbl.innerHTML = out ? 'V<sub>DD</sub>' : 'GND';
     }
 
     // ---------------- NAND ----------------
@@ -220,7 +220,7 @@
         DL.dot(f.g, aBusX, aLabelY, !!a);
         f.g.append('text').attr('x', aBusX - 76).attr('y', aLabelY + 4)
             .attr('text-anchor', 'end')
-            .attr('class', 'lbl' + (a ? ' lit' : '')).text('A = ' + a);
+            .attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A = ' + a);
 
         // B bus on the right.  Connects pmB gate (right side) to nmB gate
         // (right side); a horizontal stub at y = nmB.gate.y reaches across the
@@ -233,7 +233,7 @@
         DL.wire(f.g, bBusX, bLabelY, bBusX + 70, bLabelY, !!b);
         DL.dot(f.g, bBusX, bLabelY, !!b);
         f.g.append('text').attr('x', bBusX + 76).attr('y', bLabelY + 4)
-            .attr('class', 'lbl' + (b ? ' lit' : '')).text('B = ' + b);
+            .attr('class', 'lbl' + (b ? ' lit' : '')).call(DL.sub, 'B = ' + b);
 
         // Output tap.  Drop from the output bus through the empty column
         // between nmosX and pmBx, route below the NMOS stack, and emerge at
@@ -244,12 +244,12 @@
         DL.wire(f.g, tapX, tapY, 640, tapY, !!out);
         DL.dot(f.g, tapX, outNodeY, !!out);
         f.g.append('text').attr('x', 646).attr('y', tapY + 4)
-            .attr('class', 'lbl' + (out ? ' lit' : '')).text('Y = ' + out);
+            .attr('class', 'lbl' + (out ? ' lit' : '')).call(DL.sub, 'Y = ' + out);
     }
 
     // ---------------- universality strip: NOT, AND, OR from NAND ----------------
     function drawUniversal() {
-        var f = DL.frame(svgUni, { W: 720, H: 260 });
+        var f = DL.frame(svgUni, { W: 800, H: 220 });
         var a = DL.readBit(inBtn);
         var b = a;
 
@@ -261,11 +261,11 @@
             var g = f.g.append('g').attr('transform', 'translate(' + ox + ',0)');
             // Title sits low enough that the plot-box label band at the top
             // never overlaps it on narrower viewports.
-            g.append('text').attr('class', 'gate-title').attr('x', 12).attr('y', 56).text(title);
+            g.append('text').attr('class', 'gate-title').attr('x', 12).attr('y', 56).call(DL.sub, title);
             build(g);
         }
 
-        block(0, 'NOT from NAND', function (g) {
+        block(34, 'NOT from NAND', function (g) {
             var p = DL.gateNAND(g, 70, 114, 60, 40, !!DL.NOT(a));
             // Tie both NAND inputs to A by joining inA and inB on a vertical
             // stub at x=40, then route a single input wire to the label.
@@ -275,22 +275,22 @@
             DL.wire(g, 40, (p.inA.y + p.inB.y) / 2, 18, (p.inA.y + p.inB.y) / 2, !!a);
             g.append('text').attr('x', 14).attr('y', (p.inA.y + p.inB.y) / 2 + 4)
                 .attr('text-anchor', 'end')
-                .attr('class', 'lbl' + (a ? ' lit' : '')).text('A=' + a);
+                .attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A=' + a);
             DL.wire(g, p.out.x, p.out.y, p.out.x + 26, p.out.y, !!DL.NOT(a));
             g.append('text').attr('x', p.out.x + 32).attr('y', p.out.y + 4)
-                .attr('class', 'lbl' + (DL.NOT(a) ? ' lit' : '')).text('Y=' + DL.NOT(a));
+                .attr('class', 'lbl' + (DL.NOT(a) ? ' lit' : '')).call(DL.sub, 'Y=' + DL.NOT(a));
         });
 
-        block(220, 'AND from NAND', function (g) {
+        block(246, 'AND from NAND', function (g) {
             var n1 = DL.gateNAND(g, 60, 114, 56, 40, !!DL.NAND(a, b));
-            var n2 = DL.gateNAND(g, 160, 114, 56, 40, !!DL.AND(a, b));
+            var n2 = DL.gateNAND(g, 145, 114, 56, 40, !!DL.AND(a, b));
             // A and B labels feed the first NAND.
             DL.wire(g, 30, n1.inA.y, n1.inA.x, n1.inA.y, !!a);
             DL.wire(g, 30, n1.inB.y, n1.inA.x, n1.inB.y, !!b);
             g.append('text').attr('x', 26).attr('y', n1.inA.y + 4)
-                .attr('text-anchor', 'end').attr('class', 'lbl' + (a ? ' lit' : '')).text('A=' + a);
+                .attr('text-anchor', 'end').attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A=' + a);
             g.append('text').attr('x', 26).attr('y', n1.inB.y + 4)
-                .attr('text-anchor', 'end').attr('class', 'lbl' + (b ? ' lit' : '')).text('B=' + b);
+                .attr('text-anchor', 'end').attr('class', 'lbl' + (b ? ' lit' : '')).call(DL.sub, 'B=' + b);
             // n1 output ties to both n2 inputs.
             var joinX = n2.inA.x - 8;
             DL.wire(g, n1.out.x, n1.out.y, joinX, n1.out.y, !!DL.NAND(a, b));
@@ -300,24 +300,24 @@
             DL.dot(g, joinX, n1.out.y, !!DL.NAND(a, b));
             DL.wire(g, n2.out.x, n2.out.y, n2.out.x + 24, n2.out.y, !!DL.AND(a, b));
             g.append('text').attr('x', n2.out.x + 30).attr('y', n2.out.y + 4)
-                .attr('class', 'lbl' + (DL.AND(a, b) ? ' lit' : '')).text('Y=' + DL.AND(a, b));
+                .attr('class', 'lbl' + (DL.AND(a, b) ? ' lit' : '')).call(DL.sub, 'Y=' + DL.AND(a, b));
         });
 
-        block(460, 'OR from NAND', function (g) {
+        block(520, 'OR from NAND', function (g) {
             var nA = DL.gateNAND(g, 60, 84, 50, 30, !!DL.NOT(a));
             var nB = DL.gateNAND(g, 60, 144, 50, 30, !!DL.NOT(b));
-            var nO = DL.gateNAND(g, 170, 114, 56, 40, !!DL.OR(a, b));
+            var nO = DL.gateNAND(g, 150, 114, 56, 40, !!DL.OR(a, b));
             // Tie inputs of nA together to A; same for nB and B.
             DL.wire(g, 30, nA.inA.y, nA.inA.x, nA.inA.y, !!a);
             DL.wire(g, 30, nA.inB.y, nA.inA.x, nA.inB.y, !!a);
             DL.wire(g, 30, nA.inA.y, 30, nA.inB.y, !!a);
             g.append('text').attr('x', 26).attr('y', (nA.inA.y + nA.inB.y) / 2 + 4)
-                .attr('text-anchor', 'end').attr('class', 'lbl' + (a ? ' lit' : '')).text('A=' + a);
+                .attr('text-anchor', 'end').attr('class', 'lbl' + (a ? ' lit' : '')).call(DL.sub, 'A=' + a);
             DL.wire(g, 30, nB.inA.y, nB.inA.x, nB.inA.y, !!b);
             DL.wire(g, 30, nB.inB.y, nB.inA.x, nB.inB.y, !!b);
             DL.wire(g, 30, nB.inA.y, 30, nB.inB.y, !!b);
             g.append('text').attr('x', 26).attr('y', (nB.inA.y + nB.inB.y) / 2 + 4)
-                .attr('text-anchor', 'end').attr('class', 'lbl' + (b ? ' lit' : '')).text('B=' + b);
+                .attr('text-anchor', 'end').attr('class', 'lbl' + (b ? ' lit' : '')).call(DL.sub, 'B=' + b);
             // nA and nB outputs feed nO inputs.
             DL.wire(g, nA.out.x, nA.out.y, nO.inA.x, nA.out.y, !!DL.NOT(a));
             DL.wire(g, nO.inA.x, nA.out.y, nO.inA.x, nO.inA.y, !!DL.NOT(a));
@@ -325,7 +325,7 @@
             DL.wire(g, nO.inB.x, nB.out.y, nO.inB.x, nO.inB.y, !!DL.NOT(b));
             DL.wire(g, nO.out.x, nO.out.y, nO.out.x + 24, nO.out.y, !!DL.OR(a, b));
             g.append('text').attr('x', nO.out.x + 30).attr('y', nO.out.y + 4)
-                .attr('class', 'lbl' + (DL.OR(a, b) ? ' lit' : '')).text('Y=' + DL.OR(a, b));
+                .attr('class', 'lbl' + (DL.OR(a, b) ? ' lit' : '')).call(DL.sub, 'Y=' + DL.OR(a, b));
         });
     }
 
@@ -338,7 +338,6 @@
     function init() {
         DL.bindBitButton(inBtn, drawAll);
         drawAll();
-        window.addEventListener('themechange', drawAll);
         window.addEventListener('resize', drawAll);
     }
 

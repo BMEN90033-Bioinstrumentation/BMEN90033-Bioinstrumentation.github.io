@@ -9,7 +9,7 @@
     svg.classed('ov', true);
 
     var W = 800, H = 320;
-    var margin = { top: 48, right: 28, bottom: 48, left: 60 };
+    var margin = { top: 60, right: 28, bottom: 48, left: 60 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -59,7 +59,7 @@
         for (var k = 0; k <= 4; k++) xt.push(k * T);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(d3.axisBottom(x).tickValues(xt)
-                .tickFormat(function (d) { return (d * 1000).toFixed(1) + ' ms'; })
+                .tickFormat(function (d) { return (d * 1000).toFixed(1); })
                 .tickSize(0).tickPadding(8))
             .select('.domain').remove();
 
@@ -93,47 +93,13 @@
         gRect.append('path').datum(ptsR).attr('class', 'trace output').attr('d', line);
 
         var mav = (2 * P.A) / Math.PI;
-        gMean.append('line')
-            .attr('class', 'thresh-line')
-            .attr('x1', 0).attr('x2', iw)
-            .attr('y1', y(mav)).attr('y2', y(mav))
-            .style('cursor', 'default');
-        gMean.append('text')
-            .attr('class', 'thresh-label')
-            .attr('x', iw - 6).attr('y', y(mav) - 5)
-            .attr('text-anchor', 'end')
-            .text('⟨|x|⟩ = 2A/π');
+        MAV.refLine(gMean, y(mav), iw, 'var(--c-target)');
 
-        // Legend (top-right, above plot, horizontal)
-        var items = [
-            { color: 'var(--c-input)',  label: 'x(t)'   },
-            { color: 'var(--c-output)', label: '|x(t)|' },
-            { color: 'var(--c-thresh)', label: '⟨|x|⟩'  }
-        ];
-        var lineLen = 18, labelPad = 6, gap = 18;
-        var groups = [];
-        var totalW = 0;
-        items.forEach(function (it) {
-            var sub = gLegend.append('g');
-            sub.append('line')
-                .attr('x1', 0).attr('x2', lineLen)
-                .attr('y1', 7).attr('y2', 7)
-                .attr('stroke', it.color).attr('stroke-width', 2.2);
-            sub.append('text')
-                .attr('x', lineLen + labelPad).attr('y', 10)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10).attr('fill', 'var(--text-dim)')
-                .text(it.label);
-            var w = sub.node().getBBox().width;
-            groups.push({ sub: sub, w: w });
-            totalW += w;
-        });
-        totalW += gap * (items.length - 1);
-        var cursor = iw - totalW;
-        groups.forEach(function (grp) {
-            grp.sub.attr('transform', 'translate(' + cursor + ',-22)');
-            cursor += grp.w + gap;
-        });
+        MAV.legend(gLegend, [
+            { c: 'var(--c-input)', text: 'x(t)' },
+            { c: 'var(--c-output)', text: '|x(t)|' },
+            { c: 'var(--c-target)', text: '⟨|x|⟩ = 2A/π', dash: '5 4' }
+        ]);
     }
 
     function update() {
@@ -144,7 +110,6 @@
 
     function init() {
         window.addEventListener('resize', update);
-        window.addEventListener('themechange', update);
         update();
     }
 

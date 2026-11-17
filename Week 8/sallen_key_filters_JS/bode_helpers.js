@@ -20,7 +20,7 @@
         var W = rect.width;
         var H = rect.height || 600;
 
-        var margin = { top: 22, right: 70, bottom: 56, left: 70 };
+        var margin = { top: 34, right: 70, bottom: 56, left: 70 };
         var gapBetween = 22;
         var innerW = W - margin.left - margin.right;
         var innerH_total = H - margin.top - margin.bottom - gapBetween;
@@ -69,6 +69,17 @@
 
         styleAxis(magYg);
         styleAxis(magXg);
+
+        // Hide magnitude tick labels that would collide on a short panel.
+        // Labels nearest 0 dB take priority; the gridlines are all kept.
+        var keptLabels = [];
+        magTickValues.slice().sort(function (a, b) { return Math.abs(a) - Math.abs(b); })
+            .forEach(function (v) {
+                var clear = keptLabels.every(function (k) { return Math.abs(yMag(k) - yMag(v)) >= 14; });
+                if (clear) keptLabels.push(v);
+            });
+        magYg.selectAll('.tick text')
+            .style('display', function (d) { return keptLabels.indexOf(d) < 0 ? 'none' : null; });
 
         gMag.append('rect')
             .attr('x', 0).attr('y', 0)
@@ -158,7 +169,7 @@
         ax.selectAll('path,line').attr('stroke', T.gridAxis);
         ax.selectAll('text')
             .attr('fill', T.text)
-            .attr('font-size', 12)
+            .attr('font-size', 13)
             .attr('font-family', "'JetBrains Mono', monospace");
     }
 
@@ -231,7 +242,7 @@
         return out;
     }
 
-    // ─── Hover crosshair + value readout ────────────────────────
+    // ─── Hover crosshair and value readout ────────────────────────
     // traces: array of { name, cssClass, pts: [{ w, magDb, phase }] }
     // pts must be sorted by w. Adds a vertical crosshair across both panels,
     // a dot on each trace at the cursor frequency, and a small readout box
@@ -259,7 +270,8 @@
         });
 
         var rPad = 10;
-        var rWidth = 220;
+        // Wide enough for the longest trace name plus ': -100.0 dB, -180.0°'.
+        var rWidth = 20 + 7.3 * (20 + d3.max(traces, function (t) { return t.name.length; }));
         var rRowH = 16;
         var rHeight = 22 + rRowH * traces.length + 10;
         var rX = H.margin.left + 10;

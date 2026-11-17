@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · The Action Potential as a Travelling Dipole</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The action potential as a travelling dipole</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -56,7 +50,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 2 · BIOPOTENTIALS</div>
-            <h1 class="hero">The action potential as a travelling <em>dipole</em></h1>
+            <h1 class="hero">The action potential as a travelling dipole</h1>
             <p class="sub">An action potential propagating through excitable tissue separates depolarised membrane
                 from resting membrane. Each boundary between the two drives a loop of current that closes through
                 the surrounding volume conductor, and at a distance the loop acts as a current dipole. This page
@@ -131,7 +125,7 @@
                     <div class="hint">drag to rotate · click, then scroll to zoom</div>
                 </div>
                 <div class="legend">
-                    <span><span class="sw band" style="background:var(--c-depol)"></span>depolarised region</span>
+                    <span><span class="sw band" style="background:var(--c-depol-band)"></span>depolarised region</span>
                     <span><span class="sw ring" style="background:var(--c-dipole)"></span>depolarisation dipole</span>
                     <span><span class="sw ring" style="background:var(--c-repol)"></span>repolarisation dipole</span>
                     <span><span class="sw" style="background:var(--c-intra)"></span>intracellular current</span>
@@ -205,9 +199,10 @@
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-diff)"></span>$\phi(x)$</span>
                     <span><span class="sw" style="background:var(--c-dipole)"></span>depolarisation front</span>
-                    <span><span class="sw dash"></span>repolarisation front</span>
+                    <span><span class="sw dash repol"></span>repolarisation front</span>
                     <span><span class="sw band" style="background:var(--c-depol-band)"></span>depolarised region</span>
-                    <span>dots: $V_A$, $V_B$</span>
+                    <span><span class="sw ring" style="background:var(--c-ea)"></span>$V_A$</span>
+                    <span><span class="sw ring" style="background:var(--c-eb)"></span>$V_B$</span>
                 </div>
             </div>
         </div>
@@ -269,7 +264,7 @@
                     <span><span class="sw" style="background:var(--c-ea)"></span>$V_A$</span>
                     <span><span class="sw" style="background:var(--c-eb)"></span>$V_B$</span>
                     <span><span class="sw" style="background:var(--c-diff)"></span>$V_A - V_B$</span>
-                    <span>dashed: present instant</span>
+                    <span><span class="sw dash"></span>present instant</span>
                 </div>
             </div>
         </div>

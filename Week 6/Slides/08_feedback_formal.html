@@ -3,47 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide 8: Negative Feedback (Formal)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Slide 11: Negative feedback (formal)</title>
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="slide.css">
   <script src="../../theme.js"></script>
-  <script>
-    (function () {
-      var qp = new URLSearchParams(location.search);
-      var qt = qp.get('theme');
-      var ss = null;
-      try { ss = sessionStorage.getItem('slideTheme'); } catch (e) { /* ignore */ }
-      var pick = (qt === 'dark' || qt === 'light') ? qt
-               : (ss === 'dark' || ss === 'light') ? ss
-               : null;
-      if (pick) document.documentElement.setAttribute('data-theme', pick);
-      window.addEventListener('themechange', function (e) {
-        try {
-          var t = e && e.detail && e.detail.theme;
-          if (t) sessionStorage.setItem('slideTheme', t);
-        } catch (err) { /* ignore */ }
-      });
-      if (window.parent !== window) {
-        var style = document.createElement('style');
-        style.textContent = '#theme-toggle{display:none !important;}';
-        document.head.appendChild(style);
-      }
-    })();
-  </script>
+  <style>
+    /* manim-web sets an inline 1280 x 720 px size on its canvas; scale it to the stage */
+    .manim-stage > canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
 </head>
 <body class="slide">
   <header class="slide-header">
-    <span class="slide-num">10 / 19</span>
+    <span class="slide-num">11 / 20</span>
   </header>
 
   <div id="stage" class="manim-stage">
-    <div class="stage-fallback">Loading manim-web scene…</div>
+    <div class="stage-fallback">Loading scene</div>
     <div class="stepper-row" id="stepper">
-      <button type="button" class="stepper-btn" id="step-prev">← Prev Step</button>
-      <span class="step-indicator" id="step-indicator">Step 1/5</span>
-      <button type="button" class="stepper-btn" id="step-next">Next Step →</button>
+      <button type="button" class="stepper-btn" id="step-prev">Previous step</button>
+      <span class="step-indicator" id="step-indicator">Step 1 / 5</span>
+      <button type="button" class="stepper-btn" id="step-next">Next step</button>
     </div>
   </div>
 
@@ -54,20 +36,15 @@
     } from 'https://esm.sh/manim-web@0.3.18';
 
     const FONT_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/fonts/KaTeX_Main-Regular.ttf';
-    const IS_LIGHT = document.documentElement.getAttribute('data-theme') === 'light';
-    const BG     = IS_LIGHT ? '#f5f5f7' : '#0a0e14';
-    const FG     = IS_LIGHT ? '#1a1a1e' : '#ffffff';
-    const MUTED  = IS_LIGHT ? '#6a6a72' : '#8892a4';
-    const MUTED2 = IS_LIGHT ? '#b0b0b6' : '#505868';
-    const ACCENT = IS_LIGHT ? '#3d8b6e' : '#6aaa8e';
-    const YELLOW = IS_LIGHT ? '#b8860b' : '#ffcc44';
-    const RED    = IS_LIGHT ? '#c74034' : '#e06050';
-    const BLUE   = IS_LIGHT ? '#3a68c8' : '#5a8dee';
-    const CYAN   = IS_LIGHT ? '#3d8ea0' : '#58c0d8';
-    const PURPLE = IS_LIGHT ? '#6b3fa0' : '#b080d8';
-    const FF     = ACCENT;
-    const FB     = BLUE;
-    const DIM    = IS_LIGHT ? '#a7adb9' : '#5a6578';
+    // manim-web needs literal hex strings; read once from the theme.css data palette
+    const BG     = T.plotBg;
+    const FG     = T.c('ink');
+    const MUTED  = T.c('slate');    // subtitles, axes, tick labels, annotations
+    const GRID   = T.c('grey');     // plot frame and grid lines
+    const DIM    = T.c('grey');     // de-emphasised path in the focus steps
+    const FF     = T.c('blue');     // feedforward path: X, E, A_OL
+    const FB     = T.c('orange');   // feedback path: X_F, beta, and the beta curve family
+    const CL     = T.c('pink');     // output Y and closed-loop gain A_CL
 
     const hexToRgb = (hex) => {
       const m = hex.replace('#', '');
@@ -75,13 +52,12 @@
     };
     const rgbToHex = ([r, g, b]) =>
       '#' + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
-    const fadeBlue = (t) => {
-      const [br, bg_, bb] = hexToRgb(BLUE);
+    // Blend the feedback colour towards the background; t = 1 is full colour
+    const fadeFB = (t) => {
+      const [br, bg_, bb] = hexToRgb(FB);
       const [kr, kg, kb] = hexToRgb(BG);
       return rgbToHex([kr + (br - kr) * t, kg + (bg_ - kg) * t, kb + (bb - kb) * t]);
     };
-
-    window.addEventListener('themechange', () => location.reload());
 
     const stage = document.getElementById('stage');
     stage.querySelector('.stage-fallback')?.remove();
@@ -91,7 +67,7 @@
     const prevBtn = document.getElementById('step-prev');
     const nextBtn = document.getElementById('step-next');
 
-    const title = new Text({ text: 'Negative Feedback: Formal Derivation', fontSize: 36, color: FG, fontUrl: FONT_URL });
+    const title = new Text({ text: 'Negative feedback: formal derivation', fontSize: 36, color: FG, fontUrl: FONT_URL });
     await title.loadGlyphs?.();
     title.moveTo([-3.5, 3.45, 0]);
     const TITLE_LEFT_X = -6.2;
@@ -128,13 +104,13 @@
 
       const xLbl = new MathTex({ latex: 'X', color: ffColor });
       const eLbl = new MathTex({ latex: 'E', color: ffColor });
-      const yLbl = new MathTex({ latex: 'Y', color: PURPLE });
+      const yLbl = new MathTex({ latex: 'Y', color: CL });
       const xfLbl = new MathTex({ latex: 'X_F', color: fbColor });
-      const plusLbl = new Text({ text: '+', fontSize: 16, color: ffColor, fontUrl: FONT_URL });
-      const minusLbl = new Text({ text: '−', fontSize: 16, color: mode === 'feedforwardFocus' ? DIM : RED, fontUrl: FONT_URL });
+      const plusLbl = new Text({ text: '+', fontSize: 24, color: ffColor, fontUrl: FONT_URL });
+      const minusLbl = new Text({ text: '−', fontSize: 24, color: fbColor, fontUrl: FONT_URL });
 
-      const ffTag = new Text({ text: 'Feedforward path', fontSize: 13, color: ffColor, fontUrl: FONT_URL });
-      const fbTag = new Text({ text: 'Feedback path', fontSize: 13, color: fbColor, fontUrl: FONT_URL });
+      const ffTag = new Text({ text: 'Feedforward path', fontSize: 16, color: ffColor, fontUrl: FONT_URL });
+      const fbTag = new Text({ text: 'Feedback path', fontSize: 16, color: fbColor, fontUrl: FONT_URL });
 
       sigmaLbl.loadGlyphs?.();
       plusLbl.loadGlyphs?.();
@@ -167,8 +143,8 @@
           eLbl.scale(0.55).moveTo([-4.0, 1.95, 0]);
           yLbl.scale(0.55).moveTo([-0.24, 1.98, 0]);
           xfLbl.scale(0.5).moveTo([-4.45, 0.43, 0]);
-          plusLbl.moveTo([-5.2, 1.95, 0]);
-          minusLbl.moveTo([-4.66, 1.33, 0]);
+          plusLbl.moveTo([-5.3, 2.0, 0]);
+          minusLbl.moveTo([-4.6, 1.2, 0]);
           ffTag.moveTo([-2.55, 2.5, 0]);
           fbTag.moveTo([-2.6, -0.45, 0]);
         }
@@ -216,36 +192,21 @@
       await makeEq('Y = A_{OL}(X - \\beta Y)', FG, [2.75, 2.25, 0], 0.6),
       await makeEq('Y + A_{OL}\\beta Y = A_{OL}X', FG, [2.75, 1.35, 0], 0.6),
       await makeEq('Y(1 + A_{OL}\\beta) = A_{OL}X', FG, [2.75, 0.45, 0], 0.6),
-      await makeEq('A_{CL}=\\frac{Y}{X}=\\frac{A_{OL}}{1 + A_{OL}\\beta}', PURPLE, [2.75, -0.58, 0], 0.7)
+      await makeEq('A_{CL}=\\frac{Y}{X}=\\frac{A_{OL}}{1 + A_{OL}\\beta}', CL, [2.75, -0.58, 0], 0.7)
     ];
     const step4HighlightBox = new Rectangle({
       width: 5.35,
       height: 1.08,
-      color: PURPLE,
+      color: CL,
       strokeWidth: 2,
       fillOpacity: 0.04
     });
     step4HighlightBox.moveTo([2.75, -0.58, 0]);
 
-    const eqFlowStep2 = [
-      await makeEq('E = X - X_F', FG, [2.75, 1.35, 0], 0.62),
-      await makeEq('Y = A_{OL}E = A_{OL}(X - X_F)', FF, [2.75, 1.35, 0], 0.62)
-    ];
-    const eqFlowStep3 = [
-      await makeEq('X_F = \\beta Y', FB, [2.75, 1.35, 0], 0.62),
-      await makeEq('E = X - \\beta Y', FG, [2.75, 1.35, 0], 0.62),
-      await makeEq('Y = A_{OL}(X - \\beta Y)', FG, [2.75, 1.35, 0], 0.62)
-    ];
-    const eqFlowStep4 = [
-      await makeEq('Y = A_{OL}(X - \\beta Y)', FG, [2.75, 1.35, 0], 0.62),
-      await makeEq('Y + A_{OL}\\beta Y = A_{OL}X', FG, [2.75, 1.35, 0], 0.62),
-      await makeEq('Y(1 + A_{OL}\\beta) = A_{OL}X', FG, [2.75, 1.35, 0], 0.62),
-      await makeEq('A_{CL}=\\frac{Y}{X}=\\frac{A_{OL}}{1 + A_{OL}\\beta}', ACCENT, [2.75, 1.35, 0], 0.68)
-    ];
     const eqStep5 = [
-      await makeEq('A_{CL}=\\frac{A_{OL}}{1 + A_{OL}\\beta}', PURPLE, [-3.26, -1.60, 0], 0.52),
-      await makeEq('\\text{If }A_{OL}\\to\\infty,\\quad A_{CL}\\to\\frac{1}{\\beta}', PURPLE, [-3.26, -2.37, 0], 0.4),
-      await makeEq('\\text{If }\\beta\\to0,\\quad A_{CL}\\to A_{OL}', PURPLE, [-3.26, -3.08, 0], 0.4)
+      await makeEq('A_{CL}=\\frac{A_{OL}}{1 + A_{OL}\\beta}', CL, [-3.26, -1.60, 0], 0.52),
+      await makeEq('\\text{If }A_{OL}\\to\\infty,\\quad A_{CL}\\to\\frac{1}{\\beta}', CL, [-3.26, -2.37, 0], 0.4),
+      await makeEq('\\text{If }\\beta\\to0,\\quad A_{CL}\\to A_{OL}', CL, [-3.26, -3.08, 0], 0.4)
     ];
 
     const x0 = 1.05;
@@ -255,14 +216,14 @@
     const graphFrame = new Rectangle({
       width: x1 - x0,
       height: y1 - y0,
-      color: MUTED2,
+      color: GRID,
       strokeWidth: 1.2,
       fillOpacity: 0.03
     });
     graphFrame.moveTo([(x0 + x1) / 2, (y0 + y1) / 2, 0]);
 
     // xGridGroup is static (vertical lines at x-tick positions).
-    // yGridLines is dynamic (horizontal lines at y-tick positions — repositioned during rescale).
+    // yGridLines is dynamic (horizontal lines at y-tick positions: repositioned during rescale).
     // Both are built AFTER mapX/mapY exist; see the dedicated block below.
     let yGridLines = [];
     let xGridGroup = null;
@@ -318,17 +279,17 @@
       yTickLabelsBase.push(lbl);
     }
 
-    // Horizontal grid lines — one per y-tick value, built at final positions then moveTo'd to initial.
+    // Horizontal grid lines: one per y-tick value, built at final positions then moveTo'd to initial.
     for (const v of yTickValsBase) {
       const yt = mapYFinal(v);
-      yGridLines.push(new Line({ start: [x0, yt, 0], end: [x1, yt, 0], color: MUTED2, strokeWidth: 0.8 }));
+      yGridLines.push(new Line({ start: [x0, yt, 0], end: [x1, yt, 0], color: GRID, strokeWidth: 0.8 }));
     }
-    // Vertical grid lines — static at x-tick positions.
+    // Vertical grid lines: static at x-tick positions.
     {
       const xGridArr = [];
       for (const v of xTickVals) {
         const xg = mapX(v);
-        xGridArr.push(new Line({ start: [xg, y0, 0], end: [xg, y1, 0], color: MUTED2, strokeWidth: 0.8 }));
+        xGridArr.push(new Line({ start: [xg, y0, 0], end: [xg, y1, 0], color: GRID, strokeWidth: 0.8 }));
       }
       xGridGroup = new VGroup(...xGridArr);
     }
@@ -388,7 +349,7 @@
         if (includeLabels) {
           const lbl = new Text({ text: `β=${beta}`, fontSize, color, fontUrl: FONT_URL });
           await lbl.loadGlyphs?.();
-          const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.12));
+          const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.105));
           lbl.moveTo([x1 - 0.62, labelY, 0]);
           betaLabels.push(lbl);
         }
@@ -397,10 +358,10 @@
     };
 
     const baseBetas = [1.0, 0.5, 0.2];
-    const baseColors = [fadeBlue(1.0), fadeBlue(0.92), fadeBlue(0.84)];
-    const baseBundle = await makeCurveBundle(baseBetas, baseColors, mapYInitial, 12, true);
+    const baseColors = [fadeFB(1.0), fadeFB(0.92), fadeFB(0.84)];
+    const baseBundle = await makeCurveBundle(baseBetas, baseColors, mapYInitial, 14, true);
 
-    // Build a fresh VGroup of base curve lines at an arbitrary mapY — used by the rescale animation.
+    // Build a fresh VGroup of base curve lines at an arbitrary mapY: used by the rescale animation.
     const buildBaseCurveVGroups = (mapY) => {
       const vgroups = [];
       for (let b = 0; b < baseBetas.length; b++) {
@@ -421,7 +382,7 @@
       return vgroups;
     };
 
-    // Log-spaced betas from 10^-1 down to 10^-5 — dense enough that the faded family
+    // Log-spaced betas from 10^-1 down to 10^-5: dense enough that the faded family
     // visually meets the β → 0 diagonal at A_OL = 10^4.
     const smallerBetas = [];
     const smallerBetaCount = 32;
@@ -430,7 +391,7 @@
     }
     const smallerColors = smallerBetas.map((_, i, arr) => {
       const t = 0.72 - (i / (arr.length - 1)) * 0.55;
-      return fadeBlue(t);
+      return fadeFB(t);
     });
     const smallerBundle = await makeCurveBundle(smallerBetas, smallerColors, mapYFinal, 10, false);
 
@@ -446,7 +407,7 @@
     for (let i = 0; i < limitSampled.length - 1; ) {
       const dashEnd = Math.min(i + limitDashLen, limitSampled.length - 1);
       for (let j = i; j < dashEnd; j++) {
-        limitSegs.push(new Line({ start: limitSampled[j], end: limitSampled[j + 1], color: BLUE, strokeWidth: 2.8 }));
+        limitSegs.push(new Line({ start: limitSampled[j], end: limitSampled[j + 1], color: FB, strokeWidth: 2.8 }));
       }
       i = dashEnd + limitGapLen;
     }
@@ -487,7 +448,7 @@
     const aclHighlightBox = new Rectangle({
       width: 2.85,
       height: 0.82,
-      color: PURPLE,
+      color: CL,
       strokeWidth: 2,
       fillOpacity: 0.05
     });
@@ -510,32 +471,32 @@
     let aclArrowPrev = cubicBezierPt(0);
     for (let i = 1; i < aclArrowSamples; i++) {
       const cur = cubicBezierPt(i / aclArrowSamples);
-      aclArrowSegs.push(new Line({ start: aclArrowPrev, end: cur, color: PURPLE, strokeWidth: 2.2 }));
+      aclArrowSegs.push(new Line({ start: aclArrowPrev, end: cur, color: CL, strokeWidth: 2.2 }));
       aclArrowPrev = cur;
     }
     const aclArrowTip = new Arrow({
       start: aclArrowPrev,
       end: cubicBezierPt(1),
-      color: PURPLE,
+      color: CL,
       strokeWidth: 2.2,
       tipLength: 0.16
     });
     const aclArrow = new VGroup(...aclArrowSegs, aclArrowTip);
 
     const stepTitles = {
-      1: 'Step 1/5',
-      2: 'Step 2/5',
-      3: 'Step 3/5',
-      4: 'Step 4/5',
-      5: 'Step 5/5'
+      1: 'Step 1 / 5',
+      2: 'Step 2 / 5',
+      3: 'Step 3 / 5',
+      4: 'Step 4 / 5',
+      5: 'Step 5 / 5'
     };
 
     const stepSubtitle = {
-      1: new MathTex({ latex: '\\text{Step 1: First we will look at the full negative-feedback block diagram and identify the feedforward and feedback paths.}', color: MUTED }),
-      2: new MathTex({ latex: '\\text{Step 2: Isolate feedforward behavior and derive } Y \\text{ in terms of } E \\text{ and } A_{OL}.', color: MUTED }),
-      3: new MathTex({ latex: '\\text{Step 3: Isolate feedback behavior and derive the returned-signal relation } X_F = \\beta Y.', color: MUTED }),
-      4: new MathTex({ latex: '\\text{Step 4: Substitute feedback into the forward equation and simplify to the closed-loop form.}', color: MUTED }),
-      5: new MathTex({ latex: '\\text{Step 5: Evaluate } \\lim_{A_{OL}\\to\\infty} \\text{ and } \\lim_{\\beta\\to 0} \\text{ to interpret closed-loop gain physically.}', color: MUTED })
+      1: new MathTex({ latex: '\\text{Step 1: The negative-feedback block diagram consists of a feedforward path and a feedback path.}', color: MUTED }),
+      2: new MathTex({ latex: '\\text{Step 2: The feedforward path gives } Y \\text{ in terms of } E \\text{ and } A_{OL}.', color: MUTED }),
+      3: new MathTex({ latex: '\\text{Step 3: The feedback path returns the signal } X_F = \\beta Y \\text{ to the summing junction.}', color: MUTED }),
+      4: new MathTex({ latex: '\\text{Step 4: Substituting the feedback relation into the forward equation gives the closed-loop gain.}', color: MUTED }),
+      5: new MathTex({ latex: '\\text{Step 5: The limits } A_{OL}\\to\\infty \\text{ and } \\beta\\to 0 \\text{ give the limiting values of the closed-loop gain.}', color: MUTED })
     };
     await Promise.all(Object.values(stepSubtitle).map((txt) => txt.waitForRender?.()));
     Object.values(stepSubtitle).forEach((txt) => {
@@ -569,7 +530,7 @@
       visibleYScaleIndices.clear();
     };
 
-    // Current base curve VGroups — swapped during the rescale animation.
+    // Current base curve VGroups: swapped during the rescale animation.
     let currentBaseCurveVGroups = baseBundle.curveLines;
 
     const allDynamic = [
@@ -673,7 +634,7 @@
           for (let b = 0; b < baseBetas.length; b++) {
             const beta = baseBetas[b];
             const limitY = mapYInitial(1 / beta);
-            const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.12));
+            const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.105));
             baseBundle.betaLabels[b].moveTo([x1 - 0.62, labelY, 0]);
           }
           currentBaseCurveVGroups = baseBundle.curveLines;
@@ -737,7 +698,7 @@
               for (let b = 0; b < baseBetas.length; b++) {
                 const beta = baseBetas[b];
                 const limitY = mapY(1 / beta);
-                const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.12));
+                const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.105));
                 baseBundle.betaLabels[b].moveTo([x1 - 0.62, labelY, 0]);
               }
               // Swap base curves: remove old, build new at interpolated scale.
@@ -775,7 +736,7 @@
             for (let b = 0; b < baseBetas.length; b++) {
               const beta = baseBetas[b];
               const limitY = mapYFinal(1 / beta);
-              const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.12));
+              const labelY = Math.min(y1 - 0.10, Math.max(y0 + 0.12, limitY + 0.105));
               baseBundle.betaLabels[b].moveTo([x1 - 0.62, labelY, 0]);
             }
             scene.remove(...currentBaseCurveVGroups);

@@ -9,49 +9,49 @@
             ttl: 'Op-amp comparator',
             desc: 'Drives its output to a rail when the input crosses a fixed threshold.',
             verdict: 'correct',
-            why: 'Performs the binary detection step. One pulse per upward threshold crossing.'
+            why: 'Performs the binary detection step: one pulse per upward threshold crossing.'
         },
         {
             id: 'schmitt',
             ttl: 'Schmitt trigger',
             desc: 'Comparator with hysteresis: separate upper and lower thresholds.',
             verdict: 'correct',
-            why: 'Hysteresis stops the comparator from chattering on a noisy spike. One clean pulse per spike.'
+            why: 'Hysteresis prevents repeated transitions on a noisy spike, so each spike produces one pulse.'
         },
         {
             id: 'peak',
             ttl: 'Peak detector (op-amp + diode + capacitor)',
             desc: 'Holds the most recent peak voltage on a capacitor.',
             verdict: 'correct',
-            why: 'The amplitude measurement the clinicians asked for. With a slow leak, the held trace is the envelope.'
+            why: 'Provides the amplitude measurement required by the brief. With a slow leak, the held trace follows the envelope.'
         },
         {
             id: 'monostable',
             ttl: 'Monostable multivibrator (one-shot)',
             desc: 'Emits a single fixed-width pulse on each rising edge of its trigger.',
             verdict: 'correct',
-            why: 'Standardises the detected pulse width regardless of how long the EEG sits above the threshold. Clean input to a downstream counter.'
+            why: 'Standardises the detected pulse width regardless of how long the EEG remains above the threshold, which gives a downstream counter uniform input pulses.'
         },
         {
             id: 'sah',
             ttl: 'Sample-and-hold',
             desc: 'Captures the input voltage at a clock edge and holds it.',
             verdict: 'correct',
-            why: 'Useful for capturing the held peak value at the moment the comparator fires, ahead of an ADC.'
+            why: 'Captures the held peak value at the moment the comparator fires, ahead of an ADC.'
         },
         {
             id: 'lpf',
             ttl: 'Sallen-Key low-pass filter',
             desc: 'Active second-order low-pass with adjustable cutoff and Q.',
             verdict: 'correct',
-            why: 'The front-end filter that exposes the spikes in the first place. Already in place per the brief, but worth recognising as part of the chain.'
+            why: 'The front-end filter that makes the spikes distinguishable from the background. It is already in place according to the brief and forms part of the chain.'
         },
         {
             id: 'astable',
             ttl: 'Astable multivibrator',
             desc: 'Free-running square-wave oscillator at a fixed rate.',
             verdict: 'wrong',
-            why: 'Generates a clock; it does not detect anything in the input. A timing reference, not a detector.'
+            why: 'Generates a clock and does not respond to the input. It is a timing reference and performs no detection.'
         },
         {
             id: 'integrator',
@@ -65,11 +65,11 @@
             ttl: 'Op-amp differentiator',
             desc: 'Output proportional to the rate of change of the input.',
             verdict: 'partial',
-            why: 'Emphasises sharp edges so it can flag a spike, but it produces a derivative rather than the amplitude. Useful as a pre-detector, not a measurer.'
+            why: 'Emphasises sharp edges so it can flag a spike, but it produces a derivative rather than the amplitude. It can serve as a pre-detector but does not measure amplitude.'
         },
         {
             id: 'follower',
-            ttl: 'Voltage follower / buffer',
+            ttl: 'Voltage follower (buffer)',
             desc: 'Unity-gain stage that isolates impedance.',
             verdict: 'partial',
             why: 'It does not detect or measure directly, but a buffer prevents the source impedance from loading the hold capacitor.'
@@ -96,14 +96,14 @@
                 el.classList.add('revealed');
                 el.classList.add(c.verdict);
             }
-            var verdictLabel = c.verdict === 'correct' ? '✓ correct'
-                : c.verdict === 'partial' ? '~ partial'
-                    : '✗ not for this problem';
+            var verdictLabel = c.verdict === 'correct' ? 'Correct'
+                : c.verdict === 'partial' ? 'Partially useful'
+                    : 'Not applicable to this problem';
             el.innerHTML =
                 '<div class="ck"></div>' +
                 '<div class="ttl">' + c.ttl + '</div>' +
                 '<div class="desc">' + c.desc + '</div>' +
-                '<div class="verdict"><b>' + verdictLabel + '</b> · ' + c.why + '</div>';
+                '<div class="verdict"><b>' + verdictLabel + '.</b> ' + c.why + '</div>';
 
             el.addEventListener('click', function () {
                 if (revealed) return;

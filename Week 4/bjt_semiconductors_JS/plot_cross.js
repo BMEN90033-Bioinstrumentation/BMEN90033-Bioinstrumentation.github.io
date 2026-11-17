@@ -140,7 +140,7 @@
         function ions(g, r, npn) {
             var cDon = css('--c-donor'), cAcc = css('--c-acceptor'), sp = 12;
             var rows = Math.floor(r.height / sp);
-            g.font = "bold 10px 'JetBrains Mono', monospace"; g.textAlign = 'center'; g.textBaseline = 'middle';
+            g.font = "13px 'JetBrains Mono', monospace"; g.textAlign = 'center'; g.textBaseline = 'middle';
             // n side of a junction holds + donor ions, p side holds - acceptor ions.
             function band(x0, x1, donor) {
                 var cols = Math.max(1, Math.floor((x1 - x0) / sp));
@@ -186,7 +186,7 @@
                 var wr = r.wires[k];
                 g.beginPath(); g.moveTo(wr.x, wr.top); g.lineTo(wr.x, wr.bottom); g.stroke();
             });
-            g.fillStyle = T.text; g.font = "600 12px 'JetBrains Mono', monospace";
+            g.fillStyle = T.text; g.font = "13px 'JetBrains Mono', monospace";
             g.textAlign = 'center'; g.textBaseline = 'alphabetic';
             g.fillText('E', r.wires.emitter.x - 11, r.wires.emitter.bottom - 4);
             g.fillText('B', r.wires.base.x - 11, r.wires.base.bottom - 4);
@@ -255,7 +255,6 @@
             if (visible && !raf) raf = requestAnimationFrame(frame);
         }).observe(box);
         window.addEventListener('resize', function () { refresh(true); });
-        window.addEventListener('themechange', function () { overlay(); draw(); });
         window.addEventListener('bjschange', function (e) { refresh(e.detail.key === 'type'); });
         refresh(true);
     }

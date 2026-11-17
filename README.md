@@ -19,7 +19,7 @@ The pages are pedagogical artefacts; they are not validated instruments and shou
 The site is a static collection of HTML, CSS, and JavaScript files served directly from the repository root by GitHub Pages. There is no build step, no package manager, and no test runner.
 
 - `index.html` is the landing page and the canonical index of available topics.
-- `theme.css` and `theme.js` define a shared light/dark palette and an injected theme toggle used by every topic page.
+- `theme.css` and `theme.js` define the shared design tokens, page chrome, data palette and colour helper used by every page. The site has a single light theme.
 - Each `Week N/` directory contains the topic pages associated with that week of the unit. Directory names contain spaces and must be quoted in shell contexts.
 - `Week 6/Slides/` is an iframe-based slide deck whose entries are listed in the `slides` array of `Week 6/Slides/index.html`.
 - `Week 7/Week 7 Laplace/` is a section-scrolled compound page that loads scene scripts from its `js/` subdirectory.
@@ -28,7 +28,7 @@ The site is a static collection of HTML, CSS, and JavaScript files served direct
 
 Topic pages are written in vanilla JavaScript. Two-dimensional plots and animations use the HTML Canvas 2D API and, where appropriate, D3.js. Three-dimensional scenes use Three.js, loaded via an import map that points at the jsdelivr CDN. Mathematical typesetting is rendered with KaTeX where formulas appear in page content.
 
-Colours are read from `window.T`, a theme-aware helper exposed by `theme.js`, on every draw frame, so that toggling the theme recolours canvases without reloading the page. The toggle dispatches a `themechange` event on `window` for any drawing code that needs to invalidate cached state.
+Drawing code reads its colours from the CSS data palette in `theme.css` or from `window.T`, a helper exposed by `theme.js`, so that plots and page chrome share one set of colours.
 
 ## Running locally
 

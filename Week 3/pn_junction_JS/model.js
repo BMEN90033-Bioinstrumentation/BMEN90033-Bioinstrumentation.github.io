@@ -41,22 +41,17 @@
 
     function junctionState(V) {
         if (V <= -V_BR) return 'Breakdown';
-        if (V < -0.01) return 'Reverse Bias';
-        if (V >= V_TURN_ON) return 'Forward Bias';
-        if (V > 0.01) return 'Forward Bias (sub-threshold)';
+        if (V < -0.01) return 'Reverse bias';
+        if (V >= V_TURN_ON) return 'Forward bias';
+        if (V > 0.01) return 'Forward bias (sub-threshold)';
         return 'Equilibrium';
     }
 
-    var STATE_VAR = {
-        'Breakdown': '--c-st-bd', 'Reverse Bias': '--c-st-rev', 'Forward Bias': '--c-st-fwd',
-        'Forward Bias (sub-threshold)': '--c-st-sub', 'Equilibrium': '--c-st-eq'
-    };
-
     var DESC = {
         'Equilibrium': 'At equilibrium, carrier diffusion across the junction is balanced by the built-in electric field. The depletion region contains fixed donor and acceptor ions but few mobile carriers.',
-        'Forward Bias (sub-threshold)': 'The forward bias lowers the potential barrier and narrows the depletion region, but the current is still small; with this saturation current it reaches only 0.25 mA at ' + V_TURN_ON.toFixed(1) + ' V.',
-        'Forward Bias': 'Forward bias has lowered the barrier far enough for conduction. Electrons from the n-side conduction band cross into the p-side, where they recombine with holes, and current flows through the junction.',
-        'Reverse Bias': 'Reverse bias: a brief transient removes majority carriers from the edges of the depletion region, which widens. The steady reverse current is only the saturation current Iₛ, carried by minority carriers generated near the junction. The animation exaggerates carrier loss; the neutral regions of a real diode stay populated.',
+        'Forward bias (sub-threshold)': 'The forward bias lowers the potential barrier and narrows the depletion region, but the current is still small; with this saturation current it reaches only 0.25 mA at ' + V_TURN_ON.toFixed(1) + ' V.',
+        'Forward bias': 'Forward bias has lowered the barrier far enough for conduction. Electrons from the n-side conduction band cross into the p-side, where they recombine with holes, and current flows through the junction.',
+        'Reverse bias': 'Reverse bias: a brief transient removes majority carriers from the edges of the depletion region, which widens. The steady reverse current is only the saturation current, carried by minority carriers generated near the junction. The animation exaggerates carrier loss; the neutral regions of a real diode stay populated.',
         'Breakdown': 'Breakdown: the field in the depletion region is high enough for carrier multiplication, and the reverse current rises steeply, by a factor of ten for every further 60 mV. The breakdown voltage is set to ' + V_BR.toFixed(1) + ' V for display.'
     };
     var FORM_DESC = [
@@ -80,14 +75,13 @@
         V_BREAKDOWN: -V_BR, V_TURN_ON: V_TURN_ON, EG_EV: EG_EV, q_kT: q_kT,
         p: p, NA: NA, ND: ND, V0: V0, W: W, xp: xp, xn: xn,
         current: current, currentMagnitude: currentMagnitude,
-        junctionState: junctionState, STATE_VAR: STATE_VAR, DESC: DESC, FORM_DESC: FORM_DESC, fmtI: fmtI,
+        junctionState: junctionState, DESC: DESC, FORM_DESC: FORM_DESC, fmtI: fmtI,
         // Formation progress written by the 3D scene: null once formed.
         formation: null,
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('pnchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

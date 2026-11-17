@@ -11,7 +11,7 @@
 
     var svg = d3.select(SVG).classed('ov', true);
     var W = 700, H = 360;
-    var margin = { top: 48, right: 26, bottom: 42, left: 56 };
+    var margin = { top: 52, right: 48, bottom: 50, left: 56 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -22,6 +22,7 @@
     var gAxis = gRoot.append('g').attr('class', 'axis');
     var gTitles = gRoot.append('g');
     var gMark = gRoot.append('g');
+    var gLegend = gRoot.append('g');
 
     var ui = {
         hyst: document.getElementById('cmp-hyst'),
@@ -69,19 +70,25 @@
         });
         var yAxis = d3.axisLeft(y).tickValues([-2, -1, 0, 1, 2, 3]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0]).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 32)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
             .text('time relative to now, s');
         gTitles.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-42) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
             .text('amplitude, mV');
+
+        // Series key in the top margin, clear of the moving traces.
+        EEG.legend(gLegend, [
+            { c: 'var(--c-input)', text: 'filtered EEG' },
+            { c: 'var(--c-output)', text: 'comparator output' },
+            { c: 'var(--c-thresh)', text: 'rising edge', dot: true }
+        ], -8);
     }
 
     function comparatorEvaluate(data, nowT) {
@@ -161,23 +168,22 @@
 
         // Threshold lines
         gThresh.selectAll('*').remove();
-        gThresh.append('line').attr('class', 'thresh-line')
+        // Labels sit in the right margin so the trace never crosses them.
+        gThresh.append('line').attr('class', 'th-line th-upper')
             .attr('x1', 0).attr('x2', iw)
             .attr('y1', y(state.th)).attr('y2', y(state.th));
-        gThresh.append('text').attr('class', 'thresh-label')
-            .attr('x', iw - 4).attr('y', y(state.th) - 4)
-            .attr('text-anchor', 'end')
-            .text(state.hyst ? 'V_T+' : 'V_th');
+        EEG.label(gThresh.append('text').attr('class', 'note')
+            .attr('x', iw + 6).attr('y', y(state.th) - 1)
+            .style('fill', 'var(--c-thresh)'),
+            state.hyst ? 'V_{T+}' : 'V_{th}');
         if (state.hyst) {
-            gThresh.append('line').attr('class', 'thresh-line')
-                .attr('stroke', 'var(--c-output2)')
+            gThresh.append('line').attr('class', 'th-line th-lower')
                 .attr('x1', 0).attr('x2', iw)
                 .attr('y1', y(state.th - state.hw)).attr('y2', y(state.th - state.hw));
-            gThresh.append('text').attr('class', 'thresh-label')
-                .attr('fill', 'var(--c-output2)')
-                .attr('x', iw - 4).attr('y', y(state.th - state.hw) + 12)
-                .attr('text-anchor', 'end')
-                .text('V_T−');
+            EEG.label(gThresh.append('text').attr('class', 'note')
+                .attr('x', iw + 6).attr('y', y(state.th - state.hw) + 15)
+                .style('fill', 'var(--c-vtm)'),
+                'V_{T−}');
         }
 
         // Comparator output as step waveform, sampled directly from the per-
@@ -197,11 +203,6 @@
             .attr('class', 'trace output')
             .attr('stroke-width', 2.0)
             .attr('d', outLine);
-        gOut.append('text')
-            .attr('x', 4).attr('y', y(OUT_HI) - 4)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).style('fill', 'var(--c-output)')
-            .text('comparator out');
 
         // Pulse marks
         gMark.selectAll('*').remove();
@@ -232,17 +233,16 @@
         });
         ui.th.addEventListener('input', function () {
             state.th = parseFloat(ui.th.value);
-            ui.thVal.textContent = state.th.toFixed(2);
+            ui.thVal.textContent = state.th.toFixed(2) + ' mV';
             drawFrame();
         });
         ui.hw.addEventListener('input', function () {
             state.hw = parseFloat(ui.hw.value);
-            ui.hwVal.textContent = state.hw.toFixed(2);
+            ui.hwVal.textContent = state.hw.toFixed(2) + ' mV';
             drawFrame();
         });
 
         EEG.onTick(drawFrame);
-        window.addEventListener('themechange', function () { drawStatic(); drawFrame(); });
         window.addEventListener('resize', function () { layout(); drawStatic(); drawFrame(); });
     }
 

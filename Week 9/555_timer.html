@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · 555 Timer</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · 555 timer</title>
 
     <link rel="stylesheet" href="../theme.css">
+    <link rel="stylesheet" href="../components/lecture_page.css">
     <link rel="stylesheet" href="../components/circuit_tooltip.css">
     <link rel="stylesheet" href="555_timer_JS/555_timer.css">
 
@@ -49,16 +44,17 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 9 · 555 TIMER</div>
-            <h1 class="hero">One IC, three <em>multivibrator</em> behaviours.</h1>
+            <h1 class="hero">The 555 timer and its three multivibrator modes</h1>
             <p class="sub">The 555 timer is a single integrated circuit that realises the bistable, monostable, and astable
                 multivibrators with a fixed internal voltage reference. A resistive divider sets two thresholds at
                 $\tfrac{1}{3}V_{CC}$ and $\tfrac{2}{3}V_{CC}$, two comparators detect when external nodes cross those
                 thresholds, an SR latch stores the resulting state, and an open-collector transistor sinks an external
-                timing capacitor on demand. The mode of operation is selected by what is wired to the timing pins.</p>
+                timing capacitor when the latch is reset. The external connections to the timing pins select the mode of
+                operation.</p>
             <div class="tags">
                 <span class="field-tag">integrated circuit</span>
                 <span class="field-tag">RC timing</span>
-                <span class="field-tag">comparator + SR latch</span>
+                <span class="field-tag">comparator and SR latch</span>
                 <span class="field-tag">pulse generation</span>
             </div>
         </div>
@@ -71,7 +67,7 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>internal architecture</span></div>
             <h2>Inside the 555</h2>
 
-            <p class="lead">Three nominally-equal 5 k$\Omega$ resistors form an internal divider between $V_{CC}$ and
+            <p class="lead">Three nominally equal 5 k$\Omega$ resistors form an internal divider between $V_{CC}$ and
                 ground. The name is often attributed to these resistors; its designer, Hans Camenzind, stated that
                 Signetics chose the part number for marketing reasons. The divider taps fix two reference voltages,</p>
 
@@ -95,9 +91,9 @@
                 $R$ and $C$.</p>
 
             <div class="callout">
-                The chip is a self-contained two-comparator-and-latch core. Whether it acts as a bistable, monostable,
-                or astable is fixed entirely by the external wiring on TRIG, THRES, DISCH, and RESET; nothing inside the
-                chip changes between modes.
+                The chip contains a divider, two comparators, a latch, and a discharge transistor. The external wiring
+                on TRIG, THRES, DISCH, and RESET determines whether it acts as a bistable, monostable, or astable
+                circuit; the internal circuit is the same in every mode.
             </div>
         </div>
 
@@ -152,9 +148,9 @@
             </ul>
 
             <div class="callout">
-                The astable 555 is the simplest practical clock generator in the lab. It is the carrier in low-cost
-                pulse-width modulators, the timebase for capacitive-sensing oscillators, and the repetition-rate
-                generator in nerve and muscle stimulators where it is paired with a monostable that sets the pulse width.
+                The astable 555 is a simple clock generator. It serves as the carrier in low-cost pulse-width
+                modulators, the timebase for capacitive-sensing oscillators, and the repetition-rate generator in
+                nerve and muscle stimulators, where it is paired with a monostable that sets the pulse width.
             </div>
         </div>
 
@@ -198,9 +194,9 @@
             <h2>Monostable: a single timed pulse</h2>
 
             <p class="lead">In monostable mode the 555 emits a single fixed-width pulse on each negative trigger. At rest
-                the discharge transistor is on, the capacitor is held near 0 V, the output sits low, and the chip waits
-                indefinitely. A brief negative pulse on TRIG (pin 2) drives the lower comparator output high and sets the
-                latch. The output snaps high, the discharge transistor releases the capacitor, and $v_C$ rises along
+                the discharge transistor is on, the capacitor is held near 0 V, and the output is low; the circuit
+                remains in this state indefinitely. A brief negative pulse on TRIG (pin 2) drives the lower comparator output high and sets the
+                latch. The output switches high, the discharge transistor releases the capacitor, and $v_C$ rises along
                 an exponential through $R$ toward $V_{CC}$.</p>
 
             <p>The pulse ends when $v_C$ reaches $\tfrac{2}{3}V_{CC}$, at which point the upper comparator resets the
@@ -265,11 +261,11 @@
             <h2>Bistable: SR-latch behaviour</h2>
 
             <p class="lead">In bistable mode no timing capacitor is used. THRES (pin 6) is tied to ground so the upper
-                comparator can never fire, and DISCH (pin 7) is left disconnected. With the upper comparator inactive,
+                comparator never switches, and DISCH (pin 7) is left disconnected. With the upper comparator inactive,
                 the internal SR latch is exposed directly through the active-low TRIG input (which sets the latch) and
                 the active-low RESET input (which clears it).</p>
 
-            <p>The output is now a pure latched signal. A brief negative pulse on TRIG drives OUT to $V_{CC}$ and the
+            <p>The output is a latched signal. A brief negative pulse on TRIG drives OUT to $V_{CC}$ and the
                 circuit holds that state indefinitely. A brief negative pulse on RESET drives OUT back to 0 and the
                 circuit again holds. In the absence of either pulse the output retains its last value; this is one bit
                 of stored state.</p>
@@ -284,7 +280,7 @@
             <div class="callout">
                 Using a 555 as a bistable is uncommon in practice; a dedicated SR-latch IC such as a 74LS279 is cheaper
                 and lower-power. The configuration is presented here because it isolates the SR latch from the timing
-                network and makes the role of TRIG, RESET, and the upper comparator easy to read.
+                network and shows the roles of TRIG, RESET, and the upper comparator separately.
             </div>
         </div>
 
@@ -295,7 +291,7 @@
                     <svg class="bode" id="plot-bistable-circuit"></svg>
                 </div>
                 <div class="plot-box scope">
-                    <div class="label">time domain · <b>set / reset pulses and latched output</b></div>
+                    <div class="label">time domain · <b>set and reset pulses, latched output</b></div>
                     <canvas id="scope-bistable"></canvas>
                 </div>
                 <div class="toolbar">
@@ -311,10 +307,10 @@
     <section class="scene wide" id="sec-notes">
         <div class="copy full">
             <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>practical notes</span></div>
-            <h2>Working with the 555 in practice</h2>
+            <h2>Practical considerations for the 555</h2>
 
-            <p class="lead">The idealised circuits above are accurate for the chip's logical behaviour but omit several
-                practical details that matter in a working board. The notes below cover the most important ones.</p>
+            <p class="lead">The idealised circuits above describe the logical behaviour of the chip but omit several
+                details that affect a physical circuit. The notes below cover the principal ones.</p>
 
             <div class="card-row">
                 <div class="card">
@@ -368,10 +364,10 @@
             </div>
 
             <div class="callout">
-                The 555 endures because the same eight-pin part covers three of the most common timing roles in
-                instrumentation. The internal divider, two comparators, and SR latch are sufficient to build the
-                bistable, monostable, and astable behaviours that earlier chapters built from discrete op-amps; the
-                external wiring on TRIG, THRES, and DISCH is what selects among them.
+                One eight-pin part covers three common timing roles in instrumentation. The internal divider, two
+                comparators, and SR latch are sufficient to build the bistable, monostable, and astable circuits
+                that earlier chapters built from discrete op-amps; the external wiring on TRIG, THRES, and DISCH
+                selects among them.
             </div>
         </div>
     </section>

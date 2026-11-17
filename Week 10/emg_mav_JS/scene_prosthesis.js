@@ -2,7 +2,7 @@
 // Live myoelectric prosthesis demo. Synthetic EMG (noise modulated by the
 // effort slider) feeds a precision-rectifier + first-order LPF chain. The
 // MAV output is compared against a threshold and drives a stylised
-// two-finger gripper that closes when the user "contracts" the muscle.
+// two-finger gripper that closes as the simulated muscle effort rises.
 (function () {
     var SVG_TRACE = '#plot-prst-emg';
     var SVG_HAND  = '#plot-prst-hand';
@@ -11,7 +11,7 @@
     // ─── Trace plot ──────────────────────────────────────────────────
     var svg = d3.select(SVG_TRACE).classed('ov', true);
     var W = 800, H = 320;
-    var margin = { top: 48, right: 28, bottom: 48, left: 60 };
+    var margin = { top: 60, right: 28, bottom: 48, left: 60 };
     var iw, ih, x, y;
 
     var T_WIN = 3.0;        // 3 s rolling window
@@ -148,7 +148,7 @@
         var xt = [-3, -2.5, -2, -1.5, -1, -0.5, 0];
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(d3.axisBottom(x).tickValues(xt)
-                .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
+                .tickFormat(function (d) { return d.toFixed(1); })
                 .tickSize(0).tickPadding(8))
             .select('.domain').remove();
 
@@ -163,39 +163,14 @@
     }
 
     function drawLegend() {
-        gLegend.selectAll('*').remove();
-        var modeLabel = mode === 'lpf' ? '1st-order LPF'
-                       : mode === 'mavg' ? 'moving avg'
-                       : 'kalman';
-        var items = [
-            { color: 'var(--c-input)',   label: 'EMG x(t)'         },
-            { color: 'var(--c-output2)', label: 'MAV · ' + modeLabel },
-            { color: 'var(--c-thresh)',  label: 'threshold'        }
-        ];
-        var lineLen = 18, labelPad = 6, gap = 18;
-        var groups = [];
-        var totalW = 0;
-        items.forEach(function (it) {
-            var sub = gLegend.append('g');
-            sub.append('line')
-                .attr('x1', 0).attr('x2', lineLen)
-                .attr('y1', 7).attr('y2', 7)
-                .attr('stroke', it.color).attr('stroke-width', 2.2);
-            sub.append('text')
-                .attr('x', lineLen + labelPad).attr('y', 10)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10).attr('fill', 'var(--text-dim)')
-                .text(it.label);
-            var w = sub.node().getBBox().width;
-            groups.push({ sub: sub, w: w });
-            totalW += w;
-        });
-        totalW += gap * (items.length - 1);
-        var cursor = iw - totalW;
-        groups.forEach(function (grp) {
-            grp.sub.attr('transform', 'translate(' + cursor + ',-22)');
-            cursor += grp.w + gap;
-        });
+        var modeLabel = mode === 'lpf' ? 'first-order LPF'
+                       : mode === 'mavg' ? 'moving average'
+                       : 'Kalman';
+        MAV.legend(gLegend, [
+            { c: 'var(--c-input)',   text: 'EMG x(t)' },
+            { c: 'var(--c-output2)', text: 'MAV, ' + modeLabel },
+            { c: 'var(--c-thresh)',  text: 'threshold', dash: '5 4' }
+        ]);
     }
 
     // Bandlimited EMG sample. Effort scales burst amplitude; baseline noise
@@ -234,36 +209,15 @@
         gMav.append('path').datum(mavPts).attr('class', 'trace output2').attr('d', line)
             .attr('stroke-width', 2.6);
 
-        gThr.append('line')
-            .attr('class', 'thresh-line')
-            .attr('x1', 0).attr('x2', iw)
-            .attr('y1', y(thr)).attr('y2', y(thr))
-            .style('cursor', 'default');
-        gThr.append('text')
-            .attr('class', 'thresh-label')
-            .attr('x', iw - 6).attr('y', y(thr) - 5)
-            .attr('text-anchor', 'end')
-            .text('threshold = ' + thr.toFixed(2) + ' V');
+        MAV.refLine(gThr, y(thr), iw, 'var(--c-thresh)');
     }
 
     // ─── Gripper drawing ─────────────────────────────────────────────
     function drawHand(grip01, mav, thr) {
         gHand.selectAll('*').remove();
 
-        // Caption
-        gHand.append('text')
-            .attr('x', hVB_W / 2).attr('y', 24)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10.5)
-            .attr('letter-spacing', '0.18em')
-            .attr('fill', 'var(--muted)')
-            .text('GRIPPER · MAV → JAW ANGLE');
-
         var stateOn = mav > thr;
-        var bodyFill = stateOn
-            ? 'color-mix(in srgb, var(--c-output2) 18%, var(--bg-2))'
-            : 'var(--bg-2)';
+        var bodyFill = stateOn ? 'var(--d-green-soft)' : 'var(--white)';
 
         // Cap grip01 visually so the two fingers do not cross when fully closed.
         var g = Math.min(0.94, grip01);
@@ -277,7 +231,7 @@
             .attr('x', cx - wristHW).attr('y', wristY)
             .attr('width', 2 * wristHW).attr('height', wristH)
             .attr('rx', 4)
-            .attr('fill', 'var(--bg-2)')
+            .attr('fill', 'var(--white)')
             .attr('stroke', 'var(--text)').attr('stroke-width', 1.4);
         // Decorative bands across the coupler
         [0.28, 0.62, 0.86].forEach(function (f) {
@@ -290,7 +244,7 @@
         [-34, -12, 12, 34].forEach(function (dx) {
             gHand.append('circle')
                 .attr('cx', cx + dx).attr('cy', wristY + 0.28 * wristH).attr('r', 2.2)
-                .attr('fill', 'var(--bg-1)')
+                .attr('fill', 'var(--white)')
                 .attr('stroke', 'var(--text)').attr('stroke-width', 0.7);
         });
 
@@ -301,7 +255,7 @@
             .attr('x', palmX).attr('y', palmY)
             .attr('width', palmW).attr('height', palmH)
             .attr('rx', 14)
-            .attr('fill', 'var(--bg-2)')
+            .attr('fill', 'var(--white)')
             .attr('stroke', 'var(--text)').attr('stroke-width', 1.6);
         // Inner bezel
         gHand.append('rect')
@@ -316,7 +270,7 @@
         ].forEach(function (pt) {
             gHand.append('circle')
                 .attr('cx', pt[0]).attr('cy', pt[1]).attr('r', 2.2)
-                .attr('fill', 'var(--bg-1)')
+                .attr('fill', 'var(--white)')
                 .attr('stroke', 'var(--text)').attr('stroke-width', 0.7);
             gHand.append('line')
                 .attr('x1', pt[0] - 1.4).attr('x2', pt[0] + 1.4)
@@ -327,28 +281,12 @@
         var ledY = palmY + palmH / 2 - 4;
         gHand.append('circle')
             .attr('cx', cx).attr('cy', ledY).attr('r', 8)
-            .attr('fill', 'var(--bg-1)')
+            .attr('fill', 'var(--white)')
             .attr('stroke', 'var(--border)').attr('stroke-width', 0.8);
         gHand.append('circle')
             .attr('cx', cx).attr('cy', ledY).attr('r', 4.5)
             .attr('fill', stateOn ? 'var(--c-output2)' : 'var(--c-low)')
             .attr('opacity', stateOn ? 1 : 0.45);
-        if (stateOn) {
-            gHand.append('circle')
-                .attr('cx', cx).attr('cy', ledY).attr('r', 11)
-                .attr('fill', 'none')
-                .attr('stroke', 'var(--c-output2)').attr('stroke-width', 0.9)
-                .attr('opacity', 0.5);
-        }
-        // Brand label
-        gHand.append('text')
-            .attr('x', cx).attr('y', palmY + palmH - 14)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 7.5).attr('letter-spacing', '0.22em')
-            .attr('fill', 'var(--muted)')
-            .text('MYO-2 · ACTUATOR');
-
         // ─── Articulated fingers ─────────────────────────────────────
         var pivotL = { x: cx - 56, y: palmY + 4 };
         var pivotR = { x: cx + 56, y: palmY + 4 };
@@ -388,7 +326,7 @@
         function joint(p, r) {
             gHand.append('circle')
                 .attr('cx', p.x).attr('cy', p.y).attr('r', r)
-                .attr('fill', 'var(--bg-1)')
+                .attr('fill', 'var(--white)')
                 .attr('stroke', 'var(--text)').attr('stroke-width', 1.1);
             gHand.append('circle')
                 .attr('cx', p.x).attr('cy', p.y).attr('r', r * 0.35)
@@ -416,7 +354,7 @@
             ].map(function (q) { return q.join(','); }).join(' ');
             gHand.append('polygon')
                 .attr('points', pts)
-                .attr('fill', 'var(--bg-1)')
+                .attr('fill', 'var(--white)')
                 .attr('stroke', 'var(--text)').attr('stroke-width', 0.8)
                 .attr('opacity', 0.95);
             // Ridges across the pad surface
@@ -494,25 +432,14 @@
         var aBall = Math.min(R_ball, dPad);
         var bBall = aBall < R_ball ? R_ball * Math.sqrt(R_ball / aBall) : R_ball;
 
-        // Ball body
+        // Ball body: flat fill in a neutral hue, since the ball is not a
+        // plotted quantity.
         gHand.append('ellipse')
             .attr('cx', cx).attr('cy', ball_y)
             .attr('rx', aBall).attr('ry', bBall)
-            .attr('fill', 'color-mix(in srgb, var(--c-thresh) 24%, var(--bg-2))')
-            .attr('stroke', 'var(--c-thresh)')
+            .attr('fill', 'var(--hydro-blue-100)')
+            .attr('stroke', 'var(--d-slate)')
             .attr('stroke-width', 1.6);
-        // Specular highlight (also follows the deformation)
-        gHand.append('ellipse')
-            .attr('cx', cx - aBall * 0.35).attr('cy', ball_y - bBall * 0.4)
-            .attr('rx', aBall * 0.32).attr('ry', bBall * 0.16)
-            .attr('fill', 'var(--bg-1)')
-            .attr('opacity', 0.5);
-        // Subtle shadow at the bottom
-        gHand.append('ellipse')
-            .attr('cx', cx).attr('cy', ball_y + bBall * 0.55)
-            .attr('rx', aBall * 0.55).attr('ry', bBall * 0.10)
-            .attr('fill', 'var(--c-thresh)')
-            .attr('opacity', 0.18);
 
         // Fingers drawn on top of the ball so contact looks clean.
         drawFinger(pivotL, leftG);
@@ -523,71 +450,66 @@
         joint(pivotR, 5);
 
         // Force gauge on the right
-        var gaugeX = 720, gaugeY = 80, gaugeW = 220, gaugeH = 18;
+        var MONO = 'var(--font-mono)';
+        var gaugeX = 700, gaugeY = 86, gaugeW = 240, gaugeH = 18;
         gHand.append('text')
-            .attr('x', gaugeX).attr('y', gaugeY - 10)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10.5).attr('fill', 'var(--muted)')
-            .attr('letter-spacing', '0.12em')
-            .text('GRIP FORCE');
+            .attr('x', gaugeX).attr('y', gaugeY - 12)
+            .attr('font-family', MONO)
+            .attr('font-size', 15).attr('fill', 'var(--muted)')
+            .text('Grip force');
         gHand.append('rect')
             .attr('x', gaugeX).attr('y', gaugeY)
             .attr('width', gaugeW).attr('height', gaugeH)
             .attr('rx', 4)
-            .attr('fill', 'var(--bg-2)')
-            .attr('stroke', 'var(--border)').attr('stroke-width', 1);
+            .attr('fill', 'var(--white)')
+            .attr('stroke', 'var(--text)').attr('stroke-width', 1);
         gHand.append('rect')
             .attr('x', gaugeX).attr('y', gaugeY)
             .attr('width', gaugeW * grip01).attr('height', gaugeH)
             .attr('rx', 4)
-            .attr('fill', mav > thr ? 'var(--c-output2)' : 'var(--c-low)')
-            .attr('opacity', 0.85);
+            .attr('fill', stateOn ? 'var(--c-output2)' : 'var(--c-low)');
         gHand.append('text')
-            .attr('x', gaugeX + gaugeW).attr('y', gaugeY + gaugeH + 16)
+            .attr('x', gaugeX + gaugeW).attr('y', gaugeY + gaugeH + 22)
             .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 12).attr('fill', 'var(--text)')
+            .attr('font-family', MONO)
+            .attr('font-size', 16).attr('fill', 'var(--text)')
             .text((100 * grip01).toFixed(0) + ' %');
 
-        // State pill
-        var pillY = gaugeY + 70;
+        // State box: the word carries the state, the dot adds the hue.
+        var pillY = gaugeY + 76;
         gHand.append('rect')
             .attr('x', gaugeX).attr('y', pillY)
-            .attr('width', gaugeW).attr('height', 36)
-            .attr('rx', 18)
-            .attr('fill', stateOn
-                ? 'color-mix(in srgb, var(--c-output2) 18%, var(--bg-2))'
-                : 'var(--bg-2)')
-            .attr('stroke', stateOn ? 'var(--c-output2)' : 'var(--border)')
-            .attr('stroke-width', 1.4);
+            .attr('width', gaugeW).attr('height', 40)
+            .attr('rx', 6)
+            .attr('fill', stateOn ? 'var(--d-green-soft)' : 'var(--white)')
+            .attr('stroke', 'var(--text)')
+            .attr('stroke-width', 1);
         gHand.append('circle')
-            .attr('cx', gaugeX + 18).attr('cy', pillY + 18)
+            .attr('cx', gaugeX + 20).attr('cy', pillY + 20)
             .attr('r', 6)
             .attr('fill', stateOn ? 'var(--c-output2)' : 'var(--c-low)');
         gHand.append('text')
-            .attr('x', gaugeX + 36).attr('y', pillY + 22)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 13)
-            .attr('fill', stateOn ? 'var(--c-output2)' : 'var(--text-dim)')
-            .attr('letter-spacing', '0.10em')
-            .text(stateOn ? 'GRIPPING' : 'RELAXED');
+            .attr('x', gaugeX + 38).attr('y', pillY + 25)
+            .attr('font-family', MONO)
+            .attr('font-size', 16)
+            .attr('fill', 'var(--text)')
+            .text(stateOn ? 'Gripping' : 'Relaxed');
 
-        // MAV vs threshold annotation (left side)
+        // MAV and threshold values (left side)
         gHand.append('text')
-            .attr('x', 60).attr('y', 80)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10.5).attr('fill', 'var(--muted)')
-            .attr('letter-spacing', '0.12em')
+            .attr('x', 40).attr('y', 74)
+            .attr('font-family', MONO)
+            .attr('font-size', 15).attr('fill', 'var(--muted)')
             .text('MAV');
         gHand.append('text')
-            .attr('x', 60).attr('y', 102)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 18).attr('fill', 'var(--c-output2)')
+            .attr('x', 40).attr('y', 102)
+            .attr('font-family', MONO)
+            .attr('font-size', 22).attr('fill', 'var(--text)')
             .text(mav.toFixed(3) + ' V');
         gHand.append('text')
-            .attr('x', 60).attr('y', 130)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10.5).attr('fill', 'var(--muted)')
+            .attr('x', 40).attr('y', 132)
+            .attr('font-family', MONO)
+            .attr('font-size', 15).attr('fill', 'var(--muted)')
             .text('threshold ' + thr.toFixed(2) + ' V');
     }
 
@@ -675,7 +597,7 @@
         var grip01 = mav <= thr ? 0 : Math.min(1, (mav - thr) / (MAV_FULL - thr));
         if (ui.grip) ui.grip.textContent = (100 * grip01).toFixed(0) + ' %';
         if (ui.state) {
-            ui.state.textContent = mav > thr ? 'GRIPPING' : 'RELAXED';
+            ui.state.textContent = mav > thr ? 'Gripping' : 'Relaxed';
             ui.state.classList.toggle('on', mav > thr);
             ui.state.classList.toggle('off', mav <= thr);
         }
@@ -721,7 +643,6 @@
         if (ui.modeMavg)   ui.modeMavg.addEventListener('click', function () { setMode('mavg'); });
         if (ui.modeKalman) ui.modeKalman.addEventListener('click', function () { setMode('kalman'); });
         window.addEventListener('resize', onResize);
-        window.addEventListener('themechange', onResize);
         requestAnimationFrame(step);
     }
 

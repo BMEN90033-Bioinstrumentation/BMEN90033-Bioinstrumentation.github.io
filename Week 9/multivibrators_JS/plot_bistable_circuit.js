@@ -139,30 +139,30 @@
         // ── Labels ──
         window.renderKatex(svg, 'R_\\text{in}',
             (X_R_IN_L + X_R_IN_R) / 2, Y_MINUS + 24,
-            { width: 60, height: 20, size: 13, color: text });
+            { width: 60, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'R_1',
             (X_R1_L + X_R1_R) / 2, Y_R1 - 22,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
 
         // R2 label sits to the right of the R2 body, in the empty column
         // between node B and the v_in source dot.
         window.renderKatex(svg, 'R_2',
             X_B + 26, (Y_R2_T + Y_R2_B) / 2,
-            { width: 32, height: 20, size: 14, color: text });
+            { width: 32, height: 20, size: 17, color: text });
 
         window.renderKatex(svg, 'v_\\text{in}',
             X_VIN - 28, Y_MINUS,
-            { width: 50, height: 22, size: 16, color: text });
+            { width: 50, height: 22, size: 18, color: text });
         window.renderKatex(svg, 'v_\\text{out}',
             X_VOUT_DOT + 40, TRI.apex[1],
-            { width: 70, height: 22, size: 16, color: text });
+            { width: 70, height: 22, size: 18, color: text });
 
         // beta v_out tap label sits above node B, between the + pin row
         // and the R1 row.
         window.renderKatex(svg, '\\beta\\,v_\\text{out}',
             X_B + 56, Y_PLUS - 18,
-            { width: 80, height: 20, size: 12, color: muted });
+            { width: 80, height: 20, size: 17, color: muted });
 
         // ── Hover hotspots: one per component ──
         if (window.CircuitTip) {
@@ -182,35 +182,34 @@
             tip(X_R_IN_L - 6, Y_MINUS - R_THICK / 2 - 6,
                 R_LEN + 12, R_THICK + 12,
                 'R<sub>in</sub>',
-                'Series input resistor on the inverting terminal. Limits input current and isolates the source impedance from the comparator. Has no influence on the switching thresholds.');
+                'Series input resistor on the inverting terminal. Limits input current and isolates the source impedance from the comparator. It has no influence on the switching thresholds.');
 
             // R_1
             tip(X_R1_L - 6, Y_R1 - R_THICK / 2 - 6,
                 R_LEN + 12, R_THICK + 12,
                 'R<sub>1</sub>',
-                'Upper arm of the positive-feedback divider. With R<sub>2</sub> sets the feedback ratio &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>), the fraction of v<sub>out</sub> returned to the non-inverting input.');
+                'Upper arm of the positive-feedback divider. With R<sub>2</sub> it sets the feedback ratio &beta; = R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>), the fraction of v<sub>out</sub> returned to the non-inverting input.');
 
             // R_2
             tip(X_B - R_THICK / 2 - 6, Y_R2_T - 6,
                 R_THICK + 12, R_LEN + 12,
                 'R<sub>2</sub>',
-                'Lower arm of the positive-feedback divider, returned to ground. Together with R<sub>1</sub> sets &beta; and therefore the switching thresholds at &plusmn;&beta;V<sub>sat</sub>.');
+                'Lower arm of the positive-feedback divider, returned to ground. Together with R<sub>1</sub> it sets &beta; and therefore the switching thresholds at &plusmn;&beta;V<sub>sat</sub>.');
 
             // v_in
             tip(X_VIN - 28, Y_MINUS - 16, 64, 32,
                 'v<sub>in</sub>',
-                'Signal applied to the inverting terminal. The output flips only when v<sub>in</sub> rises above the upper threshold or falls below the lower threshold.');
+                'Signal applied to the inverting terminal. The output changes state only when v<sub>in</sub> rises above the upper threshold or falls below the lower threshold.');
 
             // v_out
             tip(X_OUT_TAP - 6, TRI.apex[1] - 16, (X_VOUT_DOT - X_OUT_TAP) + 80, 32,
                 'v<sub>out</sub>',
-                'Saturated comparator output. Sits at +V<sub>sat</sub> or &minus;V<sub>sat</sub>; both rails are stable. The output flips only on a threshold crossing at the inverting input.');
+                'Saturated comparator output. Rests at +V<sub>sat</sub> or &minus;V<sub>sat</sub>; both rails are stable. The output changes state only on a threshold crossing at the inverting input.');
         }
     }
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

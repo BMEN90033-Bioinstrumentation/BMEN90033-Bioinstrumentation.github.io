@@ -1,4 +1,4 @@
-// Scene 2c — the s-plane as a grid of exponentials e^{st}.
+// Scene 2c, the s-plane as a grid of exponentials e^{st}.
 //   Left panel : 8×8 grid; each tile plots Re{e^{st}} = e^{σ t} cos(ω t)
 //                for the s at that tile's centre.
 //   Right panel: full complex trajectory of e^{st} for the currently
@@ -27,32 +27,17 @@
   // Blend the "real" (σ) and "imag" (ω) palette colours by the relative
   // magnitude of each component at a given s. Pure real axis → real colour,
   // pure imaginary axis → imag colour, in between a gradient mix.
-  function hexToRgb(hex) {
-    if (!hex || hex[0] !== '#') return { r: 200, g: 200, b: 210 };
-    const m = hex.length === 4
-      ? '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3]
-      : hex;
-    const n = parseInt(m.slice(1), 16);
-    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
-  }
   function mixRealImag(sigma, omega, C) {
     const sNorm = Math.abs(sigma) / SIGMA_MAX;
     const oNorm = Math.abs(omega) / OMEGA_MAX;
     const total = sNorm + oNorm;
     if (total < 1e-6) return C.muted;
-    const real = hexToRgb(C.real);
-    const imag = hexToRgb(C.imag);
-    const sf = sNorm / total;
-    const of = oNorm / total;
-    const r = Math.round(real.r * sf + imag.r * of);
-    const g = Math.round(real.g * sf + imag.g * of);
-    const b = Math.round(real.b * sf + imag.b * of);
-    return `rgb(${r},${g},${b})`;
+    return CFG.mix(C.real, C.imag, oNorm / total);
   }
 
   function gridLayout() {
     const rect = gridCanvas.getBoundingClientRect();
-    const padL = 44, padR = 14, padT = 30, padB = 34;
+    const padL = 54, padR = 30, padT = 52, padB = 34;
     const plotX0 = padL, plotY0 = padT;
     const plotX1 = rect.width - padR, plotY1 = rect.height - padB;
     return {
@@ -88,11 +73,11 @@
     const cx = plotX0 + pw / 2;  // σ = 0
     const cy = plotY0 + ph / 2;  // ω = 0
 
-    // (half-plane shading intentionally omitted — the tile colours now
+    // (half-plane shading intentionally omitted, the tile colours now
     //  encode the real/imag blend, so shading would fight with them.)
 
     // Cell gridlines
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.strokeStyle = CFG.ink(0.05);
     ctx.lineWidth = 1;
     for (let k = 0; k <= N; k++) {
       const x = plotX0 + k * cellW;
@@ -120,12 +105,12 @@
         const envMax = Math.max(1, Math.exp(sigma * T_WINDOW));
         const scale = (ch / 2 - 2) / envMax;
 
-        // Colour: smooth real/imag blend — blue on the real axis, pink/red
+        // Colour: smooth real/imag blend, blue on the real axis, pink/red
         // on the imaginary axis, mixed hues in between.
         const color = mixRealImag(sigma, omega, C);
 
         // Zero line
-        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+        ctx.strokeStyle = CFG.ink(0.07);
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(ccx, ccy + ch / 2);
@@ -133,7 +118,7 @@
         ctx.stroke();
 
         // Envelope ±e^{σt}, faint dashed
-        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx.strokeStyle = CFG.ink(0.10);
         ctx.setLineDash([2, 3]);
         ctx.lineWidth = 1;
         for (const sign of [-1, 1]) {
@@ -186,33 +171,32 @@
     ctx.save();
     ctx.strokeStyle = C.accent;
     ctx.lineWidth = 2;
-    ctx.shadowColor = C.accent;
-    ctx.shadowBlur = 12;
     ctx.strokeRect(sx + 1, sy + 1, cellW - 2, cellH - 2);
     ctx.restore();
 
     // s-plane axes on top
-    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = C.fg;
+    ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(plotX0, cy); ctx.lineTo(plotX1, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, plotY0); ctx.lineTo(cx, plotY1); ctx.stroke();
 
-    CFG.label(ctx, 'σ (real)', plotX1 - 4, cy + 6, C.real, { size: 11, align: 'right' });
-    CFG.label(ctx, 'jω (imag)', cx + 8, plotY0 + 4, C.imag, { size: 11 });
-    CFG.label(ctx, 'σ<0 · decays', plotX0 + 8, plotY0 + 8, C.muted, { size: 10 });
-    CFG.label(ctx, 'σ>0 · grows', plotX1 - 8, plotY0 + 8, C.muted, { size: 10, align: 'right' });
-    CFG.label(ctx, 'σ = 0 · pure oscillation', cx + 8, plotY1 - 14, C.imag, { size: 10 });
+    // Axis titles outside the plot: jω above the vertical axis, σ to the
+    // right of the horizontal axis.
+    CFG.label(ctx, 'σ', plotX1 + 8, cy, C.real, { baseline: 'middle' });
+    CFG.label(ctx, 'jω', cx, plotY0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, 'σ < 0: decay', plotX0, plotY0 - 6, C.muted, { baseline: 'bottom' });
+    CFG.label(ctx, 'σ > 0: growth', plotX1, plotY0 - 6, C.muted, { align: 'right', baseline: 'bottom' });
 
     const clean = (v) => (Math.abs(v) < 1e-6 ? 0 : v);
-    for (let i = 0; i < N; i++) {
+    for (let i = 0; i < N; i += 2) {
       const s = clean(sigmaOf(i));
       const xt = plotX0 + (i + 0.5) * cellW;
-      CFG.label(ctx, s.toFixed(2), xt, plotY1 + 6, C.muted, { size: 9, align: 'center' });
+      CFG.label(ctx, s.toFixed(2).replace('-', '−'), xt, plotY1 + 6, C.muted, { align: 'center' });
     }
     for (let j = 0; j < N; j++) {
       const o = clean(omegaOf(j));
       const yt = plotY0 + (j + 0.5) * cellH;
-      CFG.label(ctx, (o >= 0 ? '+' : '') + o.toFixed(2), plotX0 - 6, yt - 5, C.muted, { size: 9, align: 'right' });
+      CFG.label(ctx, (o > 0 ? '+' : '') + o.toFixed(2).replace('-', '−'), plotX0 - 6, yt, C.muted, { align: 'right', baseline: 'middle' });
     }
   }
 
@@ -224,9 +208,8 @@
 
     const sigma = sigmaOf(selected.i);
     const omega = omegaOf(selected.j);
-    if (detailSub) detailSub.textContent = '';
 
-    const padL = 40, padR = 16, padT = 40, padB = 26;
+    const padL = 16, padR = 40, padT = 70, padB = 16;
     const px0 = padL, py0 = padT, px1 = w - padR, py1 = h - padB;
     const pw = px1 - px0, ph = py1 - py0;
     const cx = px0 + pw / 2;
@@ -239,7 +222,7 @@
     const R = Math.min(pw, ph) * 0.42 / Math.max(rMax, 1e-3);
 
     // Background grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.strokeStyle = CFG.ink(0.05);
     ctx.lineWidth = 1;
     for (let k = -3; k <= 3; k++) {
       if (k === 0) continue;
@@ -250,7 +233,7 @@
     }
 
     // Unit circle (Fourier kernel reference)
-    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+    ctx.strokeStyle = CFG.ink(0.16);
     ctx.setLineDash([4, 5]);
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
     ctx.setLineDash([]);
@@ -260,8 +243,8 @@
     ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
     ctx.strokeStyle = C.imag;
     ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
-    CFG.label(ctx, 'Re', px1 - 4, cy + 6, C.real, { size: 11, align: 'right' });
-    CFG.label(ctx, 'Im', cx + 8, py0 + 4, C.imag, { size: 11 });
+    CFG.label(ctx, 'Re', px1 + 8, cy, C.real, { baseline: 'middle' });
+    CFG.label(ctx, 'Im', cx, py0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
 
     // Colour matching the grid tile (real/imag blend)
     const color = mixRealImag(sigma, omega, C);
@@ -280,7 +263,7 @@
       const y = cy - im * R;
       if (prevX !== null) {
         const a = 0.25 + 0.75 * u;
-        ctx.strokeStyle = withAlpha(color, a);
+        ctx.strokeStyle = CFG.alpha(color, a);
         ctx.beginPath();
         ctx.moveTo(prevX, prevY);
         ctx.lineTo(x, y);
@@ -292,7 +275,7 @@
     // Start marker (t = 0) : always at +1 + 0j
     ctx.fillStyle = C.muted;
     ctx.beginPath(); ctx.arc(cx + R, cy, 3.5, 0, Math.PI * 2); ctx.fill();
-    CFG.label(ctx, 't = 0', cx + R + 6, cy - 14, C.muted, { size: 10 });
+    CFG.label(ctx, 't = 0', cx + R + 6, cy - 20, C.muted);
 
     // End marker (t = DETAIL_T)
     {
@@ -303,7 +286,7 @@
       const y = cy - im * R;
       ctx.fillStyle = color;
       ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
-      CFG.label(ctx, `t = ${DETAIL_T.toFixed(0)}`, x + 6, y - 14, color, { size: 10 });
+      CFG.label(ctx, `t = ${DETAIL_T.toFixed(0)}`, x + 6, y + 6, color, { halo: true });
     }
 
     // Playhead sweeps the full spiral over LOOP_SEC of wall time.
@@ -318,28 +301,13 @@
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = color;
-    ctx.shadowColor = color; ctx.shadowBlur = 10;
     ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
 
-    // Regime tag — top-right corner of the plot
+    // Regime description, shown in the panel subtitle
     const tag = sigma < -0.02 ? 'decaying spiral' :
                 sigma > 0.02 ? 'growing spiral' :
-                (Math.abs(omega) < 0.01 ? 'constant · 1' : 'unit circle · Fourier kernel');
-    CFG.label(ctx, tag, w - 14, 12, color, { size: 11, align: 'right' });
-  }
-
-  function withAlpha(color, a) {
-    if (!color) return color;
-    if (color[0] === '#' && color.length === 7) {
-      const r = parseInt(color.slice(1, 3), 16);
-      const g = parseInt(color.slice(3, 5), 16);
-      const b = parseInt(color.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},${a})`;
-    }
-    const m = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i.exec(color);
-    if (m) return `rgba(${m[1]},${m[2]},${m[3]},${a})`;
-    return color;
+                (Math.abs(omega) < 0.01 ? 'constant value 1' : 'unit circle (Fourier kernel)');
+    if (detailSub) detailSub.textContent = `s = ${sigma.toFixed(2)} ${omega < 0 ? '−' : '+'} j${Math.abs(omega).toFixed(2)}: ${tag}`.replace('-', '−');
   }
 
   function drawBoth(tAnim) {

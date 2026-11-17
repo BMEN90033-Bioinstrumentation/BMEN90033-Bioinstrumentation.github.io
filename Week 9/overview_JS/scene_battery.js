@@ -1,7 +1,7 @@
 // Scene 01 · Battery low-voltage cutoff comparator.
 // A discharging lithium cell traces V_cell(t). A draggable horizontal line is
 // the comparator threshold. A live "now" marker walks along the curve; once it
-// drops below the threshold the load reads DISCONNECTED.
+// drops below the threshold the load reads Disconnected.
 (function () {
     var svgSel = '#plot-bat-trace';
     var rateInp = document.getElementById('bat-rate');
@@ -29,15 +29,17 @@
 
     var svg = d3.select(svgSel).classed('ov', true);
     var W = 600, H = 280;
-    var margin = { top: 22, right: 78, bottom: 38, left: 56 };
+    var margin = { top: 26, right: 78, bottom: 48, left: 62 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
     var gGrid = gRoot.append('g').attr('class', 'grid');
     var gCurveBg = gRoot.append('g');
     var gCurveFg = gRoot.append('g');
-    var gNow = gRoot.append('g');
     var gThresh = gRoot.append('g');
+    // Above the threshold line so that the haloed value label masks it;
+    // pointer events pass through to the draggable line beneath.
+    var gNow = gRoot.append('g').style('pointer-events', 'none');
     var gAxis = gRoot.append('g').attr('class', 'axis');
     var gTitles = gRoot.append('g');
 
@@ -76,18 +78,18 @@
         // axis ticks
         var yAxis = d3.axisLeft(y).tickValues([2.5, 3.0, 3.5, 4.0]).tickFormat(function (d) { return d.toFixed(1); }).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([0, 15, 30, 45, 60]).tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([0, 15, 30, 45, 60]).tickFormat(function (d) { return d + ''; }).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')').call(xAxis).select('.domain').remove();
 
         // axis titles (positive quadrant; x centred below, y rotated 90 CCW)
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 30)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
-            .text('time, seconds');
+            .text('Time (s)');
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('transform', 'translate(' + (-40) + ',' + (ih / 2) + ') rotate(-90)')
+            .attr('transform', 'translate(' + (-46) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('cell voltage, V');
+            .text('Cell voltage (V)');
 
         // background full discharge curve (faint)
         var pts = [];
@@ -131,20 +133,22 @@
         gNow.append('line')
             .attr('x1', x(tNow)).attr('x2', x(tNow))
             .attr('y1', 0).attr('y2', ih)
-            .style('stroke', 'var(--c-output)')
+            .style('stroke', 'var(--c-now)')
             .attr('stroke-width', 1).attr('opacity', 0.55)
             .attr('stroke-dasharray', '3 3');
         gNow.append('circle')
             .attr('cx', x(tNow)).attr('cy', y(vNow))
             .attr('r', 5)
-            .style('fill', 'var(--c-output)')
-            .style('stroke', 'var(--bg-2)').attr('stroke-width', 1.5);
-        gNow.append('text')
-            .attr('x', Math.min(iw - 6, x(tNow) + 8))
-            .attr('y', Math.max(12, y(vNow) - 8))
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .style('fill', 'var(--c-output)')
+            .style('fill', 'var(--c-now)')
+            .style('stroke', 'var(--white)').attr('stroke-width', 1.5);
+        // Value label: above right of the marker, where the falling curve
+        // leaves clear space; below left once the marker nears the right edge.
+        var nearEnd = x(tNow) > iw - 56;
+        gNow.append('text').attr('class', 'halo')
+            .attr('x', nearEnd ? x(tNow) - 10 : x(tNow) + 8)
+            .attr('y', nearEnd ? Math.min(ih - 5, y(vNow) + 18) : Math.max(13, y(vNow) - 9))
+            .attr('text-anchor', nearEnd ? 'end' : 'start')
+            .style('fill', 'var(--c-now)')
             .text(vNow.toFixed(2) + ' V');
 
         // threshold line + draggable grab on right
@@ -160,16 +164,13 @@
             .attr('x', iw + 4).attr('y', yT - 11)
             .attr('width', 56).attr('height', 22)
             .attr('rx', 4)
-            .style('fill', 'var(--c-thresh)').attr('opacity', 0.18);
-        grab.append('text')
-            .attr('class', 'thresh-label')
-            .attr('x', iw + 32).attr('y', yT + 4)
-            .attr('text-anchor', 'middle')
-            .text('V_cut');
+            .style('fill', 'var(--d-pink-soft)');
+        window.renderKatex(grab, 'V_\\mathrm{cut}', iw + 32, yT,
+            { size: 14, color: 'var(--c-thresh)', width: 56, height: 22 });
         grab.append('circle')
             .attr('cx', iw).attr('cy', yT).attr('r', 5)
             .style('fill', 'var(--c-thresh)')
-            .style('stroke', 'var(--bg-2)').attr('stroke-width', 1.5);
+            .style('stroke', 'var(--white)').attr('stroke-width', 1.5);
         grab.call(d3.drag().on('drag', function (event) {
             var ny = Math.max(0, Math.min(ih, event.y));
             var nv = y.invert(ny);
@@ -193,7 +194,7 @@
         var on = v > state.vcut;
         rdVcell.textContent = v.toFixed(2) + ' V';
         rdVcut.textContent = state.vcut.toFixed(2) + ' V';
-        rdLoad.textContent = on ? 'CONNECTED' : 'DISCONNECTED';
+        rdLoad.textContent = on ? 'Connected' : 'Disconnected';
         rdLoad.className = 'v ' + (on ? 'on' : 'warn');
         updateCircuit(v, on);
     }
@@ -236,9 +237,9 @@
         cSvg.attr('viewBox', '0 0 ' + CW + ' ' + CH)
             .attr('preserveAspectRatio', 'xMidYMid meet');
 
-        var stroke = 'var(--text-dim)';
-        var muted  = 'var(--muted)';
-        var label  = 'var(--text-dim)';
+        var stroke = 'var(--fg)';
+        var muted  = 'var(--d-grey)';
+        var label  = 'var(--fg)';
 
         var gWire = cSvg.append('g');   // baseline wires
         var gPow  = cSvg.append('g');   // power-path (animated)
@@ -287,7 +288,7 @@
         // Switch contacts (small filled circles).
         gPow.append('circle').attr('cx', SW_X).attr('cy', SW_TOP_Y).attr('r', 3).attr('fill', stroke);
         gPow.append('circle').attr('cx', SW_X).attr('cy', SW_BOT_Y).attr('r', 3).attr('fill', stroke);
-        // Switch arm — pivot is at the TOP contact so opening lifts the
+        // Switch arm: the pivot is at the TOP contact so opening lifts the
         // bottom end AWAY from the load. Closed = vertical.
         cElems.arm = gPow.append('line')
             .attr('x1', SW_X).attr('y1', SW_TOP_Y)
@@ -303,7 +304,7 @@
             .attr('x', LOAD_X).attr('y', LOAD_TY)
             .attr('width', LOAD_W).attr('height', LOAD_BY - LOAD_TY)
             .attr('rx', 3)
-            .attr('fill', 'var(--bg-2)').attr('stroke', muted).attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', muted).attr('stroke-width', 1.4);
         // Load bottom → bottom rail.
         cElems.loadBot = gPow.append('line')
             .attr('x1', SW_X).attr('y1', LOAD_BY).attr('x2', SW_X).attr('y2', BOT)
@@ -333,7 +334,7 @@
         // ── Component bodies ────────────────────────────────
         // Battery: circle with +/-.
         gComp.append('circle').attr('cx', BAT_X).attr('cy', BAT_Y).attr('r', BAT_R)
-            .attr('fill', 'var(--bg-2)').attr('stroke', stroke).attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', stroke).attr('stroke-width', 1.4);
         gComp.append('text').attr('x', BAT_X).attr('y', BAT_Y - 4).attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 13)
             .attr('fill', label).text('+');
@@ -343,7 +344,7 @@
 
         // V_ref source.
         gComp.append('circle').attr('cx', REF_X).attr('cy', REF_Y).attr('r', REF_R)
-            .attr('fill', 'var(--bg-2)').attr('stroke', stroke).attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', stroke).attr('stroke-width', 1.4);
         gComp.append('text').attr('x', REF_X).attr('y', REF_Y - 3).attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', label).text('+');
@@ -356,7 +357,7 @@
             .attr('points', CMP_LX + ',' + CMP_TY + ' ' +
                             CMP_LX + ',' + CMP_BY + ' ' +
                             CMP_RX + ',' + CMP_OY)
-            .attr('fill', 'var(--bg-2)').attr('stroke', stroke).attr('stroke-width', 1.4);
+            .attr('fill', 'var(--white)').attr('stroke', stroke).attr('stroke-width', 1.4);
         gComp.append('text').attr('x', CMP_LX + 8).attr('y', CMP_PIN_HI + 4)
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
             .attr('fill', label).text('+');
@@ -377,45 +378,37 @@
 
         // ── Labels (some animated) ──────────────────────────
         // Battery label and live value (left of circle).
-        gLbl.append('text').attr('x', BAT_X - BAT_R - 8).attr('y', BAT_Y - 4)
+        window.renderKatex(gLbl, 'V_\\mathrm{cell}', BAT_X - BAT_R - 8 - 25, BAT_Y - 9,
+            { size: 14, align: 'right', width: 50, height: 18 });
+        cElems.vcellTxt = gLbl.append('text').attr('x', BAT_X - BAT_R - 8).attr('y', BAT_Y + 14)
             .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', label).text('V_cell');
-        cElems.vcellTxt = gLbl.append('text').attr('x', BAT_X - BAT_R - 8).attr('y', BAT_Y + 11)
-            .attr('text-anchor', 'end')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--c-input)').attr('font-weight', '600').text('— V');
+            .attr('fill', 'var(--c-input)').text('');
 
         // V_ref label and live value (right of circle).
-        gLbl.append('text').attr('x', REF_X + REF_R + 8).attr('y', REF_Y - 3)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', label).text('V_cut');
-        cElems.vcutTxt = gLbl.append('text').attr('x', REF_X + REF_R + 8).attr('y', REF_Y + 12)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 12)
-            .attr('fill', 'var(--c-thresh)').attr('font-weight', '600').text('— V');
+        window.renderKatex(gLbl, 'V_\\mathrm{cut}', REF_X + REF_R + 8 + 25, REF_Y - 9,
+            { size: 14, align: 'left', width: 50, height: 18 });
+        cElems.vcutTxt = gLbl.append('text').attr('x', REF_X + REF_R + 8).attr('y', REF_Y + 14)
+            .attr('fill', 'var(--c-thresh)').text('');
 
         // Comparator label inside the triangle.
         gLbl.append('text').attr('x', CMP_LX + 28).attr('y', CMP_OY + 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', muted).text('CMP');
+            .attr('fill', label).text('CMP');
 
         // Comparator output label above the wire.
         cElems.outLabel = gLbl.append('text')
             .attr('x', (CMP_RX + GATE_X) / 2).attr('y', CMP_OY - 7)
             .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', muted).text('—');
+            .attr('fill', label).text('');
 
         // Switch label (above the top contact).
         gLbl.append('text').attr('x', SW_X + 14).attr('y', SW_TOP_Y - 4)
-            .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 10)
-            .attr('fill', muted).text('switch');
+            .attr('fill', label).text('Switch');
 
         // Load label inside the rectangle.
         gLbl.append('text').attr('x', LOAD_X + LOAD_W / 2)
             .attr('y', (LOAD_TY + LOAD_BY) / 2 + 4).attr('text-anchor', 'middle')
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
-            .attr('fill', label).text('LOAD');
+            .attr('fill', label).text('Load');
     }
 
     function updateCircuit(v, on) {
@@ -442,7 +435,7 @@
         }
 
         // Power-path wires: green and slightly thicker when current flows.
-        var pathCol = on ? 'var(--c-high)' : 'var(--muted)';
+        var pathCol = on ? 'var(--c-high)' : 'var(--d-grey)';
         var pathW   = on ? 2.0 : 1.6;
         [cElems.railSw, cElems.swLoad, cElems.loadBot].forEach(function (sel) {
             sel.attr('stroke', pathCol).attr('stroke-width', pathW);
@@ -450,17 +443,16 @@
         cElems.arm.attr('stroke', pathCol).attr('stroke-width', on ? 2.4 : 2.0);
 
         // Comparator output line + control arrow + label.
-        var ctrlCol = on ? 'var(--c-high)' : 'var(--c-thresh)';
+        var ctrlCol = on ? 'var(--c-high)' : 'var(--c-hot)';
         cElems.outWire.attr('stroke', ctrlCol).attr('stroke-width', on ? 2.0 : 1.6);
         cElems.gateArrow.attr('fill', ctrlCol);
         cElems.ctrlLine.attr('stroke', ctrlCol);
         cElems.outLabel.text(on ? 'HIGH' : 'LOW').attr('fill', ctrlCol);
 
-        // Load fill: glow when powered, else blank with a muted outline.
+        // Load fill: tinted when powered, else blank with a grey outline.
         cElems.load
-            .attr('fill', on ? 'var(--c-high)' : 'var(--bg-2)')
-            .attr('fill-opacity', on ? 0.30 : 1)
-            .attr('stroke', on ? 'var(--c-high)' : 'var(--muted)')
+            .attr('fill', on ? 'var(--d-green-soft)' : 'var(--white)')
+            .attr('stroke', on ? 'var(--c-high)' : 'var(--d-grey)')
             .attr('stroke-width', on ? 1.8 : 1.4);
     }
 
@@ -468,7 +460,9 @@
         var dt = (now - state.last) / 1000;
         state.last = now;
         if (state.running && dt < 0.25) {
-            state.t = Math.min(T_FULL, state.t + dt * state.rate);
+            // Clamped at zero: the first frame timestamp can precede
+            // state.last, which would place the marker left of the axis.
+            state.t = Math.max(0, Math.min(T_FULL, state.t + dt * state.rate));
             drawLive();
             updateReadout();
         }
@@ -484,7 +478,7 @@
 
         rateInp.addEventListener('input', function () {
             state.rate = parseFloat(rateInp.value);
-            rateLab.textContent = state.rate.toFixed(1) + ' ×';
+            rateLab.textContent = state.rate.toFixed(1) + '×';
         });
         runPill.addEventListener('click', function () {
             state.running = !state.running;
@@ -495,9 +489,6 @@
             state.t = 0;
             drawLive();
             updateReadout();
-        });
-        window.addEventListener('themechange', function () {
-            drawStatic(); drawLive(); buildCircuit(); updateReadout();
         });
         window.addEventListener('resize', function () {
             layout(); drawStatic(); drawLive();

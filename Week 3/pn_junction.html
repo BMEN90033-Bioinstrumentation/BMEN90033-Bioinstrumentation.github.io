@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · The pn Junction</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · The pn junction</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -55,7 +49,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · SEMICONDUCTORS</div>
-            <h1 class="hero">The pn <em>junction</em></h1>
+            <h1 class="hero">The pn junction</h1>
             <p class="sub">Joining p-type and n-type silicon creates a region depleted of mobile carriers and a
                 built-in potential barrier across it. An applied voltage raises or lowers that barrier, so the
                 junction conducts readily in one direction and very little in the other. This asymmetry is the basis
@@ -96,7 +90,7 @@
             <p>The scene replays the formation over ten seconds, then holds the junction at the bias set by the
                 slider. The width of the shaded depletion region follows the computed $W$ of section 03 for the
                 doping set there, scaled so that $0.43\,\mu\text{m}$ spans 12.8 scene units; it is drawn symmetric
-                about the junction and capped at the block faces. A battery connected through the wires applies the bias: forward bias places the positive
+                about the junction and limited to the block faces. A battery connected through the wires applies the bias: forward bias places the positive
                 terminal on the p-side, reverse bias on the n-side.</p>
 
             <div class="callout">
@@ -133,7 +127,8 @@
                     <span><span class="sw dot" style="background:var(--c-free)"></span>free electron</span>
                     <span><span class="sw ring" style="border-color:var(--c-hole)"></span>hole</span>
                     <span><span class="sw band" style="background:var(--c-depl)"></span>depletion region</span>
-                    <span><span class="sw" style="background:linear-gradient(90deg, var(--c-b), var(--c-p))"></span>field line, n to p</span>
+                    <span><span class="sw half" style="background:var(--c-p)"></span><span class="sw half" style="background:var(--c-b)"></span>field line, n-side to p-side</span>
+                    <span><span class="sw dot" style="background:var(--c-flash)"></span>recombination event (expanding flash)</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">state</span><span class="v" data-out="state3d"></span></div>
@@ -287,7 +282,7 @@
                     <span><span class="sw" style="background:var(--c-w)"></span>total $W$</span>
                     <span><span class="sw dash" style="border-top-color:var(--c-b)"></span>$x_p$ (p-side)</span>
                     <span><span class="sw dash" style="border-top-color:var(--c-p)"></span>$x_n$ (n-side)</span>
-                    <span>dot: present bias</span>
+                    <span><span class="sw dot" style="background:var(--c-w)"></span>present bias</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$V$</span><span class="v" data-out="bias"></span></div>

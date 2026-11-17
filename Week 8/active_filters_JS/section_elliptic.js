@@ -65,7 +65,7 @@
 
         var filt = window.FilterMath.elliptic(N);
         lastFilter = filt;
-        window.AFPlots.drawMagnitudeUnityContour(SP, filt, window.AFPlots.getCssVar('--c-mark'));
+        window.AFPlots.drawMagnitudeUnityContour(SP, filt, window.AFPlots.getCssVar('--c-ref'));
         // Off-window zeros are listed once per |im| magnitude, with a
         // short label at the top edge of the plot just to the right of
         // the imaginary axis. The list is built up first, then rendered
@@ -80,29 +80,28 @@
             }
             window.AFPlots.drawZero(SP.g, SP.x(z.re), SP.y(z.im), col.zero, 7);
         });
-        offWindowKeys.forEach(function (key, idx) {
-            SP.g.append('text')
-                .attr('x', SP.x(0) + 10).attr('y', 16 + idx * 14)
+        if (offWindowKeys.length) {
+            var offLabel = SP.g.append('text')
                 .attr('fill', col.zero)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 10)
-                .attr('text-anchor', 'start')
-                .text('zeros ±j' + key + ' (off plot)');
-        });
+                .attr('font-family', window.AFPlots.MONO)
+                .attr('font-size', 12)
+                .attr('text-anchor', 'end');
+            ['Zeros outside plot'].concat(offWindowKeys.map(function (key) { return '±j' + key; }))
+                .forEach(function (line, idx) {
+                    offLabel.append('tspan').attr('x', SP.x(0) - 10).attr('y', 16 + idx * 16).text(line);
+                });
+        }
         filt.poles.forEach(function (p) {
             window.AFPlots.drawPole(SP.g, SP.x(p.re), SP.y(p.im), col.pole, 7);
         });
 
         var entries = [
-            { color: col.pole, label: 'elliptic poles (N = ' + N + ')' },
-            { color: col.zero, label: 'imaginary-axis zeros' },
-            { color: window.AFPlots.getCssVar('--c-cheb1'), label: 'cheb-I ellipse (ref.)' },
-            { color: window.AFPlots.getCssVar('--c-mark'), label: '|H(s)| = 1 contour' }
+            { color: col.pole, label: 'Elliptic poles', marker: 'pole' },
+            { color: col.zero, label: 'Imaginary-axis zeros', marker: 'zero' },
+            { color: window.AFPlots.getCssVar('--c-cheb1'), label: 'Chebyshev I ellipse', marker: 'dash' },
+            { color: window.AFPlots.getCssVar('--c-ref'), label: 'Unity-gain contour', marker: 'dash' }
         ];
-        window.AFPlots.drawLegend(SP.g,
-            SP.innerW - 8,
-            SP.innerH - 8 - 18 * (entries.length - 1) - 12,
-            entries, T);
+        window.AFPlots.drawLegend(SP.g, SP.legendX, SP.legendY, entries, T);
     }
 
     function renderBode() {
@@ -130,7 +129,7 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_p = 1',
             xc, BD.innerH - 16,
-            { width: 80, height: 22, size: 11, pill: true });
+            { width: 80, height: 22, size: 13, pill: true });
     }
 
     function phaseDomainFor(N) { return [-90 * N - 30, 60]; }  // zeros lift the phase above 0°
@@ -161,7 +160,7 @@
             enabled: state.view3d,
             filter: lastFilter,
             color: colors().pole,
-            contourColor: window.AFPlots.getCssVar('--c-mark'),
+            contourColor: window.AFPlots.getCssVar('--c-ref'),
             xDomain: [-3.0, 3.0],
             yDomain: [-3.0, 3.0],
             probeOmega: state.probe.omega,
@@ -195,7 +194,6 @@
             });
         }
         if (sliderN) onSlider(); else render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('af-d3-ready', render3D);
     }

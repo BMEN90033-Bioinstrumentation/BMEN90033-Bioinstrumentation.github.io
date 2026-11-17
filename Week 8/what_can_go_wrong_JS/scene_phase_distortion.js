@@ -3,7 +3,7 @@
     var fs = 500;
     var duration = 2.4;
     // Second-order sections as [Q, ω0/ωc]. Bessel values are for the
-    // 4th-order prototype normalised to −3 dB at ωc (scipy bessel, norm='mag').
+    // 4th-order prototype normalised to -3 dB at ωc (scipy bessel, norm='mag').
     var butterQ = [[0.5412, 1], [1.3065, 1]];
     var besselQ = [[0.5219, 1.4302], [0.8055, 1.6034]];
 
@@ -48,15 +48,24 @@
         var bessel = responseTrace(wc, besselQ);
 
         var mag = window.WCGW.setupPlot('#plot-phase-mag', {
+            legend: [
+                { key: 'distort', label: 'Butterworth' },
+                { key: 'fixed', label: 'Bessel' },
+                { key: 'mark', dash: true, label: 'cutoff ω_c' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-70, 4],
             xLabel: '\\omega\\,[\\mathrm{rad/s}]',
             yLabel: '|H(j\\omega)|\\,[\\mathrm{dB}]',
-            yTicks: 5,
-            margin: { top: 40, right: 70, bottom: 56, left: 70 }
+            yTicks: 5
         });
         var phase = window.WCGW.setupPlot('#plot-phase-phase', {
+            legend: [
+                { key: 'distort', label: 'Butterworth' },
+                { key: 'fixed', label: 'Bessel' },
+                { key: 'mark', dash: true, label: 'cutoff ω_c' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-420, 20],
@@ -73,14 +82,15 @@
         mag.g.append('line').attr('class', 'marker-line').attr('x1', mag.x(wc)).attr('x2', mag.x(wc)).attr('y1', 0).attr('y2', mag.innerH);
         phase.g.append('line').attr('class', 'marker-line').attr('x1', phase.x(wc)).attr('x2', phase.x(wc)).attr('y1', 0).attr('y2', phase.innerH);
 
-        window.WCGW.legend(mag.svg, [
-            { key: 'distort', label: 'Butterworth' },
-            { key: 'fixed', label: 'Bessel' }
-        ], mag.W - 160, 14);
     }
 
     function drawSignal(fcHz) {
         var P = window.WCGW.setupPlot('#plot-phase-ecg', {
+            legend: [
+                { key: 'clean', label: 'clean ECG', opacity: 0.38 },
+                { key: 'distort', label: 'Butterworth output' },
+                { key: 'fixed', label: 'Bessel output' }
+            ],
             xDomain: [0, duration],
             yDomain: [-0.45, 1.2],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -92,34 +102,6 @@
         window.WCGW.drawLine(P, clean, function (d) { return d.t; }, function (d) { return d.y; }, 'clean reference', P.y);
         window.WCGW.drawLine(P, butter, function (d) { return d.t; }, function (d) { return d.y; }, 'distort', P.y);
         window.WCGW.drawLine(P, bessel, function (d) { return d.t; }, function (d) { return d.y; }, 'fixed', P.y);
-        drawTopLegend(P, [
-            { key: 'clean', label: 'clean ECG', opacity: 0.38 },
-            { key: 'distort', label: 'Butterworth output' },
-            { key: 'fixed', label: 'Bessel output' }
-        ]);
-    }
-
-    function drawTopLegend(P, items) {
-        var C = window.WCGW.colors();
-        var widths = [126, 210, 160];
-        var total = widths.reduce(function (a, b) { return a + b; }, 0);
-        var x = Math.max(P.margin.left + 190, P.W - total - 18);
-        var g = P.svg.append('g').attr('transform', 'translate(' + x + ',18)');
-        items.forEach(function (it, i) {
-            var offset = widths.slice(0, i).reduce(function (a, b) { return a + b; }, 0);
-            var row = g.append('g').attr('transform', 'translate(' + offset + ',0)');
-            row.append('line')
-                .attr('x1', 0).attr('x2', 22).attr('y1', 0).attr('y2', 0)
-                .attr('stroke', C[it.key])
-                .attr('stroke-width', 2.6)
-                .attr('opacity', it.opacity || 1);
-            row.append('text')
-                .attr('x', 30).attr('y', 4)
-                .attr('fill', C.fg)
-                .attr('font-size', 11)
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .text(it.label);
-        });
     }
 
     function draw() {
@@ -135,7 +117,6 @@
         readout = document.getElementById('phase-cutoff-val');
         if (!slider) return;
         slider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

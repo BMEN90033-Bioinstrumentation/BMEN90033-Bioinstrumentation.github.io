@@ -40,7 +40,14 @@
             return { t: p.t, sig: sig, raw: raw, out: clipped };
         });
 
+        var saturated = Math.abs(VoutOff) + gain * 1.3e-3 > Vrail;
         var P = window.WCGW.setupPlot('#plot-dc-out', {
+            legend: [
+                { key: 'clean', label: 'amplified signal (offset removed)', opacity: 0.45, dash: true },
+                { key: saturated ? 'distort' : 'fixed', label: 'output with DC errors' },
+                { key: 'distort', dash: true, label: 'supply rails ±V_rail' },
+                { label: 'V_e = ' + (Voff * 1000).toFixed(2) + ' mV,  G·V_e = ' + VoutOff.toFixed(2) + ' V' }
+            ],
             xDomain: [0, 4],
             yDomain: [-Vrail * 1.15, Vrail * 1.15],
             xLabel: 't\\,[\\mathrm{s}]',
@@ -53,23 +60,11 @@
             P.g.append('line').attr('x1', 0).attr('x2', P.innerW).attr('y1', P.y(v)).attr('y2', P.y(v))
                 .attr('stroke', P.colors.distort).attr('stroke-dasharray', '6 4').attr('stroke-width', 1.2).attr('opacity', 0.7);
         });
-        P.g.append('text').attr('x', P.innerW - 8).attr('y', P.y(Vrail) - 6).attr('text-anchor', 'end').attr('fill', P.colors.distort)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('+V_rail');
-        P.g.append('text').attr('x', P.innerW - 8).attr('y', P.y(-Vrail) + 14).attr('text-anchor', 'end').attr('fill', P.colors.distort)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text('-V_rail');
 
-        var saturated = Math.abs(VoutOff) + gain * 1.3e-3 > Vrail;
         window.WCGW.drawLine(P, data, function (d) { return d.t; }, function (d) { return d.sig; }, 'clean faint', P.y);
         window.WCGW.drawLine(P, data, function (d) { return d.t; }, function (d) { return d.out; }, saturated ? 'distort' : 'fixed', P.y);
 
-        var info = 'V_e = ' + (Voff * 1000).toFixed(2) + ' mV   ·   G·V_e = ' + VoutOff.toFixed(2) + ' V';
-        P.g.append('text').attr('x', 14).attr('y', P.innerH - 10).attr('fill', saturated ? P.colors.distort : P.colors.fg)
-            .attr('font-size', 11).attr('font-family', "'JetBrains Mono', monospace").text(info);
 
-        window.WCGW.legend(P.svg, [
-            { key: 'clean', label: 'amplified signal (offset removed)' },
-            { key: saturated ? 'distort' : 'fixed', label: 'output with DC errors' }
-        ], P.margin.left + 12, P.margin.top + 18);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -83,7 +78,6 @@
         rsSlider.addEventListener('input', draw);
         ibSlider.addEventListener('input', draw);
         gainSlider.addEventListener('input', draw);
-        window.addEventListener('themechange', draw);
         window.addEventListener('resize', window.WCGW.debounceResize(draw));
         draw();
     });

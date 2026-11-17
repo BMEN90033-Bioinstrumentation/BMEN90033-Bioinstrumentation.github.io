@@ -142,7 +142,6 @@
             ready(function () {
                 fn();
                 window.addEventListener('myechange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             });
         },

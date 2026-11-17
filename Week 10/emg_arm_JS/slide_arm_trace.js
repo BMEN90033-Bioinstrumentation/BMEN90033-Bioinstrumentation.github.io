@@ -22,7 +22,7 @@
         { id: 'index',  label: 'index',  cls: 'f-index'  },
         { id: 'middle', label: 'middle', cls: 'f-middle' },
         { id: 'ring',   label: 'ring',   cls: 'f-ring'   },
-        { id: 'pinky',  label: 'pinky',  cls: 'f-pinky'  }
+        { id: 'pinky',  label: 'little', cls: 'f-pinky'  }
     ];
     var N_F = FINGERS.length;
 
@@ -35,7 +35,7 @@
     var orderState = new Array(N_SLOTS);
     for (var _i = 0; _i < N_SLOTS; _i++) orderState[_i] = null;
     // Tray starts with every block in EMGBlocks.list (the user must choose
-    // between Comparator and Schmitt — only one fits in the seven slots).
+    // between Comparator and Schmitt; only one fits in the eight slots).
     var trayList = BLOCKS.map(function (b) { return b.id; });
     var dragId = null;
     var dragSource = null;              // 'tray' or { type:'slot', index:n }
@@ -126,7 +126,7 @@
 
     function rebuildChain() {
         chainHost.innerHTML = '';
-        chainHost.appendChild(endcap('input', 'Strain Gauge'));
+        chainHost.appendChild(endcap('input', 'Strain gauge'));
         for (var i = 0; i < N_SLOTS; i++) {
             chainHost.appendChild(arrowEl());
             var slot = makeSlot(i);
@@ -190,7 +190,7 @@
                 orderOkEl.classList.remove('on');
                 orderOkEl.classList.remove('warn');
             } else {
-                orderOkEl.textContent = ok ? 'yes' : 'no';
+                orderOkEl.textContent = ok ? 'correct' : 'incorrect';
                 orderOkEl.classList.toggle('on', ok);
                 orderOkEl.classList.toggle('warn', !ok);
             }
@@ -206,7 +206,7 @@
 
     function makePlot(svg, yDomain, xTitle, yTitle) {
         var W = 800, H = 220;
-        var margin = { top: 44, right: 18, bottom: 52, left: 96 };
+        var margin = { top: 36, right: 16, bottom: 48, left: 80 };
         var iw, ih, x;
         var laneH = 0;
         var laneTops = new Array(N_F);
@@ -216,17 +216,24 @@
         var gGrid = gRoot.append('g').attr('class', 'grid');
         var gAxis = gRoot.append('g').attr('class', 'axis');
         var gTitles = gRoot.append('g');
-        var gPaths = FINGERS.map(function () { return gRoot.append('g'); });
+        // Traces are clipped to the plot area so that an off-scale signal
+        // (incomplete chain) cannot cross the axis labels.
+        var clipId = svg.attr('id') + '-clip';
+        var clipRect = svg.append('defs').append('clipPath').attr('id', clipId).append('rect');
+        var gPaths = FINGERS.map(function () {
+            return gRoot.append('g').attr('clip-path', 'url(#' + clipId + ')');
+        });
         var paths = FINGERS.map(function () { return null; });
 
         function layout() {
             var rect = svg.node().getBoundingClientRect();
-            W = Math.max(420, rect.width);
+            W = Math.max(260, rect.width);
             H = Math.max(160, rect.height);
             svg.attr('viewBox', '0 0 ' + W + ' ' + H);
             iw = W - margin.left - margin.right;
             ih = H - margin.top - margin.bottom;
             gRoot.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            clipRect.attr('width', iw).attr('height', ih);
             x = d3.scaleLinear().domain([-T_WIN, 0]).range([0, iw]);
             ySingle = d3.scaleLinear().domain(yDomain).range([ih, 0]);
             laneH = ih / N_F;
@@ -271,7 +278,11 @@
                         .text(FINGERS[j].label);
                 }
             } else {
-                var ys = ySingle.ticks(5);
+                // About one tick per 30 px keeps 13 px labels separated. A
+                // tick on the bottom edge is dropped so that its label stays
+                // clear of the first time-axis label.
+                var ys = ySingle.ticks(Math.max(2, Math.floor(ih / 30)))
+                    .filter(function (v) { return ySingle(v) < ih - 6; });
                 ys.forEach(function (v) {
                     gGrid.append('line')
                         .attr('class', Math.abs(v) < 1e-6 ? 'major' : '')
@@ -288,16 +299,16 @@
             var xt = [-2, -1.5, -1, -0.5, 0];
             gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
                 .call(d3.axisBottom(x).tickValues(xt)
-                    .tickFormat(function (d) { return d.toFixed(1) + ' s'; })
+                    .tickFormat(function (d) { return d.toFixed(1); })
                     .tickSize(0).tickPadding(10))
                 .select('.domain').remove();
 
             gTitles.append('text').attr('class', 'axis-title')
-                .attr('x', iw / 2).attr('y', ih + 40)
+                .attr('x', iw / 2).attr('y', ih + 38)
                 .attr('text-anchor', 'middle')
                 .text(xTitle);
             gTitles.append('text').attr('class', 'axis-title')
-                .attr('transform', 'translate(' + (-72) + ',' + (ih / 2) + ') rotate(-90)')
+                .attr('transform', 'translate(' + (-66) + ',' + (ih / 2) + ') rotate(-90)')
                 .attr('text-anchor', 'middle')
                 .text(yTitle);
         }
@@ -344,8 +355,8 @@
         };
     }
 
-    var inputPlot  = makePlot(inputSvg,  [-0.40, 1.00], 'time relative to now, s', 'bridge V');
-    var outputPlot = makePlot(outputSvg, [-0.20, 1.30], 'time relative to now, s', 'servo V');
+    var inputPlot  = makePlot(inputSvg,  [-0.40, 1.00], 'Time relative to present (s)', 'Bridge output (V)');
+    var outputPlot = makePlot(outputSvg, [-0.20, 1.30], 'Time relative to present (s)', 'Servo drive (V)');
 
     // ─── Per-finger state and UI ─────────────────────────────────────
     var runners = FINGERS.map(function () { return window.EMGSignal.makeChainRunner(); });
@@ -409,17 +420,17 @@
     }
     function restorePlaceholder() {
         if (!camHost) return;
-        camHost.innerHTML = '<div class="placeholder">enable camera to capture finger curl</div>';
+        camHost.innerHTML = '<div class="placeholder">Enable the camera to capture finger curl</div>';
     }
     if (window.HandPose && window.HandPose.onStatus) {
         window.HandPose.onStatus(function (s) {
             if (s === 'idle')                setCamStatus('camera off');
-            else if (s === 'starting')       setCamStatus('requesting camera...');
-            else if (s === 'model')          setCamStatus('loading model...');
+            else if (s === 'starting')       setCamStatus('requesting camera');
+            else if (s === 'model')          setCamStatus('loading model');
             else if (s === 'running')        setCamStatus('tracking');
             else if (s.indexOf('error') === 0) {
-                if (s === 'error:permission') setCamStatus('camera denied');
-                else if (s === 'error:nocam') setCamStatus('no camera');
+                if (s === 'error:permission') setCamStatus('camera access denied');
+                else if (s === 'error:nocam') setCamStatus('no camera found');
                 else if (s === 'error:ml5')   setCamStatus('ml5 not loaded');
                 else                          setCamStatus('error');
             }
@@ -523,7 +534,7 @@
         ui.pause.addEventListener('click', function () {
             paused = !paused;
             ui.pause.classList.toggle('active', paused);
-            ui.pause.textContent = paused ? 'paused' : 'pause';
+            ui.pause.textContent = paused ? 'resume' : 'pause';
         });
         if (ui.view) {
             var syncViewToggle = function () {
@@ -559,10 +570,6 @@
         window.addEventListener('resize', function () {
             inputPlot.layout();  inputPlot.drawAxes();
             outputPlot.layout(); outputPlot.drawAxes();
-        });
-        window.addEventListener('themechange', function () {
-            inputPlot.drawAxes();
-            outputPlot.drawAxes();
         });
 
         window.EMGArm = {

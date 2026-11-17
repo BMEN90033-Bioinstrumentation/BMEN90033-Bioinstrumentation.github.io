@@ -3,8 +3,8 @@
 // horizontal axis is time. Three horizontal background bands mark the
 // non-inverting Schmitt's operating zones:
 //   v_in > V_TH : output forced HIGH (green)
-//   V_TL ≤ v_in ≤ V_TH : memory zone (yellow)
-//   v_in < V_TL : output forced LOW  (red)
+//   V_TL ≤ v_in ≤ V_TH : memory zone (olive)
+//   v_in < V_TL : output forced LOW  (pink)
 // A sine test signal scrolls through the bands; the Schmitt state is
 // advanced sample by sample so the running v_out reflects the true
 // hysteresis history. The cursor at the right edge tracks the latest
@@ -22,6 +22,25 @@
     window.SCH = window.SCH || {};
     window.SCH.state = window.SCH.state || {
         beta: 0.20, probe: 0, branch: +1, amp: 2.20, freq: 0.40
+    };
+
+    var MONO = "'JetBrains Mono', monospace";
+
+    // Canvas text with a subscript: base, subscript, then the rest of the
+    // string, vertically centred on y. align is 'left' or 'right'.
+    window.SCH.subText = function (ctx, base, sub, rest, x, y, align) {
+        var F = '13px ' + MONO, FS = '10px ' + MONO;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.font = F;
+        var wb = ctx.measureText(base).width, wr = ctx.measureText(rest).width;
+        ctx.font = FS;
+        var ws = ctx.measureText(sub).width;
+        var x0 = align === 'right' ? x - (wb + ws + wr) : x;
+        ctx.fillText(sub, x0 + wb, y + 4);
+        ctx.font = F;
+        ctx.fillText(base, x0, y);
+        ctx.fillText(rest, x0 + wb + ws, y);
     };
 
     var canvas;
@@ -57,7 +76,7 @@
     }
 
     // Test signal shape:
-    //   tanh(3·sin(phase)) gives a wave that lingers near ±1 with a
+    //   tanh(3 sin(phase)) gives a wave that lingers near ±1 with a
     //   short steep transition through 0. Multiplied by the user-set
     //   amplitude this gives clear plateaus inside the force-HIGH and
     //   force-LOW zones. A small fast ripple is added so the eye can
@@ -97,23 +116,22 @@
         var th = thresholds(s);
         var ctx = canvas.getContext('2d');
 
-        var bg       = window.CMP.cssVar('--bg-2');
+        var bg       = window.T.plotBg;
         var border   = window.CMP.cssVar('--border');
         var grid     = window.CMP.cssVar('--grid-line');
         var gridZero = window.CMP.cssVar('--grid-zero');
         var muted    = window.CMP.cssVar('--muted');
         var fg       = window.CMP.cssVar('--fg');
         var cInput   = window.CMP.cssVar('--c-input');
-        var cHigh    = window.CMP.cssVar('--c-output2');
-        var cLow     = window.CMP.cssVar('--c-thresh');
+        var cHigh    = window.CMP.cssVar('--c-high');
+        var cLow     = window.CMP.cssVar('--c-low');
         var cMem     = window.CMP.cssVar('--c-band');
+        var highFill = window.CMP.cssVar('--c-zone-high');
+        var lowFill  = window.CMP.cssVar('--c-zone-low');
 
-        var greenFill = window.T.isDark ? 'rgba(123, 224, 137, 0.10)'
-                                        : 'rgba(47, 143, 63, 0.08)';
-        var redFill   = window.T.isDark ? 'rgba(255, 92, 122, 0.12)'
-                                        : 'rgba(220, 38, 38, 0.08)';
-
-        var marL = 56, marR = 30, marT = 78, marB = 38;
+        // The right margin carries the threshold and zone labels so that
+        // the scrolling trace never passes behind text.
+        var marL = 54, marR = 122, marT = 78, marB = 46;
         var innerW = dims.w - marL - marR;
         var innerH = dims.h - marT - marB;
 
@@ -130,7 +148,7 @@
         var yTH = yToPx(Math.max(yMin, Math.min(yMax, th.VTH)));
         var yTL = yToPx(Math.max(yMin, Math.min(yMax, th.VTL)));
         if (th.VTH < yMax) {
-            ctx.fillStyle = greenFill;
+            ctx.fillStyle = highFill;
             ctx.fillRect(marL, marT, innerW, yTH - marT);
         }
         if (th.VTL < th.VTH) {
@@ -138,7 +156,7 @@
             ctx.fillRect(marL, yTH, innerW, yTL - yTH);
         }
         if (th.VTL > yMin) {
-            ctx.fillStyle = redFill;
+            ctx.fillStyle = lowFill;
             ctx.fillRect(marL, yTL, innerW, marT + innerH - yTL);
         }
 
@@ -161,14 +179,17 @@
         // Threshold dashed lines
         ctx.setLineDash([5, 4]);
         ctx.lineWidth = 1.6;
-        ctx.strokeStyle = cHigh;
-        ctx.beginPath();
-        ctx.moveTo(marL, yToPx(th.VTH)); ctx.lineTo(marL + innerW, yToPx(th.VTH));
-        ctx.stroke();
-        ctx.strokeStyle = cLow;
-        ctx.beginPath();
-        ctx.moveTo(marL, yToPx(th.VTL)); ctx.lineTo(marL + innerW, yToPx(th.VTL));
-        ctx.stroke();
+        var inRange = th.VTH <= yMax;   // thresholds are symmetric about zero
+        if (inRange) {
+            ctx.strokeStyle = cHigh;
+            ctx.beginPath();
+            ctx.moveTo(marL, yToPx(th.VTH)); ctx.lineTo(marL + innerW, yToPx(th.VTH));
+            ctx.stroke();
+            ctx.strokeStyle = cLow;
+            ctx.beginPath();
+            ctx.moveTo(marL, yToPx(th.VTL)); ctx.lineTo(marL + innerW, yToPx(th.VTL));
+            ctx.stroke();
+        }
         ctx.setLineDash([]);
 
         // Test signal trace
@@ -209,70 +230,71 @@
 
         // Y tick labels
         ctx.fillStyle = muted;
-        ctx.font = "500 11px 'JetBrains Mono', monospace";
+        ctx.font = '13px ' + MONO;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         [-3, -2, -1, 0, 1, 2, 3].forEach(function (v) {
-            ctx.fillText(v.toFixed(0), marL - 6, yToPx(v));
+            ctx.fillText((v < 0 ? '\u2212' : '') + Math.abs(v), marL - 6, yToPx(v));
         });
 
-        // Threshold inline labels (right side, sit on the dashed line)
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'bottom';
-        ctx.fillStyle = cHigh;
-        ctx.fillText('V_TH = ' + fmt(th.VTH) + ' V',
-            marL + innerW - 6, yToPx(th.VTH) - 2);
-        ctx.fillStyle = cLow;
-        ctx.textBaseline = 'top';
-        ctx.fillText('V_TL = ' + fmt(th.VTL) + ' V',
-            marL + innerW - 6, yToPx(th.VTL) + 2);
-
-        // Zone labels along the left interior
-        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        // Right margin: threshold labels level with their dashed lines,
+        // zone names centred in each zone when the zone is tall enough to
+        // hold the name clear of the threshold labels.
+        var labX = marL + innerW + 12;
+        if (inRange) {
+            ctx.fillStyle = cHigh;
+            window.SCH.subText(ctx, 'V', 'TH', ' = ' + fmt(th.VTH).replace('-', '\u2212') + ' V',
+                labX, yToPx(th.VTH), 'left');
+            ctx.fillStyle = cLow;
+            window.SCH.subText(ctx, 'V', 'TL', ' = ' + fmt(th.VTL).replace('-', '\u2212') + ' V',
+                labX, yToPx(th.VTL), 'left');
+        }
+        ctx.font = '13px ' + MONO;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
+        var need = inRange ? 38 : 16;
         ctx.fillStyle = cHigh;
-        if ((yTH - marT) > 22) {
-            ctx.fillText('FORCE HIGH', marL + 6, (marT + yTH) / 2);
+        if ((yTH - marT) > need - 10) {
+            ctx.fillText('Force high', labX, Math.min((marT + yTH) / 2, yTH - 19));
         }
-        ctx.fillStyle = muted;
-        if ((yTL - yTH) > 22) {
-            ctx.fillText('MEMORY', marL + 6, (yTH + yTL) / 2);
+        ctx.fillStyle = fg;
+        if ((yTL - yTH) > need) {
+            ctx.fillText('Memory', labX, (yTH + yTL) / 2);
         }
         ctx.fillStyle = cLow;
-        if ((marT + innerH - yTL) > 22) {
-            ctx.fillText('FORCE LOW', marL + 6, (yTL + marT + innerH) / 2);
+        if ((marT + innerH - yTL) > need - 10) {
+            ctx.fillText('Force low', labX, Math.max((yTL + marT + innerH) / 2, yTL + 19));
         }
 
-        // Time axis tick labels
+        // Time axis tick labels (seconds before the newest sample)
         ctx.fillStyle = muted;
-        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        ctx.font = '13px ' + MONO;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         for (var k = 0; k <= WINDOW_SECS; k++) {
             var tx = marL + (k / WINDOW_SECS) * innerW;
-            var lab = (k === WINDOW_SECS) ? '0' : '-' + (WINDOW_SECS - k) + 's';
+            var lab = (k === WINDOW_SECS) ? '0' : '\u2212' + (WINDOW_SECS - k);
             ctx.fillText(lab, tx, marT + innerH + 6);
         }
 
         // Y-axis title (rotated)
         ctx.save();
-        ctx.translate(18, marT + innerH / 2);
+        ctx.translate(14, marT + innerH / 2);
         ctx.rotate(-Math.PI / 2);
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "13px 'Inter', Arial, sans-serif";
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('voltage (V)', 0, 0);
+        ctx.fillText('voltage [V]', 0, 0);
         ctx.restore();
 
         // X-axis title
         ctx.fillStyle = fg;
-        ctx.font = "500 12px 'Inter', system-ui, sans-serif";
+        ctx.font = "13px 'Inter', Arial, sans-serif";
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('time (relative, s)',
-            marL + innerW / 2, marT + innerH + 20);
+        ctx.fillText('relative time [s]',
+            marL + innerW / 2, marT + innerH + 26);
 
         // State badge as a KaTeX HTML overlay (top-right, clear of the title)
         updateStateBadge(s);
@@ -287,8 +309,8 @@
             badge.className = 'state-badge';
             box.appendChild(badge);
         }
-        var cHigh = window.CMP.cssVar('--c-output2');
-        var cLow  = window.CMP.cssVar('--c-thresh');
+        var cHigh = window.CMP.cssVar('--c-high');
+        var cLow  = window.CMP.cssVar('--c-low');
         badge.style.color = s.branch > 0 ? cHigh : cLow;
         var tex = s.branch > 0
             ? 'v_\\text{out} = +V_\\text{sat}'
@@ -382,7 +404,6 @@
         }, { threshold: 0.15 });
         io.observe(canvas);
 
-        window.addEventListener('themechange', function () { draw(); });
         window.addEventListener('resize', function () {
             setupCanvas(); draw();
         });

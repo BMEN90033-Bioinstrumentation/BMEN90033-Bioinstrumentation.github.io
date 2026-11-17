@@ -2,29 +2,15 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-vin:  #c8a8ff;   /* input signal */
-    --c-npn:  #7be089;   /* NPN device, class A output */
-    --c-pnp:  #58a6ff;   /* PNP device */
-    --c-dead: #ff5c7a;   /* crossover dead zone, clipping */
-    --c-bias: #ffcf5c;   /* DC bias current */
-    --c-dc:   #58a6ff;   /* DC input power */
-    --c-sig:  #7be089;   /* signal power */
-    --c-heat: #ff7a6b;   /* dissipated power */
-    --c-load: rgba(255, 255, 255, 0.55);
-    --hero-a: var(--c-npn);
-    --hero-b: var(--c-pnp);
-}
-
-[data-theme="light"] {
-    --c-vin:  #7c3aed;
-    --c-npn:  #2f8f3f;
-    --c-pnp:  #1d4ed8;
-    --c-dead: #dc2626;
-    --c-bias: #b88200;
-    --c-dc:   #1d4ed8;
-    --c-sig:  #2f8f3f;
-    --c-heat: #c2410c;
-    --c-load: rgba(0, 0, 0, 0.5);
+    --c-npn:  var(--d-blue);     /* NPN device, class A output, signal power */
+    --c-pnp:  var(--d-orange);   /* PNP device */
+    --c-dead: var(--d-pink);     /* crossover dead zone, clipping, Q-point */
+    --c-bias: var(--d-green);    /* DC bias current */
+    --c-vin:  var(--d-violet);   /* input signal */
+    --c-dc:   var(--d-slate);    /* DC input power */
+    --c-sig:  var(--d-blue);     /* signal power */
+    --c-heat: var(--d-olive);    /* dissipated power */
+    --c-load: var(--d-grey);     /* load lines and limits */
 }
 
 .plot-box.circuit  { aspect-ratio: 640 / 420; }
@@ -35,6 +21,7 @@
 
 .readout .item .v.warn { color: var(--c-dead); }
 .legend .sw.dash { border-top-color: var(--c-load); }
+.legend .sw.dot { width: 9px; height: 9px; border-radius: 50%; }
 .toolbar input[type="range"]:disabled { opacity: 0.35; }
-.toolbar .note { color: var(--muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.toolbar .note { color: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 .callout.live { margin-top: 0; }

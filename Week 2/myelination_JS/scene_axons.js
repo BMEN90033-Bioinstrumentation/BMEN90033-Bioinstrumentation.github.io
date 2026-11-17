@@ -19,7 +19,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(window.T.sceneBg);
 scene.fog = new THREE.FogExp2(window.T.sceneBg, 0.006);
 const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 500);
-camera.position.set(0, 18, 45);
+camera.position.set(0, 22, 56);   // frames both axon ends and their labels
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 host.appendChild(renderer.domElement);
@@ -41,15 +41,18 @@ function resize() {
 new ResizeObserver(resize).observe(host);
 resize();
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+const WHITE = col('--white');
+scene.add(new THREE.AmbientLight(WHITE, 0.5));
+const dirLight = new THREE.DirectionalLight(WHITE, 0.7);
 dirLight.position.set(20, 30, 20);
 scene.add(dirLight);
-const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
+const backLight = new THREE.DirectionalLight(WHITE, 0.2);
 backLight.position.set(-10, 10, -10);
 scene.add(backLight);
 
-// Viridis colourmap, 16 stops.
+// Viridis colourmap, 16 stops. It encodes field magnitude and is independent
+// of the site palette. The field arrows use only the lower 80 % of the map
+// (see frame), because the yellow end has too little contrast on white.
 const VIRIDIS_STOPS = [
     [0.267004, 0.004874, 0.329415], [0.282327, 0.094955, 0.417331],
     [0.278826, 0.176998, 0.483397], [0.258965, 0.251537, 0.524736],
@@ -78,42 +81,59 @@ function dipoleField(dipolePos, dipoleDir, point) {
     return rNorm.clone().multiplyScalar(3 * pDotR).sub(dipoleDir).divideScalar(dist * dist * dist);
 }
 
-// ── Sprites (canvas text, repainted on theme change) ──
+// ── Sprites (canvas text, repainted once the house fonts load) ──
+// A label canvas is sized to its text, so every label has the same text
+// height: sy world units for the 32 px canvas, about 13 px at the default view.
+// The canvas is kept near the drawn size so thin strokes are not averaged away.
+// Labels are drawn over the scene on a translucent plate, so field arrows that
+// pass behind or in front of a label do not cut through its text.
 const sprites = [];
-function textSprite(text, cssVar, fontSize, sx, sy, wide) {
+const SPRITE_FONT = '400 24px Inter, Arial, sans-serif';
+function textSprite(text, cssVar, sy, wide) {
     const canvas = document.createElement('canvas');
-    canvas.width = wide ? 512 : 64; canvas.height = 64;
+    canvas.height = 32;
     const tex = new THREE.CanvasTexture(canvas);
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-    s.scale.set(sx, sy, 1);
+    tex.colorSpace = THREE.SRGBColorSpace;   // otherwise the palette colours render washed out
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, fog: false, depthTest: false }));
+    s.renderOrder = 10;
     s.userData.paint = () => {
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, 64);
+        ctx.font = SPRITE_FONT;
+        canvas.width = wide ? Math.ceil(ctx.measureText(text).width) + 8 : 32;   // also clears the canvas
+        if (wide) {
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = css('--white');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+        }
         ctx.fillStyle = css(cssVar);
-        ctx.font = 'bold ' + fontSize + 'px sans-serif';
+        ctx.font = SPRITE_FONT;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(text, canvas.width / 2, 32);
+        ctx.fillText(text, canvas.width / 2, 16);
+        s.scale.set(sy * canvas.width / 32, sy, 1);
+        tex.dispose();   // the canvas size may have changed
         tex.needsUpdate = true;
     };
     s.userData.paint();
     sprites.push(s);
     return s;
 }
-const label = (text, v, fs, sx, sy) => textSprite(text, v, fs, sx, sy, true);
-const charSprite = (text, v) => textSprite(text, v, 48, 1.8, 1.8, false);
+const label = (text, v) => textSprite(text, v, 1.7, true);
+const charSprite = (text, v) => textSprite(text, v, 1.8, false);
 
 // ── Fixed labels and recording markers ──
-const myelLabel = label('Myelinated axon', '--c-myel-lbl', 48, 8, 1);
+// The stimulus labels sit above the pole signs, which pass at y + 2.5.
+const myelLabel = label('Myelinated axon', '--c-myelin');
 myelLabel.position.set(0, MYEL_Y + 5.5, 0);
-const unmyelLabel = label('Unmyelinated axon', '--c-unmyel-lbl', 48, 8, 1);
-unmyelLabel.position.set(0, UNMYEL_Y + 4.5, 0);
-const stim1 = label('Stimulus', '--c-stim-lbl', 48, 6.4, 0.8);
-stim1.position.set(-HALF_LEN - 3, MYEL_Y + 2.5, 0);
-const stim2 = label('Stimulus', '--c-stim-lbl', 48, 6.4, 0.8);
-stim2.position.set(-HALF_LEN - 3, UNMYEL_Y + 2.5, 0);
-const recLabel = label('Recording', '--c-rec', 48, 6.4, 0.8);
-recLabel.position.set(RECORD_X, MYEL_Y + 7, 0);
+const unmyelLabel = label('Unmyelinated axon', '--c-depol');
+unmyelLabel.position.set(0, UNMYEL_Y + 5.2, 0);
+const stim1 = label('Stimulus', '--c-dipole');
+stim1.position.set(-HALF_LEN, MYEL_Y + 4.4, 0);
+const stim2 = label('Stimulus', '--c-dipole');
+stim2.position.set(-HALF_LEN, UNMYEL_Y + 4.4, 0);
+const recLabel = label('Recording', '--c-rec');
+recLabel.position.set(RECORD_X, MYEL_Y + 4.6, 0);
 scene.add(myelLabel, unmyelLabel, stim1, stim2, recLabel);
 
 const recMat = new THREE.MeshPhongMaterial();
@@ -146,23 +166,20 @@ const unmyelDepol = new THREE.Mesh(unmyelDepolGeo, unmyelDepolMat);
 unmyelDepol.position.set(-HALF_LEN, UNMYEL_Y, 0);
 scene.add(unmyelDepol);
 
-function dipoleGroup(rCore, rGlow, glowOpacity, coreOpacity, lightI, lightD, glowVar) {
+function dipoleGroup(rCore, coreOpacity, lightI, lightD, lightVar) {
     const group = new THREE.Group();
     const core = new THREE.MeshPhongMaterial({ transparent: true, opacity: coreOpacity, emissiveIntensity: 0.25 });
     group.add(new THREE.Mesh(new THREE.SphereGeometry(rCore, 24, 24), core));
-    const glowMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: glowOpacity, depthWrite: false });
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(rGlow, 16, 16), glowMat);
-    group.add(glow);
-    const light = new THREE.PointLight(0xffffff, lightI, lightD, 2);
+    const light = new THREE.PointLight(WHITE, lightI, lightD, 2);
     group.add(light);
     scene.add(group);
-    return { group, core, glowMat, glow, light, glowVar };
+    return { group, core, light, lightVar };
 }
-const unmyelDip = dipoleGroup(1.2, 2.2, 0.06, 0.85, 0.8, 12, '--c-depol');
-const myelDip = dipoleGroup(1.5, 2.8, 0.08, 0.9, 1.5, 18, '--c-dipole');
+const unmyelDip = dipoleGroup(1.2, 0.85, 0.8, 12, '--c-depol');
+const myelDip = dipoleGroup(1.5, 0.9, 1.5, 18, '--c-dipole');
 
 function dipoleArrow(len, head, headW) {
-    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), len, 0xffffff, head, headW);
+    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), len, window.T.hex('ink'), head, headW);
     a.line.material.transparent = true; a.line.material.opacity = 0.6;
     a.cone.material.transparent = true; a.cone.material.opacity = 0.6;
     scene.add(a);
@@ -170,8 +187,8 @@ function dipoleArrow(len, head, headW) {
 }
 const unmyelArrow = dipoleArrow(4, 0.8, 0.5);
 const myelArrow = dipoleArrow(4.5, 0.9, 0.55);
-const unmyelPlus = charSprite('+', '--c-plus'), unmyelMinus = charSprite('−', '--c-minus');
-const myelPlus = charSprite('+', '--c-plus'), myelMinus = charSprite('−', '--c-minus');
+const unmyelPlus = charSprite('+', '--c-dipole'), unmyelMinus = charSprite('−', '--c-dipole');
+const myelPlus = charSprite('+', '--c-dipole'), myelMinus = charSprite('−', '--c-dipole');
 scene.add(unmyelPlus, unmyelMinus, myelPlus, myelMinus);
 
 // ── Myelinated axon: sheaths and nodes ──
@@ -223,7 +240,7 @@ const trail = [0, 1, 2].map((i) => {
 // ── Intracellular current arrows ──
 let intraMyel = [], intraUnmyel = [];
 const intraArrow = (x, y, len, head, headW) => {
-    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, 0), len, 0xffffff, head, headW);
+    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, 0), len, window.T.hex('ink'), head, headW);
     a.line.material.transparent = true; a.cone.material.transparent = true;
     a.visible = false;
     a.setColor(col('--c-intra'));
@@ -256,7 +273,9 @@ function buildCrossSection() {
         const i = sprites.indexOf(c);
         if (i >= 0) sprites.splice(i, 1);
     });
-    const csX = 25, csScale = 3, csMyY = MYEL_Y + 8, csUnY = UNMYEL_Y - 6;
+    // csScale 2 keeps the myelinated drawing clear of the axon and the
+    // 'Recording' label at the maximum myelin thickness.
+    const csX = 21, csScale = 2, csMyY = MYEL_Y + 8, csUnY = UNMYEL_Y - 6;
     const disc = (r, y, v, o) => {
         const m = new THREE.Mesh(new THREE.CircleGeometry(r, 32), new THREE.MeshBasicMaterial({ color: col(v), transparent: true, opacity: o }));
         m.position.set(csX, y, 0); crossGroup.add(m);
@@ -266,15 +285,17 @@ function buildCrossSection() {
             new THREE.MeshBasicMaterial({ color: col(v), transparent: true, opacity: o, side: THREE.DoubleSide }));
         m.position.set(csX, y, 0); crossGroup.add(m);
     };
-    const text = (t, v, fs, sx, sy, y) => { const s = label(t, v, fs, sx, sy); s.position.set(csX, y, 0); crossGroup.add(s); };
+    const text = (t, v, y) => { const s = label(t, v); s.position.set(csX, y, 0); crossGroup.add(s); };
+    // Captions clear the outer radius of each drawing.
+    const rMy = (AXON_RADIUS + M.p.myelin) * csScale, rUn = (AXON_RADIUS + 0.1) * csScale;
     disc(AXON_RADIUS * csScale, csMyY, '--c-axon', 0.3);
-    ring(AXON_RADIUS * csScale, (AXON_RADIUS + M.p.myelin) * csScale, csMyY, '--c-myelin', 0.5);
-    text('Cross-section (myelinated)', '--c-myel-lbl', 28, 7, 0.7, csMyY + 5);
-    text('Myelin insulates: no ion flow', '--c-myel-lbl', 24, 7, 0.6, csMyY + 3.5);
+    ring(AXON_RADIUS * csScale, rMy, csMyY, '--c-myelin', 0.5);
+    text('Cross-section (myelinated)', '--c-myelin', csMyY + rMy + 3.4);
+    text('Myelin insulates: no ion flow', '--c-myelin', csMyY + rMy + 1.4);
     disc(AXON_RADIUS * csScale, csUnY, '--c-axon', 0.3);
-    ring(AXON_RADIUS * csScale, (AXON_RADIUS + 0.1) * csScale, csUnY, '--c-axon', 0.4);
-    text('Cross-section (unmyelinated)', '--c-unmyel-lbl', 28, 7, 0.7, csUnY - 4);
-    text('Full membrane exposed: continuous ion exchange', '--c-unmyel-lbl', 24, 9, 0.6, csUnY - 2.8);
+    ring(AXON_RADIUS * csScale, rUn, csUnY, '--c-axon', 0.4);
+    text('Cross-section (unmyelinated)', '--c-depol', csUnY - rUn - 1.4);
+    text('Membrane exposed: continuous ion exchange', '--c-depol', csUnY - rUn - 3.4);
 }
 
 // ── Extracellular field arrows ──
@@ -292,7 +313,7 @@ function buildFieldArrows(density) {
             const nearUnmyel = Math.abs(y - UNMYEL_Y) < AXON_RADIUS + 0.3 && Math.abs(x) < HALF_LEN;
             if (nearMyel || nearUnmyel) continue;
             for (let z = -4; z <= 4; z += step * 1.5) {
-                const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, z), 1, 0x444444, 0.3, 0.2);
+                const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, z), 1, window.T.hex('ink'), 0.3, 0.2);
                 a.userData = { basePos: new THREE.Vector3(x, y, z) };
                 scene.add(a);
                 fieldArrows.push(a);
@@ -310,7 +331,7 @@ function buildGrid() {
     scene.add(grid);
 }
 
-// ── Theme colours ──
+// ── Colours ──
 function recolour() {
     scene.background = new THREE.Color(window.T.sceneBg);
     scene.fog.color.set(window.T.sceneBg);
@@ -322,8 +343,7 @@ function recolour() {
     [unmyelDip, myelDip].forEach((d) => {
         const w = col('--c-dipole');
         d.core.color.copy(w); d.core.emissive.copy(w);
-        d.glowMat.color.copy(col(d.glowVar));
-        d.light.color.copy(col(d.glowVar));
+        d.light.color.copy(col(d.lightVar));
     });
     unmyelArrow.setColor(col('--c-dipole'));
     myelArrow.setColor(col('--c-dipole'));
@@ -350,7 +370,7 @@ function rebuild() {
 rebuild();
 recolour();
 window.addEventListener('myechange', rebuild);
-window.addEventListener('themechange', recolour);
+document.fonts.ready.then(() => sprites.forEach((s) => s.userData.paint()));
 
 // ── Per-frame update ──
 const MAX_FIELD = 0.004, X_DIR = new THREE.Vector3(1, 0, 0);
@@ -367,7 +387,6 @@ function frame() {
     unmyelDepol.visible = uIn && depLen > 0.05;
     unmyelDip.group.position.set(ux, UNMYEL_Y, 0);
     unmyelDip.group.visible = uIn;
-    unmyelDip.glow.scale.setScalar(1 + Math.sin(now * 0.006) * 0.08);
     unmyelDip.light.intensity = uIn ? 0.8 + Math.sin(now * 0.006) * 0.2 : 0;
     unmyelArrow.visible = uIn;
     unmyelArrow.position.set(ux - 2, UNMYEL_Y, 0);
@@ -379,7 +398,6 @@ function frame() {
     const mx = s.myelX, mIn = s.node < np.length, active = s.node;
     myelDip.group.position.set(mx, MYEL_Y, 0);
     myelDip.group.visible = mIn;
-    myelDip.glow.scale.setScalar(1 + Math.sin(now * 0.007) * 0.08);
     myelDip.light.intensity = mIn ? 1.2 + Math.sin(now * 0.007) * 0.3 : 0;
     if (s.jumping) {
         const stretch = 1 + s.jumpProgress * (1 - s.jumpProgress) * 1.5;   // slight stretch during a jump
@@ -399,7 +417,7 @@ function frame() {
     } else myelDepolMesh.visible = false;
 
     // Nodes: recently depolarised, active, resting.
-    const cNode = col('--c-node'), cAct = col('--c-node-active'), cPast = col('--c-node-past');
+    const cNode = col('--c-node'), cAct = col('--c-node-active'), cPast = col('--c-depol');
     nodeMeshes.forEach((node, i) => {
         const m = node.material;
         m.emissive.copy(cNode);
@@ -450,7 +468,7 @@ function frame() {
         a.setDirection(field.normalize());
         const len = Math.min(mag / MAX_FIELD * 3, 3.5);
         a.setLength(Math.max(len, 0.4), len * 0.25, len * 0.15);
-        a.setColor(viridis(Math.min(mag / MAX_FIELD, 1)));
+        a.setColor(viridis(0.8 * Math.min(mag / MAX_FIELD, 1)));
     }
 
     renderer.render(scene, camera);

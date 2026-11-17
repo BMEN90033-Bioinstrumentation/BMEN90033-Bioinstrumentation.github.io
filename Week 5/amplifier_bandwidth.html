@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Amplifier Bandwidth</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Amplifier bandwidth</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -47,7 +41,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 5 · AMPLIFIERS</div>
-            <h1 class="hero">Amplifier <em>bandwidth</em></h1>
+            <h1 class="hero">Amplifier bandwidth</h1>
             <p class="sub">Every real amplifier has a finite bandwidth. A single resistor and capacitor at the output
                 of an ideal gain stage model this limit. This page derives the resulting transfer function, represents
                 its denominator on the complex plane, builds the Bode magnitude plot, and relates gain to bandwidth
@@ -95,7 +89,7 @@
                 <li><strong>$\omega \ll \omega_0$</strong>: $j(\omega/\omega_0)$ is negligible, the denominator is close
                     to 1 and the gain is $A_v$. The capacitor is effectively an open circuit.</li>
                 <li><strong>$\omega \gg \omega_0$</strong>: the imaginary term dominates, the denominator grows and the
-                    gain falls. The capacitor shorts the output to ground.</li>
+                    gain falls. The capacitor shunts the output to ground.</li>
                 <li><strong>$\omega = \omega_0$</strong>: the real and imaginary parts of the denominator are both 1, its
                     magnitude is $\sqrt{2}$ and the gain is $A_v/\sqrt{2}$, the $-3\,\text{dB}$ point.</li>
             </ul>
@@ -187,7 +181,7 @@
                     </span>
                     <span class="divider"></span>
                     <span class="seg">
-                        <button class="seg-btn" data-preset="audio">audio amp</button>
+                        <button class="seg-btn" data-preset="audio">audio amplifier</button>
                         <button class="seg-btn" data-preset="rf">RF stage</button>
                     </span>
                 </div>
@@ -207,7 +201,7 @@
                     <div class="item"><span class="k">$|D|$</span><span class="v" data-out="mag"></span></div>
                     <div class="item"><span class="k">$\theta$</span><span class="v" data-out="angle"></span></div>
                     <div class="item"><span class="k">$|H|$</span><span class="v" data-out="gain"></span></div>
-                    <div class="item"><span class="k">$|H|$</span><span class="v" data-out="gaindb"></span></div>
+                    <div class="item"><span class="k">$|H|_\text{dB}$</span><span class="v" data-out="gaindb"></span></div>
                 </div>
             </div>
         </div>
@@ -217,10 +211,10 @@
     <section class="scene" id="sec-phase">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>phase lag</span></div>
-            <h2>What the angle means in the time domain</h2>
+            <h2>The phase angle in the time domain</h2>
 
-            <p class="lead">Dividing by a complex number of angle $\theta$ rotates the result by $-\theta$. The angle of
-                the denominator phasor therefore appears as a phase lag of the output:</p>
+            <p class="lead">Division by a complex number of angle $\theta$ subtracts $\theta$ from the angle of the result. The
+                angle of the denominator phasor therefore appears as a phase lag of the output:</p>
 
             <div class="eq-block">$$\angle H(j\omega) = -\arctan(\omega/\omega_0)$$</div>
 
@@ -285,7 +279,7 @@
 
             <p>Gain is expressed in decibels, $|H|_\text{dB} = 20\log_{10}|H|$: a gain of 100 is $40\,\text{dB}$, 1000
                 is $60\,\text{dB}$, unity is $0\,\text{dB}$, and halving the voltage is $-6\,\text{dB}$. Frequency is
-                spaced in decades, so each axis division is a factor of 10 and 1 Hz and 1 MHz appear on the same axis
+                spaced in decades, so each axis division is a factor of 10 and $1\,\text{Hz}$ and $1\,\text{MHz}$ appear on the same axis
                 with equal weight. In logarithmic form the quotient becomes a difference, and
                 $20\log_{10}\sqrt{x} = 10\log_{10}x$:</p>
 
@@ -298,7 +292,7 @@
                 <li><strong>passband, $\omega \ll \omega_0$</strong>: $(\omega/\omega_0)^2 \approx 0$, so
                     $|H|_\text{dB} \approx 20\log_{10}A_v$, a horizontal line.</li>
                 <li><strong>$-3\,\text{dB}$ point, $\omega = \omega_0$</strong>: the denominator is $\sqrt{2}$ and the
-                    gain is $20\log_{10}(1/\sqrt{2}) = -3.01\,\text{dB}$ below mid-band, the half-power point.</li>
+                    gain relative to mid-band is $20\log_{10}(1/\sqrt{2}) = -3.01\,\text{dB}$, the half-power point.</li>
                 <li><strong>roll-off, $\omega \gg \omega_0$</strong>: the 1 is negligible and
                     $|H|_\text{dB} \approx 20\log_{10}A_v - 20\log_{10}(\omega/\omega_0)$. Each tenfold increase in
                     $\omega$ lowers the gain by $20\,\text{dB}$, a straight line of slope $-20\,\text{dB/decade}$
@@ -375,10 +369,10 @@
                 used directly. A feedback network, usually two resistors, connects the output to the inverting input.
                 This is negative feedback, and the resistor ratio sets the closed-loop gain:</p>
 
-            <div class="eq-block">$$A_{CL} = -\frac{R_2}{R_\text{in}}$$</div>
+            <div class="eq-block">$$A_\text{CL} = -\frac{R_2}{R_\text{in}}$$</div>
 
-            <p>The closed-loop gain depends only on the external resistors, provided $A_\text{OL} \gg |A_{CL}|$. This
-                independence from the device gain is what makes op-amp circuits predictable.</p>
+            <p>The closed-loop gain depends only on the external resistors, provided $A_\text{OL} \gg |A_\text{CL}|$. This
+                independence from the device gain makes op-amp circuits predictable.</p>
 
             <div class="callout">
                 Feedback exchanges the large, poorly defined open-loop gain for a smaller gain that is set by
@@ -406,16 +400,16 @@
     <section class="scene" id="sec-gbp">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">06</span><span>gain-bandwidth product</span></div>
-            <h2>The trade between gain and bandwidth</h2>
+            <h2>The trade-off between gain and bandwidth</h2>
 
             <p class="lead">Internal parasitic capacitance in the op-amp creates a single dominant pole, as in the RC
                 model of section 01. The open-loop response therefore has a fixed gain-bandwidth product:</p>
 
             <div class="eq-block">$$\text{GBP} = \left(1 + \frac{R_2}{R_\text{in}}\right)\omega_0 = \text{constant}$$</div>
 
-            <p>The bandwidth is set by the noise gain $1 + R_2/R_\text{in}$, not by $A_{CL}$ directly. For a
-                non-inverting amplifier the noise gain equals $A_{CL}$; for the inverting amplifier of section 05 it
-                equals $|A_{CL}| + 1$. In the plot, $A_v$ denotes the noise gain, so $\omega_0 = \text{GBP}/A_v$.
+            <p>The bandwidth is set by the noise gain $1 + R_2/R_\text{in}$ rather than by $A_\text{CL}$ itself. For a
+                non-inverting amplifier the noise gain equals $A_\text{CL}$; for the inverting amplifier of section 05 it
+                equals $|A_\text{CL}| + 1$. In the plot, $A_v$ denotes the noise gain, so $\omega_0 = \text{GBP}/A_v$.
                 Reducing the gain from $A_\text{OL}$ to $A_v$ by feedback increases the bandwidth by the same
                 factor.</p>
 
@@ -426,7 +420,7 @@
                     higher.</li>
                 <li><strong>Unity noise gain, the voltage follower</strong>: no amplification, and $\omega_0$ equals the
                     GBP. This is the largest bandwidth the device can reach, which is why datasheets call it the
-                    unity-gain bandwidth. An inverting amplifier with $|A_{CL}| = 1$ has a noise gain of 2 and so
+                    unity-gain bandwidth. An inverting amplifier with $|A_\text{CL}| = 1$ has a noise gain of 2 and so
                     $\omega_0 = \text{GBP}/2$.</li>
             </ul>
 
@@ -437,7 +431,7 @@
             <div class="callout">
                 A general-purpose op-amp such as the LM741 has a GBP of about $6.28\,\text{Mrad/s}$, or $1\,\text{MHz}$.
                 At a gain of 100, $\omega_0$ is only $62.8\,\text{krad/s}$, or $10\,\text{kHz}$; at a gain of 10 it
-                extends to $628\,\text{krad/s}$, or $100\,\text{kHz}$. An audio amplifier covering 20 Hz to 20 kHz at a
+                extends to $628\,\text{krad/s}$, or $100\,\text{kHz}$. An audio amplifier covering $20\,\text{Hz}$ to $20\,\text{kHz}$ at a
                 gain of 50 needs a GBP of at least $6.28\,\text{Mrad/s}$.
             </div>
         </div>

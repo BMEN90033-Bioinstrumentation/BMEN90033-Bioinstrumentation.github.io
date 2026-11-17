@@ -32,7 +32,7 @@
         tex('I_{th} = ' + LD.THRESHOLD_CURRENT + '\\,\\text{mA}', xt - 8 - 60, y(0.35), 120, T.textDim, 'right');
         [['spontaneous', 0, LD.THRESHOLD_CURRENT], ['stimulated', LD.THRESHOLD_CURRENT, LD.I_MAX]].forEach(function (r) {
             g.append('text').attr('x', (x(r[1]) + x(r[2])) / 2).attr('y', 20).attr('text-anchor', 'middle')
-                .attr('fill', T.textDim).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+                .attr('fill', T.textDim).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
                 .text(r[0]);
         });
 

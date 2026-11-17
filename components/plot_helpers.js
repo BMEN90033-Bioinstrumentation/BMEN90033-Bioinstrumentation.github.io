@@ -2,13 +2,13 @@
 (function () {
     window.CMP = window.CMP || {};
 
-    // Read CSS variable from the page-specific palette so plots stay theme-aware.
+    // Read CSS variable from the page-specific palette so plot colours follow theme.css.
     window.CMP.cssVar = function (name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     };
 
     // Pseudo-random number generator with a fixed seed so noise traces are
-    // reproducible across resizes and theme toggles. Mulberry32.
+    // reproducible across resizes. Mulberry32.
     window.CMP.rng = function (seed) {
         var s = seed >>> 0;
         return function () {
@@ -48,12 +48,12 @@
         axisG.selectAll('path,line').attr('stroke', window.T.gridAxis);
         axisG.selectAll('text')
             .attr('fill', window.T.text)
-            .attr('font-size', 12)
+            .attr('font-size', 13)
             .attr('font-family', "'JetBrains Mono', monospace");
     };
 
-    // Draw light/dark gridlines aligned with axis ticks. Uses the page CSS
-    // variables so light and dark themes pick up the right contrast level.
+    // Draw minor and major gridlines aligned with axis ticks, coloured from
+    // the --grid-line and --grid-zero variables.
     window.CMP.drawGrid = function (g, x, y, innerW, innerH, opts) {
         opts = opts || {};
         var gridColor = window.CMP.cssVar('--grid-line');

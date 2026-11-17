@@ -10,7 +10,7 @@
 
     // Outer schematic uses a 600×600 design grid; populated content sits
     // between y≈70 (R4 label) and y≈502 (ground triangle). Crop tightly so
-    // the plot box can run at ~1.4:1 — matching the bode panel beside it.
+    // the plot box can run at ~1.4:1, matching the bode panel beside it.
     var VB_X = 0;
     var VB_Y = 65;
     var VB_W = 600;
@@ -58,8 +58,8 @@
         var dim  = window.T.textDim;
         var stroke = 2;
 
-        var hpColor = window.CMP.cssVar('--c-input');    // blue
-        var lpColor = window.CMP.cssVar('--c-output2');  // green
+        var hpColor = window.CMP.cssVar('--c-input');    // high-pass arm
+        var lpColor = window.CMP.cssVar('--c-output2');  // low-pass arm
 
         var mode = window.WienMode.value;
         var hpActive = (mode === 'high-pass' || mode === 'band-pass');
@@ -151,9 +151,9 @@
             // drop column and the output tap.
             svg.append('rect')
                 .attr('x', X_POS_NODE - 18)
-                .attr('y', Y_SER_RAIL - 32)
+                .attr('y', Y_SER_RAIL - 46)
                 .attr('width', (TAP_SER + 18) - (X_POS_NODE - 18))
-                .attr('height', 60)
+                .attr('height', 74)
                 .attr('rx', 10).attr('ry', 10)
                 .attr('fill', hpColor).attr('fill-opacity', 0.08)
                 .attr('stroke', hpColor).attr('stroke-opacity', 0.35)
@@ -261,41 +261,41 @@
         // ── KaTeX labels ────────────────────────────────────────────
         // Output terminal
         window.renderKatex(gLabels, 'V_\\text{out}',
-            555, TRI.apex[1],
-            { width: 80, height: 24, size: 16, color: text });
+            562, TRI.apex[1],
+            { width: 80, height: 24, size: 22, color: text });
 
         // R4, R3 (always common)
         window.renderKatex(gLabels, 'R_4',
             (R4_xL + R4_xR) / 2, Y_R4_RAIL - 28,
-            { width: 40, height: 22, size: 14, color: text });
+            { width: 40, height: 22, size: 22, color: text });
         window.renderKatex(gLabels, 'R_3',
             (R3_xL + R3_xR) / 2, Y_INV - 28,
-            { width: 40, height: 22, size: 14, color: text });
+            { width: 40, height: 22, size: 22, color: text });
 
         // Series-arm components: tinted when active
         window.renderKatex(gLabels, 'C_1',
-            300, Y_SER_RAIL - 32,
-            { width: 40, height: 22, size: 14,
+            300, Y_SER_RAIL - 30,
+            { width: 40, height: 22, size: 22,
               color: hpActive ? hpColor : dim });
         window.renderKatex(gLabels, 'R_1',
-            (R1_xL + R1_xR) / 2, Y_SER_RAIL - 28,
-            { width: 40, height: 22, size: 14,
+            (R1_xL + R1_xR) / 2, Y_SER_RAIL - 30,
+            { width: 40, height: 22, size: 22,
               color: hpActive ? hpColor : dim });
 
         // Parallel-arm components: tinted when active
         window.renderKatex(gLabels, 'C_2',
-            130, 425,
-            { width: 40, height: 22, size: 14,
+            118, 425,
+            { width: 40, height: 22, size: 22,
               color: lpActive ? lpColor : dim });
         window.renderKatex(gLabels, 'R_2',
-            285, 437,
-            { width: 40, height: 22, size: 14,
+            298, 437,
+            { width: 40, height: 22, size: 22,
               color: lpActive ? lpColor : dim });
 
         // Resonant-frequency annotation
         window.renderKatex(gLabels, '\\omega_0 = \\dfrac{1}{RC}',
             500, 470,
-            { width: 160, height: 36, size: 14, color: text });
+            { width: 160, height: 36, size: 20, color: text });
     }
 
     function attachToolbar() {
@@ -323,7 +323,6 @@
     function init() {
         attachToolbar();
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('wienmodechange', render);
     }

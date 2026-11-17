@@ -1,5 +1,5 @@
 // Section 04 · 555 in bistable mode. THRES (pin 6) tied to ground so the
-// upper comparator never fires. DISCH (pin 7) left open. The internal SR
+// upper comparator never switches. DISCH (pin 7) left open. The internal SR
 // latch is therefore exposed directly through the active-low TRIG (pin 2)
 // and active-low RESET (pin 4) inputs, both pulled up to V_CC and pulsed
 // low to set or reset the output.
@@ -25,9 +25,9 @@
         var text = T.text;
         var muted = T.textMuted;
         var rcol = window.CMP.cssVar('--c-resistor') || T.fg(0.45);
-        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.yellowA(0.5);
-        var trigCol = window.CMP.cssVar('--c-trigger') || '#7be089';
-        var rstCol  = window.CMP.cssVar('--c-thresh')  || '#ff5c7a';
+        var vccCol = window.CMP.cssVar('--c-vcc-rail') || T.wire;
+        var trigCol = window.CMP.cssVar('--c-trigger') || T.c('green');
+        var rstCol  = window.CMP.cssVar('--c-reset')  || T.c('violet');
 
         function ln(x1, y1, x2, y2, color, w) {
             svg.append('line')
@@ -79,7 +79,7 @@
         ln(X_RAIL_L, Y_VCC, X_RAIL_R, Y_VCC, vccCol, 2.6);
         ln(X_RAIL_L, Y_GND, X_RAIL_R, Y_GND, wire,   2.6);
         window.renderKatex(svg, 'V_{CC}', X_RAIL_R - 60, Y_VCC - 18,
-            { width: 56, height: 20, size: 13, color: text });
+            { width: 56, height: 20, size: 16, color: text });
         ground(X_RAIL_R - 30, Y_GND + 6);
 
         // Chip
@@ -99,7 +99,7 @@
         ln(p5.outX, Y_CB + 14, p5.outX, Y_GND);
         window.renderKatex(svg, '10\\,\\mathrm{nF}',
             p5.outX + 60, Y_CB,
-            { width: 64, height: 18, size: 11, color: muted });
+            { width: 64, height: 18, size: 15, color: muted });
 
         // Pin 7 (DISCH): not connected. Short stub ending in an open-circle
         // marker indicates "no connection".
@@ -109,8 +109,8 @@
             .attr('cx', X_NC).attr('cy', p7.outY).attr('r', 5)
             .attr('fill', 'none').attr('stroke', wire).attr('stroke-width', 1.6);
         window.renderKatex(svg, '\\text{n.c.}',
-            X_NC - 50, p7.outY,
-            { width: 50, height: 16, size: 11, color: muted });
+            X_NC, p7.outY - 20,
+            { width: 50, height: 16, size: 15, color: muted });
 
         // Pin 6 (THRES): tied to GND via a short wire and a local ground
         // triangle. A separate vertical to the GND rail would cross pin 2's
@@ -134,27 +134,24 @@
         ln(X_TRIG, p2.outY, X_TRIG, Y_SET_LBL);
         window.renderKatex(svg, '\\overline{\\text{SET}}',
             X_TRIG - 120, Y_SET_LBL,
-            { width: 60, height: 20, size: 13, color: trigCol, align: 'right' });
+            { width: 60, height: 20, size: 16, color: trigCol, align: 'right' });
         window.renderKatex(svg, 'R_S',
             X_TRIG - 40, (Y_RS_T + Y_RS_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            { width: 36, height: 20, size: 17, color: text });
 
-        // Pin 4 (RESET): pull-up to VCC, RESET signal arrow into pin 4
-        // pin 4 outX=470, outY=152. Branch the wire:
-        //   pin 4 stub up to (p4.outX, 152) -- already there
-        //   then at y=132 the wire splits: UP through pull-up R_R to VCC,
-        //   and RIGHT to a RESET signal label that drives the wire low.
+        // Pin 4 (RESET): pull-up to VCC, RESET signal arrow into pin 4.
+        // The bus runs at the height of the pin 4 stub end (y = 152). It
+        // branches LEFT to the pull-up R_R, which sits between the bus and
+        // the VCC rail, and RIGHT to the RESET signal arrow.
         var X_RST_R = 600;            // x of the RESET signal arrow start
-        var Y_RST_BUS = 130;          // the horizontal bus into pin 4
-        ln(p4.outX, p4.outY, p4.outX, Y_RST_BUS);
+        var Y_RST_BUS = p4.outY;      // the horizontal bus into pin 4
 
-        // Pull-up R_R: vertical from Y_RST_BUS up to VCC at p4.outX, but
-        // running R inline would crowd the VCC rail label. Instead route
-        // pull-up to a x just LEFT of pin 4: vertical from (p4.outX - 60,
-        // Y_RST_BUS) up through R_R to VCC rail.
+        // Pull-up R_R on a column just LEFT of pin 4. Its body ends above
+        // the bus so the bus meets the resistor lead, not the body.
         var X_RR = p4.outX - 60;
-        var Y_RR_T = Y_VCC + 20;
-        var Y_RR_B = Y_RR_T + R_LEN;
+        var R_RR_LEN = 50;
+        var Y_RR_T = Y_VCC + 12;
+        var Y_RR_B = Y_RR_T + R_RR_LEN;
         ln(p4.outX, Y_RST_BUS, X_RR, Y_RST_BUS);
         ln(X_RR, Y_RST_BUS, X_RR, Y_RR_B);
         vres(X_RR, Y_RR_T, Y_RR_B);
@@ -167,10 +164,10 @@
         arrow(X_RST_R + 50, X_RST_R, Y_RST_BUS, rstCol);
         window.renderKatex(svg, '\\overline{\\text{RESET}}',
             X_RST_R + 110, Y_RST_BUS,
-            { width: 80, height: 20, size: 13, color: rstCol, align: 'left' });
+            { width: 80, height: 20, size: 16, color: rstCol, align: 'left' });
         window.renderKatex(svg, 'R_R',
-            X_RR - 38, (Y_RR_T + Y_RR_B) / 2,
-            { width: 36, height: 20, size: 14, color: text });
+            X_RR + 30, (Y_RR_T + Y_RR_B) / 2,
+            { width: 36, height: 20, size: 17, color: text });
 
         // Pin 3 (OUT)
         var X_OUT_DOT = 640;
@@ -178,7 +175,7 @@
         dot(X_OUT_DOT, p3.outY);
         window.renderKatex(svg, 'v_{\\text{out}}',
             X_OUT_DOT + 50, p3.outY,
-            { width: 70, height: 22, size: 16, color: text });
+            { width: 70, height: 22, size: 18, color: text });
 
         // Hover tooltips
         if (window.CircuitTip) {
@@ -186,18 +183,18 @@
             function tip(x, y, w, h, name, body) {
                 CT.hotspot(svg, x, y, w, h, CT.fmt(name, body));
             }
-            tip(X_NC - 18, p7.outY - 14, 50, 28,
+            tip(X_NC - 18, p7.outY - 30, 50, 44,
                 'Pin 7 (DISCH), open',
-                'In bistable mode the discharge transistor has no role; pin 7 is left disconnected. The latch is driven directly through TRIG and RESET.');
+                'In bistable mode the discharge transistor is unused and pin 7 is left disconnected. The latch is driven directly through TRIG and RESET.');
             tip(X_NC - 18, p6.outY - 6, 36, 40,
                 'Pin 6 (THRES), to GND',
-                'Held permanently below &#8532;V<sub>CC</sub> so the upper comparator never fires. With the upper comparator inactive, the latch state is set only by external SET and RESET pulses on pins 2 and 4.');
+                'Held permanently below &#8532;V<sub>CC</sub> so the upper comparator never switches. With the upper comparator inactive, the latch state is set only by external SET and RESET pulses on pins 2 and 4.');
             tip(X_TRIG - R_THICK, Y_RS_T - 6, R_THICK * 2 + 12, R_LEN + 12,
                 'R<sub>S</sub>',
                 'Pull-up on the SET input. Holds pin 2 above &#8531;V<sub>CC</sub> at rest; an active-low pulse on SET drives the lower comparator and latches the output high.');
-            tip(X_RR - R_THICK, Y_RR_T - 6, R_THICK * 2 + 12, R_LEN + 12,
+            tip(X_RR - R_THICK, Y_RR_T - 6, R_THICK * 2 + 12, R_RR_LEN + 12,
                 'R<sub>R</sub>',
-                'Pull-up on the RESET input. Holds pin 4 high so the latch is free to hold its state; an active-low pulse on RESET clears the latch and drives the output low.');
+                'Pull-up on the RESET input. Holds pin 4 high so the latch retains its state; an active-low pulse on RESET clears the latch and drives the output low.');
             tip(p3.outX - 4, p3.outY - 14, X_OUT_DOT - p3.outX + 8, 28,
                 'v<sub>out</sub> (pin 3)',
                 'Latched output. SET drives v<sub>out</sub> to V<sub>CC</sub> indefinitely; RESET drives it to 0 V indefinitely. Holds its last state in the absence of either pulse.');
@@ -206,7 +203,6 @@
 
     function init() {
         render();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
     }
 

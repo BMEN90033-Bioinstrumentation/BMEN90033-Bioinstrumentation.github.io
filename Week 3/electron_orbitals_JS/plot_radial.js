@@ -54,7 +54,11 @@
         var pk = pts.reduce(function (a, q) { return q[2] > a[2] ? q : a; }, pts[0]);
         gB.append('circle').attr('cx', x(pk[0])).attr('cy', yP(pk[2] / pPk)).attr('r', 4.5)
             .attr('fill', css('--c-prob')).attr('stroke', T.text).attr('stroke-width', 1);
-        document.querySelectorAll('[data-out="rpk"]').forEach(function (el) { el.textContent = pk[0].toPrecision(3) + ' a₀'; });
+        document.querySelectorAll('[data-out="rpk"]').forEach(function (el) {
+            el.textContent = pk[0].toPrecision(3) + ' ';
+            var u = el.appendChild(document.createElement('span'));
+            if (window.katex) window.katex.render('a_0', u, { throwOnError: false }); else u.textContent = 'a0';
+        });
         document.querySelectorAll('[data-out="nodes-found"]').forEach(function (el) { el.textContent = nodes.length; });
     }
 

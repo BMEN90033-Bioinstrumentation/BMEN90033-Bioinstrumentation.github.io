@@ -2,7 +2,7 @@
 // Plots a continuous sinusoid, the samples taken at fs, and the
 // ideal sinc-interpolated reconstruction. With the anti-aliasing
 // filter off, frequencies above fs/2 fold down into the baseband
-// and the reconstruction is a low-frequency ghost. With the filter
+// and the reconstruction is a low-frequency alias. With the filter
 // on (modelled as a brick wall at fs/2), those frequencies are
 // removed before sampling and the reconstruction is flat.
 (function () {
@@ -53,7 +53,8 @@
             yTitle: '\\text{amplitude}',
             xTicks: [0, 0.04, 0.08, 0.12, 0.16, 0.20],
             yTicks: [-1.0, -0.5, 0, 0.5, 1.0],
-            xTickFormat: function (d) { return d.toFixed(2); }
+            xTickFormat: function (d) { return d.toFixed(2); },
+            margin: { top: 52, right: 28, bottom: 50, left: 76 }
         });
 
         var x = H.x, y = H.y;
@@ -123,18 +124,17 @@
         // ── Inline legend ─────────────────────────────────────────
         var captionText = state.aaf
             ? (preGain === 0
-                ? 'AAF ON · input above f_s/2 removed before sampling'
-                : 'AAF ON · input passes (it is below f_s/2)')
+                ? '\\text{Filter on: input above } f_s/2 \\text{ removed before sampling}'
+                : '\\text{Filter on: input below } f_s/2 \\text{ is transmitted}')
             : (Math.abs(fa - fsig) < 1e-3
-                ? 'AAF OFF · input below f_s/2, reconstruction matches input'
-                : 'AAF OFF · input ' + fmtHz(fsig) + ' aliases to ' + fmtHz(fa));
-        H.svg.append('text')
-            .attr('x', H.margin.left + 8)
-            .attr('y', H.margin.top + 14)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .attr('fill', state.aaf ? 'var(--c-filtered)' : 'var(--c-aliased)')
-            .text(captionText);
+                ? '\\text{Filter off: input below } f_s/2 \\text{, reconstruction matches input}'
+                : '\\text{Filter off: input at ' + fmtHz(fsig) + ' aliases to ' + fmtHz(fa) + '}');
+        // Caption in the top margin, below the panel label.
+        window.renderKatex(H.svg, captionText,
+            H.margin.left + H.innerW / 2, H.margin.top - 13,
+            { width: H.innerW, height: 18, size: 13,
+              color: actuallyAliased ? 'var(--c-aliased)'
+                  : (state.aaf ? 'var(--c-filtered)' : 'var(--c-clean)') });
     }
 
     function renderSpec() {
@@ -147,7 +147,7 @@
             yTitle: '|H(f)|',
             xTicks: [0, 50, 100, 150, 200],
             yTicks: [0, 0.5, 1.0],
-            margin: { top: 80, right: 28, bottom: 50, left: 60 }
+            margin: { top: 88, right: 28, bottom: 50, left: 78 }
         });
 
         var x = H.x, y = H.y;
@@ -166,12 +166,12 @@
         H.g.append('line')
             .attr('x1', x(nyq)).attr('x2', x(nyq))
             .attr('y1', 0).attr('y2', H.innerH)
-            .attr('stroke', 'var(--c-mark)')
+            .attr('stroke', getColor('--c-mark'))
             .attr('stroke-width', 1.4)
             .attr('stroke-dasharray', '5 4');
         var nyqLabelX = Math.min(Math.max(x(nyq), 30), H.innerW - 30);
-        window.renderKatex(H.g, 'f_s/2', nyqLabelX, -46,
-            { width: 60, height: 16, size: 11 });
+        window.renderKatex(H.g, 'f_s/2', nyqLabelX, -50,
+            { width: 60, height: 16, size: 13 });
 
         // AAF response (brick wall preview when on)
         if (state.aaf) {
@@ -201,30 +201,29 @@
             H.g.append('circle')
                 .attr('cx', xc).attr('cy', y(1.0)).attr('r', 4)
                 .attr('fill', color);
-            window.renderKatex(H.g, label, xc + (labelDx || 0), y(1.0) - 14 + (labelDy || 0),
-                { width: 90, height: 16, size: 11, color: color });
+            window.renderKatex(H.g, label, xc + (labelDx || 0), -13 + (labelDy || 0),
+                { width: 90, height: 16, size: 13, color: color });
         }
 
         var fsig = state.fsig;
         var preGain = state.aaf ? brickWallGain(fsig, nyq) : 1;
         var aliasShown = !state.aaf && fsig > nyq;
-        // When both stems are drawn the labels can sit very close in x, so
-        // raise the input label onto a higher row to avoid horizontal overlap.
-        var inputDy = (preGain > 0 && aliasShown) ? -20 : 0;
+        // Stem labels sit on the row directly above the frame. When both
+        // stems are drawn close together the input label moves up one row.
+        var fa = aliasFreq(fsig, state.fs);
+        var inputDy = (aliasShown && Math.abs(x(fsig) - x(fa)) < 64) ? -18 : 0;
         if (preGain > 0) {
             stem(fsig, getColor('--c-clean'), '\\text{input}', 0, inputDy);
         } else {
             // input removed, draw a faded x at its location
             var xc = x(fsig);
-            H.g.append('text').attr('x', xc).attr('y', y(0.5))
-                .attr('text-anchor', 'middle')
-                .attr('font-family', "'JetBrains Mono', monospace")
-                .attr('font-size', 14).attr('fill', getColor('--c-stop'))
-                .text('×');
+            H.g.append('path')
+                .attr('d', 'M' + (xc - 5) + ' ' + (y(0.5) - 5) + 'l10 10m0 -10l-10 10')
+                .attr('fill', 'none').attr('stroke-width', 2)
+                .attr('stroke', getColor('--c-stop'));
         }
 
         // Aliased component (only meaningful when AAF off and fsig > nyq)
-        var fa = aliasFreq(fsig, state.fs);
         if (aliasShown) {
             stem(fa, getColor('--c-aliased'), '\\text{alias}', 0, 0);
             // arc from input to alias
@@ -241,21 +240,16 @@
                 .attr('opacity', 0.7);
         }
 
-        // band labels
-        H.svg.append('text')
-            .attr('x', H.margin.left + x(nyq) / 2)
-            .attr('y', H.margin.top + 14)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).attr('fill', getColor('--c-pass'))
-            .text('PASS BAND');
-        H.svg.append('text')
-            .attr('x', H.margin.left + x(nyq) + (H.innerW - x(nyq)) / 2)
-            .attr('y', H.margin.top + 14)
-            .attr('text-anchor', 'middle')
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 10).attr('fill', getColor('--c-stop'))
-            .text('STOP BAND (aliases here)');
+        // Band labels share the top row with the f_s/2 label. The passband
+        // label is omitted when the band is too narrow to hold it.
+        function band(xc, label) {
+            H.g.append('text')
+                .attr('x', xc).attr('y', -46)
+                .attr('text-anchor', 'middle')
+                .text(label);
+        }
+        if (x(nyq) >= 120) band(x(nyq) / 2, 'passband');
+        band(Math.max(x(nyq) + 70, x(nyq) + (H.innerW - x(nyq)) / 2), 'stopband');
     }
 
     function getColor(varName) {
@@ -283,11 +277,10 @@
         if (pillAAF) pillAAF.addEventListener('click', function () {
             state.aaf = !state.aaf;
             pillAAF.classList.toggle('active', state.aaf);
-            pillAAF.textContent = state.aaf ? 'anti-aliasing on' : 'anti-aliasing off';
+            pillAAF.textContent = state.aaf ? 'anti-alias filter on' : 'anti-alias filter off';
             renderAll();
         });
         renderAll();
-        window.addEventListener('themechange', renderAll);
         window.addEventListener('resize', renderAll);
     }
 

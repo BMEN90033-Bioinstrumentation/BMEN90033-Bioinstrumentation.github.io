@@ -157,7 +157,7 @@
             }
         }
 
-        // ── Drawing ──
+        // Drawing
         function drawJunction() {
             var T = window.T, jx = W * 0.5, dh = getDepletionHalf();
             ctx.fillStyle = col('--c-hole', 0.05);
@@ -179,7 +179,7 @@
             if (dh >= 8) {
                 var spacing = 28, rows = Math.floor((H - 80) / spacing);
                 var cols = Math.max(1, Math.floor(dh / spacing));
-                ctx.font = '700 10px JetBrains Mono';
+                ctx.font = '400 10px JetBrains Mono';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 for (var r = 0; r < rows; r++) {
                     var y = 55 + r * spacing;
@@ -221,11 +221,9 @@
             var jx = W * 0.5, dh = getDepletionHalf(), pc = PD.mat().col;
             var yEnd = Y0 - 20;
             ctx.save();
+            // Flat tint; opacity follows the light intensity.
             ctx.globalAlpha = 0.15 + (light() / 100) * 0.25;
-            var grad = ctx.createLinearGradient(0, 0, 0, yEnd);
-            grad.addColorStop(0, col(pc, 0.27));
-            grad.addColorStop(1, col(pc, 0));
-            ctx.fillStyle = grad;
+            ctx.fillStyle = col(pc, 0.27);
             ctx.beginPath();
             ctx.moveTo(jx - dh * 1.5, 0);
             ctx.lineTo(jx + dh * 1.5, 0);
@@ -242,7 +240,7 @@
                 ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-hole', 0.1); ctx.fill();
                 ctx.strokeStyle = col('--c-hole', 0.75); ctx.lineWidth = 1.5; ctx.stroke();
-                ctx.font = '700 9px JetBrains Mono';
+                ctx.font = '400 9px JetBrains Mono';
                 ctx.fillStyle = col('--c-hole', 0.9);
                 ctx.fillText('+', h.x, h.y + 0.5);
             });
@@ -253,8 +251,8 @@
             electrons.forEach(function (e) {
                 ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-elec', 0.9); ctx.fill();
-                ctx.font = '700 8px JetBrains Mono';
-                ctx.fillStyle = col('--bg-2', 1);
+                ctx.font = '400 8px JetBrains Mono';
+                ctx.fillStyle = col('--white', 1);
                 ctx.fillText('−', e.x, e.y + 0.5);
             });
         }
@@ -265,11 +263,6 @@
             incomingPhotons.forEach(function (ph) {
                 ctx.save();
                 ctx.globalAlpha = Math.min(ph.life, 1);
-                var grad = ctx.createRadialGradient(ph.x, ph.y, 0, ph.x, ph.y, 14);
-                grad.addColorStop(0, col(pc, 0.4));
-                grad.addColorStop(1, col(pc, 0));
-                ctx.fillStyle = grad;
-                ctx.fillRect(ph.x - 14, ph.y - 14, 28, 28);
                 ctx.beginPath(); ctx.arc(ph.x, ph.y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = col(pc, 1); ctx.fill();
                 ctx.strokeStyle = col(pc, 0.55); ctx.lineWidth = 1;
@@ -289,30 +282,25 @@
                 ctx.save();
                 ctx.globalAlpha = a.life;
                 var radius = (1 - a.life) * 25 + 5;
-                ctx.strokeStyle = T.text; ctx.lineWidth = 2;
+                ctx.strokeStyle = T.text; ctx.lineWidth = 1.5;
                 ctx.beginPath(); ctx.arc(a.x, a.y, radius, 0, Math.PI * 2); ctx.stroke();
-                var grad = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, radius);
-                grad.addColorStop(0, T.overlay30);
-                grad.addColorStop(1, T.fg(0));
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(a.x, a.y, radius, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
             });
         }
 
         function drawGeneratedPairs() {
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.font = '700 8px JetBrains Mono';
+            ctx.font = '400 8px JetBrains Mono';
             generatedPairs.forEach(function (g) {
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, g.life);
                 ctx.beginPath(); ctx.arc(g.holeX, g.holeY, 6, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-hole', 0.95); ctx.fill();
-                ctx.fillStyle = col('--bg-2', 1);
+                ctx.fillStyle = col('--white', 1);
                 ctx.fillText('+', g.holeX, g.holeY + 0.5);
                 ctx.beginPath(); ctx.arc(g.elecX, g.elecY, 5, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-elec', 1); ctx.fill();
-                ctx.fillStyle = col('--bg-2', 1);
+                ctx.fillStyle = col('--white', 1);
                 ctx.fillText('−', g.elecX, g.elecY + 0.5);
                 ctx.restore();
             });
@@ -320,16 +308,16 @@
 
         function drawLabels() {
             var jx = W * 0.5;
-            ctx.font = '600 14px Inter';
+            ctx.font = '400 14px Inter';
             ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = col('--c-hole', 0.9);
             // Centred in each neutral region, which narrows as the bias rises.
             var dh = getDepletionHalf();
-            ctx.fillText('P-type', (jx - dh) / 2, Y0 - 14);
+            ctx.fillText('p-type', (jx - dh) / 2, Y0 - 14);
             ctx.fillStyle = col('--c-elec', 0.9);
-            ctx.fillText('N-type', (W + jx + dh) / 2, Y0 - 14);
+            ctx.fillText('n-type', (W + jx + dh) / 2, Y0 - 14);
             if (step > 0 && vr() > 0) {   // reverse bias: P contact negative
-                ctx.font = '500 12px JetBrains Mono';
+                ctx.font = '400 13px JetBrains Mono';
                 ctx.textAlign = 'left';
                 ctx.fillStyle = col('--c-hole', 0.9);
                 ctx.fillText('− anode', 10, H - 8);
@@ -368,7 +356,6 @@
         resize();
         draw();
         window.addEventListener('resize', function () { resize(); draw(); });
-        window.addEventListener('themechange', draw);
         window.addEventListener('pdchange', function (e) {
             if (e.detail && e.detail.key === 'vr' && step > 0) buildHoles();
             draw();

@@ -2,7 +2,7 @@
 // shells, the multipole source at the origin, the homogeneous ("true") and
 // volume-conductor ("recorded") field on a 3D grid, and the electrodes.
 // Physics comes from VC (model.js). Electrodes are selected by clicking and
-// moved with a translate gizmo; "+ electrode" then a click places a new one
+// moved with a translate gizmo; "add electrode" then a click places a new one
 // on the outermost enabled shell.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -15,6 +15,8 @@ const css = window.CMP.cssVar;
 const host = document.getElementById('scene-volume');
 
 // ── Viridis colour map (field magnitude) ──
+// Theme-independent physical colour map: encodes field magnitude, so it is
+// kept as numeric stops and not drawn from the data palette.
 const VIRIDIS_STOPS = [
     [0.267004, 0.004874, 0.329415], [0.282327, 0.094955, 0.417331], [0.278826, 0.176998, 0.483397],
     [0.258965, 0.251537, 0.524736], [0.229739, 0.322361, 0.545706], [0.199430, 0.387607, 0.554642],
@@ -50,11 +52,12 @@ orbit.enableDamping = true;
 orbit.dampingFactor = 0.08;
 const wheel = guardWheel(orbit, renderer.domElement, document.getElementById('scene-hint'));
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+const WHITE = css('--white'), INK = window.T.hex('ink');
+scene.add(new THREE.AmbientLight(WHITE, 0.4));
+const dirLight = new THREE.DirectionalLight(WHITE, 0.7);
 dirLight.position.set(20, 30, 20);
 scene.add(dirLight);
-const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
+const backLight = new THREE.DirectionalLight(WHITE, 0.2);
 backLight.position.set(-10, 10, -10);
 scene.add(backLight);
 
@@ -94,9 +97,9 @@ dipoleGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.8, 24, 24), coreMat));
 const glowMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false });
 const dipoleGlow = new THREE.Mesh(new THREE.SphereGeometry(1.5, 24, 24), glowMat);
 dipoleGroup.add(dipoleGlow);
-const dipoleLight = new THREE.PointLight(0xffffff, 1.5, 15, 2);
+const dipoleLight = new THREE.PointLight(WHITE, 1.5, 15, 2);
 dipoleGroup.add(dipoleLight);
-const dipoleArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 3, 0xffffff, 0.6, 0.4);
+const dipoleArrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 3, INK, 0.6, 0.4);
 [dipoleArrow.line.material, dipoleArrow.cone.material].forEach(function (m) { m.transparent = true; m.opacity = 0.6; });
 dipoleGroup.add(dipoleArrow);
 const plusLabel = label('+', '');
@@ -116,7 +119,7 @@ function buildArrows() {
                 const r = Math.sqrt(x * x + y * y + z * z);
                 if (r < 4 || r > 22) continue;
                 [trueArrows, recArrows].forEach(function (list) {
-                    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, z), 1, 0xffffff, 0.25, 0.15);
+                    const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(x, y, z), 1, INK, 0.25, 0.15);
                     a.userData.basePos = [x, y, z];
                     scene.add(a);
                     list.push(a);
@@ -206,7 +209,7 @@ function renderList() {
         div.className = 'item' + (e.id === selected ? ' sel' : '');
         div.innerHTML = '<span class="dot" style="background:var(' + e.cvar + ')"></span>' +
             '<span class="v">' + e.label + ' (' + e.pos.map(function (v) { return v.toFixed(1); }).join(', ') + ')</span>' +
-            '<button class="rm" title="remove">✕</button>';
+            '<button class="ctrl-btn" title="Remove electrode ' + e.label + '">remove</button>';
         div.querySelector('button').addEventListener('click', function () {
             VC.removeElectrode(e.id);
             syncElectrodes();
@@ -262,7 +265,7 @@ function setPlacing(on) {
     // While placing, the hint gives the placement instruction; otherwise the
     // wheel guard restores its own text for the present zoom state.
     const hint = document.getElementById('scene-hint');
-    if (on) { if (hint) hint.textContent = 'click a shell to place the electrode · esc to cancel'; }
+    if (on) { if (hint) hint.textContent = 'click a shell to place the electrode · Esc cancels'; }
     else wheel(orbit.enableZoom);
 }
 renderer.domElement.addEventListener('pointerleave', function () {   // runs after the wheel guard
@@ -272,8 +275,8 @@ window.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') { setPlacing(false); select(null); }
 });
 
-// ── Theme ──
-function applyTheme() {
+// ── Colours from the page palette ──
+function applyColours() {
     scene.background = new THREE.Color(window.T.sceneBg);
     scene.fog.color.set(window.T.sceneBg);
     shells.forEach(function (s) {
@@ -310,7 +313,7 @@ function updateArrows(list, fieldFn, show, tint, S) {
 
 function draw(S) {
     orbit.update();
-    // Dipole glyph: glow follows the heartbeat (ECG), the oscillation (EEG)
+    // Dipole glyph: halo follows the heartbeat (ECG), the oscillation (EEG)
     // or a slow pulse (rotating or manual source).
     const pulse = 1 + Math.sin(Date.now() * 0.004) * 0.1;
     const glow = p.mode === 'ecg' ? 1 + S.strength * 0.5 : p.mode === 'eeg' ? 1 + S.strength * 2 : pulse;
@@ -323,8 +326,8 @@ function draw(S) {
     minusLabel.position.copy(d.clone().multiplyScalar(-2.5)).add(new THREE.Vector3(0, 1.5, 0));
 
     if (!p.paused) {
-        updateArrows(trueArrows, VC.trueField, p.fields !== 'rec', [0.5, 0.7, 1.0], S);   // tinted blue
-        updateArrows(recArrows, VC.recField, p.fields !== 'true', [1.0, 0.5, 0.7], S);    // tinted pink
+        updateArrows(trueArrows, VC.trueField, p.fields !== 'rec', [0.5, 0.7, 1.0], S);   // viridis tinted blue
+        updateArrows(recArrows, VC.recField, p.fields !== 'true', [1.0, 0.5, 0.7], S);    // viridis tinted pink
         const last = VC.hist.length ? VC.hist[VC.hist.length - 1][1] : 0;
         const sig = VC.electrodes.length >= 2 ? Math.abs(last) : 0;
         objs.forEach(function (o) { o.ringMat.opacity = 0.1 + Math.min(sig * 0.8, 0.4); });
@@ -343,14 +346,13 @@ function resize() {
     draw(VC.state());
 }
 
-applyTheme();
+applyColours();
 syncShells();
 buildArrows();
 setPlacing(false);
 new ResizeObserver(resize).observe(host);
 VC.addView(host, draw);
 
-window.addEventListener('themechange', applyTheme);
 window.addEventListener('vcchange', function (ev) {
     const k = ev.detail && ev.detail.key;
     if (k === 'density') buildArrows();

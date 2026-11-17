@@ -36,7 +36,7 @@
             .call(d3.axisBottom(x).tickValues(ticks).tickFormat(nz).tickSizeOuter(0));
         var ya = g.append('g').attr('transform', 'translate(' + X0 + ',0)')
             .call(d3.axisLeft(y).tickValues(ticks).tickFormat(nz).tickSizeOuter(0));
-        [xa, ya].forEach(window.CMP.styleAxis);
+        [xa, ya].forEach(A.styleAxis);
         window.renderKatex(f.svg, '\\mathrm{Im}', f.m.left + X0, f.m.top + y(hi) - 20, { width: 60, height: 22, size: 16 });
         window.renderKatex(f.svg, '\\mathrm{Re}', f.m.left + x(hi) + 28, f.m.top + Y0, { width: 50, height: 22, size: 16 });
 

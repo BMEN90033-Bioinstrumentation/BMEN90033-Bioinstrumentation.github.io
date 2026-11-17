@@ -21,7 +21,6 @@
         }
         return cache[k];
     }
-    window.addEventListener('themechange', function () { cache = {}; });
 
     function Sim(canvas) {
         var step = +canvas.dataset.simStep;
@@ -223,7 +222,7 @@
             }
         }
 
-        // ── Drawing ──
+        // Drawing
         function drawJunction() {
             var T = window.T, jx = W * 0.5, dh = getDepletionHalf();
             ctx.fillStyle = col('--c-hole', 0.05);
@@ -251,7 +250,7 @@
             var spacing = 28;
             var rows = Math.floor((H - 80) / spacing);
             var cols = Math.max(1, Math.floor(dh / spacing));
-            ctx.font = '700 10px JetBrains Mono';
+            ctx.font = '400 10px JetBrains Mono, monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             for (var r = 0; r < rows; r++) {
                 var y = 55 + r * spacing;
@@ -292,7 +291,7 @@
                 ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-hole', 0.1); ctx.fill();
                 ctx.strokeStyle = col('--c-hole', 0.75); ctx.lineWidth = 1.5; ctx.stroke();
-                ctx.font = '700 9px JetBrains Mono';
+                ctx.font = '400 9px JetBrains Mono, monospace';
                 ctx.fillStyle = col('--c-hole', 0.9);
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText('+', h.x, h.y + 0.5);
@@ -305,15 +304,15 @@
                 if (e.state === 'sitting') {   // electron occupying a vacancy
                     ctx.beginPath(); ctx.arc(e.x, e.y, 5, 0, Math.PI * 2);
                     ctx.fillStyle = col('--c-elec', 0.35); ctx.fill();
-                    ctx.font = '700 8px JetBrains Mono';
+                    ctx.font = '400 8px JetBrains Mono, monospace';
                     ctx.fillStyle = col('--c-elec', 0.7);
                     ctx.fillText('−', e.x, e.y + 0.5);
                     return;
                 }
                 ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
                 ctx.fillStyle = col('--c-elec', 0.9); ctx.fill();
-                ctx.font = '700 8px JetBrains Mono';
-                ctx.fillStyle = col('--bg-2', 1);
+                ctx.font = '400 8px JetBrains Mono, monospace';
+                ctx.fillStyle = col('--white', 1);
                 ctx.fillText('−', e.x, e.y + 0.5);
             });
         }
@@ -323,11 +322,6 @@
             photons.forEach(function (ph) {
                 ctx.save();
                 ctx.globalAlpha = ph.life > 0.7 ? 1 : ph.life;
-                var grad = ctx.createRadialGradient(ph.x, ph.y, 0, ph.x, ph.y, 16);
-                grad.addColorStop(0, col(pc, 0.4));
-                grad.addColorStop(1, col(pc, 0));
-                ctx.fillStyle = grad;
-                ctx.fillRect(ph.x - 16, ph.y - 16, 32, 32);
                 ctx.beginPath(); ctx.arc(ph.x, ph.y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = col(pc, 1); ctx.fill();
                 // Wave trail behind the rising photon.
@@ -352,14 +346,14 @@
         // Region names at the top; terminal polarity at the bottom corners.
         function drawLabels() {
             var jx = W * 0.5;
-            ctx.font = '600 14px Inter';
+            ctx.font = '400 14px Inter, sans-serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = col('--c-hole', 0.9);
-            ctx.fillText('P-type', jx * 0.5, Y0 - 14);
+            ctx.fillText('p-type', jx * 0.5, Y0 - 14);
             ctx.fillStyle = col('--c-elec', 0.9);
-            ctx.fillText('N-type', jx * 1.5, Y0 - 14);
+            ctx.fillText('n-type', jx * 1.5, Y0 - 14);
             if (step > 0 && voltage() > 0) {
-                ctx.font = '500 12px JetBrains Mono';
+                ctx.font = '400 13px JetBrains Mono, monospace';
                 ctx.textAlign = 'left';
                 ctx.fillStyle = col('--c-hole', 0.9);
                 ctx.fillText('+ anode', 10, H - 8);
@@ -396,7 +390,6 @@
         resize();
         draw();
         window.addEventListener('resize', function () { resize(); draw(); });
-        window.addEventListener('themechange', draw);
         new IntersectionObserver(function (es) {
             es.forEach(function (e) { if (e.isIntersecting) start(); else stop(); });
         }, { threshold: 0.05 }).observe(canvas);

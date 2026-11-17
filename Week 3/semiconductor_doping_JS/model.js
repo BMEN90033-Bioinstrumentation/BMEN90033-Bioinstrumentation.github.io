@@ -21,9 +21,9 @@
     var p = Object.assign({}, defaults);
 
     var LABELS = {
-        pure:  { name: 'Pure silicon (Si)',     colorVar: '--c-si', dopant: 'none' },
-        ntype: { name: 'n-type silicon (Si:P)', colorVar: '--c-p',  dopant: 'phosphorus (group V)' },
-        ptype: { name: 'p-type silicon (Si:B)', colorVar: '--c-b',  dopant: 'boron (group III)' }
+        pure:  { name: 'Pure silicon (Si)',     dopant: 'none' },
+        ntype: { name: 'n-type silicon (Si:P)', dopant: 'phosphorus (group V)' },
+        ptype: { name: 'p-type silicon (Si:B)', dopant: 'boron (group III)' }
     };
 
     var Q = 1.602e-19;          // C
@@ -56,7 +56,7 @@
         c.ef = c.ni > 0 ? kT * Math.log(c.n / c.ni) : NaN;
         c.sigma = Q * (c.n * MU_N + c.p * MU_P);
         c.eg = egSi(p.temp);
-        c.type = p.mode === 'pure' ? 'intrinsic (n = p = nᵢ)'
+        c.type = p.mode === 'pure' ? 'intrinsic'
             : c.n > c.p ? 'electrons (majority)' : 'holes (majority)';
         return c;
     }
@@ -76,7 +76,6 @@
             function go() {
                 fn();
                 window.addEventListener('dopchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

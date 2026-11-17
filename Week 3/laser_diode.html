@@ -4,13 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMEN90033 · Laser Diode Physics</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <title>BMEN90033 · Laser diode physics</title>
 
     <link rel="stylesheet" href="../theme.css">
     <link rel="stylesheet" href="../components/lecture_page.css">
@@ -47,7 +41,7 @@
     <section class="landing">
         <div>
             <div class="meta">BMEN90033 · WEEK 3 · OPTOELECTRONICS</div>
-            <h1 class="hero">The laser <em>diode</em></h1>
+            <h1 class="hero">The laser diode</h1>
             <p class="sub">A laser diode is a forward-biased p-n junction in which stimulated emission, rather than
                 spontaneous emission, dominates. Heavy carrier injection produces population inversion in a thin
                 active region, and two cleaved crystal facets form an optical cavity that feeds the emitted light
@@ -106,7 +100,7 @@
                     <span><span class="dot" style="background:var(--c-hole);opacity:0.45"></span>acceptor ion</span>
                     <span><span class="dot" style="background:var(--c-elec);opacity:0.45"></span>donor ion</span>
                     <span><span class="sw" style="background:var(--c-field)"></span>built-in field</span>
-                    <span>dashed lines: depletion edges</span>
+                    <span><span class="sw dash"></span>depletion edges</span>
                 </div>
                 <div class="plot-box bands">
                     <div class="label">band diagram · <b>equilibrium</b></div>
@@ -128,7 +122,7 @@
 
             <div class="eq-block">$$J = J_0\left(e^{qV/kT} - 1\right)$$</div>
 
-            <p>The active region is usually a quantum well, a layer about 5 to 10 nm thick. Confining the injected
+            <p>The active region is usually a quantum well, a layer about $5$ to $10\,\text{nm}$ thick. Confining the injected
                 carriers to this layer raises their density for a given current.</p>
 
             <p>Under injection the electron and hole populations are described by separate quasi-Fermi levels,
@@ -181,7 +175,7 @@
                 <div class="legend">
                     <span><span class="sw bar" style="background:var(--c-active);opacity:0.6"></span>active region (quantum well)</span>
                     <span><span class="dot" style="background:var(--c-photon)"></span>photon</span>
-                    <span>ring: recombination</span>
+                    <span><span class="dot ring" style="border-color:var(--c-photon)"></span>recombination</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I$</span><span class="v" data-out="I"></span></div>
@@ -240,7 +234,7 @@
                 <div class="legend">
                     <span><span class="sw bar" style="background:var(--c-active);opacity:0.6"></span>active region</span>
                     <span><span class="dot" style="background:var(--c-photon)"></span>photon</span>
-                    <span>ring: recombination</span>
+                    <span><span class="dot ring" style="border-color:var(--c-photon)"></span>recombination</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I$</span><span class="v" data-out="I"></span></div>
@@ -314,7 +308,7 @@
     <section class="scene" id="sec-output">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">05</span><span>coherent output</span></div>
-            <h2>Threshold and the L-I characteristic</h2>
+            <h2>Threshold and the <span style="white-space:nowrap">L-I</span> characteristic</h2>
 
             <p class="lead">Below the threshold current $I_{th}$ the output is weak spontaneous emission. At
                 threshold the gain reaches the loss, stimulated emission clamps the carrier density, and every
@@ -357,7 +351,7 @@
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-photon)"></span>output power</span>
                     <span><span class="sw dash"></span>threshold</span>
-                    <span>dot: operating point</span>
+                    <span><span class="dot point"></span>operating point</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$I$</span><span class="v" data-out="I"></span></div>

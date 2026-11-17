@@ -66,52 +66,42 @@
         // Filter poles
         var filt = window.FilterMath.chebyshev1(N, eps);
         lastFilter = filt;
-        window.AFPlots.drawMagnitudeUnityContour(SP, filt, window.AFPlots.getCssVar('--c-mark'));
+        window.AFPlots.drawMagnitudeUnityContour(SP, filt, window.AFPlots.getCssVar('--c-ref'));
         filt.poles.forEach(function (p) {
             window.AFPlots.drawPole(SP.g, SP.x(p.re), SP.y(p.im), col.cheb1, 7);
         });
 
-        // Annotate semi-axes
+        // Annotate semi-axes. Both labels sit in the right half plane, at
+        // fixed offsets above the real axis, where no pole can fall and
+        // neither label reaches the frame or the Im-axis tick labels. The
+        // semi-minor axis is drawn towards the right vertex of the ellipse
+        // for the same reason. The labels are boxed so the reference circle
+        // and the ellipse pass behind them.
         SP.g.append('line')
-            .attr('x1', SP.x(0)).attr('x2', SP.x(-sh))
+            .attr('x1', SP.x(0)).attr('x2', SP.x(sh))
             .attr('y1', SP.y(0)).attr('y2', SP.y(0))
             .attr('stroke', col.cheb1).attr('stroke-width', 1.2)
             .attr('opacity', 0.55);
-        SP.g.append('text')
-            .attr('x', SP.x(-sh / 2)).attr('y', SP.y(0) - 8)
-            .attr('text-anchor', 'middle')
-            .attr('fill', T.text)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('sinh μ = ' + sh.toFixed(2));
+        window.renderKatex(SP.g, '\\sinh\\mu = ' + sh.toFixed(2),
+            SP.x(0) + 8 + 60, SP.y(0) - 14,
+            { width: 120, height: 20, size: 13, align: 'start', pill: true }).attr('class', 'af-note');
 
         SP.g.append('line')
             .attr('x1', SP.x(0)).attr('x2', SP.x(0))
             .attr('y1', SP.y(0)).attr('y2', SP.y(ch))
             .attr('stroke', col.cheb1).attr('stroke-width', 1.2)
             .attr('opacity', 0.55);
-        SP.g.append('text')
-            .attr('x', SP.x(0) + 6).attr('y', SP.y(ch / 2))
-            .attr('text-anchor', 'start')
-            .attr('fill', T.text)
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('cosh μ = ' + ch.toFixed(2));
+        window.renderKatex(SP.g, '\\cosh\\mu = ' + ch.toFixed(2),
+            SP.x(0) + 8 + 60, SP.y(0) - 38,
+            { width: 120, height: 20, size: 13, align: 'start', pill: true }).attr('class', 'af-note');
 
-        // Legend in the bottom-right corner of the inner plot. The
-        // Chebyshev I header is split across two lines so the parameter
-        // annotation (N, ε) sits under the family name without crowding
-        // the row width.
+        // Legend below the plot frame.
         var entries = [
-            { color: col.cheb1, label: 'cheb-I poles' },
-            { subRow: true, label: '(N = ' + N + ', ε = ' + eps.toFixed(2) + ')' },
-            { color: col.butter, label: 'butterworth circle' },
-            { color: window.AFPlots.getCssVar('--c-mark'), label: '|H(s)| = 1 contour' }
+            { color: col.cheb1, label: 'Chebyshev I poles', marker: 'pole' },
+            { color: col.butter, label: 'Butterworth circle', marker: 'dash' },
+            { color: window.AFPlots.getCssVar('--c-ref'), label: 'Unity-gain contour', marker: 'dash' }
         ];
-        window.AFPlots.drawLegend(SP.g,
-            SP.innerW - 8,
-            SP.innerH - 8 - 18 * (entries.length - 1) - 12,
-            entries, T);
+        window.AFPlots.drawLegend(SP.g, SP.legendX, SP.legendY, entries, T);
     }
 
     function renderBode() {
@@ -143,12 +133,15 @@
         BD.gMag.append('line').attr('class', 'ref-line')
             .attr('x1', xL).attr('x2', xR)
             .attr('y1', BD.yMag(ripDb)).attr('y2', BD.yMag(ripDb));
-        BD.gMag.append('text')
-            .attr('x', xL + 6).attr('y', BD.yMag(ripDb) - 4)
+        // Two-line label below the ripple-floor line, inside the passband
+        // region where the trace stays above the line.
+        var ripLabel = BD.gMag.append('text')
+            .attr('stroke', T.plotBg).attr('stroke-width', 4).attr('paint-order', 'stroke')
             .attr('fill', T.fg(0.6))
-            .attr('font-family', "'JetBrains Mono', monospace")
-            .attr('font-size', 11)
-            .text('ripple floor: ' + ripDb.toFixed(2) + ' dB');
+            .attr('font-family', window.AFPlots.MONO)
+            .attr('font-size', 13);
+        ripLabel.append('tspan').attr('x', xL + 8).attr('y', BD.yMag(ripDb) + 18).text('Ripple floor');
+        ripLabel.append('tspan').attr('x', xL + 8).attr('dy', 16).text(ripDb.toFixed(2).replace('-', '−') + ' dB');
 
         // Passband edge marker
         var xc = BD.x(1);
@@ -158,7 +151,7 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_p = 1',
             xc, BD.innerH - 16,
-            { width: 80, height: 22, size: 11, pill: true });
+            { width: 80, height: 22, size: 13, pill: true });
     }
 
     function phaseDomainFor(N) { return [-90 * N - 30, 10]; }
@@ -189,7 +182,7 @@
             enabled: state.view3d,
             filter: lastFilter,
             color: colors().cheb1,
-            contourColor: window.AFPlots.getCssVar('--c-mark'),
+            contourColor: window.AFPlots.getCssVar('--c-ref'),
             xDomain: [-2.4, 2.4],
             yDomain: [-2.4, 2.4],
             probeOmega: state.probe.omega,
@@ -226,7 +219,6 @@
             });
         }
         onSlider();
-        window.addEventListener('themechange', render);
         window.addEventListener('resize', render);
         window.addEventListener('af-d3-ready', render3D);
     }

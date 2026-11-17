@@ -37,8 +37,10 @@
         document.querySelectorAll('[data-out="type"]').forEach(function (el) { el.textContent = B.p.type; });
         // Junction voltages: V_BE, V_BC for the NPN; V_EB, V_CB for the PNP.
         var j = B.junctions(), npn = B.p.type === 'NPN';
-        document.querySelectorAll('[data-out="vj1"]').forEach(function (el) { el.textContent = j.vbe.toFixed(3) + ' V'; });
-        document.querySelectorAll('[data-out="vj2"]').forEach(function (el) { el.textContent = j.vbc.toFixed(3) + ' V'; });
+        // Typographic minus sign (U+2212) for negative readouts.
+        var volts = function (v) { return v.toFixed(3).replace('-', '−') + ' V'; };
+        document.querySelectorAll('[data-out="vj1"]').forEach(function (el) { el.textContent = volts(j.vbe); });
+        document.querySelectorAll('[data-out="vj2"]').forEach(function (el) { el.textContent = volts(j.vbc); });
         document.querySelectorAll('[data-jk]').forEach(function (el) {
             var t = el.dataset.jk === '1' ? (npn ? 'V_{BE}' : 'V_{EB}') : (npn ? 'V_{BC}' : 'V_{CB}');
             if (window.katex) window.katex.render(t, el);

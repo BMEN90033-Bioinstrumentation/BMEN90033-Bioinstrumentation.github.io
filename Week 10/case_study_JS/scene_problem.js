@@ -1,8 +1,7 @@
 // scene_problem.js  ·  Slide 1
-// Live EEG read-out with coloured phase bands behind the trace, optional
-// raw / filtered toggle, draggable LPF cutoff and ground-truth peak
-// annotations. The window is sized to show one full cycle of the simulated
-// recording (normal → pre → seizure → recovery).
+// Live EEG read-out with coloured phase bands behind the trace and optional
+// ground-truth peak annotations. The window is sized to show one full cycle
+// of the simulated recording (normal, pre, seizure, recovery).
 (function () {
     var SVG = '#plot-eeg-trace';
     var WINDOW = 28;            // seconds shown
@@ -10,7 +9,7 @@
 
     var svg = d3.select(SVG).classed('ov', true);
     var W = 800, H = 320;
-    var margin = { top: 48, right: 28, bottom: 42, left: 56 };
+    var margin = { top: 52, right: 28, bottom: 50, left: 56 };
     var iw, ih, x, y;
 
     var gRoot = svg.append('g');
@@ -63,13 +62,12 @@
 
         var xt = [];
         for (var k = -WINDOW; k <= 0; k += Math.round(WINDOW / 7)) xt.push(k);
-        var xAxis = d3.axisBottom(x).tickValues(xt)
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues(xt).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 
         gTitles.append('text').attr('class', 'axis-title')
-            .attr('x', iw / 2).attr('y', ih + 32)
+            .attr('x', iw / 2).attr('y', ih + 40)
             .attr('text-anchor', 'middle')
             .text('time relative to now, s');
         gTitles.append('text').attr('class', 'axis-title')
@@ -96,7 +94,7 @@
                 gPhaseLab.append('text')
                     .attr('class', 'phase-label')
                     .attr('x', (x0 + x1) / 2)
-                    .attr('y', 14)
+                    .attr('y', -8)
                     .attr('text-anchor', 'middle')
                     .text(b.id === 'pre' ? 'pre-state'
                         : b.id === 'seizure' ? 'seizure'
@@ -107,7 +105,7 @@
     }
 
     function classifyTrend(spikes) {
-        if (spikes.length < 3) return '—';
+        if (spikes.length < 3) return 'n/a';
         var n = spikes.length;
         var xm = 0, ym = 0;
         for (var i = 0; i < n; i++) { xm += spikes[i].t; ym += spikes[i].amp; }
@@ -117,7 +115,7 @@
             num += (spikes[j].t - xm) * (spikes[j].amp - ym);
             den += (spikes[j].t - xm) * (spikes[j].t - xm);
         }
-        if (den < 1e-6) return '—';
+        if (den < 1e-6) return 'n/a';
         var slope = num / den;
         if (slope > 0.05) return 'rising';
         if (slope < -0.05) return 'falling';
@@ -176,7 +174,7 @@
             var last = allSpikes[allSpikes.length - 1];
             ui.amp.textContent = last.amp.toFixed(2) + ' mV';
         } else {
-            ui.amp.textContent = '— mV';
+            ui.amp.textContent = 'n/a';
         }
         var trendLabel = classifyTrend(allSpikes);
         ui.trend.textContent = trendLabel;
@@ -201,7 +199,6 @@
         EEG.setCutoff(5);
 
         EEG.onTick(drawFrame);
-        window.addEventListener('themechange', function () { drawStatic(); drawFrame(); });
         window.addEventListener('resize', function () { layout(); drawStatic(); drawFrame(); });
     }
 

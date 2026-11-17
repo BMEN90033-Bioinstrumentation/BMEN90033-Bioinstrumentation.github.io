@@ -46,7 +46,7 @@ const VIS = {
     init: function () {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(window.T.sceneBg);
-        this.scene.fog = new THREE.FogExp2(window.T.sceneBg, 0.02);
+        this.scene.fog = new THREE.FogExp2(window.T.sceneBg, 0.008);
 
         this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
         this.camera.position.set(0, 5, 45);   // side view
@@ -64,14 +64,17 @@ const VIS = {
         this.controls.maxDistance = 90;
         guardWheel(this.controls, this.renderer.domElement, host.parentElement.querySelector('.hint'));
 
-        this.scene.add(new THREE.AmbientLight(0xffffff, 0.1));
-        const topLight = new THREE.DirectionalLight(0xffffff, 1);
+        // All lights are white (the page background token) so the materials
+        // show their palette colours.
+        const white = window.T.sceneBg;
+        this.scene.add(new THREE.AmbientLight(white, 0.1));
+        const topLight = new THREE.DirectionalLight(white, 1);
         topLight.position.set(5, 20, 10);
         this.scene.add(topLight);
-        const botLight = new THREE.DirectionalLight(0x3b82f6, 0.5);   // blue tint from inside
+        const botLight = new THREE.DirectionalLight(white, 0.5);
         botLight.position.set(-5, -20, 10);
         this.scene.add(botLight);
-        const rimLight = new THREE.SpotLight(0x00ccff, 2);
+        const rimLight = new THREE.SpotLight(white, 2);
         rimLight.position.set(30, 0, 0);
         rimLight.lookAt(0, 0, 0);
         this.scene.add(rimLight);
@@ -248,8 +251,8 @@ const VIS = {
     },
 
     animatePump: function () {
-        // Visual only: the pump moves no ions, so the only transmembrane flux
-        // is the flux implied by the HH currents.
+        // Gate motion is visual only; pump ion transport is started by
+        // fulfillPending from the model's pump flux.
         const phase = Math.sin(this.time * 2);
         this.channels.pump.top.position.y = 2.5 + (phase > 0 ? 0.8 * phase : 0);
         this.channels.pump.bot.position.y = -2.5 - (phase < 0 ? 0.8 * -phase : 0);
@@ -412,7 +415,6 @@ const VIS = {
 
 VIS.init();
 VIS.recolour();
-window.addEventListener('themechange', () => VIS.recolour());
 
 // Started transports per ms of model time (concentrations come from the model).
 const elFlux = document.querySelector('[data-out3d="flux"]');

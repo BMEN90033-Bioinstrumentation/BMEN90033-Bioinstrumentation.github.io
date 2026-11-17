@@ -22,7 +22,7 @@
                 .attr('fill', css(H.COL[n])).attr('fill-opacity', 0.8).attr('rx', 2);
             if (tot > 0) {
                 g.append('text').attr('x', x(i) + x.bandwidth() / 2).attr('y', y(s) - 7).attr('text-anchor', 'middle')
-                    .attr('fill', T.text).attr('font-size', 12).attr('font-family', "'JetBrains Mono', monospace")
+                    .attr('fill', T.text).attr('font-size', 13).attr('font-family', "'JetBrains Mono', monospace")
                     .text(s.toFixed(1) + ' %');
             }
         });

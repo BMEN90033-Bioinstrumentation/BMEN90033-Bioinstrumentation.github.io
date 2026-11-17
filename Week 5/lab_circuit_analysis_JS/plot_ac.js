@@ -41,9 +41,9 @@
         // r_pi with v_pi polarity.
         S.line(400, yb, 400, 180); S.resV(400, 180, 240); S.line(400, 240, 400, 270);
         S.texR('r_\\pi', 382, 200); S.texR(L.tex(L.fmtRes(P.r_pi)), 382, 220, dim);
-        S.tex('+', 422, 186, { width: 18, size: 15.5, color: css('--c-q') });
-        S.tex('-', 422, 234, { width: 18, size: 15.5, color: css('--c-q') });
-        S.tex('v_\\pi', 424, 210, { width: 30, size: 15, color: css('--c-q') });
+        S.tex('+', 422, 186, { width: 18, size: 15.5, color: css('--c-vpi') });
+        S.tex('-', 422, 234, { width: 18, size: 15.5, color: css('--c-vpi') });
+        S.tex('v_\\pi', 424, 210, { width: 30, size: 15, color: css('--c-vpi') });
 
         // Emitter rail and Z_E = R_E || C_E.
         S.line(400, 270, 520, 270); S.dot(460, 270);
