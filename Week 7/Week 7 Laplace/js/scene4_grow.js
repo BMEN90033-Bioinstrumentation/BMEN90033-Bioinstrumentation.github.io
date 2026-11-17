@@ -44,7 +44,7 @@
       if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
     ctx.stroke();
-    CFG.label(ctx, `a = ${a.toFixed(2)}, f = ${f.toFixed(2)} Hz (${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'constant amplitude'})`.replace('-', '−'), x0 + 6, y0 - 22, a > 0 ? C.imag : a < 0 ? C.time : C.muted);
+    CFG.label(ctx, `a = ${a.toFixed(2)}, f = ${f.toFixed(2)} Hz (${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'constant amplitude'})`.replace('-', '−'), x0 + 6, y0 - 22, C.muted);
   }
 
   function drawWound(tAnim) {
@@ -63,15 +63,13 @@
     // Axes stop short of the titles, which sit beyond the axis ends.
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle' });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center' });
 
     // progressive reveal
     const Tmax = 8;
     const reveal = Math.min(1, (tAnim % 6) / 5);
     const scale = 22;
     let comX = 0, comY = 0, cnt = 0;
-    ctx.strokeStyle = a > 0 ? C.imag : C.real;
+    ctx.strokeStyle = C.imag;
     ctx.lineWidth = 1.4;
     ctx.beginPath();
     const N = 700;
@@ -91,6 +89,9 @@
       comX += re; comY += im; cnt++;
     }
     ctx.stroke();
+    // Axis titles are drawn over the curve.
+    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
 
     if (cnt > 0) {
       comX /= cnt; comY /= cnt;
@@ -98,7 +99,7 @@
       const cmy = cy - comY * scale;
       if (isFinite(cmx) && isFinite(cmy)) {
         const offscreen = cmx < 0 || cmx > w || cmy < 0 || cmy > h;
-        ctx.fillStyle = offscreen ? C.imag : C.accent;
+        ctx.fillStyle = C.accent;
         const xx = CFG.clamp(cmx, 8, w - 8), yy = CFG.clamp(cmy, 8, h - 8);
         ctx.beginPath(); ctx.arc(xx, yy, 5, 0, Math.PI * 2); ctx.fill();
       }

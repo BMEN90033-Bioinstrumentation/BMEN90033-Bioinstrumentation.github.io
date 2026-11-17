@@ -13,7 +13,7 @@
       :root {
         --c-stable: var(--d-blue);       /* left half-plane, stable open-loop pole */
         --c-tangent: var(--d-orange);    /* tangential component of the weight */
-        --c-unstable: var(--d-pink);     /* right half-plane, open-loop poles and response */
+        --c-unstable: var(--d-pink);     /* right half-plane, unstable open-loop pole and open-loop response */
         --c-closed: var(--d-green);      /* closed-loop poles and response */
         --c-torque: var(--d-violet);     /* applied torque and controller */
         --c-gravity: var(--d-slate);     /* weight */
@@ -138,7 +138,7 @@
         <p>An external torque $\tau(t)$, supplied by a motor at the pivot, constitutes the input. The angle $\theta(t)$ is the output. A viscous damping coefficient $b$ acts on the angular velocity. The configuration differs from the conventional gravity pendulum only in the orientation of the mass, but this change reverses the sign of the gravitational term. The consequences are developed in the following sections.</p>
         <ul class="bullets">
             <li>The downward pendulum returns to $\theta = 0$ from any small disturbance.</li>
-            <li>The inverted pendulum departs from $\theta = 0$ under any nonzero disturbance.</li>
+            <li>The inverted pendulum departs from $\theta = 0$ under any non-zero disturbance.</li>
         </ul>
         <p>The objective is to express this difference as a property of the transfer function, and to introduce a controller that restores stability without modifying the plant.</p>
     </div>
@@ -206,7 +206,7 @@
         <div class="eq-line">$$s^2 + \frac{b}{mL^2}\,s - \omega_0^2 = 0 \;\;\Longrightarrow\;\; s = -\frac{b}{2mL^2} \pm \sqrt{\left(\frac{b}{2mL^2}\right)^2 + \omega_0^2}.$$</div>
         <p>The discriminant is strictly positive whenever $\omega_0 \ne 0$, so both poles are real. The second term under the square root exceeds the first in magnitude, so one pole lies on the <em>positive real axis</em>:</p>
         <div class="eq-line">$$s_1 = -\frac{b}{2mL^2} + \sqrt{\left(\frac{b}{2mL^2}\right)^2 + \omega_0^2} \;>\; 0, \qquad s_2 \;<\; 0.$$</div>
-        <p>A pole in the right half-plane corresponds to a time-domain mode of the form $e^{s_1 t}$, which grows without bound. Any nonzero initial condition, including disturbance from sensor noise or air currents, projects onto this mode and produces unbounded growth. The system is therefore <em>unstable</em> in the bounded-input bounded-output sense.</p>
+        <p>A pole in the right half-plane corresponds to a time-domain mode of the form $e^{s_1 t}$, which grows without bound. Any non-zero initial condition, including disturbance from sensor noise or air currents, projects onto this mode and produces unbounded growth. The system is therefore <em>unstable</em> in the bounded-input bounded-output sense.</p>
 
         <h3>Numerical example</h3>
         <p>For $L = 0.5~\mathrm{m}$, $m = 1~\mathrm{kg}$, $b = 0.05~\mathrm{N{\cdot}m{\cdot}s/rad}$, and $g = 9.81~\mathrm{m/s^2}$, the natural frequency is $\omega_0 = \sqrt{g/L} \approx 4.43~\mathrm{rad/s}$. The poles are approximately $s_1 \approx +4.33$ and $s_2 \approx -4.53$. The unstable mode grows by a factor of $e \approx 2.72$ every $1/s_1 \approx 0.23~\mathrm{s}$.</p>
@@ -489,7 +489,7 @@
             <div class="label">Open-loop and closed-loop poles</div>
         </div>
         <div class="legend">
-            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-unstable)" stroke-width="1.6" opacity="0.45" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>open-loop poles, fixed by the plant</span>
+            <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-stable)" stroke-width="1.6" opacity="0.45" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-unstable)" stroke-width="1.6" opacity="0.45" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>open-loop poles, fixed by the plant</span>
             <span><svg viewBox="0 0 16 16" fill="none" stroke="var(--c-closed)" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="7"/><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>closed-loop poles, set by the gains</span>
             <span><i class="sw band" style="background:var(--c-stable-band)"></i>stable region</span>
             <span><i class="sw band" style="background:var(--c-unstable-band)"></i>unstable region</span>
@@ -506,8 +506,8 @@
         <p>The trace at the bottom of each panel shows the time evolution of $\theta$. The open-loop response diverges along $e^{s_1 t}$ as before. The closed-loop response, governed by the stable characteristic polynomial, decays toward zero with a time constant set by the real part of the closed-loop pole pair.</p>
 
         <div class="controls">
-            <div class="control-group"><label>$K_p$</label><input type="range" id="sim-kp" min="0" max="20" step="0.05" value="8"><span class="control-value" id="sim-kp-val">8.00</span></div>
-            <div class="control-group"><label>$K_d$</label><input type="range" id="sim-kd" min="0" max="3" step="0.01" value="0.6"><span class="control-value" id="sim-kd-val">0.60</span></div>
+            <div class="control-group"><label>proportional $K_p$</label><input type="range" id="sim-kp" min="0" max="20" step="0.05" value="8"><span class="control-value" id="sim-kp-val">8.00</span></div>
+            <div class="control-group"><label>derivative $K_d$</label><input type="range" id="sim-kd" min="0" max="3" step="0.01" value="0.6"><span class="control-value" id="sim-kd-val">0.60</span></div>
             <div class="control-group"><label>initial angle $\theta_0$</label><input type="range" id="sim-theta0" min="1" max="20" step="0.1" value="6"><span class="control-value" id="sim-theta0-val">6.0°</span></div>
             <div class="control-group"><label>reference $\theta_r$</label><input type="range" id="sim-ref" min="-15" max="15" step="0.5" value="0"><span class="control-value" id="sim-ref-val">0.0°</span></div>
             <div class="btn-row">
@@ -829,16 +829,18 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         ctx.strokeStyle = c.torque;
         ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.arc(pivotX, pivotY, 28, Math.PI * 0.85, Math.PI * 1.55, false);
+        // The arc ends short of the vertical reference so that its arrowhead is clear of the rod
+        const aa = Math.PI * 1.36;
+        ctx.arc(pivotX, pivotY, 28, Math.PI * 0.85, aa, false);
         ctx.stroke();
-        // Arrowhead on arc
-        const aa = Math.PI * 1.55;
+        // Arrowhead along the arc tangent (direction of increasing θ)
         const ax = pivotX + 28 * Math.cos(aa);
         const ay = pivotY + 28 * Math.sin(aa);
+        const tx = -Math.sin(aa), ty = Math.cos(aa);
         ctx.beginPath();
-        ctx.moveTo(ax, ay);
-        ctx.lineTo(ax + 6, ay - 3);
-        ctx.lineTo(ax + 4, ay + 5);
+        ctx.moveTo(ax + tx * 8, ay + ty * 8);
+        ctx.lineTo(ax - ty * 4, ay + tx * 4);
+        ctx.lineTo(ax + ty * 4, ay - tx * 4);
         ctx.closePath();
         ctx.fillStyle = c.torque;
         ctx.fill();
@@ -1008,7 +1010,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 
         const pivotX = W / 2;
         const pivotY = H * 0.66;
-        const L_px = Math.min(H * 0.45, 180);
+        const L_px = Math.min(H * 0.45, 180, W / 2 - 20);   // the fallen bob stays inside the frame
 
         const isFallen = Math.abs(theta) >= Math.PI / 2 - 0.001;
         drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, { color: isFallen ? c.unstable : c.ink });
@@ -1037,7 +1039,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         ctx.stroke();
         ctx.fillStyle = c.muted;
         ctx.font = FONT;
-        ctx.fillText('θ(t)', traceX0, traceY0 - 7);
+        ctx.fillText('θ(t), full scale ±90°', traceX0, traceY0 - 7);
 
         ctx.strokeStyle = c.unstable;
         ctx.lineWidth = 1.6;
@@ -1134,9 +1136,10 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
         ctx.rect(x0, y0, w, h);
         ctx.clip();
 
-        // Open-loop poles: faint reference markers that do not move with the gains
+        // Open-loop poles: faint reference markers that do not move with the gains,
+        // coloured by half-plane as in the Section 03 plot
         ctx.globalAlpha = 0.45;
-        olPoles().forEach(p => drawCross(ctx, cx + p.re * scale, cy - p.im * scale, 6, c.unstable, 1.6));
+        olPoles().forEach(p => drawCross(ctx, cx + p.re * scale, cy - p.im * scale, 6, p.re < 0 ? c.stable : c.unstable, 1.6));
         ctx.globalAlpha = 1;
 
         // Closed-loop poles: a cross ringed by a circle
@@ -1260,7 +1263,8 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
 
         // Pendulums
         const pivY = H * 0.45;
-        const Lpx = Math.min(H * 0.32, 130, pivY - 84);   // keeps the bob below the panel labels
+        // Keeps the bob and the reference label below the panel labels, and the fallen bob clear of the panel divider
+        const Lpx = Math.min(H * 0.32, 130, pivY - 92, halfW / 2 - 20);
         drawInvertedPendulum(ctx, halfW / 2, pivY, Lpx, stateOL.theta, c, { color: stateOL.fallen ? c.unstable : c.ink });
         drawInvertedPendulum(ctx, halfW + halfW / 2, pivY, Lpx, stateCL.theta, c, { color: c.closed });
 
@@ -1277,11 +1281,17 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
             ctx.moveTo(rx, ry); ctx.lineTo(tipX, tipY);
             ctx.stroke();
             ctx.setLineDash([]);
+            // Label beyond the tip along the reference line, clear of the bob for either sign of the reference
+            const lx = rx + (Lpx + 22) * Math.sin(ref);
+            const ly = ry - (Lpx + 22) * Math.cos(ref);
             ctx.fillStyle = c.muted;
             ctx.font = FONT;
-            ctx.fillText('θ', tipX + 16, tipY);
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('θ', lx - 3, ly);
             ctx.font = '10px "JetBrains Mono", monospace';   // subscript
-            ctx.fillText('r', tipX + 25, tipY + 4);
+            ctx.textAlign = 'left';
+            ctx.fillText('r', lx + 2, ly + 4);
+            ctx.textBaseline = 'alphabetic';
         }
 
         // Traces
@@ -1310,7 +1320,7 @@ function drawInvertedPendulum(ctx, pivotX, pivotY, L_px, theta, c, opts) {
             }
             ctx.fillStyle = c.muted;
             ctx.font = FONT;
-            ctx.fillText('θ(t)', x0, y0 - 7);
+            ctx.fillText('θ(t), full scale ±90°', x0, y0 - 7);
 
             ctx.strokeStyle = col;
             ctx.lineWidth = 1.6;

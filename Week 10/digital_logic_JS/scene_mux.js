@@ -124,15 +124,17 @@
             .attr('class', 'lbl' + (y ? ' lit' : '')).call(DL.sub, 'Y = D_' + sel + ' = ' + y);
 
         // Select inputs from below
-        var s1x = bx + 40, s0x = bx + bw - 40;
+        var s1x = bx + 30, s0x = bx + bw - 30;
+        // Lower edge of the trapezoid rises by `taper` across its width.
+        function edgeY(x) { return by + bh - taper * (x - bx) / bw; }
         f.g.append('text').attr('x', s1x).attr('y', by + bh + 36)
             .attr('text-anchor', 'middle').attr('class', 'lbl' + (s1 ? ' lit' : ''))
             .call(DL.sub, 'S_1 = ' + s1);
         f.g.append('text').attr('x', s0x).attr('y', by + bh + 36)
             .attr('text-anchor', 'middle').attr('class', 'lbl' + (s0 ? ' lit' : ''))
             .call(DL.sub, 'S_0 = ' + s0);
-        DL.wire(f.g, s1x, by + bh + 24, s1x, by + bh - 8, !!s1);
-        DL.wire(f.g, s0x, by + bh + 24, s0x, by + bh - 8, !!s0);
+        DL.wire(f.g, s1x, by + bh + 24, s1x, edgeY(s1x), !!s1);
+        DL.wire(f.g, s0x, by + bh + 24, s0x, edgeY(s0x), !!s0);
 
         // Boolean expression near the top of the box
         f.g.append('text').attr('x', bx + bw / 2).attr('y', by - 10)

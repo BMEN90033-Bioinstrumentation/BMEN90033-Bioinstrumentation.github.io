@@ -141,7 +141,7 @@
 
         var mover = P.g.append('circle')
             .attr('r', 5)
-            .attr('fill', P.colors.sample)
+            .attr('fill', P.colors.distort)
             .attr('stroke', P.colors.bg)
             .attr('stroke-width', 1.5);
 

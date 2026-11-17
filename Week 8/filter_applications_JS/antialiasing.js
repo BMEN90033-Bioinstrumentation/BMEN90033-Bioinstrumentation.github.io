@@ -133,7 +133,8 @@
         window.renderKatex(H.svg, captionText,
             H.margin.left + H.innerW / 2, H.margin.top - 13,
             { width: H.innerW, height: 18, size: 13,
-              color: state.aaf ? 'var(--c-filtered)' : 'var(--c-aliased)' });
+              color: actuallyAliased ? 'var(--c-aliased)'
+                  : (state.aaf ? 'var(--c-filtered)' : 'var(--c-clean)') });
     }
 
     function renderSpec() {

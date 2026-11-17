@@ -583,6 +583,8 @@ function drawSPlane(canvas, filterKey, opts = {}) {
             const tw = ctx.measureText(zt).width;
             ctx.fillStyle = getComputedStyle(canvas.parentElement).backgroundColor;   // mask grid lines behind the label
             ctx.fillRect(cx - 9 - tw - 2, ye + sgn * 10 - 9, tw + 4, 18);
+            ctx.fillStyle = T.fg(0.03);   // re-apply the left-half-plane shading over the mask
+            ctx.fillRect(cx - 9 - tw - 2, ye + sgn * 10 - 9, tw + 4, 18);
             ctx.fillStyle = colour;
             ctx.fillText(zt, cx - 9, ye + sgn * 10);
             continue;
@@ -1129,17 +1131,19 @@ function drawBode(canvas, filterKey, compareKey) {
     ctx.textBaseline = 'middle';
     // legend in the lower-left corner, which the low-pass curves leave empty
     let ly = padT + plotH - (compareKey ? 32 : 14);
-    const drawLegend = (key, x) => {
+    const drawLegend = (key, x, alpha = 1) => {
         ctx.strokeStyle = c[key];
         ctx.lineWidth = 2;
+        ctx.globalAlpha = alpha;   // swatch matches the drawn curve
         ctx.beginPath();
         ctx.moveTo(x, ly); ctx.lineTo(x + 18, ly);
         ctx.stroke();
+        ctx.globalAlpha = 1;
         ctx.fillStyle = c.dim;
         ctx.fillText(FILTERS[key].name, x + 24, ly);
     };
     if (compareKey) {
-        drawLegend(compareKey, padL + 10);
+        drawLegend(compareKey, padL + 10, 0.45);
         ly += 18;
     }
     drawLegend(filterKey, padL + 10);

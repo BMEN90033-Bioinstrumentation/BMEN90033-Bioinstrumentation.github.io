@@ -235,7 +235,9 @@
         // Panel labels
         ctx.font = "400 13px 'JetBrains Mono', monospace";
         TAG(ctx, 'TRIG (pin 2)', cTrig, bg, marL + innerW - 8, trigY0 + hTrig / 2);
-        TAG(ctx, 'Capacitor voltage', cCap, bg, marL + innerW - 8, vcY0 + 14);
+        // The readout shares the top band; on narrow canvases the tag is omitted
+        // and the y-axis title identifies the panel.
+        if (innerW >= 340) TAG(ctx, 'Capacitor voltage', cCap, bg, marL + innerW - 8, vcY0 + 14);
         TAG(ctx, 'OUT (pin 3)', cOut, bg, marL + innerW - 8, outY0 + hOut / 2);
 
         // Pulse-width readout

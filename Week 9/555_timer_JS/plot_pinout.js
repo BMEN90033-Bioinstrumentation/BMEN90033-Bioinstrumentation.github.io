@@ -124,7 +124,7 @@
             { width: 120, height: 28, size: 22, color: text });
 
         // Top reference: small label "top view" near the notch
-        window.renderKatex(svg, '\\text{top view}',
+        window.renderKatex(svg, '\\text{Top view}',
             NOTCH.cx, BODY.y - 24,
             { width: 80, height: 16, size: 15, color: muted });
     }

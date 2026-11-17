@@ -44,6 +44,8 @@
       .pz-ov .katex { font-size: 14px !important; }
       .pz-region { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
       .pz-pole, .pz-pole .katex { color: var(--c-pole); }
+      /* Wraps to two centred lines when the plot box is narrower than the text */
+      #pz-delay-eq { white-space: normal; text-align: center; width: calc(100% - 32px); line-height: 1.25; }
 
       .legend { margin-top: 14px; }
       .legend .sw.band { border: 1px solid var(--calcium-white-800); }

@@ -20,3 +20,12 @@
 
 /* Material buttons show chemical formulae, which keep their own capitalisation. */
 .seg-btn[data-param="mat"] { text-transform: none; }
+
+/* A dashed border on a rounded 18px box renders solid; square the swatch so the dashes show. */
+.legend .sw.dash { border-radius: 0; width: 22px; }
+
+/* Narrow screens: the fixed plot margins leave too little height at the wide aspect ratio. */
+@media (max-width: 600px) {
+    .plot-box.bands { aspect-ratio: 1.5 / 1; }
+    .plot-box.sim   { aspect-ratio: 1.2 / 1; }
+}

@@ -147,7 +147,7 @@
         var iEnd = Math.max(2, Math.ceil(tEnd / dt));
 
         // Envelope (faint dashed)
-        var envColor = window.CMP.cssVar('--c-thresh');
+        var envColor = window.CMP.cssVar('--c-ref');
         ctx.strokeStyle = envColor;
         ctx.lineWidth = 1.3;
         ctx.setLineDash([5, 4]);

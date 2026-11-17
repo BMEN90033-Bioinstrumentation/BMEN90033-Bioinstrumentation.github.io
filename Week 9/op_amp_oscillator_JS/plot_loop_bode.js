@@ -130,22 +130,15 @@
         // Faint reference: β alone (no amplifier).
         g.append('path').datum(refPts)
             .attr('fill', 'none')
-            .attr('stroke', window.CMP.cssVar('--c-input'))
+            .attr('stroke', window.CMP.cssVar('--c-ref'))
             .attr('stroke-width', 1.2)
-            .attr('opacity', 0.32)
+            .attr('opacity', 0.55)
             .attr('stroke-dasharray', '4 4')
             .attr('d', line);
 
-        // Active Aβ locus, colour-coded by regime.
-        var Aratio = state.A / 3;
-        var traceColor;
-        if (Math.abs(Aratio - 1) < 0.005) {
-            traceColor = window.CMP.cssVar('--c-output');
-        } else if (Aratio < 1) {
-            traceColor = window.CMP.cssVar('--c-output2');
-        } else {
-            traceColor = window.CMP.cssVar('--c-thresh');
-        }
+        // Active Aβ locus. One colour in every regime; the regime is named
+        // in the slider readout.
+        var traceColor = window.CMP.cssVar('--c-output');
         g.append('path').datum(locPts)
             .attr('fill', 'none')
             .attr('stroke', traceColor)
@@ -154,7 +147,7 @@
             .attr('d', line);
 
         // ── Barkhausen target at (1, 0) ─────────────────────────────
-        var targetColor = window.CMP.cssVar('--c-output');
+        var targetColor = window.T.text;
         g.append('line')
             .attr('x1', x(1) - 9).attr('x2', x(1) + 9)
             .attr('y1', y(0)).attr('y2', y(0))
@@ -187,10 +180,15 @@
         realTicks.forEach(function (rv) {
             if (rv < x.domain()[0] || rv > x.domain()[1]) return;
             if (x(rv) > innerW - 16) return;        // label would cross the frame
+            // The locus is vertical where it crosses the real axis, so a
+            // tick label under the crossing would sit on the curve. The
+            // marker label states that value instead.
+            var underLocus = rv !== 0 && Math.abs(x(rv) - x(markerR)) < 22;
             g.append('line')
                 .attr('x1', x(rv)).attr('x2', x(rv))
                 .attr('y1', y(0) - 4).attr('y2', y(0) + 4)
                 .attr('stroke', tickLine).attr('stroke-width', 1);
+            if (underLocus) return;
             g.append('text')
                 .attr('x', rv === 0 ? x(rv) - 8 : x(rv))
                 .attr('y', y(0) + 22)
@@ -233,10 +231,16 @@
             margin.left + x(1) + 38, margin.top + y(0) - 26,
             { width: 56, height: 20, size: 13, color: targetColor })
             .select('div').style('background', window.T.plotBg);
+        // Marker label sits beside the crossing, outside the locus, and moves
+        // inside it only when the frame leaves no room on the right.
+        var mkW = 130;
+        var mkRight = x(markerR) + 12 + mkW <= innerW - 4;
         window.renderKatex(svg,
             'A\\beta(j\\omega_0) = ' + (state.A * BETA0).toFixed(3),
-            margin.left + x(markerR), margin.top + y(0) + 42,
-            { width: 150, height: 22, size: 13, color: traceColor })
+            margin.left + x(markerR) + (mkRight ? 1 : -1) * (12 + mkW / 2),
+            margin.top + y(0) + 44,
+            { width: mkW, height: 22, size: 13, color: traceColor,
+              align: mkRight ? 'left' : 'right' })
             .select('div').style('background', window.T.plotBg);
 
         // ── legend (top-right of plot) ──────────────────────────────
@@ -249,7 +253,7 @@
         var legY = margin.top + 10;
         [
             { label: '\\beta(j\\omega) \\text{ (network only)}',
-              color: window.CMP.cssVar('--c-input'), dashed: true, op: 0.55 },
+              color: window.CMP.cssVar('--c-ref'), dashed: true, op: 0.55 },
             { label: 'A\\beta(j\\omega) \\text{ (current } A \\text{)}',
               color: traceColor, dashed: false, op: 1 }
         ].forEach(function (it, idx) {

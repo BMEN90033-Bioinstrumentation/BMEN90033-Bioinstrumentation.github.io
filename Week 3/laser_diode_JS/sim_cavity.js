@@ -7,8 +7,8 @@
 // insets are now separate D3 figures, and the in-canvas status text moved to
 // the readouts. Drawing is shifted down by DY so the plot-box label stays
 // clear; the facet reflectivities are KaTeX overlays above the mirrors, the
-// left one right-aligned to the rear facet and the right one left-aligned to
-// the front facet, so they never meet over the active region.
+// left one right-aligned and the right one left-aligned just outside the
+// widest depletion edge, so they never meet over the active region.
 (function () {
     var DY = 24;
 
@@ -67,7 +67,10 @@
             W = w; H = rect.height - DY;
             if (big) initParticles();
             ovl.forEach(function (d, i) {
-                d.style.left = (W * 0.5 + (i === 0 ? -40 : 40)) + 'px';
+                // Outside the widest (unbiased) depletion edge, so the dashed
+                // guides never cross a label at low current.
+                var off = Math.max(40, W * 0.08 + 8);
+                d.style.left = (W * 0.5 + (i === 0 ? -off : off)) + 'px';
                 d.style.top = (DY + 28) + 'px';
             });
         }

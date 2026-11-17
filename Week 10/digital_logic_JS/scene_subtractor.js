@@ -34,7 +34,9 @@
     }
 
     function drawAddSub() {
-        var f = DL.frame(svg, { W: 720, H: 420 });
+        var f = DL.frame(svg, { W: 750, H: 420 });
+        // Shift the drawing down so the input labels clear the plot-box label.
+        f.g.attr('transform', 'translate(0,16)');
         var bits = readBits();
         var aArr = [bits.a0, bits.a1, bits.a2, bits.a3];
         var bArr = [bits.b0, bits.b1, bits.b2, bits.b3];
@@ -54,7 +56,7 @@
         var faMs = fullAdder(aArr[3], bxArr[3], carries[3]);
         var ovf = DL.XOR(carries[3], faMs.c);
 
-        var boxW = 120, boxH = 100, spacing = 30;
+        var boxW = 110, boxH = 100, spacing = 52;   // gap fits the carry labels
         var startX = 90;        // explicit margin so C_out label fits on left
         var boxY = 210;
         var carryY = boxY + boxH / 2;
@@ -64,7 +66,7 @@
         var mLabelEnd = 90;
         f.g.append('text').attr('x', mLabelEnd).attr('y', mBusY + 4)
             .attr('text-anchor', 'end').attr('class', 'lbl' + (M ? ' lit' : ''))
-            .call(DL.sub, 'M = ' + M + (M ? ' (SUB)' : ' (ADD)'));
+            .call(DL.sub, 'M=' + M + (M ? ' (SUB)' : ' (ADD)'));   // compact form keeps the label clear of the box edge
         var mBusLeft = mLabelEnd + 6;
         var cInTapX = startX + 3 * (boxW + spacing) + boxW + 22;  // right of FA0
         DL.wire(f.g, mBusLeft, mBusY, cInTapX, mBusY, !!M);
@@ -86,8 +88,8 @@
             var cOutBit = (bit === 3) ? cOut : carries[bit + 1];
 
             // Stage column positions.
-            var bColX  = x + 35;
-            var aColX  = x + 95;
+            var bColX  = x + 30;
+            var aColX  = x + 86;
 
             // FA box
             f.g.append('rect').attr('x', x).attr('y', boxY)
@@ -164,8 +166,11 @@
         rdR.textContent = rStr;
         var aSig = signed4(aArr), bSig = signed4(bArr);
         var rSig = signed4(sums);
-        rdDec.textContent = aSig + (M ? ' − ' : ' + ') + bSig + ' = ' + rSig;
-        rdOv.textContent = ovf ? 'overflow' : 'no';
+        // Negative values take a true minus sign; a negative second operand is bracketed.
+        function num(n) { return n < 0 ? '−' + (-n) : String(n); }
+        rdDec.textContent = num(aSig) + (M ? ' − ' : ' + ') +
+            (bSig < 0 ? '(' + num(bSig) + ')' : num(bSig)) + ' = ' + num(rSig);
+        rdOv.textContent = ovf ? 'yes' : 'no';
         rdOv.className = ovf ? 'v warn' : 'v on';
     }
 

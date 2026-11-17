@@ -150,7 +150,7 @@
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
                 .tickFormat(function (d) { return d.toFixed(1); })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).ticks(4)
@@ -178,7 +178,7 @@
         rdV0.textContent = v0.toFixed(3) + ' V';
         rdV1.textContent = v1.toFixed(3) + ' V';
         rdCode.textContent = sarRes.code;
-        rdErr.textContent = (err >= 0 ? '+' : '') + err + ' LSB';
+        rdErr.textContent = (err > 0 ? '+' : '') + err + ' LSB';
         rdErr.className = 'v' + (Math.abs(err) <= 1 ? '' : ' warn');
     }
 

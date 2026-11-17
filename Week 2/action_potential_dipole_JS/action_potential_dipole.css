@@ -25,4 +25,5 @@
 .legend .sw.band { border: 1px solid var(--c-depol); }
 /* Viridis colour map: encodes field magnitude, matches scene_tissue.js. */
 .legend .sw.grad { background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725); height: 8px; }
+.legend .sw.dash { width: 28px; border-radius: 0; }
 .legend .sw.dash.repol { border-top-color: var(--c-repol); }

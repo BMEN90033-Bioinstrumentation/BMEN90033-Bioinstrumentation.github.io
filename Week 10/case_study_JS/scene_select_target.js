@@ -64,8 +64,7 @@
         gAxis.selectAll('*').remove();
         var yAxis = d3.axisLeft(y).tickValues([0, 1, 2]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([0, 3, 6, 9, 12])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([0, 3, 6, 9, 12]).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 

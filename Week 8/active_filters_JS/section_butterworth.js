@@ -104,11 +104,13 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_c = 1',
             xc, BD.innerH - 16,
-            { width: 80, height: 22, size: 11, pill: true });
+            { width: 80, height: 22, size: 13, pill: true });
 
-        // Slope annotation, placed in the empty region below the passband
+        // Slope annotation, placed in the empty region below the passband,
+        // midway between two tick levels; the halo interrupts the grid.
         BD.gMag.append('text')
-            .attr('x', 8).attr('y', BD.innerH - 36)
+            .attr('x', 8).attr('y', BD.yMag(-50) + 5)
+            .attr('stroke', T.plotBg).attr('stroke-width', 4).attr('paint-order', 'stroke')
             .attr('fill', T.fg(0.6))
             .attr('font-family', window.AFPlots.MONO)
             .attr('font-size', 13)

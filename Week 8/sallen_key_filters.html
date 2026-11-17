@@ -175,14 +175,14 @@
             <div class="eq-block">$$Q \;\le\; \tfrac{1}{2}.$$</div>
 
             <p>The bound is reached by a coincident real pole pair, that is, the ideal product above.
-                Loading reduces $Q$ further, so the passband sags well before the cutoff: at
+                Loading reduces $Q$ further, so the passband droops well before the cutoff: at
                 $\omega = 1/RC$ the magnitude has already fallen below $-6\,\text{dB}$. A sharper
                 corner requires complex conjugate poles, which a purely RC network cannot produce.</p>
 
             <div class="callout">
                 The plot shows the loaded response (orange, solid) against the ideal product (pink,
                 dashed). The ideal
-                curve is itself softer than Butterworth, since two coincident real poles already give
+                curve itself has a more gradual corner than a Butterworth response, since two coincident real poles already give
                 $Q = \tfrac{1}{2}$. The loaded curve lies below it across the passband.
             </div>
         </div>
@@ -219,14 +219,14 @@
 
             <p>This is the ideal product from the previous section. The asymptotic roll-off is
                 $-40\,\text{dB/decade}$ and the $-3\,\text{dB}$ frequency is
-                $\omega_{-3} = \omega_{c}\sqrt{2^{1/2} - 1} \approx 0.64\,\omega_{c}$. The passband no
-                longer sags.</p>
+                $\omega_{-3} = \omega_{c}\sqrt{2^{1/2} - 1} \approx 0.64\,\omega_{c}$. The passband
+                droop caused by loading is removed.</p>
 
             <h3>Cost of the buffer</h3>
             <p>A second-order section now contains <strong>two op-amps</strong>: one buffer between
                 the stages and a second at the output. The active device count scales linearly with
                 order. The composite transfer function is still a product of coincident real poles,
-                so the corner remains soft ($Q = \tfrac{1}{2}$) regardless of order. The buffered
+                so the corner remains gradual ($Q = \tfrac{1}{2}$) regardless of order. The buffered
                 cascade restores the ideal product but does not sharpen the corner.</p>
 
             <div class="callout">
@@ -262,9 +262,9 @@
             <p class="lead">The Sallen-Key low-pass retains the two resistors and two capacitors of
                 the passive network and adds one op-amp wired as a unity-gain buffer at the output.
                 The structural change is the routing of $C_1$, which now connects from internal node
-                $A$ to $V_{\text{out}}$ rather than to ground. At low frequency $C_1$ is effectively
-                open and the network reduces to the passive cascade. At high frequency $C_1$ is a
-                short, feeding the op-amp output back into node $A$.</p>
+                $A$ to $V_{\text{out}}$ rather than to ground. At low frequency $C_1$ acts as an
+                open circuit and the network reduces to the passive cascade. At high frequency $C_1$ acts
+                as a short circuit, feeding the op-amp output back into node $A$.</p>
 
             <p>The feedback is positive: the op-amp drives node $A$ in the same direction as
                 $V_{\text{in}}$. Its strength, set by $C_1$, cancels the loading interaction of the
@@ -343,7 +343,7 @@
 
             <ul class="bullets">
                 <li><b>Passive two-stage RC</b> (orange, solid). This is the loaded baseline from section 02,
-                    with an equivalent $Q = 1/3$ at $\omega_0 = 1\,\text{rad/s}$. The response sags
+                    with an equivalent $Q = 1/3$ at $\omega_0 = 1\,\text{rad/s}$. The response droops
                     well before the cutoff and the corner is gradual.</li>
                 <li><b>Bessel</b> ($Q = 0.577$, green, dashed). The group delay is maximally flat and the
                     step-response overshoot is negligible (about $0.4\%$). It is used where waveform

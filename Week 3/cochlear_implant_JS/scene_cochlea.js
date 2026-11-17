@@ -202,7 +202,7 @@ function recolor() {
         c.mesh.material.color.set(css('--c-contact'));
         c.mesh.material.emissive.copy(col);
         c.ring.material.color.copy(col);
-        if (c.label) c.label.element.style.borderLeftColor = cfg.colors[i];
+        if (c.label) c.label.element.style.setProperty('--ch', cfg.colors[i]);
     });
     drawOnce();
 }

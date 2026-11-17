@@ -152,7 +152,7 @@
             if (x(1) - x(0) >= 48) {
                 f.g.append('text')
                     .attr('x', above ? xMid - 8 : xMid + 9)
-                    .attr('y', above ? y(t.trial) - 9 : y(t.trial) + 19)
+                    .attr('y', (above || y(t.trial) + 19 > f.ih - 4) ? y(t.trial) - 9 : y(t.trial) + 19)
                     .attr('text-anchor', above ? 'end' : 'start')
                     .attr('font-family', "'JetBrains Mono', monospace")
                     .attr('font-size', 13)

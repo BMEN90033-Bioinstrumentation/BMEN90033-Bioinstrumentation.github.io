@@ -29,7 +29,7 @@
             else if (k === 'ni') tex(el, D.fmtSci(s.ni) + '\\,\\text{cm}^{-3}');
             else if (k === 'sigma') tex(el, D.fmtSci(s.sigma) + '\\,\\text{S/cm}');
             else if (k === 'ef') el.textContent = isNaN(s.ef) ? 'undefined at 0 K'
-                : (s.ef >= 0 ? '+' : '−') + Math.abs(s.ef * 1e3).toFixed(0) + ' meV';
+                : (Math.abs(s.ef) < 5e-4 ? '' : s.ef > 0 ? '+' : '−') + Math.abs(s.ef * 1e3).toFixed(0) + ' meV';
         });
         live();
     }

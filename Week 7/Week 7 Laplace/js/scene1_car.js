@@ -260,7 +260,9 @@
 
     // caption
     CFG.label(ctx, '← road motion', sx + sw - 12, roadY0 + 16, C.muted, { align: 'right' });
-    CFG.label(ctx, 'chassis (sprung mass)', sx + 14, sy + 10, C.muted);
+    // The label rides above the rail so the rail never covers it.
+    CFG.label(ctx, 'chassis (sprung mass)', sx + 14,
+      Math.max(sy + 2, chassisY - Math.max(10, sh * 0.05) / 2 - 19), C.muted);
 
     ctx.restore();
     return readout;
@@ -536,7 +538,7 @@
     ctx.fillStyle = C.time;
     ctx.beginPath(); ctx.arc(xRef, chassisY, 4, 0, Math.PI * 2); ctx.fill();
     const zShow = Math.abs(zNorm) < 0.005 ? 0 : zNorm;
-    CFG.label(ctx, `z = ${zShow >= 0 ? '+' : '−'}${Math.abs(zShow).toFixed(2)}`, xRef - 10, chassisY - 34, C.time, { align: 'right' });
+    CFG.label(ctx, `z = ${zShow >= 0 ? '+' : '−'}${Math.abs(zShow).toFixed(2)}`, xRef - 10, chassisY + 24, C.time, { align: 'right' });
     return { readoutX: xRef, readoutY: chassisY };
   }
 

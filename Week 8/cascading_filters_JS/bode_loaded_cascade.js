@@ -42,7 +42,7 @@
         var W = rect.width;
         var H = rect.height || 360;
 
-        var margin = { top: 42, right: 24, bottom: 60, left: 60 };
+        var margin = { top: 42, right: 24, bottom: 60, left: 70 };
         var midGap = 70;
         var panelW = (W - margin.left - margin.right - midGap) / 2;
         var innerH = H - margin.top - margin.bottom;
@@ -84,7 +84,7 @@
             20, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(svg, '\\angle H(j\\omega)\\,[^\\circ]',
-            phaseLeft - 44, margin.top + innerH / 2,
+            phaseLeft - 46, margin.top + innerH / 2,
             { width: 200, height: 24, rotate: -90, size: 13 });
         window.renderKatex(svg, '\\omega\\,[\\mathrm{rad/s}]',
             margin.left + panelW / 2, H - 14,

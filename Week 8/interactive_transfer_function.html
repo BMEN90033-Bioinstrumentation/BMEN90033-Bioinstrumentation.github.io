@@ -35,8 +35,11 @@
         }
 
         /* The hint is a numeric readout containing σ and ω, so it is not
-           upper-cased. */
+           upper-cased. It sits at the top right, clear of the σ tick labels
+           along the bottom edge of the s-plane. */
         .plot-box .hint {
+            top: 10px;
+            bottom: auto;
             text-transform: none;
             letter-spacing: 0;
             font-size: 12px;
@@ -1051,14 +1054,16 @@
                 svgKatex(svg, x(0), pad - 14, 'j\\omega',
                     { width: 60, height: 22 });
 
+                // Tick labels sit on the left and bottom edges of the grid so that
+                // poles, zeros and vector labels near the axes do not cover them.
                 const tickG = svg.append('g');
                 for (let v = Math.ceil(view.re[0]); v <= view.re[1]; v++) {
                     if (v === 0) continue;
-                    tickG.append('text').attr('x', x(v)).attr('y', y(0) + 16).attr('text-anchor', 'middle').text(v);
+                    tickG.append('text').attr('x', x(v)).attr('y', H - pad + 18).attr('text-anchor', 'middle').text(mns(v));
                 }
                 for (let v = Math.ceil(view.im[0]); v <= view.im[1]; v++) {
                     if (v === 0) continue;
-                    tickG.append('text').attr('x', x(0) - 8).attr('y', y(v) + 4).attr('text-anchor', 'end').text(v);
+                    tickG.append('text').attr('x', pad - 6).attr('y', y(v) + 4).attr('text-anchor', 'end').text(mns(v));
                 }
 
                 // Background click area (only when editable)
@@ -1291,7 +1296,8 @@
         function fmt(n, d = 2) {
             if (Math.abs(n) < 1e-10) return '0';
             const s = n.toFixed(d);
-            return s.replace(/\.?0+$/, '') || '0';
+            // strip trailing zeros only after a decimal point ("20" stays "20")
+            return s.includes('.') ? s.replace(/\.?0+$/, '') : s;
         }
 
         // Factored form: group conjugate pairs into real quadratic blocks
@@ -2261,8 +2267,8 @@
                     .attr('x1', x(demo3.wc)).attr('x2', x(demo3.wc))
                     .attr('y1', pT).attr('y2', H - pB)
                     .attr('stroke', 'var(--c-ref)');
-                svgKatex(svg, x(demo3.wc), H - pB - 8, '\\omega_c',
-                    { width: 40, height: 20, color: 'var(--c-ref)', fontSize: 16, vAlign: 'bottom' });
+                svgKatex(svg, x(demo3.wc) - 6, H - pB - 8, '\\omega_c',
+                    { width: 40, height: 20, color: 'var(--c-ref)', fontSize: 16, anchor: 'end', vAlign: 'bottom' });
 
                 // intersection dot at (ωc, −3)
                 svg.append('circle')

@@ -161,7 +161,7 @@
         <div class="legend">
             <span><span class="sw" style="background:var(--c-bulk)"></span>10 µF</span>
             <span><span class="sw" style="background:var(--c-cer)"></span>0.1 µF</span>
-            <span><span class="sw dash" style="border-top-color:var(--c-par)"></span>10.1 µF sum (dashed)</span>
+            <span><span class="sw dash"></span>10.1 µF ideal sum (dashed)</span>
         </div>
     </div>
 </section>
@@ -528,13 +528,16 @@ function drawCurve(ctx, ax, fs, zs, color, width = 2, dashed = false) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     if (dashed) ctx.setLineDash([4, 4]);
+    // clip to the plot frame so an off-scale curve leaves the plot instead of running along its edge
+    ctx.beginPath();
+    ctx.rect(ax.xOf(ax.fmin), ax.yOf(ax.zmax), ax.xOf(ax.fmax) - ax.xOf(ax.fmin), ax.yOf(ax.zmin) - ax.yOf(ax.zmax));
+    ctx.clip();
     ctx.beginPath();
     let started = false;
     for (let i = 0; i < fs.length; i++) {
         const f = fs[i], z = zs[i];
         if (!isFinite(z) || z <= 0) continue;
-        const zc = Math.max(ax.zmin * 1.001, Math.min(ax.zmax * 0.999, z));
-        const x = ax.xOf(f), y = ax.yOf(zc);
+        const x = ax.xOf(f), y = ax.yOf(z);
         if (!started) { ctx.moveTo(x, y); started = true; }
         else ctx.lineTo(x, y);
     }
@@ -642,7 +645,7 @@ function drawIdeal() {
     const ax = logAxes(ctx, w, h, 10, 1e9, 1e-4, 1e4);
     drawCurve(ctx, ax, fs, zBulk, p.bulk, 2);
     drawCurve(ctx, ax, fs, zCer,  p.cer,  2);
-    drawCurve(ctx, ax, fs, zSum,  p.par,  2, true);
+    drawCurve(ctx, ax, fs, zSum,  p.ideal, 2, true);
 }
 
 /* ========== PLOT 3: single real capacitors ========== */

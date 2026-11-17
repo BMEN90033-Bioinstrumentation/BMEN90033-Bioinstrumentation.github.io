@@ -48,7 +48,7 @@
             <p class="sub">A multivibrator is a two-state circuit whose output rests at one of two saturation rails
                 and switches between them on a defined condition. The three families are distinguished by the number
                 of those states that are stable. A bistable holds either state indefinitely. A monostable holds one
-                state and visits the other for a fixed interval. An astable holds neither and oscillates between
+                state and occupies the other for a fixed interval. An astable holds neither and oscillates between
                 them.</p>
             <div class="tags">
                 <span class="field-tag">positive feedback</span>
@@ -134,7 +134,7 @@
             <div class="callout">
                 The bistable and the inverting Schmitt trigger are the same circuit. As a multivibrator the emphasis is
                 on the two stable states; as a Schmitt trigger the emphasis is on the hysteresis between the
-                thresholds. Both descriptions refer to the same circuit.
+                thresholds.
             </div>
         </div>
 
@@ -174,10 +174,10 @@
             <p class="lead">A monostable, or one-shot, has one stable state and one quasi-stable state of fixed
                 duration. The trigger $V_\text{trig}$ drives the non-inverting node, which is also the tap of the
                 divider $R_1, R_2$ from the output. A resistor $R$ feeds the output back to the inverting input,
-                where a capacitor $C$ to ground sets the timing and a diode $D$ clamps $v_C$ against rising too
-                far.</p>
+                where a capacitor $C$ to ground sets the timing and a diode $D$ limits the positive excursion
+                of $v_C$.</p>
 
-            <p>At rest, $V_\text{trig}$ holds $v_+$ near its quiescent value. The output sits at $+V_\text{sat}$ and
+            <p>At rest, $V_\text{trig}$ holds $v_+$ near its quiescent value. The output rests at $+V_\text{sat}$ and
                 the diode is forward-biased, clamping $v_C \approx V_D$. With $v_+ > v_-$ the comparator stays
                 latched and the circuit remains in this state indefinitely.</p>
 

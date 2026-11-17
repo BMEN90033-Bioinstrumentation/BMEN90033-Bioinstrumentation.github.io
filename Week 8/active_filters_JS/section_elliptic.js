@@ -85,10 +85,10 @@
                 .attr('fill', col.zero)
                 .attr('font-family', window.AFPlots.MONO)
                 .attr('font-size', 12)
-                .attr('text-anchor', 'start');
+                .attr('text-anchor', 'end');
             ['Zeros outside plot'].concat(offWindowKeys.map(function (key) { return '±j' + key; }))
                 .forEach(function (line, idx) {
-                    offLabel.append('tspan').attr('x', SP.x(0) + 10).attr('y', 16 + idx * 16).text(line);
+                    offLabel.append('tspan').attr('x', SP.x(0) - 10).attr('y', 16 + idx * 16).text(line);
                 });
         }
         filt.poles.forEach(function (p) {
@@ -129,7 +129,7 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_p = 1',
             xc, BD.innerH - 16,
-            { width: 80, height: 22, size: 11, pill: true });
+            { width: 80, height: 22, size: 13, pill: true });
     }
 
     function phaseDomainFor(N) { return [-90 * N - 30, 60]; }  // zeros lift the phase above 0°

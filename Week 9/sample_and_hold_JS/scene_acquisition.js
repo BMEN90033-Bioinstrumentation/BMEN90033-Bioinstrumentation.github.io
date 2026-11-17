@@ -120,9 +120,9 @@
         // Axes
         var ax = f.g.append('g').attr('class', 'axis')
             .attr('transform', 'translate(0,' + f.ih + ')')
-            .call(d3.axisBottom(x).ticks(5)
-                .tickFormat(function (d) { return fmtTime(d); })
-                .tickSize(0).tickPadding(8));
+            .call(d3.axisBottom(x).ticks(f.iw < 420 ? 3 : 5)
+                .tickFormat(function (d) { return d === 0 ? '0' : fmtTime(d); })
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).tickValues([0, 0.5, 1.0])

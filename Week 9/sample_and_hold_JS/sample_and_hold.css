@@ -25,6 +25,14 @@
 .plot-box.trace-box   { aspect-ratio: 2.2 / 1; }
 .plot-box.short-box   { aspect-ratio: 3.4 / 1; }
 .plot-box.circuit-box { aspect-ratio: 900 / 410; }
+/* Narrow screens: keep the schematic at a legible size and scroll it sideways. */
+@media (max-width: 700px) {
+    .plot-box.circuit-box { aspect-ratio: auto; height: 292px; overflow-x: auto; }
+    .plot-box.circuit-box svg { width: 640px; height: 292px; }
+    /* The plot code draws on a canvas of at least 420 by 260 units. */
+    .plot-box.trace-box { aspect-ratio: auto; height: 260px; }
+    .plot-box.short-box { aspect-ratio: auto; height: 160px; }
+}
 
 .readout .item .v.off  { color: var(--muted); }
 .readout .item .v.warn { color: var(--c-thresh); }

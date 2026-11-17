@@ -339,8 +339,8 @@
         label(g, state.z1, 'z₁', 'z1', 10, -12);
         label(g, state.z2, 'z₂', 'z2', 10, 14);
         label(g, state.a, 'a', 'transform', 12, -16);
-        label(g, subjectImage, pair.resultLabel, 'result result-' + pair.subjectClass, 12, 16);
-        label(g, { x: 1, y: 0 }, '1', 'transform', 8, 16);
+        label(g, subjectImage, pair.resultLabel, 'result result-' + pair.subjectClass, -12, 16);
+        label(g, { x: 1, y: 0 }, '1', 'transform', -8, -14);
 
         const yTop = y(AXIS_EXT);
         const xRight = x(AXIS_EXT);

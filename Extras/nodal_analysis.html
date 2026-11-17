@@ -171,7 +171,8 @@
             border-radius: var(--radius-1);
             padding: 4px 2px;
         }
-        .matrix-row { display: flex; }
+        .matrix { display: inline-grid; }
+        .matrix-row { display: contents; }
         .matrix-row span, .vector-entry {
             display: block;
             min-width: 64px;
@@ -291,6 +292,8 @@
             <div class="divider"></div>
             <div class="seg">
                 <button class="seg-btn active" id="btn-compute">Compute</button>
+            </div>
+            <div class="seg">
                 <button class="seg-btn tool-btn" data-tool="probe" id="btn-probe" style="display:none;">Probe</button>
                 <button class="seg-btn" id="btn-delete">Delete</button>
                 <button class="seg-btn" id="btn-clear">Clear all</button>
@@ -2204,8 +2207,10 @@
 
                     // Arrow offset perpendicular to branch so it doesn't overlap
                     var isVertical = Math.abs(dy) > Math.abs(dx);
-                    var perpOffX = isVertical ? -18 : 0;
-                    var perpOffY = isVertical ? 0 : 18;
+                    var perpOffX = isVertical ? -24 : 0;
+                    var perpOffY = isVertical ? 0 : 24;
+                    // Label-manager footprint of an arrow drawn along the branch
+                    var arrW = isVertical ? 12 : 28, arrH = isVertical ? 28 : 12;
 
                     var nodesMap = nodeData.terminalNodeMap[br.comp.id];
                     // Which terminal of this component connects to the focused node?
@@ -2254,7 +2259,7 @@
                         c.lineTo(ax + Math.cos(angle) * aLen / 2, ay + Math.sin(angle) * aLen / 2);
                         c.stroke();
                         drawArrowhead(c, ax + Math.cos(angle) * aLen / 2, ay + Math.sin(angle) * aLen / 2, angle, 10, arrowColor);
-                        diagLM.occupy(ax - 12, ay - 12, 24, 24);
+                        diagLM.occupy(ax - arrW / 2, ay - arrH / 2, arrW, arrH);
                     }
 
                     // ── Step 6: Solved values overlay ──
@@ -2321,7 +2326,7 @@
                         c.lineTo(gax + Math.cos(actualAngle) * gaLen / 2, gay + Math.sin(actualAngle) * gaLen / 2);
                         c.stroke();
                         drawArrowhead(c, gax + Math.cos(actualAngle) * gaLen / 2, gay + Math.sin(actualAngle) * gaLen / 2, actualAngle, 10, T.c('orange'));
-                        diagLM.occupy(gax - 12, gay - 12, 24, 24);
+                        diagLM.occupy(gax - arrW / 2, gay - arrH / 2, arrW, arrH);
 
                         // Current label with background (collision-aware)
                         var curFont = LABEL_FONT;
@@ -2531,7 +2536,7 @@
                         }
                     });
                     if (eqTerms.length > 0) {
-                        html += '<div class="equation">' + eqTerms.join(' + ') + ' = 0</div>';
+                        html += '<div class="equation">' + eqTerms.join(' + ').replace(/ \+ \u2212/g, ' \u2212 ').replace(/ \+ \+/g, ' + ').replace(/^\+/, '') + ' = 0</div>';
                     }
                 });
 
@@ -2558,7 +2563,7 @@
                 html += '<div class="matrix-container">';
 
                 // A matrix
-                html += '<div class="matrix">';
+                html += '<div class="matrix" style="grid-template-columns:repeat(' + n + ',auto)">';
                 for (var i = 0; i < n; i++) {
                     html += '<div class="matrix-row">';
                     for (var j = 0; j < n; j++) {

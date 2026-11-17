@@ -63,7 +63,11 @@
 /* Orbital chips: a swatch and the KaTeX label. Long configurations scroll. */
 .orb-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 96px; overflow-y: auto; }
 .orb-btn { text-transform: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; }
-.orb-btn .sw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+/* The white ring keeps the darker hues visible on the ink fill of an active chip. */
+.orb-btn .sw {
+    width: 11px; height: 11px; border-radius: 50%; display: inline-block;
+    box-sizing: border-box; border: 1px solid var(--bg-2);
+}
 .orb-btn .katex { font-size: 13px !important; }
 .orb-chips.vis .orb-btn:not(.active) { opacity: 0.5; }
 

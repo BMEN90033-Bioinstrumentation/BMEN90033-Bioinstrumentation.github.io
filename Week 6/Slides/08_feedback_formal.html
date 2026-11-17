@@ -106,8 +106,8 @@
       const eLbl = new MathTex({ latex: 'E', color: ffColor });
       const yLbl = new MathTex({ latex: 'Y', color: CL });
       const xfLbl = new MathTex({ latex: 'X_F', color: fbColor });
-      const plusLbl = new Text({ text: '+', fontSize: 16, color: ffColor, fontUrl: FONT_URL });
-      const minusLbl = new Text({ text: '−', fontSize: 16, color: fbColor, fontUrl: FONT_URL });
+      const plusLbl = new Text({ text: '+', fontSize: 24, color: ffColor, fontUrl: FONT_URL });
+      const minusLbl = new Text({ text: '−', fontSize: 24, color: fbColor, fontUrl: FONT_URL });
 
       const ffTag = new Text({ text: 'Feedforward path', fontSize: 16, color: ffColor, fontUrl: FONT_URL });
       const fbTag = new Text({ text: 'Feedback path', fontSize: 16, color: fbColor, fontUrl: FONT_URL });
@@ -143,8 +143,8 @@
           eLbl.scale(0.55).moveTo([-4.0, 1.95, 0]);
           yLbl.scale(0.55).moveTo([-0.24, 1.98, 0]);
           xfLbl.scale(0.5).moveTo([-4.45, 0.43, 0]);
-          plusLbl.moveTo([-5.2, 1.95, 0]);
-          minusLbl.moveTo([-4.66, 1.33, 0]);
+          plusLbl.moveTo([-5.3, 2.0, 0]);
+          minusLbl.moveTo([-4.6, 1.2, 0]);
           ffTag.moveTo([-2.55, 2.5, 0]);
           fbTag.moveTo([-2.6, -0.45, 0]);
         }

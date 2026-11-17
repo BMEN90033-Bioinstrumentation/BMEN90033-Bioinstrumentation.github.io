@@ -94,7 +94,7 @@
             .attr('transform', 'translate(0,' + f.ih + ')')
             .call(d3.axisBottom(x).ticks(5)
                 .tickFormat(function (d) { return (d * 1e6).toFixed(2) + ' µs'; })
-                .tickSize(0).tickPadding(8));
+                .tickSize(0).tickPadding(12));
         ax.select('.domain').remove();
         var ay = f.g.append('g').attr('class', 'axis')
             .call(d3.axisLeft(y).ticks(3)

@@ -84,46 +84,41 @@ const depolarMesh = new THREE.Mesh(new THREE.BoxGeometry(1, TISSUE_H * 1.01, TIS
 scene.add(depolarMesh);
 
 // ── Dipole blobs ──
-function makeBlob(rCore, rGlow, rGlow2, coreOpacity, lightI, lightD) {
+function makeBlob(rCore, coreOpacity) {
     const group = new THREE.Group();
     const core = new THREE.MeshPhongMaterial({ transparent: true, opacity: coreOpacity, emissiveIntensity: 0.3 });
-    const glow = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false });
-    const glow2 = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.03, depthWrite: false });
     group.add(new THREE.Mesh(new THREE.SphereGeometry(rCore, 32, 32), core));
-    const glowMesh = new THREE.Mesh(new THREE.SphereGeometry(rGlow, 32, 32), glow);
-    group.add(glowMesh);
-    group.add(new THREE.Mesh(new THREE.SphereGeometry(rGlow2, 24, 24), glow2));
-    const light = new THREE.PointLight(WHITE, lightI, lightD, 2);
-    group.add(light);
     scene.add(group);
-    return { group, core, glow, glow2, glowMesh, light };
+    return { group, core };
 }
-const depBlob = makeBlob(1.8, 3.0, 4.5, 0.9, 1.5, 20);
-const repBlob = makeBlob(1.5, 2.5, 3.8, 0.85, 1.0, 15);
+const depBlob = makeBlob(1.8, 0.9);
+const repBlob = makeBlob(1.5, 0.85);
 
 // Text sprite on a canvas texture.
 function makeSprite(text, cssVar, scale) {
     const canvas = document.createElement('canvas');
-    canvas.width = 64; canvas.height = 64;
+    canvas.width = 128; canvas.height = 128;
     const tex = new THREE.CanvasTexture(canvas);
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, fog: false, depthTest: false }));
     s.scale.set(scale, scale, 1);
     s.userData.paint = () => {
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, 64, 64);
+        ctx.clearRect(0, 0, 128, 128);
         ctx.fillStyle = css(cssVar);
-        ctx.font = '400 48px Inter, Arial, sans-serif';
+        ctx.font = '400 96px Inter, Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(text, 32, 32);
+        ctx.fillText(text, 64, 64);
         tex.needsUpdate = true;
     };
     s.userData.paint();
+    s.renderOrder = 10;   // labels stay legible over the translucent slab
     scene.add(s);
     return s;
 }
 const sprites = [];
-function sprite(text, cssVar, scale) { const s = makeSprite(text, cssVar, scale || 2); sprites.push(s); return s; }
+function sprite(text, cssVar, scale) { const s = makeSprite(text, cssVar, scale || 3); sprites.push(s); return s; }
 
 // Depolarisation dipole (+x): + ahead, - behind. Repolarisation (-x): reversed.
 const plusSprite = sprite('+', '--c-pole');
@@ -175,9 +170,9 @@ function createElectrode(pos, wireEnd) {
 const posA = new THREE.Vector3(...A.EA), posB = new THREE.Vector3(...A.EB);
 const elecA = createElectrode(posA, new THREE.Vector3(10, TISSUE_H / 2 + 5, -TISSUE_W / 2 - 4));
 const elecB = createElectrode(posB, new THREE.Vector3(-10, TISSUE_H / 2 + 5, -TISSUE_W / 2 - 4));
-const labelA = sprite('A', '--c-ea', 1.5);
+const labelA = sprite('A', '--c-ea', 2.5);
 labelA.position.copy(posA).add(new THREE.Vector3(0, 2, 0));
-const labelB = sprite('B', '--c-eb', 1.5);
+const labelB = sprite('B', '--c-eb', 2.5);
 labelB.position.copy(posB).add(new THREE.Vector3(0, 2, 0));
 
 // ── Extracellular field arrows ──
@@ -242,7 +237,6 @@ function recolour() {
     [[depBlob, '--c-dipole'], [repBlob, '--c-repol']].forEach(([b, v]) => {
         const c = col(v);
         b.core.color.copy(c); b.core.emissive.copy(c);
-        b.glow.color.copy(c); b.glow2.color.copy(c); b.light.color.copy(c);
     });
     dipoleArrow.setColor(col('--c-dipole'));
     repolDipoleArrow.setColor(col('--c-repol'));
@@ -256,6 +250,8 @@ function recolour() {
     buildGrid();
 }
 recolour();
+// Repaint the sprite labels once Inter has loaded.
+document.fonts.ready.then(() => sprites.forEach((s) => s.userData.paint()));
 window.addEventListener('apdchange', () => { if (A.p.density !== builtDensity) buildFieldArrows(A.p.density); });
 buildFieldArrows(A.p.density);
 
@@ -268,7 +264,6 @@ function frame() {
     const st = A.state(A.s.wf);
     const depolPos = new THREE.Vector3(st.depolX, 0, 0);
     const repolPos = new THREE.Vector3(st.repolX, 0, 0);
-    const t = performance.now();
 
     if (st.depLen > 0.1) {
         depolarMesh.visible = true;
@@ -278,8 +273,6 @@ function frame() {
 
     depBlob.group.visible = st.depolIn;
     depBlob.group.position.copy(depolPos);
-    depBlob.glowMesh.scale.setScalar(1 + Math.sin(t * 0.005) * 0.08);
-    depBlob.light.intensity = 1.2 + Math.sin(t * 0.005) * 0.3;
     dipoleArrow.visible = st.depolIn;
     dipoleArrow.position.copy(depolPos).add(new THREE.Vector3(-2.5, 0, 0));
     plusSprite.visible = minusSprite.visible = st.depolIn;
@@ -288,8 +281,6 @@ function frame() {
 
     repBlob.group.visible = st.repolIn;
     repBlob.group.position.copy(repolPos);
-    repBlob.glowMesh.scale.setScalar(1 + Math.sin(t * 0.005 + 1) * 0.06);
-    repBlob.light.intensity = 0.8 + Math.sin(t * 0.005 + 1) * 0.2;
     repolDipoleArrow.visible = st.repolIn;
     repolDipoleArrow.position.copy(repolPos).add(new THREE.Vector3(2.0, 0, 0));
     repolPlusSprite.visible = repolMinusSprite.visible = st.repolIn;

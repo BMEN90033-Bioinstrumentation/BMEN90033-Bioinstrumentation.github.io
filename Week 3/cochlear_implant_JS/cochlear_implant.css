@@ -25,14 +25,18 @@
 .plot-box.vocoder   { aspect-ratio: 1.7 / 1; }
 .plot-box.mulaw     { aspect-ratio: 2 / 1; }
 
-/* CSS2D electrode labels over the 3D scene. The left edge carries the
-   channel colour (set in scene_cochlea.js); the text stays ink. */
+/* CSS2D electrode labels over the 3D scene. A square swatch carries the
+   channel colour (--ch, set in scene_cochlea.js); the text stays ink. */
 .cochlea-label {
     font-family: var(--font-mono); font-size: 13px; color: var(--fg);
     padding: 1px 5px; border-radius: var(--radius-1);
     background: var(--white); border: 1px solid var(--border);
-    border-left-width: 4px;
+    display: inline-flex; align-items: center; gap: 5px;
     white-space: nowrap; pointer-events: none;
+}
+.cochlea-label::before {
+    content: ""; width: 7px; height: 7px; flex: none;
+    border-radius: var(--radius-dot); background: var(--ch, var(--d-grey));
 }
 .plot-box .css2d { position: absolute; inset: 0; pointer-events: none; }
 

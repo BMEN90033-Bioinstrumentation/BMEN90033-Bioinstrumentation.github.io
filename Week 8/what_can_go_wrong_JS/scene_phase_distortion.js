@@ -61,7 +61,11 @@
             yTicks: 5
         });
         var phase = window.WCGW.setupPlot('#plot-phase-phase', {
-            legend: [{ key: 'mark', dash: true, label: 'cutoff ω_c' }],
+            legend: [
+                { key: 'distort', label: 'Butterworth' },
+                { key: 'fixed', label: 'Bessel' },
+                { key: 'mark', dash: true, label: 'cutoff ω_c' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-420, 20],

@@ -2,10 +2,11 @@
    ../components/lecture_page.css. */
 
 :root {
-    --c-input:   var(--d-blue);     /* high-pass arm, network-only locus */
-    --c-output:  var(--d-orange);   /* oscillator output, band-pass response, Barkhausen point */
-    --c-output2: var(--d-pink);     /* low-pass arm, loop gain below threshold */
-    --c-thresh:  var(--d-green);    /* resonance marker, envelope, loop gain above threshold */
+    --c-input:   var(--d-blue);     /* high-pass arm */
+    --c-output:  var(--d-orange);   /* band-pass response, loop-gain locus, oscillator output */
+    --c-output2: var(--d-pink);     /* low-pass arm */
+    --c-thresh:  var(--d-green);    /* resonance marker at omega_0 */
+    --c-ref:     var(--d-slate);    /* dashed references: network-only locus, amplitude envelope */
 }
 
 /* ─── Plot sizes ─── */

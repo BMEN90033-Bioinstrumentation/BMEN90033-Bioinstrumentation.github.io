@@ -191,6 +191,8 @@
         drawProbeTrace(view.svg, project, opts.filter, xDomain, yDomain, sx, sz, PROBE_COLOR, surfaceMode);
         drawProbePoint(view.svg, project, opts.filter, opts.probeOmega, opts.probeActive, xDomain, yDomain, sx, sz, PROBE_COLOR, surfaceMode);
         drawPoleZeroMarkers(view.svg, project, opts.filter, xDomain, yDomain, sx, sz, opts.color, surfaceMode);
+        // Boxed labels go on top so the surface never hides part of one.
+        view.svg.selectAll('.d3-zero-db-plane-label, .d3-axis-labels').raise();
         drawSceneLabels(view.svg, width, height, T);
     }
 
@@ -436,6 +438,7 @@
             return;
         }
 
+        root.attr('class', 'd3-axis-labels');
         addPillText(root, 'Re{s}', reEnd.x + 30, reEnd.y, axisColor, 52);
         addPillText(root, 'Im{s}', imEnd.x, imEnd.y - 16, axisColor, 52);
         addPillText(root, surfaceMode === 'angle' ? '∠H(s) [°]' : '|H(s)| [dB]', magTop.x + 62, magTop.y - 10, axisColor, 104);

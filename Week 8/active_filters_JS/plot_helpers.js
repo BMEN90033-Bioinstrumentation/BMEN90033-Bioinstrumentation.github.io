@@ -265,6 +265,8 @@
         // line nor a unit circle through the tick crosses the text. Ticks
         // on the frame are not labelled, and a wide window labels every
         // second tick so the labels stay clear of poles near the unit circle.
+        // Im-axis labels sit right of the axis: the right half plane holds
+        // no poles, so no pole cross can land on a label.
         var labelStep = (xDomain[1] - xDomain[0]) >= 6 ? 2 : 1;
         function labelled(v, dom) {
             return v !== 0 && v % labelStep === 0 && v > dom[0] && v < dom[1];
@@ -282,8 +284,8 @@
         yTicks.forEach(function (v) {
             if (!labelled(v, yDomain)) return;
             g.append('text')
-                .attr('x', x(0) - 10).attr('y', y(v) + (v > 0 ? -6 : 16))
-                .attr('text-anchor', 'end')
+                .attr('x', x(0) + 10).attr('y', y(v) + (v > 0 ? -6 : 16))
+                .attr('text-anchor', 'start')
                 .attr('fill', T.fg(0.55))
                 .attr('font-family', MONO)
                 .attr('font-size', 13)

@@ -30,6 +30,7 @@
       .plot-box.splane   { aspect-ratio: 2.2 / 1; }
 
       .toolbar .slider-group .val { min-width: 10ch; }
+      .callout + p { margin-top: var(--spacing-4); }
 
       /* intermediate derivation steps: unfilled display equations */
       .eq-block.step { background: transparent; padding: var(--spacing-1) 0; }
@@ -1510,7 +1511,7 @@ function drawPinLabels(ctx, amp, c) {
         const c = getColors();
         ctx.clearRect(0, 0, W, H);
 
-        const padL = 80, padR = 24, padT = 40, padB = 50;
+        const padL = 80, padR = 44, padT = 40, padB = 50;   // right margin holds half of the last tick label
         const plotX = padL, plotY = padT;
         const plotW = W - padL - padR;
         const plotH = H - padT - padB;
@@ -1583,7 +1584,9 @@ function drawPinLabels(ctx, amp, c) {
         ctx.textAlign = 'center'; ctx.textBaseline = 'top';
         for (let i = 0; i <= 5; i++) {
             const t = (i/5) * tMax;
-            const label = (t*1000 < 1 ? (t*1e6).toFixed(tMax*1e6 < 20 ? 1 : 0) + ' µs' : (t*1000).toFixed(1) + ' ms');
+            // One unit for the whole axis, chosen from tMax, so the ticks stay distinct down to nanoseconds
+            const [k, unit] = tMax < 1e-6 ? [1e9, ' ns'] : (tMax < 1e-3 ? [1e6, ' µs'] : [1e3, ' ms']);
+            const label = i === 0 ? '0' : (t*k).toFixed(tMax*k < 20 ? 1 : 0) + unit;
             ctx.fillText(label, xFromT(t), plotY + plotH + 9);
         }
         ctx.textAlign = 'right'; ctx.textBaseline = 'middle';

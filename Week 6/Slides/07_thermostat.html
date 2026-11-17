@@ -13,7 +13,7 @@
       width: 100% !important;
       height: 100% !important;
     }
-    /* The Next button is shown only while the scene waits for it */
+    /* The step button is shown only while the scene waits for it */
     #thermoNextBtn:disabled { visibility: hidden; }
   </style>
 </head>
@@ -25,7 +25,7 @@
   <div id="stage" class="manim-stage">
     <div class="stage-fallback">Loading scene</div>
     <div class="stepper-row">
-      <button type="button" class="stepper-btn" id="thermoNextBtn" disabled>Next</button>
+      <button type="button" class="stepper-btn" id="thermoNextBtn" disabled>Show response</button>
     </div>
   </div>
 
@@ -66,7 +66,7 @@
     const bulletLines = [
       ['The summing block Σ compares the set-point', 'with the measured room temperature'],
       ['Their difference is the error signal'],
-      ['The heater switches fully on below the', 'set-point and off above it, with a hysteresis band'],
+      ['The heater switches fully on below the set-point', 'and off above it, with a hysteresis band'],
       ['As in the inverting amplifier, the input and', 'feedback meet at one summing node'],
       ['Op-amp gain drives that error towards zero;', 'here the room temperature tracks the set-point']
     ];
@@ -338,7 +338,7 @@
     );
     await scene.play(new Write(roomOutLbl));
 
-    // Pause: the graph and the bullet points are revealed after "Next" is
+    // Pause: the graph and the bullet points are revealed after the step button is
     // clicked. The button is hidden while disabled, so it appears once the
     // block diagram has finished drawing and disappears once clicked.
     const nextBtn = document.getElementById('thermoNextBtn');

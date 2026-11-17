@@ -8,7 +8,7 @@
     --c-guide:  var(--d-green);    /* w0 and GBP guides */
     --c-re:     var(--d-violet);   /* real component */
     --c-im:     var(--d-olive);    /* imaginary component */
-    --c-phasor: var(--d-blue);     /* denominator phasor */
+    --c-phasor: var(--d-slate);    /* denominator phasor */
     --c-env:    var(--d-grey);     /* open-loop envelope */
     --c-cur:    var(--d-ink);      /* present A_v curve */
     --c-g1:     var(--d-blue);     /* reference noise gains 1, 10, 100, 1000 */

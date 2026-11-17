@@ -27,7 +27,7 @@
     CFG.clear(ctx, w, h);
     const sigma = parseFloat(sEl.value);
     const a = parseFloat(aEl.value);
-    const padL = 34, padR = 12, padT = 34, padB = 26;
+    const padL = 34, padR = 12, padT = 54, padB = 26;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const mid = (y0 + y1) / 2;
     ctx.strokeStyle = C.gridStrong;
@@ -69,7 +69,7 @@
     }
     ctx.stroke();
 
-    CFG.legend(ctx, x0 + 8, y0 + 12, [
+    CFG.legend(ctx, x0 + 8, y0 - 12, [
       { mark: 'dash', text: 'g(t)', color: C.muted },
       { mark: 'line', text: 'g(t)·exp(−σt)', color: C.time },
     ]);
@@ -90,14 +90,12 @@
     // Axes stop short of the titles, which sit beyond the axis ends.
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle' });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center' });
 
     const Tmax = 8, N = 700;
     const scale = 20;
     let comX = 0, comY = 0, cnt = 0;
     const inROC = sigma > a;
-    ctx.strokeStyle = inROC ? C.time : C.imag;
+    ctx.strokeStyle = C.imag;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     const reveal = Math.min(1, (tAnim % 6) / 5);
@@ -117,6 +115,9 @@
       comX += re; comY += im; cnt++;
     }
     ctx.stroke();
+    // Axis titles are drawn over the curve.
+    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
 
     if (cnt > 0) {
       comX /= cnt; comY /= cnt;
@@ -172,7 +173,9 @@
     ctx.strokeStyle = C.real; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(cx, fy0); ctx.lineTo(cx, fy1); ctx.stroke();
     CFG.label(ctx, 'jω', cx, fy0 - 6, C.real, { align: 'center', baseline: 'bottom' });
-    CFG.label(ctx, 'σ = 0: Fourier transform', cx + 8, fy0 + 6, C.real);
+    // The caption sits on the side of the axis away from the ROC boundary.
+    if (a > 0) CFG.label(ctx, 'σ = 0: Fourier transform', cx - 8, fy0 + 6, C.real, { align: 'right' });
+    else CFG.label(ctx, 'σ = 0: Fourier transform', cx + 8, fy0 + 6, C.real);
     CFG.label(ctx, 'σ', fx1 + 8, cy, C.muted, { baseline: 'middle' });
 
     // pole at a ± j w0
@@ -187,12 +190,19 @@
     ctx.setLineDash([]);
     ctx.fillStyle = C.accent;
     ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
-    // Flip the label left/below when near the top-right so it never collides
-    // with the "jω axis · Fourier slice" caption up top.
+    // The label goes below the point near the top caption, and on whichever
+    // side keeps it clear of the jω axis and the ROC boundary. If neither
+    // side is clear it is drawn on a halo.
+    const sTxt = `s = ${sigma.toFixed(2)} + j${omega.toFixed(2)}`.replace('-', '−');
+    ctx.font = CFG.FONT;
+    const sLW = ctx.measureText(sTxt).width;
     const sLblY = sy < 72 ? sy + 10 : sy - 22;
-    const sLblX = sx > w - 200 ? sx - 10 : sx + 10;
-    const sLblAlign = sx > w - 200 ? 'right' : 'left';
-    CFG.label(ctx, `s = ${sigma.toFixed(2)} + j${omega.toFixed(2)}`.replace('-', '−'), sLblX, sLblY, C.accent, { align: sLblAlign });
+    const crossed = (l, r) => l < fx0 || r > fx1 || [cx, xA].some(v => v > l - 4 && v < r + 4);
+    const rightOK = !crossed(sx + 10, sx + 10 + sLW);
+    const leftOK = !crossed(sx - 10 - sLW, sx - 10);
+    const onLeft = !rightOK && (leftOK || sx > w - 200);
+    CFG.label(ctx, sTxt, onLeft ? sx - 10 : sx + 10, sLblY, C.accent,
+      { align: onLeft ? 'right' : 'left', halo: !rightOK && !leftOK });
   }
 
   function drawPole(ctx, x, y, C) {

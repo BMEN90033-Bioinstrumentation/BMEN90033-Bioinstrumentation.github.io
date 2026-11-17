@@ -260,7 +260,6 @@
       position: absolute;
       top: 10px;
       left: 14px;
-      right: 14px;
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 0.12em;
@@ -270,11 +269,17 @@
       pointer-events: none;
     }
 
+    /* Titles sit on a page-coloured box so a curve passing beneath stays clear of the text. */
+    .plot .title,
+    .plot .sub {
+      max-width: calc(100% - 28px);
+      background: var(--white);
+    }
+
     .plot .sub {
       position: absolute;
       top: 28px;
       left: 14px;
-      right: 14px;
       font-size: 13px;
       color: var(--fg);
       z-index: 2;
@@ -442,7 +447,7 @@
     .tf-box {
       border: 1px solid var(--carbon-black-500);
       border-radius: var(--radius-container);
-      padding: 18px 26px;
+      padding: 18px;
       min-width: 180px;
       display: flex;
       align-items: center;
@@ -450,11 +455,12 @@
     }
 
     .tf-box .tf-math .katex {
+      white-space: nowrap;
       font-size: 19px !important;
     }
 
     .tf-arrow {
-      flex: 0 0 48px;
+      flex: 0 0 32px;
       height: 1px;
       background: var(--carbon-black-500);
       position: relative;

@@ -229,9 +229,10 @@
     const t2 = await mkTerminals(A2_CX, A2_CY);
 
     // Op-amp labels
-    const a1Lbl = new Text({ text: 'A₁', fontSize: 14, color: MUTED, fontUrl: FONT_URL });
-    const a2Lbl = new Text({ text: 'A₂', fontSize: 14, color: MUTED, fontUrl: FONT_URL });
-    await Promise.all([a1Lbl.loadGlyphs?.(), a2Lbl.loadGlyphs?.()]);
+    const a1Lbl = new MathTex({ latex: 'A_1', color: MUTED });
+    const a2Lbl = new MathTex({ latex: 'A_2', color: MUTED });
+    await Promise.all([a1Lbl.waitForRender?.(), a2Lbl.waitForRender?.()]);
+    a1Lbl.scale(0.4); a2Lbl.scale(0.4);
     a1Lbl.moveTo([A1_CX - 0.05, A1_CY, 0]);
     a2Lbl.moveTo([A2_CX - 0.05, A2_CY, 0]);
 
@@ -284,7 +285,7 @@
     }
     const barrierLbl = new Text({ text: 'Isolation barrier', fontSize: 15, color: BARRIER, fontUrl: FONT_URL });
     await barrierLbl.loadGlyphs?.();
-    barrierLbl.moveTo([BARRIER_X, 2.8, 0]);
+    barrierLbl.moveTo([BARRIER_X, 2.95, 0]);
 
     // Transformer symbol between MOD and DEMOD
     const TX_X = BARRIER_X;
@@ -356,9 +357,9 @@
     const gnd1a = new Line({ start: [GND1_X - 0.25, GND1_Y, 0], end: [GND1_X + 0.25, GND1_Y, 0], color: ACCENT, strokeWidth: 3 });
     const gnd1b = new Line({ start: [GND1_X - 0.15, GND1_Y - 0.10, 0], end: [GND1_X + 0.15, GND1_Y - 0.10, 0], color: ACCENT, strokeWidth: 2 });
     const gnd1c = new Line({ start: [GND1_X - 0.06, GND1_Y - 0.19, 0], end: [GND1_X + 0.06, GND1_Y - 0.19, 0], color: ACCENT, strokeWidth: 1 });
-    const gnd1Lbl = new Text({ text: 'Gnd₁', fontSize: 13, color: ACCENT, fontUrl: FONT_URL });
-    await gnd1Lbl.loadGlyphs?.();
-    gnd1Lbl.moveTo([GND1_X, GND1_Y - 0.34, 0]);
+    const gnd1Lbl = new MathTex({ latex: '\\text{Gnd}_1', color: ACCENT });
+    await gnd1Lbl.waitForRender?.();
+    gnd1Lbl.scale(0.28).moveTo([GND1_X, GND1_Y - 0.35, 0]);
 
     // Output domain ground bus
     const GND2_BUS_Y = -1.0;
@@ -369,9 +370,9 @@
     const gnd2a = new Line({ start: [GND2_X - 0.25, GND2_Y, 0], end: [GND2_X + 0.25, GND2_Y, 0], color: CYAN, strokeWidth: 3 });
     const gnd2b = new Line({ start: [GND2_X - 0.15, GND2_Y - 0.10, 0], end: [GND2_X + 0.15, GND2_Y - 0.10, 0], color: CYAN, strokeWidth: 2 });
     const gnd2c = new Line({ start: [GND2_X - 0.06, GND2_Y - 0.19, 0], end: [GND2_X + 0.06, GND2_Y - 0.19, 0], color: CYAN, strokeWidth: 1 });
-    const gnd2Lbl = new Text({ text: 'Gnd₂', fontSize: 13, color: CYAN, fontUrl: FONT_URL });
-    await gnd2Lbl.loadGlyphs?.();
-    gnd2Lbl.moveTo([GND2_X, GND2_Y - 0.34, 0]);
+    const gnd2Lbl = new MathTex({ latex: '\\text{Gnd}_2', color: CYAN });
+    await gnd2Lbl.waitForRender?.();
+    gnd2Lbl.scale(0.28).moveTo([GND2_X, GND2_Y - 0.35, 0]);
 
     // ── Domain highlight boxes: enclose V_IN / V_OUT, symmetric gap from barrier ──
     const DOM_GAP = 0.15;
@@ -810,7 +811,7 @@
       ctx.fillStyle = FG;
       ctx.font = '13px ' + FONT_MONO;
       ctx.textAlign = 'right';
-      ctx.fillText(ileakUA.toFixed(2) + ' \u00B5A peak', PAD_L + plotW, 16);
+      ctx.fillText(ileakUA.toFixed(2) + ' \u00B5A', PAD_L + plotW, 16);
     }
 
     capSlider.addEventListener('input', updateReadouts);

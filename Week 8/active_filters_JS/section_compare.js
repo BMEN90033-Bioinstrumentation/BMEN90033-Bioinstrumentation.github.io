@@ -103,7 +103,7 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_{\\mathrm{edge}} = 1',
             xc, BD.innerH - 16,
-            { width: 120, height: 22, size: 11, pill: true });
+            { width: 120, height: 22, size: 13, pill: true });
     }
 
     function phaseDomainFor(N) { return [-90 * N - 30, 60]; }  // zeros lift the phase above 0°

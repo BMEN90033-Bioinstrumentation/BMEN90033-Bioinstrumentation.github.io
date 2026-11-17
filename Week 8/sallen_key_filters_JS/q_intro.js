@@ -198,7 +198,7 @@
         var W = rect.width;
         var H = rect.height || (W / 1.6);
 
-        var margin = { top: 24, right: 30, bottom: 50, left: 56 };
+        var margin = { top: 34, right: 30, bottom: 50, left: 56 };
         var innerW = W - margin.left - margin.right;
         var innerH = H - margin.top - margin.bottom;
 

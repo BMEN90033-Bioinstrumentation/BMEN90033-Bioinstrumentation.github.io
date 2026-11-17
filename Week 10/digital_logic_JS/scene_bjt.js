@@ -18,7 +18,7 @@
             .attr('x2', x2).attr('y2', y);
         if (label) {
             g.append('text').attr('class', 'rail-lbl')
-                .attr('x', x2).attr('y', y - 5)
+                .attr('x', x2).attr('y', y - 10)
                 .attr('text-anchor', 'end').call(DL.sub, label);
         }
     }

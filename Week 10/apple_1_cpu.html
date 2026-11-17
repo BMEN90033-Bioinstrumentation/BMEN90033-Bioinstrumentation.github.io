@@ -48,7 +48,7 @@
         /* The footer does not fit the deck layout; the brand tag identifies the page. */
         body > footer { display: none; }
 
-        .slide.full.sim-slide { padding: 78px 32px 90px; }
+        .slide.full.sim-slide { padding: 78px 32px 90px; align-content: start; }
         .slide.full.sim-slide .copy { max-width: 1000px; margin: 0 auto; }
         .sim-wrap { width: 100%; margin: var(--spacing-5) auto 0; }
 
@@ -437,6 +437,9 @@
         .v6502 .memtable-wrap { padding: 10px; overflow-x: auto; }
         .v6502 #memtable { font-family: var(--font-mono); font-size: 10.5px; border-spacing: 0; color: var(--fg); }
         .v6502 #memtable td { padding: 1px 4px; text-align: right; min-width: 18px; }
+        /* memtable.js marks the selected cell with an inline yellow background;
+           the palette tint replaces it. */
+        .v6502 #memtable td[style*="255, 255, 136"] { background: var(--d-orange-soft) !important; }
         .v6502 #memtable tr td:first-child { color: var(--muted); text-align: left; padding-right: 8px; }
 
         /* Terminal pane connected to the display register at $D012. */
@@ -479,23 +482,21 @@
         <section class="slide title-slide active" data-slide="0">
             <div class="copy">
                 <div class="meta">BMEN90033 · WEEK 10 · FROM GATES TO A MICROPROCESSOR</div>
-                <h1 class="hero">From logic gates to a working <em>CPU</em>.</h1>
-                <p class="sub">The previous page built the primitives of digital electronics: gates, adders,
-                    multiplexers
-                    and decoders. A microprocessor is what those primitives become once they are wired together at
-                    scale.
-                    The MOS Technology 6502, the processor at the centre of the Apple 1 (1976), is built from 3,510 NMOS
-                    transistors arranged into a register file, an arithmetic logic unit, an instruction decoder and a
-                    control sequencer. This page maps each block onto the gate-level primitives already covered and then
-                    exposes the underlying silicon through a transistor-level simulator of the actual die.</p>
+                <h1 class="hero">From logic gates to a working CPU</h1>
+                <p class="sub">The previous page introduced the primitives of digital electronics: gates, adders,
+                    multiplexers and decoders. A microprocessor combines these primitives at scale. The MOS
+                    Technology 6502, the processor of the Apple 1 (1976), contains 3,510 NMOS transistors arranged
+                    into a register file, an arithmetic logic unit, an instruction decoder and a control sequencer.
+                    This page relates each block to the gate-level primitives and then presents a transistor-level
+                    simulation of the die.</p>
                 <div class="tags">
-                    <span class="field-tag">gates → cpu</span>
+                    <span class="field-tag">gates to cpu</span>
                     <span class="field-tag">registers</span>
                     <span class="field-tag">alu</span>
                     <span class="field-tag">control unit</span>
                     <span class="field-tag">mos 6502</span>
                 </div>
-                <div class="nav-hint">Use the dots or the arrow keys to advance through the slides.</div>
+                <div class="nav-hint">Use the dots or the arrow keys to change slide</div>
             </div>
         </section>
 
@@ -504,22 +505,21 @@
             <div class="copy">
                 <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>historical context</span>
                 </div>
-                <h2>A single-board computer from <em class="acc">1976</em>.</h2>
+                <h2>A single-board computer from 1976</h2>
 
                 <p class="lead">The Apple 1 was the first product of the Apple Computer Company, designed by Steve
-                    Wozniak and offered for sale in July 1976 at a list price of USD 666.66. It shipped as a populated
-                    printed circuit board only. The user supplied a power supply, an ASCII keyboard and a video
+                    Wozniak and offered for sale in July 1976 at a list price of USD 666.66. It was sold as a populated
+                    printed circuit board only; the purchaser supplied a power supply, an ASCII keyboard and a video
                     monitor. About two hundred units were built between July 1976 and September 1977.</p>
 
                 <p>The board carried four kinds of integrated circuit. The MOS Technology 6502 microprocessor handled
                     computation. A Motorola 6820 Peripheral Interface Adapter (PIA) connected the processor's bus to
                     the keyboard and the video output. Eight 4-kbit DRAM chips provided 4 kB of system memory. A small
-                    PROM held the 256-byte Wozniak Monitor, the only system software the machine had on power-up.</p>
+                    PROM held the 256-byte Wozniak Monitor, the only system software present at power-up.</p>
 
-                <p>The choice of CPU was driven by price. The Intel 8080 and Motorola 6800 of the same era sold for
-                    roughly USD 300 each. MOS Technology introduced the 6502 in September 1975 at USD 25 per unit,
-                    cutting the cost of a microprocessor by an order of magnitude and making a personal computer
-                    commercially viable for the first time.</p>
+                <p>The choice of processor was determined by price. The Intel 8080 and Motorola 6800 of the same period
+                    sold for roughly USD 300 each. MOS Technology introduced the 6502 in September 1975 at USD 25 per
+                    unit, an order of magnitude lower, which made a personal computer commercially viable.</p>
 
                 <div class="callout">
                     The Apple 1 ran the 6502 at 1.0 MHz, generated by dividing down the same crystal oscillator that
@@ -535,8 +535,8 @@
                         <img src="apple_1_images/apple_1_image.jpg"
                             alt="Apple 1 in a wooden case with a Panasonic monitor and ASCII keyboard.">
                         <figcaption><b>Apple 1.</b> The populated board mounted in an after-market wooden case, with a
-                            small Panasonic monitor and a parallel ASCII keyboard. Apple supplied only the bare board;
-                            the case, display and keyboard were the user's responsibility.</figcaption>
+                            small Panasonic monitor and a parallel ASCII keyboard. Apple supplied only the board;
+                            the case, display and keyboard were supplied by the purchaser.</figcaption>
                     </figure>
                     <figure>
                         <img src="apple_1_images/apple_1_PCB.jpg"
@@ -550,7 +550,7 @@
                         <figure class="me-woz-callout" aria-label="The author with Steve Wozniak at Apple Park.">
                             <img src="apple_1_images/me&woz.png"
                                 alt="The author seated with Steve Wozniak at Apple Park.">
-                            <figcaption>Me and Steve at Caffè Macs<br>circa ~2015</figcaption>
+                            <figcaption>The author with Steve Wozniak<br>at Caffè Macs, about 2015</figcaption>
                         </figure>
                         <svg class="designers-arrow" viewBox="0 0 112 90" aria-hidden="true">
                             <defs>
@@ -560,12 +560,7 @@
                                     <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
                                 </marker>
                             </defs>
-                            <!-- Single smooth Bezier from the right edge of
-                             the circular portrait to the left edge of
-                             the designers image. The tail starts in
-                             the lower part of the portrait so the
-                             curve enters the gap from below the
-                             vertical centre of the round image. -->
+                            <!-- Annotation arrow from the portrait to the designers figure. -->
                             <path d="M 0 50 C 28 78, 70 68, 110 82" stroke="currentColor" stroke-width="2" fill="none"
                                 stroke-linecap="round" marker-end="url(#dz-arr)" />
                         </svg>
@@ -586,7 +581,7 @@
             <div class="copy">
                 <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>combinational
                         logic</span></div>
-                <h2>Decoding instructions with a <em class="bus">programmable logic array</em>.</h2>
+                <h2>Decoding instructions with a programmable logic array</h2>
 
                 <p class="lead">A programmable logic array, or PLA, is a two-level combinational circuit that realises
                     any boolean function as a sum of products. The first level (the AND-plane) forms product terms from
@@ -594,25 +589,25 @@
                     each output. Both planes are programmable: a connection placed at any cross-point selects which
                     signals participate.</p>
 
-                <p>The widget on the right is a small PLA with four inputs, eight product-term lines and four outputs.
+                <p>The accompanying diagram is a small PLA with four inputs, eight product-term lines and four outputs.
                     The vertical rail at the top carries each input and its complement, so eight signals enter the
-                    AND-plane. Each horizontal product line sees a dot at every input it is connected to; the value on
+                    AND-plane. A dot marks every input connected to a horizontal product line; the value on
                     that line is the AND of those signals. A product line with dots on $A_1$ and $\overline{A_0}$, for
-                    example, evaluates to $A_1 \cdot \overline{A_0}$. The OR-plane below works the same way: each output
+                    example, evaluates to $A_1 \cdot \overline{A_0}$. The OR-plane works the same way: each output
                     line reads the OR of the product lines that have dots on it.</p>
 
-                <p>The instruction decoder of the MOS 6502 is a PLA of exactly this shape, only larger. The eight bits
-                    of the opcode register feed the AND-plane, around 130 product terms decode the legal opcodes, and
-                    the OR-plane drives the control lines that sequence each instruction. The same primitive that lights
-                    one of four outputs in the demo to the right lights, one of more than a hundred control signals on
-                    the real chip.</p>
+                <p>The instruction decoder of the MOS 6502 is a PLA with the same structure at a larger scale. The eight
+                    bits of the opcode register feed the AND-plane, around 130 product terms decode the legal opcodes,
+                    and the OR-plane drives the control lines that sequence each instruction. The structure that
+                    asserts one of four outputs in the diagram asserts one of more than a hundred control signals on
+                    the chip.</p>
 
                 <div class="callout">
-                    Click any cross-point in either plane to toggle a connection. Toggle the input switches at any time
-                    to drive the array. Three presets load real functions: a 2-to-4 decoder, a dual 2:1 multiplexer that
+                    Click any cross-point in either plane to toggle a connection. The input switches drive the array at
+                    any time. Three presets load standard functions: a 2-to-4 decoder, a dual 2:1 multiplexer that
                     uses $A_2$ and $A_3$ as independent select bits over the same data pair, and a fragment of a 6502
                     opcode decoder that recognises the low nibbles of <code>LDA #</code>, <code>STA zp</code> and
-                    <code>NOP</code>. The same physical PLA appears across the top of the 6502 die in Section 03.
+                    <code>NOP</code>. The corresponding PLA occupies the top of the 6502 die in Section 03.
                 </div>
             </div>
 
@@ -620,39 +615,39 @@
                 <div class="pla-widget" id="pla-widget">
                     <div class="pla-toolbar">
                         <div class="pla-group" id="pla-inputs">
-                            <span class="pla-group-label">inputs</span>
+                            <span class="tag-s">Inputs</span>
                             <!-- input switches injected by script -->
                         </div>
                         <div class="pla-group" id="pla-presets">
-                            <span class="pla-group-label">preset</span>
-                            <button type="button" class="pla-btn preset" data-preset="decoder">2-to-4 decoder</button>
-                            <button type="button" class="pla-btn preset" data-preset="mux">2:1 mux</button>
-                            <button type="button" class="pla-btn preset" data-preset="opcode">opcode</button>
-                            <button type="button" class="pla-btn preset clear" data-preset="clear">clear</button>
+                            <span class="tag-s">Preset</span>
+                            <button type="button" class="pillbtn" data-preset="decoder">2-to-4 decoder</button>
+                            <button type="button" class="pillbtn" data-preset="mux">Dual 2:1 mux</button>
+                            <button type="button" class="pillbtn" data-preset="opcode">Opcode</button>
+                            <button type="button" class="pillbtn" data-preset="clear">Clear</button>
                         </div>
                     </div>
                     <div class="pla-explainer is-default" id="pla-explainer">
-                        <span class="ex-title" id="pla-explainer-title">no preset</span>
-                        <span class="ex-body" id="pla-explainer-body">Click a preset above to load a real function, or
-                            build one yourself by clicking crossings in either plane.</span>
+                        <span class="tag-s" id="pla-explainer-title">No preset</span>
+                        <span id="pla-explainer-body">Select a preset to load a built-in function, or click
+                            crossings in either plane to build one.</span>
                     </div>
                     <div class="pla-svg-wrap">
                         <svg id="pla-svg" viewBox="0 0 640 440" preserveAspectRatio="xMidYMid meet"
                             aria-label="Programmable logic array diagram"></svg>
                     </div>
-                    <div class="pla-legend">
-                        <span class="leg-item"><span class="leg-swatch in"></span>inputs</span>
-                        <span class="leg-item"><span class="leg-swatch prod"></span>product terms</span>
-                        <span class="leg-item"><span class="leg-swatch out"></span>outputs</span>
-                        <span class="leg-hint">click any crossing to weld a connection &middot; lit lines carry a
-                            1</span>
+                    <div class="legend pla-legend">
+                        <span><span class="sw in"></span>Inputs</span>
+                        <span><span class="sw prod"></span>Product terms</span>
+                        <span><span class="sw out"></span>Outputs</span>
+                        <span class="leg-hint">Click a crossing to toggle a connection. Highlighted lines carry
+                            logic 1.</span>
                     </div>
                     <div class="pla-readout" id="pla-readout"></div>
                     <div class="pla-truth" id="pla-truth">
-                        <span><span class="lab">inputs A3..A0</span><span class="nibble in"
+                        <span><span class="tag-s">Inputs A3 to A0</span><span class="nibble in"
                                 id="pla-in-bits">0000</span></span>
-                        <span class="arrow">&rarr;</span>
-                        <span><span class="lab">outputs Y3..Y0</span><span class="nibble out"
+                        <span class="to tag-s">maps to</span>
+                        <span><span class="tag-s">Outputs Y3 to Y0</span><span class="nibble out"
                                 id="pla-out-bits">0000</span></span>
                     </div>
                 </div>
@@ -663,36 +658,36 @@
         <section class="slide full sim-slide" data-slide="3" id="sec-sim">
             <div class="copy">
                 <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>visual6502</span></div>
-                <h2>Transistor-level simulation of the <em class="bus">6502 die</em>.</h2>
+                <h2>Transistor-level simulation of the 6502 die</h2>
 
                 <p class="lead">The simulator below is <a href="https://github.com/trebonian/visual6502" target="_blank"
-                        rel="noopener">Visual 6502</a>, by Greg James, Brian Silverman and Barry Silverman. A real chip
-                    was decapsulated, photographed and traced into its 3,510 transistors. The simulator propagates logic
-                    levels through that network one half-cycle at a time, so registers, ALU, decoder and control all
-                    emerge from the underlying transistors rather than from an abstract instruction-set model.</p>
+                        rel="noopener">Visual 6502</a>, by Greg James, Brian Silverman and Barry Silverman. A production
+                    chip was decapsulated, photographed and traced into its 3,510 transistors. The simulator
+                    propagates logic levels through that network one half-cycle at a time, so the behaviour of the
+                    registers, ALU, decoder and control logic follows from the transistor network; no abstract
+                    instruction-set model is used.</p>
 
-                <p>I've written a small "Hello World" routine as an example, which is loaded at $\$0000$. Each iteration
-                    writes a character to the display
-                    register at $\$\text{D012}$ (forwarded to the terminal pane), saves the raw character at
-                    $\$\text{E1}$, and increments a counter at $\$\text{E0}$ so the zero-page memtable shows live
-                    activity.</p>
+                <p>A short "Hello World" routine is loaded at $\$0000$ as an example. Each iteration writes a
+                    character to the display register at $\$\text{D012}$, which is forwarded to the terminal pane,
+                    saves the raw character at $\$\text{E1}$, and increments a counter at $\$\text{E0}$, so the
+                    zero-page memory table changes as the program runs.</p>
 
-                <p>Use the controls under the chip to run, stop, step or change speed. With <i>animate</i> on, the
-                    logic-state overlay updates every half-cycle, colour-coding clocks, address bus, data bus, registers
-                    and decoder. Clicking a polygon names the underlying node in the status panel.</p>
+                <p>The controls beside the chip run, stop, step and set the speed of the simulation. With
+                    <i>animate</i> on, the logic-state overlay updates every half-cycle and colours the nodes at logic
+                    high by function: clocks, address bus, data bus, registers and decoder. Clicking a polygon reports
+                    the underlying node in the processor state panel.</p>
 
                 <div class="callout">
                     Every half-cycle re-evaluates the full transistor network until logic levels settle, so the
                     simulation is slower than a register-transfer-level emulator. Allow several seconds for the chip
-                    layout to render on first load. Everything runs locally in the browser.
+                    layout to render on first load. The simulation runs locally in the browser.
                 </div>
 
                 <details class="asm-listing">
                     <summary>
                         <span class="chev" aria-hidden="true"></span>
-                        <b>Assembly listing</b>
-                        <span>&middot; "HELLO, WORLD!" routine, 6502 source</span>
-                        <span class="meta">loaded at $0000</span>
+                        <span>Assembly listing: "HELLO, WORLD!" routine, 6502 source</span>
+                        <span class="meta">Loaded at $0000</span>
                     </summary>
 <pre><span class="c">; Apple 1 "Hello World" demo program.
 ; Walks a null-terminated string at $0020, ORs each byte with $80
@@ -704,11 +699,11 @@
 
 <span class="o">$0000</span>  A2 00            <span class="o">LDX</span> <span class="a">#$00</span>
 <span class="o">$0002</span>  B5 20      <span class="l">LOOP:</span> <span class="o">LDA</span> <span class="a">$20,X</span>         <span class="c">; load string[X]</span>
-<span class="o">$0004</span>  F0 0C            <span class="o">BEQ</span> <span class="l">DONE</span>          <span class="c">; null terminator -> exit</span>
-<span class="o">$0006</span>  85 E1            <span class="o">STA</span> <span class="a">$E1</span>           <span class="c">; save raw char to zero page</span>
-<span class="o">$0008</span>  09 80            <span class="o">ORA</span> <span class="a">#$80</span>          <span class="c">; force hi-bit (Apple 1 ASCII)</span>
+<span class="o">$0004</span>  F0 0C            <span class="o">BEQ</span> <span class="l">DONE</span>          <span class="c">; null terminator: exit</span>
+<span class="o">$0006</span>  85 E1            <span class="o">STA</span> <span class="a">$E1</span>           <span class="c">; save raw character to zero page</span>
+<span class="o">$0008</span>  09 80            <span class="o">ORA</span> <span class="a">#$80</span>          <span class="c">; set high bit (Apple 1 ASCII)</span>
 <span class="o">$000A</span>  8D 12 D0         <span class="o">STA</span> <span class="a">$D012</span>         <span class="c">; output character to display</span>
-<span class="o">$000D</span>  E6 E0            <span class="o">INC</span> <span class="a">$E0</span>           <span class="c">; bump byte counter</span>
+<span class="o">$000D</span>  E6 E0            <span class="o">INC</span> <span class="a">$E0</span>           <span class="c">; increment byte counter</span>
 <span class="o">$000F</span>  E8               <span class="o">INX</span>
 <span class="o">$0010</span>  D0 F0            <span class="o">BNE</span> <span class="l">LOOP</span>
 <span class="o">$0012</span>  4C 12 00   <span class="l">DONE:</span> <span class="o">JMP</span> <span class="l">DONE</span>          <span class="c">; halt</span>
@@ -719,14 +714,14 @@
 
             <div class="sim-wrap">
                 <div class="sim-meta">
-                    <span><b>Program</b> &nbsp; "Hello World" routine prints to the display register</span>
-                    <span><b>Controls</b> &nbsp; scroll to zoom, drag to pan, slider to change speed</span>
+                    <span><span class="tag-s">Program</span>"Hello World" routine writing to the display register</span>
+                    <span><span class="tag-s">Controls</span>Scroll to zoom, drag to pan, slider to set the speed</span>
                 </div>
 
                 <div class="v6502" id="frame">
                     <div class="chip-column">
                         <div class="chip-viewport" id="chip" tabindex="0">
-                            <span id="waiting-label">loading 6502 layout...</span>
+                            <span id="waiting-label" class="tag-s">Loading 6502 layout</span>
                             <canvas class="chip" id="chipbg"></canvas>
                             <canvas class="chip" id="overlay"></canvas>
                             <canvas class="chip" id="hilite"></canvas>
@@ -734,7 +729,7 @@
                             <canvas class="chip" id="dimmer"></canvas>
                             <div class="regions-overlay" id="regions"></div>
                             <div class="scene-3d" id="scene3d">
-                                <div class="scene-hint">drag to rotate · scroll to zoom · right-drag to pan</div>
+                                <div class="scene-hint tag-s">Drag to rotate · scroll to zoom · right-drag to pan</div>
                             </div>
                             <div class="labels-bar" id="labelsBar">
                                 <button type="button" class="labels-toggle" id="labelsToggle"
@@ -757,85 +752,85 @@
                                     <span class="dc-label">dim</span>
                                     <input type="range" id="dimSlider" min="0" max="80" step="1" value="45"
                                         oninput="setDimOpacity(parseInt(this.value, 10))"
-                                        title="dim opacity for non-highlighted parts of the chip">
+                                        title="Opacity of the veil over the parts of the chip that are not highlighted">
                                 </div>
                             </div>
                         </div>
-                        <div class="layers-bar" id="layersBar">
-                            <button type="button" class="layer-btn active" data-layer="1" style="--swatch:#f5c451;"
+                        <div class="seg layers-bar" id="layersBar">
+                            <button type="button" class="pillbtn layer-btn active" data-layer="1" style="--swatch:var(--d-blue);"
                                 onclick="toggleLayer(1)"
-                                title="signal diffusion · n-doped silicon that carries logic signals between transistors (transistor source/drain regions)"><span
-                                    class="swatch"></span>diff·s</button>
-                            <button type="button" class="layer-btn active" data-layer="3" style="--swatch:#34d399;"
+                                title="Signal diffusion: n-doped silicon that carries logic signals between transistors (transistor source and drain regions)"><span
+                                    class="swatch"></span>diff&middot;s</button>
+                            <button type="button" class="pillbtn layer-btn active" data-layer="3" style="--swatch:var(--d-green);"
                                 onclick="toggleLayer(3)"
-                                title="grounded diffusion · n-doped silicon tied permanently to Vss (0 V), forming the chip's ground rails"><span
-                                    class="swatch"></span>diff·g</button>
-                            <button type="button" class="layer-btn active" data-layer="4" style="--swatch:#ff7070;"
+                                title="Grounded diffusion: n-doped silicon tied permanently to Vss (0 V), forming the ground rails"><span
+                                    class="swatch"></span>diff&middot;g</button>
+                            <button type="button" class="pillbtn layer-btn active" data-layer="4" style="--swatch:var(--d-orange);"
                                 onclick="toggleLayer(4)"
-                                title="powered diffusion · n-doped silicon tied permanently to Vdd (+5 V), forming the chip's supply rails"><span
-                                    class="swatch"></span>diff·p</button>
-                            <button type="button" class="layer-btn active" data-layer="2" style="--swatch:#ff5cdc;"
+                                title="Powered diffusion: n-doped silicon tied permanently to Vdd (+5 V), forming the supply rails"><span
+                                    class="swatch"></span>diff&middot;p</button>
+                            <button type="button" class="pillbtn layer-btn active" data-layer="2" style="--swatch:var(--d-pink);"
                                 onclick="toggleLayer(2)"
-                                title="protection diode · ESD/clamp diodes around the I/O pads that shunt over-voltage to the supply rails"><span
+                                title="Protection diodes: clamp diodes at the I/O pads that shunt electrostatic discharge and over-voltage to the supply rails"><span
                                     class="swatch"></span>diode</button>
-                            <button type="button" class="layer-btn active" data-layer="5" style="--swatch:#a55eff;"
+                            <button type="button" class="pillbtn layer-btn active" data-layer="5" style="--swatch:var(--d-violet);"
                                 onclick="toggleLayer(5)"
-                                title="polysilicon · the gate material; where poly crosses diffusion, an NMOS transistor is formed"><span
+                                title="Polysilicon: the gate material; an NMOS transistor is formed where polysilicon crosses diffusion"><span
                                     class="swatch"></span>poly</button>
-                            <button type="button" class="layer-btn active" data-layer="0" style="--swatch:#cfd3ff;"
+                            <button type="button" class="pillbtn layer-btn active" data-layer="0" style="--swatch:var(--d-grey);"
                                 onclick="toggleLayer(0)"
-                                title="metal · the top aluminium interconnect layer that wires transistors together and distributes power"><span
+                                title="Metal: the top aluminium interconnect layer that connects transistors and distributes power"><span
                                     class="swatch"></span>metal</button>
-                            <span class="layers-divider"></span>
-                            <button type="button" class="layer-btn logic-btn active" data-layer="logic"
+                            <button type="button" class="pillbtn layer-btn logic-btn active" data-layer="logic"
                                 onclick="toggleLogicOverlay(this)"
-                                title="logic-state overlay · clocks=amber · addr bus=cyan · data bus=teal · registers=green · decode=purple · interrupts=pink · control=cream"><span
-                                    class="swatch"></span>logic</button>
+                                title="Logic-state overlay: nodes at logic high, coloured by function">logic</button>
                         </div>
-                        <div class="layers-legend" aria-label="layer legend">
-                            <div class="row" style="--swatch:#f5c451;">
+                        <div class="layers-legend" aria-label="Layer legend">
+                            <div class="row" style="--swatch:var(--d-blue);">
                                 <span class="sw"></span><span class="key">diff&middot;s</span>
-                                <span>signal diffusion: n-doped silicon carrying logic signals (transistor source/drain regions).</span>
+                                <span>Signal diffusion: n-doped silicon carrying logic signals (transistor source and drain regions).</span>
                             </div>
-                            <div class="row" style="--swatch:#34d399;">
+                            <div class="row" style="--swatch:var(--d-green);">
                                 <span class="sw"></span><span class="key">diff&middot;g</span>
-                                <span>grounded diffusion: silicon tied permanently to Vss (0 V), forming the ground rails.</span>
+                                <span>Grounded diffusion: silicon tied permanently to Vss (0 V), forming the ground rails.</span>
                             </div>
-                            <div class="row" style="--swatch:#ff7070;">
+                            <div class="row" style="--swatch:var(--d-orange);">
                                 <span class="sw"></span><span class="key">diff&middot;p</span>
-                                <span>powered diffusion: silicon tied permanently to Vdd (+5 V), forming the supply rails.</span>
+                                <span>Powered diffusion: silicon tied permanently to Vdd (+5 V), forming the supply rails.</span>
                             </div>
-                            <div class="row" style="--swatch:#ff5cdc;">
+                            <div class="row" style="--swatch:var(--d-pink);">
                                 <span class="sw"></span><span class="key">diode</span>
-                                <span>protection diodes around the I/O pads, clamping ESD and over-voltage to the supply rails.</span>
+                                <span>Protection diodes at the I/O pads, clamping electrostatic discharge and over-voltage to the supply rails.</span>
                             </div>
-                            <div class="row" style="--swatch:#a55eff;">
+                            <div class="row" style="--swatch:var(--d-violet);">
                                 <span class="sw"></span><span class="key">poly</span>
-                                <span>polysilicon gate material; where poly crosses diffusion, an NMOS transistor is formed.</span>
+                                <span>Polysilicon gate material; an NMOS transistor is formed where polysilicon crosses diffusion.</span>
                             </div>
-                            <div class="row" style="--swatch:#cfd3ff;">
+                            <div class="row" style="--swatch:var(--d-grey);">
                                 <span class="sw"></span><span class="key">metal</span>
-                                <span>top aluminium interconnect that wires transistors together and distributes power.</span>
+                                <span>Top aluminium interconnect that connects transistors and distributes power.</span>
                             </div>
-                            <div class="row"
-                                style="--swatch:conic-gradient(from 90deg,#ffc850 0deg,#50c8ff 60deg,#50ffb4 120deg,#8cff64 180deg,#c882ff 240deg,#ff82c8 300deg,#ffc850 360deg);">
-                                <span class="sw"></span><span class="key">logic</span>
-                                <span>logic-state overlay: clocks amber, address bus cyan, data bus teal, registers green, decode purple, interrupts pink, control cream.</span>
+                            <div class="row wide">
+                                <span class="sw none"></span><span class="key">logic</span>
+                                <span>Logic-state overlay. Nodes at logic high are coloured by function:
+                                    <span class="cls"><span class="sw" style="--swatch:var(--d-orange);"></span>clocks and timing</span><span class="cls"><span class="sw" style="--swatch:var(--d-blue);"></span>address bus</span><span class="cls"><span class="sw" style="--swatch:var(--d-green);"></span>data bus</span><span class="cls"><span class="sw" style="--swatch:var(--d-slate);"></span>internal buses</span><span class="cls"><span class="sw" style="--swatch:var(--d-olive);"></span>registers</span><span class="cls"><span class="sw" style="--swatch:var(--d-violet);"></span>decode</span><span class="cls"><span class="sw" style="--swatch:var(--d-pink);"></span>interrupts</span><span class="cls"><span class="sw" style="--swatch:var(--d-ink);"></span>control pins</span><span class="cls"><span class="sw" style="--swatch:var(--d-grey);"></span>other nodes</span></span>
                             </div>
                         </div>
                     </div>
 
                     <div class="side">
-                        <div class="controls">
-                            <button type="button" class="ctl run" onclick="runChip()">▶ run</button>
-                            <button type="button" class="ctl stop" onclick="stopChip()">■ stop</button>
-                            <button type="button" class="ctl reset" onclick="resetChip()">↺ reset</button>
-                            <button type="button" class="ctl" onclick="stepBack()">‹ back</button>
-                            <button type="button" class="ctl" onclick="stepForward()">step ›</button>
-                            <button type="button" class="ctl" id="animateBtn" onclick="toggleAnimate(this)">animate ·
-                                on</button>
-                            <span class="speed-control" title="simulation speed">
-                                <span class="speed-label">speed</span>
+                        <div class="controls toolbar">
+                            <div class="seg">
+                                <button type="button" class="pillbtn" onclick="runChip()">Run</button>
+                                <button type="button" class="pillbtn" onclick="stopChip()">Stop</button>
+                                <button type="button" class="pillbtn" onclick="resetChip()">Reset</button>
+                                <button type="button" class="pillbtn" onclick="stepBack()">Step back</button>
+                                <button type="button" class="pillbtn" onclick="stepForward()">Step</button>
+                            </div>
+                            <button type="button" class="pillbtn active" id="animateBtn"
+                                onclick="toggleAnimate(this)">Animate: on</button>
+                            <span class="speed-control" title="Simulation speed">
+                                <span class="tag-s">Speed</span>
                                 <input type="range" id="speedSlider" min="0" max="100" step="1" value="100"
                                     oninput="setSimSpeed(this.value)">
                                 <span id="speedReadout" class="speed-readout">100%</span>
@@ -843,18 +838,17 @@
                         </div>
 
                         <div>
-                            <div class="status-label">// apple 1 terminal · hello world demo</div>
-                            <div class="terminal" id="terminal" tabindex="0"><span class="boot-msg"
-                                    style="color: var(--muted); text-shadow: none;">// reset asserted · 6502 fetching
-                                    $FFFC/$FFFD · waiting for output
-                                    // each character is fetched, OR-ed with $80, and written to $D012
-                                </span><span class="cursor">&nbsp;</span></div>
-                            <div class="terminal-hint">the program at <b>$0000</b> prints the string at <b>$0020</b> to
-                                the memory-mapped display register · press <b>reset</b> to run it again</div>
+                            <div class="status-label tag-s">Apple 1 terminal</div>
+                            <div class="terminal" id="terminal" tabindex="0"><span class="boot-msg">Reset asserted; reset vector at $FFFC/$FFFD.
+Each character is ORed with $80
+and written to $D012.
+</span><span class="cursor">&nbsp;</span></div>
+                            <div class="terminal-hint">The program at <b>$0000</b> prints the string at <b>$0020</b> to
+                                the memory-mapped display register. <b>Run</b> starts it and <b>Reset</b> runs it again.</div>
                         </div>
 
                         <div>
-                            <div class="status-label">// processor state</div>
+                            <div class="status-label tag-s">Processor state</div>
                             <div id="status">
                                 <p>halfcyc:0 phi0:0 AB:0000 D:00 RnW:1<br>PC:0000 A:00 X:00 Y:00 SP:00 nv-bdizc<br>Hz:
                                     0.0</p>
@@ -862,7 +856,7 @@
                         </div>
 
                         <div>
-                            <div class="status-label">// zero page · stack page</div>
+                            <div class="status-label tag-s">Zero page and stack page</div>
                             <div class="memtable-wrap">
                                 <table id="memtable"></table>
                             </div>
@@ -883,7 +877,7 @@
     </div>
     <!-- ================= DECK NAV ================= -->
     <div class="deck-nav">
-        <span class="arrow" id="nav-prev" aria-label="previous slide">
+        <span class="arrow" id="nav-prev" aria-label="Previous slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 18l-6-6 6-6" />
@@ -891,7 +885,7 @@
         </span>
         <span class="dots" id="nav-dots"></span>
         <span class="counter"><b id="nav-cur">1</b> / <span id="nav-tot">4</span></span>
-        <span class="arrow" id="nav-next" aria-label="next slide">
+        <span class="arrow" id="nav-next" aria-label="Next slide">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />
@@ -1009,7 +1003,8 @@
         function toggleAnimate(btn) {
             if (typeof animateChipLayout === 'undefined') return;
             animateChipLayout = !animateChipLayout;
-            btn.textContent = 'animate · ' + (animateChipLayout ? 'on' : 'off');
+            btn.textContent = 'Animate: ' + (animateChipLayout ? 'on' : 'off');
+            btn.classList.toggle('active', animateChipLayout);
         }
 
         // ------------------------------------------------------------
@@ -1034,52 +1029,52 @@
         // use the detailed mode.
         var chipRegions = [
             {
-                id: 'predec', label: 'predecode<br>+ IR', color: '#ff5c7a',
+                id: 'predec', label: 'predecode<br>+ IR', color: 'var(--d-pink)',
                 x: 6, y: 4, w: 18, h: 11,
                 body: 'Pre-decodes the byte just fetched from memory and latches it into the instruction register IR. Drives the decode PLA.'
             },
             {
-                id: 'pla', label: 'decode PLA', color: '#58a6ff',
+                id: 'pla', label: 'decode PLA', color: 'var(--d-violet)',
                 x: 24, y: 4, w: 69, h: 24,
-                body: 'Programmable logic array. Translates the 8-bit opcode together with the timing state into the dozens of internal control lines that gate registers onto the buses each cycle.'
+                body: 'Programmable logic array. Translates the 8-bit opcode and the timing state into the internal control lines that gate registers onto the buses in each cycle.'
             },
             {
-                id: 'control', label: 'random control logic', color: '#b58df1',
+                id: 'control', label: 'random control logic', color: 'var(--d-ink)',
                 x: 6, y: 28, w: 87, h: 14,
-                body: 'The "random" control block: combinational gates that turn the PLA outputs into the actual register-load, ALU-mode, and bus-driver enables for the current cycle.'
+                body: 'The "random" control logic: combinational gates that convert the PLA outputs into the register-load, ALU-mode and bus-driver enables for the current cycle.'
             },
             {
-                id: 'timing', label: 'timing<br>chain', color: '#f5c451',
+                id: 'timing', label: 'timing<br>chain', color: 'var(--d-orange)',
                 x: 6, y: 42, w: 14, h: 14,
-                body: 'Instruction timing state machine (states T0–T6). Sequences the 2 to 7 cycles of each opcode and tells the PLA which cycle of the instruction is currently running.'
+                body: 'Instruction timing state machine (states T0–T6). Sequences the 2 to 7 cycles of each opcode and indicates to the PLA which cycle of the instruction is in progress.'
             },
             {
-                id: 'alu', label: 'ALU', color: '#7be089',
+                id: 'alu', label: 'ALU', color: 'var(--d-green)',
                 x: 20, y: 42, w: 30, h: 14,
                 body: '8-bit arithmetic and logic unit. Handles add, subtract (with carry), AND, OR, EOR, shifts and rotates. Also adds the relative offset to PCL for taken branches and computes indexed effective addresses.'
             },
             {
-                id: 'flags', label: 'P · flags', color: '#f97066',
+                id: 'flags', label: 'P · flags', color: 'var(--d-pink)',
                 x: 50, y: 42, w: 13, h: 14,
                 body: 'Status register P. Holds the flags N, V, D, I, Z, C (B is not a stored bit; it appears only in the copy of P pushed by BRK or PHP). Updated by ALU operations, BIT, and the flag set/clear instructions (CLC, SEC, CLI, SEI, CLD, SED, CLV). Read by conditional branches.'
             },
             {
-                id: 'pc', label: 'program counter<br>PCL · PCH', color: '#58a6ff',
+                id: 'pc', label: 'program counter<br>PCL · PCH', color: 'var(--d-slate)',
                 x: 63, y: 42, w: 30, h: 14,
                 body: '16-bit program counter. PCL and PCH are two 8-bit halves with a dedicated incrementer that advances the PC after each fetch; relative-branch offsets are added by the ALU.'
             },
             {
-                id: 'regs', label: 'registers<br>A · X · Y · S', color: '#34d399',
+                id: 'regs', label: 'registers<br>A · X · Y · S', color: 'var(--d-olive)',
                 x: 6, y: 56, w: 65, h: 24,
                 body: 'The programmer-visible register file: accumulator A, index registers X and Y, and the 8-bit stack pointer S whose upper byte is fixed at $01.'
             },
             {
-                id: 'addr', label: 'address bus drivers', color: '#ff8e6e',
+                id: 'addr', label: 'address bus<br>drivers', color: 'var(--d-blue)',
                 x: 71, y: 56, w: 22, h: 24,
-                body: 'Output latches that drive the 16 address pins A0–A15. Multiplex between the program counter, the operand address from the addressing-mode hardware, and the stack pointer during pushes/pops.'
+                body: 'Output latches that drive the 16 address pins A0–A15. Multiplex between the program counter, the operand address from the addressing-mode hardware, and the stack pointer during stack pushes and pulls.'
             },
             {
-                id: 'pads', label: 'pad ring', color: '#8b90a3',
+                id: 'pads', label: 'pad ring', color: 'var(--d-grey)',
                 x: 6, y: 80, w: 87, h: 14,
                 body: 'The bonding pads and pin drivers around the perimeter of the die: data bus, address bus, clock inputs, IRQ/NMI/RESET, R/W, SYNC and the supply rails.'
             }
@@ -1099,7 +1094,7 @@
                 box.style.color = r.color;
                 var lbl = document.createElement('span');
                 lbl.className = 'rlabel';
-                lbl.innerHTML = r.label;
+                lbl.innerHTML = '<span>' + r.label + '</span>';
                 box.appendChild(lbl);
                 rg.appendChild(box);
             });
@@ -1109,7 +1104,7 @@
         // visual6502 node name, direction (in/out/io/pwr), the short
         // tag printed on the chip, and a one-line description.
         var pinDefs = [
-            ['ab0', 'out', 'A0', 'address bus bit 0 · selects byte in 64 KB · output, valid during phi2'],
+            ['ab0', 'out', 'A0', 'address bus bit 0 · selects a byte in the 64 kB address space · output, valid during phi2'],
             ['ab1', 'out', 'A1', 'address bus bit 1 · output'],
             ['ab2', 'out', 'A2', 'address bus bit 2 · output'],
             ['ab3', 'out', 'A3', 'address bus bit 3 · output'],
@@ -1133,11 +1128,11 @@
             ['db5', 'io', 'D5', 'data bus bit 5 · bidirectional'],
             ['db6', 'io', 'D6', 'data bus bit 6 · bidirectional'],
             ['db7', 'io', 'D7', 'data bus bit 7 · bidirectional'],
-            ['rw', 'out', 'R/W', 'read/write · high = CPU is reading memory, low = CPU is writing'],
+            ['rw', 'out', 'R/W', 'read/write · high while the CPU reads memory, low while it writes'],
             ['sync', 'out', 'SYNC', 'asserted high during the opcode-fetch cycle of every instruction'],
             ['irq', 'in', 'IRQ', 'maskable interrupt request input · vectored through $FFFE/$FFFF when I flag is clear'],
             ['nmi', 'in', 'NMI', 'non-maskable interrupt input · edge-triggered · vectored through $FFFA/$FFFB'],
-            ['res', 'in', 'RES', 'external reset · holds the chip in reset for ~7 cycles after release · vector $FFFC/$FFFD'],
+            ['res', 'in', 'RES', 'external reset · holds the chip in reset for about 7 cycles after release · vector $FFFC/$FFFD'],
             ['rdy', 'in', 'RDY', 'ready · pulled low to pause the processor (used for single-stepping and slow memory)'],
             ['so', 'in', 'SO', 'set-overflow input · sets the V flag on a falling edge'],
             ['clk0', 'in', 'phi0', 'phi-zero clock input · divided internally to produce phi1 and phi2'],
@@ -1146,7 +1141,7 @@
         ];
 
         // For each pin node, find the polygon farthest from the chip
-        // centre (5000, 5000) — that is reliably the bonding pad rather
+        // centre (5000, 5000); that is reliably the bonding pad rather
         // than the routing wire. Convert its centroid into the same
         // percentage coordinates the regions overlay uses.
         function placePinLabels() {
@@ -1211,14 +1206,12 @@
         function showPinTip(ev, p) {
             var tip = ensureLabelTip();
             var kindLabel = { 'in': 'input pin', 'out': 'output pin', 'io': 'bidirectional pin', 'pwr': 'supply rail' }[p[1]] || 'pin';
-            var kindColor = { 'in': '#58a6ff', 'out': '#ff8e6e', 'io': '#34d399', 'pwr': '#f5c451' }[p[1]] || '#fff';
+            var kindColor = { 'in': 'blue', 'out': 'orange', 'io': 'green', 'pwr': 'violet' }[p[1]] || 'grey';
             tip.innerHTML =
-                '<span class="cat" style="color:' + kindColor + ';">' + kindLabel + '</span>' +
+                '<span class="cat"><i style="--swatch:var(--d-' + kindColor + ');"></i>' + kindLabel + '</span>' +
                 '<b>' + p[2] + '</b>' +
                 p[3] +
-                '<div style="margin-top:4px; opacity:0.55; font-size:9.5px; letter-spacing:0.1em;">' +
-                'visual6502 node: ' + p[0] +
-                '</div>';
+                '<span class="raw">visual6502 node: ' + p[0] + '</span>';
             tip.style.display = 'block';
             var tipRect = tip.getBoundingClientRect();
             var px = ev.clientX + 14;
@@ -1249,8 +1242,8 @@
         // chipbg/overlay/hilite/hitbuffer (DOM order) and below the
         // regions overlay (which has a higher z-index). When idle it is
         // empty, fully transparent, so the chip is fully visible. When
-        // a component is hovered, we fill the canvas with translucent
-        // black and then use the 'destination-out' composite operator
+        // a component is hovered, the canvas is filled with a translucent
+        // white veil and the 'destination-out' composite operator is used
         // to erase the dim where the active polygons or the active
         // region rectangle sit. The result: the active geometry shows
         // through at full brightness, everything else fades.
@@ -1294,13 +1287,15 @@
             // IMPORTANT: clear before filling. mousemove is rAF-throttled
             // to ~60 Hz, and each translucent fillRect stacks alpha on
             // top of the previous frame's. Without the clearRect the
-            // canvas accumulates to fully opaque black within a fraction
+            // canvas accumulates to a fully opaque veil within a fraction
             // of a second and the surrounding chip vanishes.
             ctx.globalCompositeOperation = 'source-over';
             ctx.clearRect(0, 0, grCanvasSize, grCanvasSize);
             if (dimOpacity <= 0) return;       // slider at zero = dim off
-            ctx.fillStyle = 'rgba(0, 0, 0, ' + dimOpacity + ')';
+            ctx.globalAlpha = dimOpacity;
+            ctx.fillStyle = T.plotBg;
             ctx.fillRect(0, 0, grCanvasSize, grCanvasSize);
+            ctx.globalAlpha = 1;
         }
         function dimExceptNode(nodeNum) {
             var ctx = getDimmerCtx();
@@ -1311,7 +1306,7 @@
             fillDimBackdrop(ctx);
             if (dimOpacity <= 0) return;       // nothing to punch through
             ctx.globalCompositeOperation = 'destination-out';
-            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+            ctx.fillStyle = T.text;
             for (var i = 0; i < node.segs.length; i++) {
                 drawSeg(ctx, node.segs[i]);
                 ctx.fill();
@@ -1325,7 +1320,7 @@
             fillDimBackdrop(ctx);
             if (dimOpacity <= 0) return;
             ctx.globalCompositeOperation = 'destination-out';
-            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+            ctx.fillStyle = T.text;
             // Region coords are in percentage of the canvas. Convert to
             // grCanvasSize buffer pixels.
             var bx = region.x * grCanvasSize / 100;
@@ -1347,26 +1342,67 @@
 
         // ------------------------------------------------------------
         // Logic-state overlay. The upstream refresh() paints every
-        // node currently at logic high in a single dim red. We override
-        // it to colour-code each high node by its functional role:
-        // clocks/timing in amber, address bus in cyan, data bus in
-        // teal, register file in green, decode PLA in purple, etc.
-        // The chip then communicates *what* is firing, not just that
-        // something is. Toggleable via the "logic" button in the
-        // layers pill.
+        // node currently at logic high in a single red. This override
+        // colours each high node by its functional role (see
+        // categoryHues). Toggled by the "logic" button in the layer bar.
         // ------------------------------------------------------------
         var logicOverlayOn = true;
         var nodeCategoryMap = null;       // built lazily when refresh runs
-        var categoryStyles = {
-            'clock': 'rgba(255, 200,  80, 0.55)',
-            'addr': 'rgba( 80, 200, 255, 0.50)',
-            'data': 'rgba( 80, 255, 180, 0.55)',
-            'internal-bus': 'rgba(140, 180, 255, 0.45)',
-            'register': 'rgba(140, 255, 100, 0.55)',
-            'decode': 'rgba(200, 130, 255, 0.50)',
-            'interrupt': 'rgba(255, 130, 200, 0.55)',
-            'control': 'rgba(255, 240, 180, 0.50)',
-            'other': 'rgba(255, 110, 130, 0.32)'
+        // Functional class of a node -> data-palette hue. The legend
+        // under the chip names each class beside its swatch.
+        var categoryHues = {
+            'clock': 'orange', 'addr': 'blue', 'data': 'green',
+            'internal-bus': 'slate', 'register': 'olive', 'decode': 'violet',
+            'interrupt': 'pink', 'control': 'ink', 'other': 'grey'
+        };
+        // Palette colour with an alpha channel, for canvas fills.
+        function paletteAlpha(name, a) {
+            var n = T.hex(name);
+            return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+        }
+
+        // Chip-layer map. The index is the visual6502 layer number:
+        // 0 metal, 1 signal diffusion, 2 protection diode, 3 grounded
+        // diffusion, 4 powered diffusion, 5 polysilicon. Each hue encodes
+        // a physical layer and matches the layer buttons and the 3D view.
+        var layerHues = ['grey', 'blue', 'pink', 'green', 'orange', 'violet'];
+        colors = layerHues.map(function (h, i) { return paletteAlpha(h, i === 0 ? 0.3 : 0.5); });
+
+        // The upstream setupBackground() paints the layout on black. This
+        // version paints the same polygons on the white plot surface.
+        window.setupBackground = function () {
+            chipbg = document.getElementById('chipbg');
+            chipbg.width = grCanvasSize;
+            chipbg.height = grCanvasSize;
+            var c = chipbg.getContext('2d');
+            c.fillStyle = T.plotBg;
+            c.fillRect(0, 0, grCanvasSize, grCanvasSize);
+            c.strokeStyle = paletteAlpha('slate', 0.45);
+            c.lineWidth = grLineWidth;
+            for (var i in segdefs) {
+                var layer = segdefs[i][2];
+                if (!drawlayers[layer]) continue;
+                c.fillStyle = colors[layer];
+                drawSeg(c, segdefs[i].slice(3));
+                c.fill();
+                if (layer === 0) c.stroke();
+            }
+        };
+
+        // The upstream hiliteNode() marks a low node in white, which does
+        // not show on a white surface. Selected nodes are drawn in ink
+        // when low and in pink when high.
+        window.hiliteNode = function (n) {
+            var c = hilite.getContext('2d');
+            c.clearRect(0, 0, grCanvasSize, grCanvasSize);
+            if (n == -1) return;
+            hilited = n;
+            for (var i in n) {
+                if (typeof n[i] != 'number' || !nodes[n[i]]) continue;
+                c.fillStyle = paletteAlpha(isNodeHigh(n[i]) ? 'pink' : 'ink', 0.8);
+                var segs = nodes[n[i]].segs;
+                for (var k in segs) { drawSeg(c, segs[k]); c.fill(); }
+            }
         };
 
         function classifyForLogic(name) {
@@ -1399,25 +1435,24 @@
             c.clearRect(0, 0, grCanvasSize, grCanvasSize);
             c.restore();
         }
-        // Override the upstream refresh() — same trigger points, same
-        // call sites (setup_part2 and step()) — but with the new
-        // colour-by-class rendering and the logicOverlayOn gate.
+        // Override the upstream refresh(): same trigger points and
+        // call sites (setup_part2 and step()), with colour-by-class
+        // rendering and the logicOverlayOn gate.
         window.refresh = function () {
             if (typeof chipLayoutIsVisible !== 'undefined' && !chipLayoutIsVisible) return;
             if (typeof overlay === 'undefined' || !overlay) return;
             var c = overlay.getContext('2d');
-            // Use 'source-over' to clear cleanly each frame, then
-            // 'lighter' for the fill so overlapping high nets glow.
             c.save();
             c.globalCompositeOperation = 'source-over';
             c.clearRect(0, 0, grCanvasSize, grCanvasSize);
             if (!logicOverlayOn) { c.restore(); return; }
-            c.globalCompositeOperation = 'lighter';
             buildNodeCategoryMap();
+            var fills = {};
+            for (var cat0 in categoryHues) fills[cat0] = paletteAlpha(categoryHues[cat0], cat0 === 'other' ? 0.45 : 0.85);
             for (var i in nodes) {
                 if (typeof isNodeHigh !== 'function' || !isNodeHigh(i)) continue;
                 var cat = (nodeCategoryMap && nodeCategoryMap[i]) || 'other';
-                c.fillStyle = categoryStyles[cat];
+                c.fillStyle = fills[cat];
                 var segs = nodes[i].segs;
                 for (var j in segs) {
                     drawSeg(c, segs[j]);
@@ -1586,7 +1621,7 @@
 
             // External pins
             if (/^db[0-7]$/.test(n)) return pin('D' + n.slice(2), 'data bus pin · bidirectional 8-bit data line shared with memory');
-            if (/^ab\d+$/.test(n)) return pin('A' + n.slice(2), 'address bus pin · selects a byte in the 64 KB address space');
+            if (/^ab\d+$/.test(n)) return pin('A' + n.slice(2), 'address bus pin · selects a byte in the 64 kB address space');
             if (n === 'rw') return pin('R/W', 'read when high, write when low · valid during phi2');
             if (n === 'sync') return pin('SYNC', 'asserted high during the opcode-fetch cycle of every instruction');
             if (n === 'irq') return pin('IRQ', 'maskable interrupt request input · vector at $FFFE/$FFFF');
@@ -1652,7 +1687,7 @@
             if (/^pipe/.test(n)) return ctl(n, 'control pipeline · part of the multi-cycle interrupt and reset sequencer');
             if (/^IRQP$|^IRQ/.test(n)) return ctl(n, 'IRQ sequencer · samples the IRQ pin and routes the interrupt vector');
             if (/^NMIP$|^NMI/.test(n)) return ctl(n, 'NMI sequencer · edge-triggered, latches NMI for the current instruction');
-            if (/^RESP$|^RES/.test(n)) return ctl(n, 'reset sequencer · holds the chip in reset for ~7 cycles after !RES is released');
+            if (/^RESP$|^RES/.test(n)) return ctl(n, 'reset sequencer · holds the chip in reset for about 7 cycles after !RES is released');
             if (n === 'INTG') return ctl('INTG', 'interrupt sequence in progress · forces BRK-like behaviour');
 
             // Anything else: name verbatim.
@@ -1864,8 +1899,8 @@
 
                         if (labelMode === 'regions') {
                             // Percentage of the chip-display area, not the
-                            // viewport: regions are defined in 0–100% of
-                            // the canvas which is V×V at zoom 1 and pans
+                            // viewport: regions are defined in 0 to 100% of
+                            // the canvas which is V by V at zoom 1 and pans
                             // around the same hilite reference.
                             if (typeof hilite === 'undefined' || !hilite) return;
                             var rect = hilite.getBoundingClientRect();
@@ -1890,12 +1925,10 @@
                             dimExceptRegion(hit);
                             var tip = ensureLabelTip();
                             tip.innerHTML =
-                                '<span class="cat" style="color:' + hit.color + ';">functional region</span>' +
+                                '<span class="cat"><i style="--swatch:' + hit.color + ';"></i>functional region</span>' +
                                 '<b>' + hit.label.replace(/<br>/g, ' ') + '</b>' +
                                 hit.body +
-                                '<div style="margin-top:4px; opacity:0.55; font-size:9.5px; letter-spacing:0.1em;">' +
-                                'switch labels to "detailed" for per-node info' +
-                                '</div>';
+                                '<span class="raw">Select "detailed" for per-node information.</span>';
                             tip.style.display = 'block';
                             positionLabelTip(tip, ev);
                             return;
@@ -1920,9 +1953,7 @@
                             '<span class="cat">' + cat + '</span>' +
                             '<b>' + label + '</b>' +
                             (body ? body : '') +
-                            '<div style="margin-top:4px; opacity:0.55; font-size:9.5px; letter-spacing:0.1em;">' +
-                            'raw: ' + name + ' · #' + w +
-                            '</div>';
+                            '<span class="raw">raw: ' + name + ' · #' + w + '</span>';
                         tip2.style.display = 'block';
                         positionLabelTip(tip2, ev);
                     });
@@ -1980,13 +2011,14 @@
         //
         // Values are world-space units; the die is PLANE_W = 2 wide.
         // baseZ is the bottom of the extrusion, depth is its thickness.
+        // Hues follow the chip-layer map of the 2D view (layerHues).
         var layerSpec = [
-            { idx: 1, colour: '#f5c451', baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'switched diffusion' },
-            { idx: 3, colour: '#34d399', baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'grounded diffusion' },
-            { idx: 4, colour: '#ff7070', baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'powered diffusion' },
-            { idx: 2, colour: '#ff5cdc', baseZ: 0.010, depth: 0.006, opacity: 0.95, name: 'input diode' },
-            { idx: 5, colour: '#a55eff', baseZ: 0.020, depth: 0.012, opacity: 0.92, name: 'polysilicon' },
-            { idx: 0, colour: '#cfd3ff', baseZ: 0.044, depth: 0.018, opacity: 0.78, name: 'metal' }
+            { idx: 1, hue: 'blue',   baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'switched diffusion' },
+            { idx: 3, hue: 'green',  baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'grounded diffusion' },
+            { idx: 4, hue: 'orange', baseZ: 0.000, depth: 0.008, opacity: 0.95, name: 'powered diffusion' },
+            { idx: 2, hue: 'pink',   baseZ: 0.010, depth: 0.006, opacity: 0.95, name: 'input diode' },
+            { idx: 5, hue: 'violet', baseZ: 0.020, depth: 0.012, opacity: 0.92, name: 'polysilicon' },
+            { idx: 0, hue: 'grey',   baseZ: 0.044, depth: 0.018, opacity: 0.78, name: 'metal' }
         ];
 
         // Plane dimensions in world units, chosen to match the actual
@@ -2060,8 +2092,8 @@
             if (!container) return;
 
             scene = new THREE.Scene();
-            // No fog — just a dark gradient background already drawn
-            // by the container CSS, so the renderer keeps alpha:true.
+            // The container CSS supplies the white background, so the
+            // renderer keeps alpha:true.
 
             var w = container.clientWidth || 800;
             var h = container.clientHeight || 800;
@@ -2075,12 +2107,12 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
             container.appendChild(renderer.domElement);
 
-            // Lighting: a warm key light from upper right, a cool fill
-            // from the opposite side, and gentle ambient.
-            scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-            var key = new THREE.DirectionalLight(0xfff1d6, 0.85);
+            // Lighting: neutral key, fill and ambient lights, so the
+            // layer hues are not tinted.
+            scene.add(new THREE.AmbientLight(T.sceneBg, 0.9));
+            var key = new THREE.DirectionalLight(T.sceneBg, 0.9);
             key.position.set(2.5, -1.5, 3); scene.add(key);
-            var fill = new THREE.DirectionalLight(0x6699ff, 0.35);
+            var fill = new THREE.DirectionalLight(T.sceneBg, 0.35);
             fill.position.set(-2, 2, 2); scene.add(fill);
 
             // Substrate slab beneath all layers. Its top sits at z=0
@@ -2088,7 +2120,7 @@
             var subThickness = 0.022;
             var subGeo = new THREE.BoxGeometry(PLANE_W * 1.02, PLANE_H * 1.02, subThickness);
             var subMat = new THREE.MeshStandardMaterial({
-                color: 0x161821, roughness: 0.95, metalness: 0.05
+                color: T.sceneBg2, roughness: 0.95, metalness: 0.05
             });
             var sub = new THREE.Mesh(subGeo, subMat);
             sub.position.z = -subThickness / 2;
@@ -2097,7 +2129,7 @@
             // Faint outline around the die top edge.
             var edges = new THREE.LineSegments(
                 new THREE.EdgesGeometry(new THREE.BoxGeometry(PLANE_W, PLANE_H, 0.001)),
-                new THREE.LineBasicMaterial({ color: 0x444a5e })
+                new THREE.LineBasicMaterial({ color: T.hex('grey') })
             );
             scene.add(edges);
 
@@ -2106,7 +2138,7 @@
             // from segdefs that lives on that layer, raised to baseZ
             // and extruded upward by `depth`.
             layerSpec.forEach(function (L) {
-                var mesh = buildExtrudedLayer(L.idx, L.colour, L.baseZ, L.depth, L.opacity);
+                var mesh = buildExtrudedLayer(L.idx, T.hex(L.hue), L.baseZ, L.depth, L.opacity);
                 if (mesh) {
                     mesh.userData.name = L.name;
                     layerMeshes[L.idx] = mesh;
@@ -2122,8 +2154,8 @@
             controls.minDistance = 1.3;
             controls.maxDistance = 6;
 
-            // Resize listener — viewport size doesn't change in this
-            // page, but DPR / orientation can.
+            // Resize listener: the viewport size is fixed on this page,
+            // but DPR and orientation can change.
             window.addEventListener('resize', onResize);
 
             initialised = true;
@@ -2236,7 +2268,7 @@
                 (function (idx) {
                     var btn = inputsRow.append('button')
                         .attr('type', 'button')
-                        .attr('class', 'pla-input')
+                        .attr('class', 'pillbtn pla-input')
                         .attr('data-i', idx);
                     btn.append('span').text('A' + idx);
                     btn.append('span').attr('class', 'bit').text('0');
@@ -2275,15 +2307,15 @@
             gFrame.append('text')
                 .attr('class', 'pla-band-label')
                 .attr('x', (GEOM.inputX[0] + GEOM.inputX[N_SIG - 1]) / 2)
-                .attr('y', GEOM.ohdrY + 14)
+                .attr('y', GEOM.ohdrY + 8)
                 .attr('text-anchor', 'middle')
-                .text('inputs A3..A0 (and complements)');
+                .text('Inputs A3 to A0 and complements');
             gFrame.append('text')
                 .attr('class', 'pla-band-label')
                 .attr('x', (GEOM.outputX[0] + GEOM.outputX[N_OUT - 1]) / 2)
-                .attr('y', GEOM.ohdrY + 14)
+                .attr('y', GEOM.ohdrY + 8)
                 .attr('text-anchor', 'middle')
-                .text('outputs Y3..Y0');
+                .text('Outputs Y3 to Y0');
 
             // Input column headers (A0, !A0, A1, !A1, ...).
             // Use the Unicode NOT sign for complements.
@@ -2405,7 +2437,7 @@
                             gPoints,
                             GEOM.inputX[ss], GEOM.prodY[rr],
                             'and',
-                            'toggle: connect ' + sigName(ss) + ' as a factor of P' + rr,
+                            'Toggle the connection of ' + sigName(ss) + ' into product term P' + rr,
                             function () { andM[rr][ss] = !andM[rr][ss]; update(); }
                         );
                     })(r, s);
@@ -2420,7 +2452,7 @@
                             gPoints,
                             GEOM.outputX[jj], GEOM.prodY[rr],
                             'or',
-                            'toggle: feed P' + rr + ' into Y' + jj,
+                            'Toggle the connection of P' + rr + ' onto output Y' + jj,
                             function () { orM[rr][jj] = !orM[rr][jj]; update(); }
                         );
                     })(r, j);
@@ -2435,20 +2467,20 @@
                 row.className = 'pterm';
                 row.innerHTML = '<span class="lab">P' + r + '</span>' +
                     '<span class="eq">=</span>' +
-                    '<span class="expr">&mdash;</span>' +
+                    '<span class="expr">&ndash;</span>' +
                     '<span class="val">0</span>';
                 readoutEl.appendChild(row);
                 readoutRows.push(row);
             }
 
             // Build a human-readable expression for product term r based on
-            // the current AND-plane connections. Returns "—" if unused.
+            // the current AND-plane connections. Returns an en dash if unused.
             function termExpression(r) {
                 var parts = [];
                 for (var s = 0; s < N_SIG; s++) {
                     if (andM[r][s]) parts.push(sigName(s));
                 }
-                if (parts.length === 0) return '—';
+                if (parts.length === 0) return '–';
                 return parts.join('·');
             }
 
@@ -2525,7 +2557,7 @@
                     row.classList.toggle('unused', !connected);
                     row.classList.toggle('lit', lit);
                     row.querySelector('.expr').textContent = connected ? termExpression(r) : 'unused';
-                    row.querySelector('.val').textContent = connected ? (lit ? '1' : '0') : '·';
+                    row.querySelector('.val').textContent = connected ? (lit ? '1' : '0') : '–';
                 }
 
                 // OR cross-points.
@@ -2597,25 +2629,25 @@
             var PRESETS = {
                 decoder: {
                     load: loadDecoder,
-                    title: '2-to-4 decoder loaded',
-                    body: 'Inputs A1 and A0 act as a 2-bit address; A2 and A3 are unused, so toggling them does nothing. The AND-plane forms one product term per address combination (00, 01, 10, 11) and the OR-plane wires each product to one output, so exactly one of Y0..Y3 is high at any time.'
+                    title: '2-to-4 decoder',
+                    body: 'Inputs A1 and A0 act as a 2-bit address; A2 and A3 are unused and have no effect. The AND-plane forms one product term per address combination (00, 01, 10, 11) and the OR-plane connects each product term to one output, so exactly one of Y0 to Y3 is high at any time.'
                 },
                 mux: {
                     load: loadMux,
-                    title: 'dual 2:1 multiplexer loaded',
+                    title: 'Dual 2:1 multiplexer',
                     body: 'A2 selects between data bits A0 and A1 onto Y0, and A3 independently selects the same pair onto Y1. The AND-plane combines each (data, select) pair into a product term; the OR-plane sums the two terms that drive each output. Y2 and Y3 are unused.'
                 },
                 opcode: {
                     load: loadOpcode,
-                    title: '6502 opcode decoder fragment loaded',
-                    body: 'The four input bits stand in for the low nibble of an opcode byte. Y0 fires only on 1001 (LDA #, 0xA9), Y1 only on 0101 (STA zp, 0x85), and Y2 only on 1010 (NOP, 0xEA). Every other nibble produces no output. The real 6502 uses a much larger PLA of the same shape to decode all 256 opcodes.'
+                    title: '6502 opcode decoder fragment',
+                    body: 'The four input bits represent the low nibble of an opcode byte. Y0 is high only for 1001 (LDA #, 0xA9), Y1 only for 0101 (STA zp, 0x85) and Y2 only for 1010 (NOP, 0xEA). Every other nibble leaves all outputs low. The 6502 uses a much larger PLA of the same structure to decode all 256 opcodes.'
                 }
             };
 
             var explainerEl = document.getElementById('pla-explainer');
             var explainerTitle = document.getElementById('pla-explainer-title');
             var explainerBody = document.getElementById('pla-explainer-body');
-            var presetButtons = document.querySelectorAll('#pla-presets .pla-btn[data-preset]');
+            var presetButtons = document.querySelectorAll('#pla-presets .pillbtn[data-preset]');
 
             // Set the explainer + the active button highlight to reflect the
             // currently loaded preset (or the "modified" / default state).
@@ -2632,12 +2664,12 @@
                     explainerBody.textContent = PRESETS[name].body;
                 } else if (name === 'modified') {
                     explainerEl.classList.add('is-default');
-                    explainerTitle.textContent = 'custom array';
+                    explainerTitle.textContent = 'Custom array';
                     explainerBody.textContent = 'The array has changed since the last preset was loaded. Selecting a preset restores a built-in function; further edits update the truth strip.';
                 } else {
                     explainerEl.classList.add('is-default');
-                    explainerTitle.textContent = 'no preset';
-                    explainerBody.textContent = 'Click a preset above to load a real function, or build one yourself by clicking crossings in either plane.';
+                    explainerTitle.textContent = 'No preset';
+                    explainerBody.textContent = 'Select a preset to load a built-in function, or click crossings in either plane to build one.';
                 }
             }
 
@@ -2689,117 +2721,10 @@
             setPresetActive('decoder');
             update();
 
-            // Theme toggling: line/dot colours come from CSS variables, so the
-            // SVG re-themes automatically. The .lit / .on classes already pull
-            // from var(--c-reg) etc., so no redraw is needed. Listening to the
-            // event is kept for completeness in case future tweaks need it.
-            window.addEventListener('themechange', function () { update(); });
         })();
     </script>
 
-    <!-- ================= DECK NAV SCRIPT ================= -->
-    <script>
-        // Slide-deck navigation (mirrors Week 10/digital_logic_JS/nav.js).
-        // Arrow keys, dot indicator, prev/next buttons. The simulator and
-        // PLA widget keep running across slide changes; only visibility
-        // and opacity transition.
-        (function () {
-            var deck = document.getElementById('deck');
-            if (!deck) return;
-            var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
-            var dotsHost = document.getElementById('nav-dots');
-            var elPrev = document.getElementById('nav-prev');
-            var elNext = document.getElementById('nav-next');
-            var elCur = document.getElementById('nav-cur');
-            var elTot = document.getElementById('nav-tot');
-            var nextPage = deck.getAttribute('data-next');
-            var prevPage = deck.getAttribute('data-prev');
-            var current = 0;
-
-            function buildDots() {
-                dotsHost.innerHTML = '';
-                slides.forEach(function (_, i) {
-                    var d = document.createElement('span');
-                    d.className = 'dot' + (i === current ? ' active' : '');
-                    d.addEventListener('click', function () { go(i); });
-                    dotsHost.appendChild(d);
-                });
-                elTot.textContent = slides.length;
-            }
-
-            function go(i) {
-                if (i < 0 || i >= slides.length || i === current) return;
-                slides[current].classList.remove('active');
-                slides[current].classList.toggle('prev', i > current);
-                current = i;
-                slides[current].classList.add('active');
-                slides[current].classList.remove('prev');
-                slides.forEach(function (s, idx) {
-                    if (idx !== current && idx >= current) s.classList.remove('prev');
-                });
-                var dotEls = dotsHost.querySelectorAll('.dot');
-                dotEls.forEach(function (d, idx) { d.classList.toggle('active', idx === current); });
-                elCur.textContent = current + 1;
-                elPrev.classList.toggle('disabled', current === 0 && !prevPage);
-                elNext.classList.toggle('disabled', current === slides.length - 1 && !nextPage);
-            }
-
-            function next() {
-                if (current === slides.length - 1) {
-                    if (nextPage) window.location.href = nextPage;
-                    return;
-                }
-                go(current + 1);
-            }
-            function prev() {
-                if (current === 0) {
-                    if (prevPage) window.location.href = prevPage + '#last';
-                    return;
-                }
-                go(current - 1);
-            }
-
-            function landOnLast() {
-                if (slides.length < 2) return;
-                slides.forEach(function (s) { s.style.transition = 'none'; });
-                slides[0].classList.remove('active');
-                current = slides.length - 1;
-                slides[current].classList.add('active');
-                slides.forEach(function (s, idx) {
-                    if (idx < current) s.classList.add('prev');
-                    else s.classList.remove('prev');
-                });
-                void slides[current].offsetWidth;
-                slides.forEach(function (s) { s.style.transition = ''; });
-                history.replaceState(null, '', location.pathname + location.search);
-            }
-
-            function init() {
-                if (location.hash === '#last') landOnLast();
-                buildDots();
-                elCur.textContent = current + 1;
-                elPrev.classList.toggle('disabled', current === 0 && !prevPage);
-                elNext.classList.toggle('disabled', current === slides.length - 1 && !nextPage);
-                elPrev.addEventListener('click', prev);
-                elNext.addEventListener('click', next);
-                document.addEventListener('keydown', function (e) {
-                    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-                    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
-                        next(); e.preventDefault();
-                    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-                        prev(); e.preventDefault();
-                    } else if (e.key === 'Home') {
-                        go(0); e.preventDefault();
-                    } else if (e.key === 'End') {
-                        go(slides.length - 1); e.preventDefault();
-                    }
-                });
-            }
-
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-            else init();
-        })();
-    </script>
+    <script src="digital_logic_JS/nav.js"></script>
 
 
 </body>

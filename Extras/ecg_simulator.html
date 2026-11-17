@@ -125,7 +125,7 @@
     <main class="tool">
         <div class="intro">
             <div class="eyebrow"><span class="bar"></span><span>Model and export</span></div>
-            <p class="lead">The simulator synthesises the two Einthoven bipolar limb leads, I and II, from a PQRST Gaussian-sum model. Lead II uses a lead-II morphology. Lead I is generated from the same beat schedule with wave amplitudes scaled to approximate the projection of the cardiac vector onto the lead-I axis at a normal QRS orientation.</p>
+            <p class="lead">The simulator synthesises the two Einthoven bipolar limb leads, I and II, from a PQRST Gaussian-sum model. Lead II uses the canonical morphology of the model. Lead I is generated from the same beat schedule with wave amplitudes scaled to approximate the projection of the cardiac vector onto the lead-I axis at a normal QRS orientation.</p>
             <p>The additive noise sources are representative of surface acquisition: low-frequency baseline wander attributable to respiration and electrode motion, broadband electromyographic interference, narrowband powerline coupling with its odd harmonics, transient electrode artefacts, and Gaussian thermal noise. Each lead receives an independent realisation of the noise.</p>
             <p>The waveforms can be exported as CSV or TXT for use in MATLAB, Excel or NI Multisim, so that an instrumentation design can be simulated from the electrode signal to the output. In Multisim, each TXT file is typically loaded into a piecewise-linear voltage source that drives the analogue front end during transient analysis; a two-lead front end uses two such sources, one per lead.</p>
         </div>
@@ -179,7 +179,7 @@
 
                 <div class="callout">
                     <h3>Relative amplitude of Lead I and Lead II</h3>
-                    <p>The two bipolar limb leads have different orientations on Einthoven's triangle: Lead I lies along the horizontal axis at $0^{\circ}$ ($\text{LA} - \text{RA}$), and Lead II along the $\text{LL} - \text{RA}$ axis at $+60^{\circ}$. Each lead records the projection of the mean cardiac vector onto its own axis, so the recorded amplitude scales as $\cos(\theta - \theta_{\text{lead}})$, where $\theta$ is the mean QRS axis.</p>
+                    <p>The two bipolar limb leads have different orientations on Einthoven's triangle: Lead I lies along the horizontal axis at $0^{\circ}$ $(\text{LA} - \text{RA})$, and Lead II along the $\text{LL} - \text{RA}$ axis at $+60^{\circ}$. Each lead records the projection of the mean cardiac vector onto its own axis, so the recorded amplitude scales as $\cos(\theta - \theta_{\text{lead}})$, where $\theta$ is the mean QRS axis.</p>
                     <p>In a normally oriented adult heart, $\theta$ is near $+60^{\circ}$, which aligns the QRS vector with the Lead II axis. Lead II therefore records the full magnitude ($\cos 0^{\circ} = 1.0$), while Lead I records only the horizontal component ($\cos 60^{\circ} = 0.5$). The simulator uses $\theta \approx 60^{\circ}$ as its default, giving a Lead I R wave roughly half the Lead II R wave.</p>
                     <p>The two projections are equal at $+30^{\circ}$, and Lead I exceeds Lead II only when the axis lies below $+30^{\circ}$. An axis between $-30^{\circ}$ and $+30^{\circ}$ is still within the normal range ($-30^{\circ}$ to $+90^{\circ}$). Left axis deviation is an axis more negative than $-30^{\circ}$, seen for example with left anterior fascicular block or inferior myocardial infarction.</p>
                 </div>
@@ -565,14 +565,16 @@
             const vStart = Math.floor(ymin / vMinor) * vMinor;
             const vStart2 = Math.floor(ymin / vMajor) * vMajor;
 
+            // A grid level is skipped when its lines would be closer than 4 px.
+            const pxPerS = plotW / dur, pxPerMv = plotH / (ymax - ymin);
             ctx.lineWidth = 1;
             ctx.strokeStyle = T.gridFine;
             ctx.beginPath();
-            for (let t = 0; t <= dur + 1e-9; t += tMinor) {
+            for (let t = 0; tMinor * pxPerS >= 4 && t <= dur + 1e-9; t += tMinor) {
                 const x = xToPx(t);
                 ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH);
             }
-            for (let v = vStart; v <= ymax + 1e-9; v += vMinor) {
+            for (let v = vStart; vMinor * pxPerMv >= 4 && v <= ymax + 1e-9; v += vMinor) {
                 if (v < ymin) continue;   // first grid value can lie below the plot
                 const y = yToPx(v);
                 ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y);
@@ -581,11 +583,11 @@
 
             ctx.strokeStyle = T.gridMed;
             ctx.beginPath();
-            for (let t = 0; t <= dur + 1e-9; t += tMajor) {
+            for (let t = 0; tMajor * pxPerS >= 4 && t <= dur + 1e-9; t += tMajor) {
                 const x = xToPx(t);
                 ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH);
             }
-            for (let v = vStart2; v <= ymax + 1e-9; v += vMajor) {
+            for (let v = vStart2; vMajor * pxPerMv >= 4 && v <= ymax + 1e-9; v += vMajor) {
                 if (v < ymin) continue;   // first grid value can lie below the plot
                 const y = yToPx(v);
                 ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y);
@@ -608,12 +610,14 @@
             }
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            const yStride = Math.max(1, Math.ceil(20 / (plotH * vMajor / (ymax - ymin))));
-            for (let v = vStart2; v <= ymax + 1e-9; v += vMajor) {
-                if (Math.round(v / vMajor) % yStride !== 0) continue;
-                const y = yToPx(v);
+            // Labels fall on the 0.1 mV lines when fewer than three 0.5 mV lines are visible.
+            const vLabel = (ymax - ymin) < 1.5 ? vMinor : vMajor;
+            const yStride = Math.max(1, Math.ceil(20 / (vLabel * pxPerMv)));
+            for (let n = Math.ceil(ymin / vLabel); n * vLabel <= ymax + 1e-9; n++) {
+                if (n % yStride !== 0) continue;
+                const y = yToPx(n * vLabel);
                 if (y < padT + 6 || y > padT + plotH - 2) continue;
-                ctx.fillText(v.toFixed(1), padL - 8, y);
+                ctx.fillText(signed((n * vLabel).toFixed(1)), padL - 8, y);
             }
 
             // Axis titles, outside the plot area
@@ -636,6 +640,11 @@
                 drawPoly(ctx, canvas, tr.arr, N, dur, xToPx, yToPx);
                 ctx.stroke();
             }
+        }
+
+        // Formats a fixed-point string with a true minus sign and no negative zero.
+        function signed(str) {
+            return (parseFloat(str) === 0 ? str.replace('-', '') : str).replace('-', '\u2212');
         }
 
         function drawPoly(ctx, canvas, arr, N, dur, xToPx, yToPx) {
@@ -680,7 +689,7 @@
             document.getElementById('roDur').textContent = state.dur.toFixed(1) + ' s';
             document.getElementById('roFs').textContent = state.fs + ' Hz';
             document.getElementById('roN').textContent = lastData.N.toLocaleString();
-            const fmtSnr = s => isFinite(s) ? (s.toFixed(1) + ' dB') : 'n/a';
+            const fmtSnr = s => isFinite(s) ? (signed(s.toFixed(1)) + ' dB') : 'n/a';
             document.getElementById('roSNR1').textContent = fmtSnr(lastData.leads.I.snr);
             document.getElementById('roSNR2').textContent = fmtSnr(lastData.leads.II.snr);
 

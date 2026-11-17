@@ -11,15 +11,20 @@
         var d = EO.ORBITAL_DEFS[p.focus], Z = EO.zeffOf(p.focus), seq = el.excitationSequence;
         var out = {
             element: el.name + ' (Z = ' + el.Z + ')',
-            state: p.level === 0 ? 'ground state' : 'excited: ' + seq[0] + ' → ' + seq[p.level],
+            state: 'ground state',
             n: d.n, l: d.l, m: d.m,
             rnodes: d.n - d.l - 1, anodes: d.l,
             zeff: Z.toFixed(2),
-            energy: (function () { var o = EO.orbitalEnergy(p.element, d.n, d.l, Z); return o.E.toFixed(o.src === 'measured' ? 2 : 1) + ' eV (' + o.src + ')'; })(),
+            energy: (function () { var o = EO.orbitalEnergy(p.element, d.n, d.l, Z); return o.E.toFixed(o.src === 'measured' ? 2 : 1).replace('-', '\u2212') + ' eV (' + o.src + ')'; })(),
             electrons: p.config.reduce(function (a, o) { return a + o.electrons; }, 0)
         };
         Object.keys(out).forEach(function (k) {
             document.querySelectorAll('[data-out="' + k + '"]').forEach(function (e) { e.textContent = out[k]; });
+        });
+        if (p.level > 0) document.querySelectorAll('[data-out="state"]').forEach(function (e) {
+            e.textContent = 'excited: ';
+            tex(e.appendChild(document.createElement('span')),
+                EO.ORBITAL_DEFS[seq[0]].tex + ' \\to ' + EO.ORBITAL_DEFS[seq[p.level]].tex);
         });
         document.querySelectorAll('[data-out="config"]').forEach(function (e) { tex(e, EO.fmtConfig(p.config)); });
         document.querySelectorAll('[data-out="focus"]').forEach(function (e) { tex(e, d.tex); });

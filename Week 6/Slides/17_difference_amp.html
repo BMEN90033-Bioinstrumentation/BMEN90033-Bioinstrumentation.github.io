@@ -17,13 +17,14 @@
 
     /* Stepper sits under the right-hand column, clear of the equation box */
     .stepper-row {
-      left: 75%;
-      width: calc(50% - 24px);
+      left: 78%;
+      width: calc(44% - 24px);
       flex-wrap: nowrap;
     }
 
     .step-indicator {
       min-width: 0;
+      white-space: nowrap;
     }
 
     /* Section 2 right-hand panel */
@@ -31,8 +32,9 @@
       position: absolute;
       top: 0;
       right: 0;
-      width: 50%;
+      width: 44%;
       height: calc(100% - 50px);
+      border-left: 1px solid var(--slide-border);
       z-index: 4;
       display: none;
       flex-direction: column;
@@ -112,6 +114,29 @@
       min-width: 52px;
       font-variant-numeric: tabular-nums;
     }
+
+    /* Narrow stage: tighten the control rows so they stay inside the panel */
+    @media (max-width: 1000px) {
+      .stepper-row {
+        gap: 6px;
+      }
+
+      .stepper-btn,
+      .ecg-toolbar .quiz-btn {
+        min-width: 0;
+        padding: 0 6px;
+      }
+
+      .ecg-toolbar {
+        gap: 4px;
+        padding: 8px 6px;
+      }
+
+      .ecg-sliders {
+        gap: 10px;
+        padding: 6px;
+      }
+    }
   </style>
 </head>
 
@@ -129,12 +154,12 @@
       <canvas id="fftCanvas"></canvas>
       <div class="ecg-sliders" id="sliderRow">
         <div class="ecg-slider-group">
-          <label for="hrSlider">HR</label>
+          <label for="hrSlider" title="Heart rate">HR</label>
           <input type="range" id="hrSlider" min="40" max="160" value="70" step="1">
           <span class="slider-val" id="hrVal">70 bpm</span>
         </div>
         <div class="ecg-slider-group">
-          <label for="hrvSlider">HRV</label>
+          <label for="hrvSlider" title="Heart rate variability">HRV</label>
           <input type="range" id="hrvSlider" min="0" max="50" value="10" step="1">
           <span class="slider-val" id="hrvVal">10%</span>
         </div>
@@ -269,7 +294,7 @@
     Rc.moveTo([RC_CX, plusY, 0]);
     const RcL = new MathTex({ latex: 'R_{c}', color: R_IN });
     await RcL.waitForRender?.();
-    RcL.scale(0.6).moveTo([RC_CX, plusY + R_H / 2 + 0.18, 0]);
+    RcL.scale(0.6).moveTo([RC_CX, plusY - R_H / 2 - 0.2, 0]);
     const inWcR = new Line({ start: [RC_CX + R_W / 2, plusY, 0], end: [NODE_X, plusY, 0], color: FG, strokeWidth: 1.8 });
     const vpDot = new Dot({ point: [NODE_X, plusY, 0], color: FG, radius: 0.06 });
     const inStubC = new Line({ start: [NODE_X, plusY, 0], end: [TRI_IN_X, plusY, 0], color: FG, strokeWidth: 1.8 });
@@ -388,7 +413,7 @@
 
     // Sub-bullet (1 line)
     const ds = await mkMath('\\text{–}', MUTED, SS, SDX, r.sub);
-    const ts = await mkMath('\\text{Low-tolerance resistors are used, e.g. } {\\pm}0.1\\%\\text{.}', MUTED, SS, SRX, r.sub);
+    const ts = await mkMath('\\text{Close-tolerance resistors are used, e.g. } {\\pm}0.1\\%\\text{.}', MUTED, SS, SRX, r.sub);
 
     //Bullet 5 (2 lines)
     const d5 = mkDot(DX, r.b5l1);
@@ -791,7 +816,7 @@
       }
       ctx.stroke();
 
-      // Highlight 50 Hz region on the averaged line 
+      // Highlight 50 Hz region on the averaged line
       ctx.strokeStyle = HUM;
       ctx.lineWidth = 2.5;
       ctx.beginPath();

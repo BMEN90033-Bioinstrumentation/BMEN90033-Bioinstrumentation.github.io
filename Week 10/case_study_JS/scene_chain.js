@@ -16,7 +16,7 @@
     var OUT_DOMAIN = [0, 3.0];
 
     var MONO_WIDTH = 0.18;
-    // Pre-amp gain 1000 maps the filtered EEG (mV) to volts at the detector
+    // Preamplifier gain 1000 maps the filtered EEG (mV) to volts at the detector
     // input, so a silicon diode drop of 0.6 V applies directly to the signal.
     var V_DROP = 0.60;
 
@@ -136,8 +136,7 @@
         ], -8);
 
         gAxisX.attr('transform', 'translate(0,' + (L.out.top + L.out.h) + ')');
-        gAxisX.call(d3.axisBottom(L.x).tickValues([-10, -8, -6, -4, -2, 0])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8))
+        gAxisX.call(d3.axisBottom(L.x).tickValues([-10, -8, -6, -4, -2, 0]).tickSize(0).tickPadding(8))
             .select('.domain').remove();
         gTitles.append('text').attr('class', 'axis-title')
             .attr('x', L.iw / 2)

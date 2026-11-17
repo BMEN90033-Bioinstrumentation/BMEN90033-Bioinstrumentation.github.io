@@ -51,7 +51,8 @@ backLight.position.set(-10, 10, -10);
 scene.add(backLight);
 
 // Viridis colourmap, 16 stops. It encodes field magnitude and is independent
-// of the site palette.
+// of the site palette. The field arrows use only the lower 80 % of the map
+// (see frame), because the yellow end has too little contrast on white.
 const VIRIDIS_STOPS = [
     [0.267004, 0.004874, 0.329415], [0.282327, 0.094955, 0.417331],
     [0.278826, 0.176998, 0.483397], [0.258965, 0.251537, 0.524736],
@@ -84,17 +85,27 @@ function dipoleField(dipolePos, dipoleDir, point) {
 // A label canvas is sized to its text, so every label has the same text
 // height: sy world units for the 32 px canvas, about 13 px at the default view.
 // The canvas is kept near the drawn size so thin strokes are not averaged away.
+// Labels are drawn over the scene on a translucent plate, so field arrows that
+// pass behind or in front of a label do not cut through its text.
 const sprites = [];
 const SPRITE_FONT = '400 24px Inter, Arial, sans-serif';
 function textSprite(text, cssVar, sy, wide) {
     const canvas = document.createElement('canvas');
     canvas.height = 32;
     const tex = new THREE.CanvasTexture(canvas);
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, fog: false }));
+    tex.colorSpace = THREE.SRGBColorSpace;   // otherwise the palette colours render washed out
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, fog: false, depthTest: false }));
+    s.renderOrder = 10;
     s.userData.paint = () => {
         const ctx = canvas.getContext('2d');
         ctx.font = SPRITE_FONT;
         canvas.width = wide ? Math.ceil(ctx.measureText(text).width) + 8 : 32;   // also clears the canvas
+        if (wide) {
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = css('--white');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+        }
         ctx.fillStyle = css(cssVar);
         ctx.font = SPRITE_FONT;
         ctx.textAlign = 'center';
@@ -155,20 +166,17 @@ const unmyelDepol = new THREE.Mesh(unmyelDepolGeo, unmyelDepolMat);
 unmyelDepol.position.set(-HALF_LEN, UNMYEL_Y, 0);
 scene.add(unmyelDepol);
 
-function dipoleGroup(rCore, rGlow, glowOpacity, coreOpacity, lightI, lightD, glowVar) {
+function dipoleGroup(rCore, coreOpacity, lightI, lightD, lightVar) {
     const group = new THREE.Group();
     const core = new THREE.MeshPhongMaterial({ transparent: true, opacity: coreOpacity, emissiveIntensity: 0.25 });
     group.add(new THREE.Mesh(new THREE.SphereGeometry(rCore, 24, 24), core));
-    const glowMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: glowOpacity, depthWrite: false });
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(rGlow, 16, 16), glowMat);
-    group.add(glow);
     const light = new THREE.PointLight(WHITE, lightI, lightD, 2);
     group.add(light);
     scene.add(group);
-    return { group, core, glowMat, glow, light, glowVar };
+    return { group, core, light, lightVar };
 }
-const unmyelDip = dipoleGroup(1.2, 2.2, 0.06, 0.85, 0.8, 12, '--c-depol');
-const myelDip = dipoleGroup(1.5, 2.8, 0.08, 0.9, 1.5, 18, '--c-dipole');
+const unmyelDip = dipoleGroup(1.2, 0.85, 0.8, 12, '--c-depol');
+const myelDip = dipoleGroup(1.5, 0.9, 1.5, 18, '--c-dipole');
 
 function dipoleArrow(len, head, headW) {
     const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), len, window.T.hex('ink'), head, headW);
@@ -265,7 +273,9 @@ function buildCrossSection() {
         const i = sprites.indexOf(c);
         if (i >= 0) sprites.splice(i, 1);
     });
-    const csX = 21, csScale = 3, csMyY = MYEL_Y + 8, csUnY = UNMYEL_Y - 6;
+    // csScale 2 keeps the myelinated drawing clear of the axon and the
+    // 'Recording' label at the maximum myelin thickness.
+    const csX = 21, csScale = 2, csMyY = MYEL_Y + 8, csUnY = UNMYEL_Y - 6;
     const disc = (r, y, v, o) => {
         const m = new THREE.Mesh(new THREE.CircleGeometry(r, 32), new THREE.MeshBasicMaterial({ color: col(v), transparent: true, opacity: o }));
         m.position.set(csX, y, 0); crossGroup.add(m);
@@ -333,8 +343,7 @@ function recolour() {
     [unmyelDip, myelDip].forEach((d) => {
         const w = col('--c-dipole');
         d.core.color.copy(w); d.core.emissive.copy(w);
-        d.glowMat.color.copy(col(d.glowVar));
-        d.light.color.copy(col(d.glowVar));
+        d.light.color.copy(col(d.lightVar));
     });
     unmyelArrow.setColor(col('--c-dipole'));
     myelArrow.setColor(col('--c-dipole'));
@@ -378,7 +387,6 @@ function frame() {
     unmyelDepol.visible = uIn && depLen > 0.05;
     unmyelDip.group.position.set(ux, UNMYEL_Y, 0);
     unmyelDip.group.visible = uIn;
-    unmyelDip.glow.scale.setScalar(1 + Math.sin(now * 0.006) * 0.08);
     unmyelDip.light.intensity = uIn ? 0.8 + Math.sin(now * 0.006) * 0.2 : 0;
     unmyelArrow.visible = uIn;
     unmyelArrow.position.set(ux - 2, UNMYEL_Y, 0);
@@ -390,7 +398,6 @@ function frame() {
     const mx = s.myelX, mIn = s.node < np.length, active = s.node;
     myelDip.group.position.set(mx, MYEL_Y, 0);
     myelDip.group.visible = mIn;
-    myelDip.glow.scale.setScalar(1 + Math.sin(now * 0.007) * 0.08);
     myelDip.light.intensity = mIn ? 1.2 + Math.sin(now * 0.007) * 0.3 : 0;
     if (s.jumping) {
         const stretch = 1 + s.jumpProgress * (1 - s.jumpProgress) * 1.5;   // slight stretch during a jump
@@ -461,7 +468,7 @@ function frame() {
         a.setDirection(field.normalize());
         const len = Math.min(mag / MAX_FIELD * 3, 3.5);
         a.setLength(Math.max(len, 0.4), len * 0.25, len * 0.15);
-        a.setColor(viridis(Math.min(mag / MAX_FIELD, 1)));
+        a.setColor(viridis(0.8 * Math.min(mag / MAX_FIELD, 1)));
     }
 
     renderer.render(scene, camera);

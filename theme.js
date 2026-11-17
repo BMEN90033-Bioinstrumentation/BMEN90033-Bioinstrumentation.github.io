@@ -1,7 +1,5 @@
 (function () {
-    // The site is light only. The attribute is kept so page CSS written
-    // against [data-theme="light"] continues to match.
-    document.documentElement.setAttribute('data-theme', 'light');
+    // The site is light only; there is no theme switching.
 
     // House fonts: Inter (text, headings) and JetBrains Mono (labels, controls).
     try {

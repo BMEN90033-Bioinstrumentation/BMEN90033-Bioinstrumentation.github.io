@@ -1,7 +1,7 @@
 // scene_peak.js  ·  Slide 4
 // Passive peak detector (diode + capacitor) with adjustable leak time-
 // constant and diode forward drop V_D. The filtered EEG (mV) is passed
-// through a pre-amp of gain 1000, so the plotted signal and V_D are in volts
+// through a preamplifier of gain 1000, so the plotted signal and V_D are in volts
 // (1 mV in = 1 V out). The capacitor charges to V_in - V_D
 // when the input is rising and the diode conducts; otherwise the held
 // voltage decays through the leak resistor. Spikes smaller than V_D produce
@@ -37,7 +37,7 @@
 
     var state = {
         tau: 2.0,
-        vd: 0.60,            // silicon diode drop at the pre-amp output, V
+        vd: 0.60,            // silicon diode drop at the preamplifier output, V
         // Per-sample peak buffer (recomputed every frame from the EEG ring buffer)
         held: new Float32Array(EEG.HISTORY * EEG.FS)
     };
@@ -66,8 +66,7 @@
         });
         var yAxis = d3.axisLeft(y).tickValues([-1, 0, 1, 2, 3]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0]).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 
@@ -78,11 +77,11 @@
         gTitles.append('text').attr('class', 'axis-title')
             .attr('transform', 'translate(' + (-42) + ',' + (ih / 2) + ') rotate(-90)')
             .attr('text-anchor', 'middle')
-            .text('pre-amp output, V');
+            .text('preamplifier output, V');
 
         // Series key in the top margin, clear of the moving traces.
         EEG.legend(gLegend, [
-            { c: 'var(--c-input)', text: 'pre-amp output' },
+            { c: 'var(--c-input)', text: 'preamplifier output' },
             { c: 'var(--c-output2)', text: 'V_{held} ≈ V_{peak} − V_{D}' }
         ], -8);
     }

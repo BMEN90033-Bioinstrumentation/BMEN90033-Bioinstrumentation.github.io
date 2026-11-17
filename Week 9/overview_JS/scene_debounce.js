@@ -786,8 +786,11 @@
                         .attr('stroke-dasharray', '2 3')
                         .attr('opacity', 0.5);
                     // Left of the marker when it lies near the right edge.
+                    // There it also steps past the T_d boundary when that
+                    // line would otherwise cross the label.
                     var tauRight = xTau < iw - 60;
-                    window.renderKatex(gWaveOut, '\\tau = T_d', xTau + (tauRight ? 35 : -35), yOut(1.05) - 9,
+                    var tauAnchor = (!tauRight && xTau - xTd < 70) ? xTd : xTau;
+                    window.renderKatex(gWaveOut, '\\tau = T_d', tauAnchor + (tauRight ? 35 : -35), yOut(1.05) - 9,
                         { size: 14, color: 'var(--c-output)', align: tauRight ? 'left' : 'right',
                           width: 60, height: 18 });
                 }

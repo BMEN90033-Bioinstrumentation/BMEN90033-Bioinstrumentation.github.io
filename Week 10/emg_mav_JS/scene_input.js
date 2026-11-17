@@ -8,7 +8,7 @@
     svg.classed('ov', true);
 
     var W = 800, H = 320;
-    var margin = { top: 48, right: 28, bottom: 48, left: 60 };
+    var margin = { top: 60, right: 28, bottom: 48, left: 60 };
     var iw, ih, x, y;
 
     var T_WIN = 0.05;     // 50 ms x-window, fixed
@@ -20,6 +20,7 @@
     var gTitles = gRoot.append('g');
     var gTrace = gRoot.append('g');
     var gMark = gRoot.append('g');
+    var gLegend = gRoot.append('g');
 
     var ui = {
         A: document.getElementById('emg-A'),
@@ -72,7 +73,7 @@
         var step = T_WIN / 5;
         for (var k = 0; k <= 5; k++) xt.push(k * step);
         var xAxis = d3.axisBottom(x).tickValues(xt)
-            .tickFormat(function (d) { return (d * 1000).toFixed(0) + ' ms'; })
+            .tickFormat(function (d) { return (d * 1000).toFixed(0); })
             .tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
@@ -102,16 +103,11 @@
         gTrace.append('path').datum(pts).attr('class', 'trace input').attr('d', line);
 
         var mav = (2 * p.A) / Math.PI;
-        gMark.append('line')
-            .attr('class', 'thresh-line')
-            .attr('x1', 0).attr('x2', iw)
-            .attr('y1', y(mav)).attr('y2', y(mav))
-            .style('cursor', 'default');
-        gMark.append('text')
-            .attr('class', 'thresh-label')
-            .attr('x', iw - 6).attr('y', y(mav) - 5)
-            .attr('text-anchor', 'end')
-            .text('MAV = 2A/π = ' + mav.toFixed(3) + ' V');
+        MAV.refLine(gMark, y(mav), iw, 'var(--c-target)');
+        MAV.legend(gLegend, [
+            { c: 'var(--c-input)', text: 'x(t)' },
+            { c: 'var(--c-target)', text: 'target MAV = 2A/π = ' + mav.toFixed(3) + ' V', dash: '5 4' }
+        ]);
     }
 
     function update() {
@@ -129,7 +125,6 @@
         ui.A.addEventListener('input', update);
         ui.f.addEventListener('input', update);
         window.addEventListener('resize', update);
-        window.addEventListener('themechange', update);
         update();
     }
 

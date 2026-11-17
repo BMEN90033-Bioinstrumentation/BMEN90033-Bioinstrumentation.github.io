@@ -70,8 +70,7 @@
         });
         var yAxis = d3.axisLeft(y).tickValues([-2, -1, 0, 1, 2, 3]).tickSize(0).tickPadding(8);
         gAxis.append('g').call(yAxis).select('.domain').remove();
-        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0])
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues([-10, -8, -6, -4, -2, 0]).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 

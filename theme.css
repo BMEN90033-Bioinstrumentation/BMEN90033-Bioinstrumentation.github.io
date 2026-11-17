@@ -182,6 +182,10 @@ a { color: var(--carbon-black-500); }
     display: flex; align-items: center; gap: var(--spacing-2);
     font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--carbon-black-500);
+    /* glass backing keeps the tag legible over content that scrolls beneath it */
+    top: 12px; height: var(--btn-size-3); padding: 0 var(--spacing-3); margin-left: calc(-1 * var(--spacing-3));
+    border-radius: var(--radius-4); background: var(--glass-white);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
 }
 .back-btn {
     position: fixed; top: 12px; right: 24px; z-index: 9999;
@@ -220,7 +224,7 @@ a { color: var(--carbon-black-500); }
 .seg-btn.active, .pill.active, .pillbtn.active, .pillbtn.on, button.ctrl-btn.active {
     background: var(--carbon-black-500); color: var(--white);
 }
-.seg-btn .katex, .pill .katex, .pillbtn .katex { text-transform: none; letter-spacing: 0; }
+.seg-btn .katex, .pill .katex, .pillbtn .katex, button.ctrl-btn .katex { text-transform: none; letter-spacing: 0; }
 .seg-btn:disabled, .pillbtn:disabled, button.ctrl-btn:disabled {
     border-color: var(--neutral-grey); color: var(--neutral-grey); cursor: default;
 }

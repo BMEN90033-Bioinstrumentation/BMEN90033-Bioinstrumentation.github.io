@@ -21,6 +21,11 @@
         var xLoad = 560;
 
         // Shared style helpers via SVG classes from cascading_filters.css.
+        // Symbol labels are typeset with KaTeX, centred on (cx, cy).
+        function tex(latex, cx, cy, color) {
+            return window.renderKatex(svg, latex, cx, cy,
+                { width: 80, height: 20, size: 14, color: color });
+        }
         function wire(x1, y1, x2, y2) {
             return svg.append('line').attr('class', 'wire')
                 .attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2);
@@ -34,10 +39,7 @@
                 .attr('x', cx - w / 2).attr('y', cy - h / 2)
                 .attr('width', w).attr('height', h)
                 .attr('rx', 3);
-            svg.append('text')
-                .attr('x', cx).attr('y', cy - h / 2 - 8)
-                .attr('text-anchor', 'middle')
-                .text(label);
+            tex(label, cx, cy - h / 2 - 13);
         }
         function capacitor(cx, cy, label) {
             // vertical capacitor, two horizontal plates
@@ -49,10 +51,7 @@
             svg.append('line').attr('class', 'cap-plate')
                 .attr('x1', cx - plate / 2 + 4).attr('x2', cx + plate / 2 - 4)
                 .attr('y1', cy + gap / 2).attr('y2', cy + gap / 2);
-            svg.append('text')
-                .attr('x', cx + plate / 2 + 6).attr('y', cy + 4)
-                .attr('text-anchor', 'start')
-                .text(label);
+            tex(label, cx + plate / 2 + 18, cy);
         }
         function gnd(cx, cy) {
             // wire down to small ground triangle
@@ -76,9 +75,7 @@
             svg.append('text')
                 .attr('x', cx).attr('y', cy + 14).attr('text-anchor', 'middle')
                 .attr('font-size', 14).text('−');
-            svg.append('text')
-                .attr('x', cx - 32).attr('y', cy + 4).attr('text-anchor', 'end')
-                .text(label);
+            tex(label, cx - 42, cy);
         }
 
         // ── Top signal rail wires ───────────────────────────────
@@ -89,17 +86,17 @@
         wire(xVout, top, xLoad, top);   // open-circuit load endpoint
 
         // ── Resistors ───────────────────────────────────────────
-        resistor(xR1, top, 'R₁');
-        resistor(xR2, top, 'R₂');
+        resistor(xR1, top, 'R_1');
+        resistor(xR2, top, 'R_2');
 
         // ── Capacitors to ground ────────────────────────────────
         // C1 on V1 node
         wire(xV1, top, xV1, top + 30);
-        capacitor(xV1, top + 40, 'C₁');
+        capacitor(xV1, top + 40, 'C_1');
         wire(xV1, top + 46, xV1, rail);
         // C2 on Vout node
         wire(xVout, top, xVout, top + 30);
-        capacitor(xVout, top + 40, 'C₂');
+        capacitor(xVout, top + 40, 'C_2');
         wire(xVout, top + 46, xVout, rail);
 
         // ── Node dots ───────────────────────────────────────────
@@ -110,7 +107,7 @@
 
         // ── Source on left ──────────────────────────────────────
         wire(xVin, top, xVin, top + 18);
-        source(xVin, top + 40, 'Vin');
+        source(xVin, top + 40, 'V_{\\text{in}}');
         wire(xVin, top + 62, xVin, rail);
         dot(xVin, rail);
 
@@ -119,12 +116,8 @@
         gnd((xVin + xLoad) / 2, rail);
 
         // ── Node labels ─────────────────────────────────────────
-        svg.append('text')
-            .attr('x', xV1 + 10).attr('y', top - 10)
-            .attr('font-size', 12).attr('fill', T.textDim).text('V₁');
-        svg.append('text')
-            .attr('x', xVout + 10).attr('y', top - 10)
-            .attr('font-size', 12).attr('fill', T.textDim).text('Vout');
+        tex('V_1', xV1 + 18, top - 14);
+        tex('V_{\\text{out}}', xVout + 22, top - 14);
 
         // ── Load endpoint terminal ──────────────────────────────
         svg.append('circle').attr('class', 'node-dot')
@@ -139,11 +132,9 @@
             .attr('text-anchor', 'middle')
             .attr('font-size', 13).attr('fill', T.text)
             .text('Two passive RC sections in direct cascade');
-        svg.append('text')
-            .attr('x', W / 2).attr('y', 48)
-            .attr('text-anchor', 'middle')
-            .attr('font-size', 11).attr('fill', T.textMuted)
-            .text('Stage 1: R₁ = R, C₁ = C. Stage 2: R₂ = kR, C₂ = C/k.');
+        window.renderKatex(svg,
+            '\\text{Stage 1: } R_1 = R,\\ C_1 = C. \\quad \\text{Stage 2: } R_2 = kR,\\ C_2 = C/k.',
+            W / 2, 46, { width: 600, height: 20, size: 13, color: T.textMuted });
     }
 
     function init() {

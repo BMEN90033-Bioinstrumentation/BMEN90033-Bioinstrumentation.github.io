@@ -139,13 +139,17 @@
     #s3Quiz {
       display: none;
       position: absolute;
-      top: 52%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 50%;
+      left: 23%;
+      right: 3%;
+      transform: translateY(-50%);
       z-index: 9;
-      width: 680px;
-      max-width: calc(100% - 40px);
-      padding: var(--card-padding-2);
+      max-width: 760px;
+      /* Stays right of the section tag and between the slide title and the section buttons;
+         scrolls if the stage is short */
+      max-height: calc(100% - 100px);
+      overflow-y: auto;
+      padding: var(--spacing-3) var(--card-padding-2);
       border-radius: var(--radius-container);
       border: 1px solid var(--slide-border);
       background: var(--slide-surface);
@@ -160,7 +164,7 @@
       font-size: 16px;
       font-weight: 400;
       line-height: 1.5;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     .quiz-option {
@@ -169,8 +173,8 @@
       gap: 8px;
       width: 100%;
       text-align: left;
-      padding: 12px 16px;
-      margin-bottom: 8px;
+      padding: 9px 14px;
+      margin-bottom: 6px;
       border: 1px solid var(--carbon-black-500);
       border-radius: var(--radius-3);
       background: transparent;
@@ -223,12 +227,12 @@
 
     .quiz-explanation {
       display: none;
-      margin-top: 16px;
-      padding: 14px 16px;
+      margin-top: 10px;
+      padding: 10px 14px;
       border-radius: var(--radius-4);
       background: var(--hydro-blue-100);
       font-size: 13px;
-      line-height: 1.55;
+      line-height: 1.45;
     }
 
     .quiz-explanation.visible {
@@ -236,12 +240,12 @@
     }
 
     .quiz-explanation p + p {
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .quiz-reset {
       display: none;
-      margin-top: 12px;
+      margin-top: 8px;
     }
 
     .quiz-reset.visible {
@@ -292,6 +296,22 @@
       padding: 4px 8px;
       font-size: 11px;
       line-height: 1.3;
+    }
+
+    /* Narrow stages: the panel keeps clear of the section buttons */
+    @media (max-width: 1000px) {
+      #s4Panel {
+        padding: 6px 10px;
+        gap: 2px;
+      }
+
+      #s4Panel .ol-title {
+        display: none;
+      }
+
+      #s4Panel input[type="range"] {
+        margin: 3px 0;
+      }
     }
   </style>
 </head>
@@ -946,9 +966,10 @@
         const vOut = s2Vouts[n];
         const vd = S2_V_IN - S2_BETA * vOut;
         const vfb = S2_BETA * vOut;
-        const vdL = await makeMath('V_d=' + vd.toFixed(2), 0.38, FF, [VD_LBL_X, VD_LBL_Y, 0]);
+        // A residual below the display resolution is shown as 0.00, without a sign
+        const vdL = await makeMath('V_d=' + (Math.abs(vd) < 0.005 ? 0 : vd).toFixed(2) + '\\text{ V}', 0.38, FF, [VD_LBL_X, VD_LBL_Y, 0]);
         const voL = await makeMath('V_{out}=' + vOut.toFixed(1) + '\\text{ V}', 0.38, n === 1 ? SAT : OUT, [VOUT_LBL_X, VOUT_LBL_Y, 0]);
-        const vfL = await makeMath('\\beta V_{out}=' + vfb.toFixed(2), 0.36, FB, [VFB_LBL_X, VFB_LBL_Y, 0]);
+        const vfL = await makeMath('\\beta V_{out}=' + vfb.toFixed(2) + '\\text{ V}', 0.36, FB, [VFB_LBL_X, VFB_LBL_Y, 0]);
         bdDynLabels.push({ vdL, voL, vfL });
       }
 
@@ -2297,11 +2318,15 @@
         .attr('width', sxR - sxL).attr('height', syB - syT)
         .attr('fill', 'none').attr('stroke', FG)
         .attr('stroke-width', 2.2);
+      // The label sits on an opaque box so no contour line passes through the text
+      plotG.append('rect')
+        .attr('x', (sxL + sxR) / 2 - 112).attr('y', syT - 36)
+        .attr('width', 224).attr('height', 28).attr('rx', 4)
+        .attr('fill', BG).attr('stroke', AXIS_COLOR).attr('stroke-width', 1);
       plotG.append('text')
-        .attr('x', (sxL + sxR) / 2).attr('y', syT - 10)
+        .attr('x', (sxL + sxR) / 2).attr('y', syT - 15)
         .attr('text-anchor', 'middle').attr('fill', FG)
         .attr('font-size', NOTE_FONT)
-        .attr('paint-order', 'stroke').attr('stroke', BG).attr('stroke-width', 4)
         .text('Recommended range');
 
       // Colour bar (right of plot)

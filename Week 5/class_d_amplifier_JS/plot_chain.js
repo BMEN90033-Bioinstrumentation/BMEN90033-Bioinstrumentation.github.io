@@ -3,7 +3,7 @@
 // half-bridge, LC filter, DC-blocking capacitor and load. Device states and current flow follow
 // the shared clock.
 //
-// Layout (viewBox 900 x 400): v_in source (60, 260), carrier source
+// Layout (viewBox 900 x 414, bottom margin below the stage names): v_in source (60, 260), carrier source
 // (150, 300), comparator left edge x = 200, apex (260, 210), inputs at
 // y = 192 (-) and y = 228 (+). Gate split x = 330. PMOS (420, 130), NMOS
 // (420, 290), rail x = 440, node (440, 210). Inductor x 520..620, node
@@ -16,7 +16,7 @@
     function render() {
         var C = window.CLD, svg = d3.select(sel), css = window.CMP.cssVar;
         svg.selectAll('*').remove();
-        svg.attr('viewBox', '0 0 900 400').attr('preserveAspectRatio', 'xMidYMid meet');
+        svg.attr('viewBox', '0 0 900 414').attr('preserveAspectRatio', 'xMidYMid meet');
         k = C.kit(svg, 1.25);
         k.path([[60, 242], [60, 192], [200, 192]]);
         k.path([[150, 282], [150, 228], [200, 228]]);

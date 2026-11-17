@@ -181,13 +181,13 @@
     await scene.play(new Create(triangle, { duration: 0.5 }));
     await scene.play(
       new FadeIn(inPlus),
-      new Write(plusSym),
+      new FadeIn(plusSym),
       new FadeIn(inMinus),
       new FadeIn(outLine),
       new FadeIn(inPlusPort),
       new FadeIn(inMinusPort),
       new FadeIn(outPort),
-      new Write(minusSym, { duration: 0.1 })
+      new FadeIn(minusSym)
     );
     await scene.play(
       new Write(vPlusLabel),

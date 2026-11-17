@@ -36,8 +36,10 @@
     var gGrid = gRoot.append('g').attr('class', 'grid');
     var gCurveBg = gRoot.append('g');
     var gCurveFg = gRoot.append('g');
-    var gNow = gRoot.append('g');
     var gThresh = gRoot.append('g');
+    // Above the threshold line so that the haloed value label masks it;
+    // pointer events pass through to the draggable line beneath.
+    var gNow = gRoot.append('g').style('pointer-events', 'none');
     var gAxis = gRoot.append('g').attr('class', 'axis');
     var gTitles = gRoot.append('g');
 
@@ -458,7 +460,9 @@
         var dt = (now - state.last) / 1000;
         state.last = now;
         if (state.running && dt < 0.25) {
-            state.t = Math.min(T_FULL, state.t + dt * state.rate);
+            // Clamped at zero: the first frame timestamp can precede
+            // state.last, which would place the marker left of the axis.
+            state.t = Math.max(0, Math.min(T_FULL, state.t + dt * state.rate));
             drawLive();
             updateReadout();
         }

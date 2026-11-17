@@ -189,8 +189,8 @@
     }
 
     function drawCircuit() {
-        var W0 = 800, H0 = 460;
-        circSvg.attr('viewBox', '0 0 ' + W0 + ' ' + H0);
+        // The viewBox is cropped to the drawn extent so the circuit fills its box.
+        circSvg.attr('viewBox', '25 95 700 345');
         circSvg.selectAll('*').remove();
         var g = circSvg.append('g');
 

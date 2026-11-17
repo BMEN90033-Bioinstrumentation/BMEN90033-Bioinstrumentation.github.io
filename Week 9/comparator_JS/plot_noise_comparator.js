@@ -143,7 +143,7 @@
         window.renderKatex(svg, 'v(t) \\, [\\mathrm{V}]',
             22, margin.top + hSig / 2,
             { width: 140, height: 22, rotate: -90, size: 14 });
-        window.renderKatex(svg, 'v_\\text{out}',
+        window.renderKatex(svg, 'v_\\text{out} \\, [\\mathrm{V}]',
             22, margin.top + hSig + gap + hOut / 2,
             { width: 100, height: 22, rotate: -90, size: 14 });
         window.renderKatex(svg, 't \\, [\\mathrm{s}]',

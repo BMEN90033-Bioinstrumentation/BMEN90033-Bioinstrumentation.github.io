@@ -100,7 +100,11 @@
             yTicks: 5
         });
         var phase = window.WCGW.setupPlot('#plot-ripple-phase', {
-            legend: [{ key: 'mark', dash: true, label: 'cutoff ω_c' }],
+            legend: [
+                { key: 'fixed', label: 'Butterworth' },
+                { key: 'distort', label: 'Chebyshev' },
+                { key: 'mark', dash: true, label: 'cutoff ω_c' }
+            ],
             xScale: d3.scaleLog(),
             xDomain: [1, 1000],
             yDomain: [-380, 10],

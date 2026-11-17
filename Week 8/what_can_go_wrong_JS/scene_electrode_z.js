@@ -57,7 +57,7 @@
 
         [fcNom, fcReal].forEach(function (fc, i) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fc)).attr('x2', P.x(fc)).attr('y1', 0).attr('y2', P.innerH)
-                .attr('stroke', i === 0 ? P.colors.clean : P.colors.distort).attr('opacity', 0.55);
+                .style('stroke', i === 0 ? P.colors.clean : P.colors.distort).attr('opacity', 0.55);
         });
 
     }

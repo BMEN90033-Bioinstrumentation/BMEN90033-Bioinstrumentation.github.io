@@ -76,7 +76,7 @@
             if (label) {
                 svg.append('text')
                     .attr('x', cx).attr('y', cy - bh / 2 - 8)
-                    .attr('text-anchor', 'middle').attr('font-size', 11)
+                    .attr('text-anchor', 'middle').attr('font-size', 13)
                     .attr('fill', T.fg(0.7)).text(label);
             }
             return { left: lx, right: rx };
@@ -142,7 +142,7 @@
             .attr('fill', T.text).text('RC stages with unity-gain buffers between them');
         svg.append('text')
             .attr('x', W / 2).attr('y', 48)
-            .attr('text-anchor', 'middle').attr('font-size', 11)
+            .attr('text-anchor', 'middle').attr('font-size', 13)
             .attr('fill', T.fg(0.65))
             .text('Two op-amps required for a second-order response');
     }

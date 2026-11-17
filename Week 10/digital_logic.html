@@ -79,7 +79,7 @@
                 <li><b>OR.</b> Output is $1$ when at least one input is $1$.</li>
                 <li><b>NAND.</b> Negation of AND. Functionally complete: any Boolean function can be built from NAND alone.</li>
                 <li><b>NOR.</b> Negation of OR. Also functionally complete.</li>
-                <li><b>XOR.</b> Output is $1$ when the inputs differ. Addition modulo two.</li>
+                <li><b>XOR.</b> Output is $1$ when the inputs differ; equivalent to addition modulo two.</li>
                 <li><b>XNOR.</b> Negation of XOR. Output is $1$ when the inputs agree.</li>
             </ul>
 
@@ -512,8 +512,8 @@
             <h2>Applications in <em class="output">bioinstrumentation</em></h2>
 
             <p class="lead">Adders, subtractors, multiplexers and decoders compose every datapath that
-                processes a digitised signal. The role of each primitive in a typical instrumentation
-                system:</p>
+                processes a digitised signal. The sections below describe the role of each
+                primitive in a typical instrumentation system.</p>
 
             <h3>Multi-channel ADC front ends</h3>
             <p>An analogue multiplexer in front of a single ADC shares the converter across many electrodes.

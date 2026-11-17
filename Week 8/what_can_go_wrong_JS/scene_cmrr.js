@@ -68,7 +68,7 @@
 
         [50, 60].forEach(function (fMains) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fMains)).attr('x2', P.x(fMains)).attr('y1', 0).attr('y2', P.innerH)
-                .attr('stroke', P.colors.noise).attr('opacity', 0.6);
+                .style('stroke', P.colors.noise).attr('opacity', 0.6);
         });
 
 

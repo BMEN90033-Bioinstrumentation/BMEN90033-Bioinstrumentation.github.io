@@ -249,7 +249,7 @@
 
     // ---------------- universality strip: NOT, AND, OR from NAND ----------------
     function drawUniversal() {
-        var f = DL.frame(svgUni, { W: 720, H: 260 });
+        var f = DL.frame(svgUni, { W: 800, H: 220 });
         var a = DL.readBit(inBtn);
         var b = a;
 
@@ -265,7 +265,7 @@
             build(g);
         }
 
-        block(0, 'NOT from NAND', function (g) {
+        block(34, 'NOT from NAND', function (g) {
             var p = DL.gateNAND(g, 70, 114, 60, 40, !!DL.NOT(a));
             // Tie both NAND inputs to A by joining inA and inB on a vertical
             // stub at x=40, then route a single input wire to the label.
@@ -281,9 +281,9 @@
                 .attr('class', 'lbl' + (DL.NOT(a) ? ' lit' : '')).call(DL.sub, 'Y=' + DL.NOT(a));
         });
 
-        block(220, 'AND from NAND', function (g) {
+        block(246, 'AND from NAND', function (g) {
             var n1 = DL.gateNAND(g, 60, 114, 56, 40, !!DL.NAND(a, b));
-            var n2 = DL.gateNAND(g, 160, 114, 56, 40, !!DL.AND(a, b));
+            var n2 = DL.gateNAND(g, 145, 114, 56, 40, !!DL.AND(a, b));
             // A and B labels feed the first NAND.
             DL.wire(g, 30, n1.inA.y, n1.inA.x, n1.inA.y, !!a);
             DL.wire(g, 30, n1.inB.y, n1.inA.x, n1.inB.y, !!b);
@@ -303,10 +303,10 @@
                 .attr('class', 'lbl' + (DL.AND(a, b) ? ' lit' : '')).call(DL.sub, 'Y=' + DL.AND(a, b));
         });
 
-        block(460, 'OR from NAND', function (g) {
+        block(520, 'OR from NAND', function (g) {
             var nA = DL.gateNAND(g, 60, 84, 50, 30, !!DL.NOT(a));
             var nB = DL.gateNAND(g, 60, 144, 50, 30, !!DL.NOT(b));
-            var nO = DL.gateNAND(g, 170, 114, 56, 40, !!DL.OR(a, b));
+            var nO = DL.gateNAND(g, 150, 114, 56, 40, !!DL.OR(a, b));
             // Tie inputs of nA together to A; same for nB and B.
             DL.wire(g, 30, nA.inA.y, nA.inA.x, nA.inA.y, !!a);
             DL.wire(g, 30, nA.inB.y, nA.inA.x, nA.inB.y, !!a);

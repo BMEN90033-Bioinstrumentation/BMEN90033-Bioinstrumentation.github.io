@@ -21,7 +21,7 @@
         L.axes(f, gT, x, yM, ph, 0, { log: true, yTicks: [-30, -20, -10, 0, 10, 20, 30, 40],
             yTitle: '|A_V|\\;[\\mathrm{dB}]' });
         L.axes(f, gB, x, yP, ph, ph + gap, { log: true, yTicks: [-270, -180, -90, 0],
-            yFormat: function (d) { return d + '°'; },
+            yFormat: function (d) { return String(d).replace('-', '−') + '°'; },
             yTitle: '\\angle A_V\\;[^\\circ]', xTitle: 'f\\;[\\mathrm{Hz}]' });
 
         function clipped(g, id) {

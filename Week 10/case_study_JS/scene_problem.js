@@ -1,8 +1,7 @@
 // scene_problem.js  ·  Slide 1
-// Live EEG read-out with coloured phase bands behind the trace, optional
-// raw / filtered toggle, draggable LPF cutoff and ground-truth peak
-// annotations. The window is sized to show one full cycle of the simulated
-// recording (normal → pre → seizure → recovery).
+// Live EEG read-out with coloured phase bands behind the trace and optional
+// ground-truth peak annotations. The window is sized to show one full cycle
+// of the simulated recording (normal, pre, seizure, recovery).
 (function () {
     var SVG = '#plot-eeg-trace';
     var WINDOW = 28;            // seconds shown
@@ -63,8 +62,7 @@
 
         var xt = [];
         for (var k = -WINDOW; k <= 0; k += Math.round(WINDOW / 7)) xt.push(k);
-        var xAxis = d3.axisBottom(x).tickValues(xt)
-            .tickFormat(function (d) { return d + 's'; }).tickSize(0).tickPadding(8);
+        var xAxis = d3.axisBottom(x).tickValues(xt).tickSize(0).tickPadding(8);
         gAxis.append('g').attr('transform', 'translate(0,' + ih + ')')
             .call(xAxis).select('.domain').remove();
 

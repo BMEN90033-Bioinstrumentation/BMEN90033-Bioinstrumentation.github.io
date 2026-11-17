@@ -8,7 +8,7 @@
 
     function render() {
         var H = window.THD, p = H.p, css = window.CMP.cssVar;
-        var f = H.frame(sel, { margin: { top: 30, bottom: 96 } });
+        var f = H.frame(sel, { margin: { top: 44, bottom: 96 } });
         var g = f.g;
         var ns = [1, 2, 3, 4, 5, 6, 7, 8];
         var x = d3.scaleBand().domain(d3.range(ns.length)).range([0, f.iw]).padding(0.22);

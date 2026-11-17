@@ -251,8 +251,8 @@ const VIS = {
     },
 
     animatePump: function () {
-        // Visual only: the pump moves no ions, so the only transmembrane flux
-        // is the flux implied by the HH currents.
+        // Gate motion is visual only; pump ion transport is started by
+        // fulfillPending from the model's pump flux.
         const phase = Math.sin(this.time * 2);
         this.channels.pump.top.position.y = 2.5 + (phase > 0 ? 0.8 * phase : 0);
         this.channels.pump.bot.position.y = -2.5 - (phase < 0 ? 0.8 * -phase : 0);

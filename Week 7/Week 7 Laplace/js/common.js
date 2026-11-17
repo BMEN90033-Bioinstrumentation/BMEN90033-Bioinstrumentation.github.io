@@ -65,13 +65,21 @@
   const FONT = "400 13px 'JetBrains Mono', monospace";
 
   // Text label. opts.rotate draws the text rotated 90 degrees anticlockwise
-  // about (x, y), for y-axis titles.
+  // about (x, y), for y-axis titles. opts.halo paints a page-coloured box
+  // behind the text so that a curve passing under the label stays clear of it.
   function label(ctx, text, x, y, color, opts = {}) {
     ctx.save();
     ctx.font = FONT;
-    ctx.fillStyle = color;
     ctx.textAlign = opts.align || 'left';
     ctx.textBaseline = opts.baseline || 'top';
+    if (opts.halo && !opts.rotate) {
+      const tw = ctx.measureText(text).width, th = 16;
+      const bx = ctx.textAlign === 'right' ? x - tw : ctx.textAlign === 'center' ? x - tw / 2 : x;
+      const by = ctx.textBaseline === 'bottom' ? y - th : ctx.textBaseline === 'middle' ? y - th / 2 : y - 1;
+      ctx.fillStyle = alpha(cssVar('--bg'), 0.9);
+      ctx.fillRect(bx - 3, by - 1, tw + 6, th + 2);
+    }
+    ctx.fillStyle = color;
     if (opts.rotate) {
       ctx.translate(x, y); ctx.rotate(-Math.PI / 2);
       ctx.fillText(text, 0, 0);

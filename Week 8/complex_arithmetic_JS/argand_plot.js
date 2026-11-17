@@ -270,11 +270,20 @@
             vec(vecs, 'result', cssRes, ox, oy, rxy[0], rxy[1]);
 
             // ── magnitude labels at each vector tip, rotated to align ──
-            magLabel(vecs, ox, oy, z1xy, '|z₁| = ' + d.z1.r.toFixed(2), 'z1', cssZ1);
-            magLabel(vecs, ox, oy, z2xy, '|z₂| = ' + d.z2.r.toFixed(2), 'z2', cssZ2);
+            // A label that would lie along a longer, nearly collinear vector
+            // is shifted sideways so that the vector does not run through it.
+            function side(v, others) {
+                return others.some(function (o) {
+                    return o.r > v.r && Math.abs(wrap(o.t - v.t)) < 0.2;
+                }) ? 16 : 0;
+            }
+            magLabel(vecs, ox, oy, z1xy, '|z₁| = ' + d.z1.r.toFixed(2), 'z1', cssZ1,
+                side(d.z1, [d.z2, d.result]));
+            magLabel(vecs, ox, oy, z2xy, '|z₂| = ' + d.z2.r.toFixed(2), 'z2', cssZ2,
+                side(d.z2, [d.z1, d.result]));
             magLabel(vecs, ox, oy, rxy,
                 (mode === 'mul' ? '|z₁·z₂| = ' : '|z₁/z₂| = ') + d.result.r.toFixed(2),
-                'result', cssRes);
+                'result', cssRes, side(d.result, [d.z1, d.z2]));
 
             // ── handles (drag for z1, z2; non-interactive for result) ──
             const handles = g.append('g').attr('class', 'handles');
@@ -307,7 +316,7 @@
                 { width: 30, height: 20, size: 14, color: T.text });
         }
 
-        function magLabel(parent, ox, oy, tip, txt, cls, color) {
+        function magLabel(parent, ox, oy, tip, txt, cls, color, sidePx) {
             const dx = tip[0] - ox, dy = tip[1] - oy;
             const len = Math.hypot(dx, dy);
             if (len < 14) return;            // too short to label
@@ -316,8 +325,8 @@
             // arrowhead is not obscured, then rotate it to lie along the
             // vector direction
             const offset = 14;
-            const mx = tip[0] + offset * ux;
-            const my = tip[1] + offset * uy;
+            const mx = tip[0] + offset * ux - (sidePx || 0) * uy;
+            const my = tip[1] + offset * uy + (sidePx || 0) * ux;
             let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
             let anchor = 'start';
             // keep text readable: when the vector points leftward in screen

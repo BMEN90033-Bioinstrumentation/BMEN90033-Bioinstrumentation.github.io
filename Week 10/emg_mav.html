@@ -26,6 +26,16 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
     <style>
+        /* Analytic target 2A/pi; the threshold on slide 6 keeps --c-thresh. */
+        :root { --c-target: var(--d-violet); }
+
+        /* case_study.css locks scrolling on its own slide 1; this deck's
+           slide 1 must scroll on short or narrow windows. */
+        .slide[data-slide="1"] { overflow-y: auto; }
+
+        /* The block diagram is wider than the default schematic box. */
+        .plot-box.schematic-box:has(#plot-mav-chain-circuit) { aspect-ratio: 3.6 / 1; }
+
         /* Equation block on the title slide: outlined like the brief box so it
            sits on the hero wash. */
         .title-slide .eq-block {
@@ -496,7 +506,7 @@
                     <div class="readout">
                         <div class="item"><span class="k">MAV</span><span class="v" id="prst-mav">n/a</span></div>
                         <div class="item"><span class="k">grip force</span><span class="v" id="prst-grip">0 %</span></div>
-                        <div class="item"><span class="k">state</span><span class="v off" id="prst-state">RELAXED</span></div>
+                        <div class="item"><span class="k">state</span><span class="v off" id="prst-state">Relaxed</span></div>
                     </div>
                 </div>
             </div>
@@ -523,6 +533,7 @@
         </span>
     </div>
 
+    <script src="emg_mav_JS/plot_util.js"></script>
     <script src="emg_mav_JS/scene_input.js"></script>
     <script src="emg_mav_JS/scene_decomp.js"></script>
     <script src="emg_mav_JS/scene_rect.js"></script>

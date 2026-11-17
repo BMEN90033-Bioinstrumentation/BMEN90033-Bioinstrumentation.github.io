@@ -88,7 +88,7 @@
         // ── Node A junction ──────────────────────────────────────
         dot(240, railY);
         svg.append('text').attr('x', 240).attr('y', railY + 22)
-            .attr('text-anchor', 'middle').attr('font-size', 11)
+            .attr('text-anchor', 'middle').attr('font-size', 13)
             .attr('class', 'muted').text('node A');
 
         // C1 raised path leaves node A and returns to op-amp output.
@@ -99,8 +99,8 @@
         wire(510, fbY, 510, railY, 'feedback-hi');         // down to output rail
 
         // Annotation: positive feedback through C1
-        svg.append('text').attr('x', 378).attr('y', fbY - 34)
-            .attr('text-anchor', 'middle').attr('font-size', 11)
+        svg.append('text').attr('x', 378).attr('y', fbY - 38)
+            .attr('text-anchor', 'middle').attr('font-size', 13)
             .attr('fill', T.text).text('positive feedback');
 
         // ── R2: node A to op-amp non-inverting input ─────────────

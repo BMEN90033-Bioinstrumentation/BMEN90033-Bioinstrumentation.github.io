@@ -19,6 +19,9 @@
 /* ─── Bode traces and markers ─── */
 /* The shared axis helper sets 12 px tick text; CSS outranks the attribute. */
 svg.bode .tick text { font-size: 13px; }
+/* Rotated y-axis titles: shift 7 px further from the axis so that they clear
+   four-character tick labels at 13 px. */
+svg.bode foreignObject[transform] > div { transform: translateY(-7px); }
 
 svg.bode .trace.ideal     { stroke: var(--c-ideal); }
 svg.bode .trace.real      { stroke: var(--c-real); }

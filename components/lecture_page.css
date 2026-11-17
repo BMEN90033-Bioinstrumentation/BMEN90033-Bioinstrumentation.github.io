@@ -93,7 +93,11 @@ section.scene {
     gap: var(--spacing-7); align-items: start;
     border-bottom: 1px solid var(--neutral-lightest);
 }
+/* min-width: 0 lets a wide display equation scroll inside its block
+   instead of widening the column. */
+section.scene > * { min-width: 0; }
 section.scene .copy { max-width: 640px; }
+.toolbar [hidden] { display: none; }
 
 .eyebrow {
     font-family: var(--font-mono);
@@ -242,6 +246,7 @@ strong { color: var(--fg); font-family: var(--font-book); font-weight: 400; }
 }
 .readout .item .k .katex { font-size: 14px !important; text-transform: none; }
 .readout .item .v { color: var(--fg); font-family: var(--font-text); font-size: 15.5px; }
+.readout .item .v .katex { font-size: 15.5px !important; }
 
 /* ─── Legend row beneath a plot ─── */
 .legend {
@@ -249,7 +254,7 @@ strong { color: var(--fg); font-family: var(--font-book); font-weight: 400; }
     font-family: var(--font-mono); font-size: 11px; color: var(--muted);
 }
 .legend .sw { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
-.legend .sw.dash { height: 0; border-top: 2px dashed var(--muted); }
+.legend .sw.dash { width: 26px; height: 0; border-radius: 0; border-top: 2px dashed var(--muted); }
 .legend .sw.band { height: 10px; }
 
 /* ─── SVG plot styling ─── */
@@ -278,12 +283,12 @@ footer {
    the equations and shrinks schematics below a readable size, so the copy
    and figures stack. */
 @media (max-width: 1200px) {
-    section.scene { grid-template-columns: 1fr; }
+    section.scene { grid-template-columns: minmax(0, 1fr); min-height: 0; align-content: start; }
     section.scene .copy { max-width: 760px; }
 }
 
 @media (max-width: 900px) {
-    section.scene { grid-template-columns: 1fr; padding: 80px 24px 60px; }
+    section.scene { grid-template-columns: minmax(0, 1fr); padding: 80px 24px 60px; }
     .landing { padding: 120px 24px 80px; min-height: 520px; }
     h1.hero { font-size: 38px; }
     h2 { font-size: 26px; }

@@ -218,7 +218,7 @@
         styleAxis(g.append('g').call(yAxis), C);
         g.append('rect').attr('width', innerW).attr('height', innerH).attr('fill', 'none').attr('stroke', C.gridStrong);
         if (opts.xLabel) window.renderKatex(svg, opts.xLabel, margin.left + innerW / 2, H - 14, { width: 220, height: 24, size: 14 });
-        if (opts.yLabel) window.renderKatex(svg, opts.yLabel, 22, margin.top + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
+        if (opts.yLabel) window.renderKatex(svg, opts.yLabel, 16, margin.top + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
         return { svg: svg, g: g, x: x, y: y, W: W, H: H, innerW: innerW, innerH: innerH, margin: margin, colors: C };
     }
 
@@ -245,8 +245,8 @@
         var gBottom = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + bottomTop + ')');
         drawPanel(gTop, xTop, yTop, innerW, innerH, C, opts);
         drawPanel(gBottom, xBottom, yBottom, innerW, innerH, C, opts);
-        if (opts.topLabel) window.renderKatex(svg, opts.topLabel, 22, margin.top + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
-        if (opts.bottomLabel) window.renderKatex(svg, opts.bottomLabel, 22, bottomTop + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
+        if (opts.topLabel) window.renderKatex(svg, opts.topLabel, 16, margin.top + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
+        if (opts.bottomLabel) window.renderKatex(svg, opts.bottomLabel, 16, bottomTop + innerH / 2, { width: 220, height: 24, rotate: -90, size: 14 });
         if (opts.xLabel) window.renderKatex(svg, opts.xLabel, margin.left + innerW / 2, H - 14, { width: 220, height: 24, size: 14 });
         if (opts.xTopLabel) window.renderKatex(svg, opts.xTopLabel, margin.left + innerW / 2, margin.top + innerH + 38, { width: 220, height: 24, size: 14 });
         return { svg: svg, gTop: gTop, gBottom: gBottom, x: xTop, xTop: xTop, xBottom: xBottom, yTop: yTop, yBottom: yBottom, W: W, H: H, innerW: innerW, innerH: innerH, margin: margin, bottomTop: bottomTop, colors: C };

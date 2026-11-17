@@ -23,7 +23,8 @@
     }
 
     function capturePlotGeometry(P) {
-        var rect = P.svg.node().getBoundingClientRect();
+        // The nested svg reports the bounding box of its content; the host element gives the plot viewport.
+        var rect = P.svg.node().parentNode.getBoundingClientRect();
         return {
             left: rect.left,
             top: rect.top,

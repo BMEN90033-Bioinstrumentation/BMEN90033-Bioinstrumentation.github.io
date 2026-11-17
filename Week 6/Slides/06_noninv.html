@@ -188,7 +188,7 @@
     const GND_Y      = -1.4;
     const VIN_X      = -6.0;
 
-    // Plot constants : kept in scene coords so the equation can be positioned
+    // Plot constants, kept in scene coords so the equation can be positioned
     // relative to the plot, but the plot itself lives in the SVG overlay.
     const PX = 3.6, PY = -1.0, PW = 2.0, PH = 1.3;
 
@@ -203,8 +203,8 @@
     });
 
     // + / − terminal markers
-    const plusSign  = new Text({ text: '+', fontSize: 18, color: NONINV, fontUrl: FONT_URL });
-    const minusSign = new Text({ text: '−', fontSize: 18, color: INV,    fontUrl: FONT_URL });
+    const plusSign  = new Text({ text: '+', fontSize: 26, color: NONINV, fontUrl: FONT_URL });
+    const minusSign = new Text({ text: '−', fontSize: 26, color: INV,    fontUrl: FONT_URL });
     await Promise.all([plusSign.loadGlyphs?.(), minusSign.loadGlyphs?.()]);
     plusSign.moveTo([TRI_IN_X + 0.3, plusY,  0]);
     minusSign.moveTo([TRI_IN_X + 0.3, minusY, 0]);

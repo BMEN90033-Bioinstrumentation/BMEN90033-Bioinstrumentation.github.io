@@ -135,3 +135,6 @@ svg.dig .rail-lbl { fill: var(--muted); font-size: 13px; }
    readable after scaling. */
 #plot-dl-bjt .lbl, #plot-dl-bjt .rail-lbl { font-size: 15px; }
 #plot-dl-bjt .gate-title { font-size: 16px; }
+
+/* The universality viewBox is 800 units wide. */
+#plot-dl-universal .lbl { font-size: 14px; }

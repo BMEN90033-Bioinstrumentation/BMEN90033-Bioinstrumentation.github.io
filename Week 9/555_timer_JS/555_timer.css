@@ -20,6 +20,12 @@
 .plot-box.pinout  { aspect-ratio: 1.6 / 1; }
 .plot-box.circuit { aspect-ratio: 1.3 / 1; }
 .plot-box.scope   { aspect-ratio: 1.7 / 1; }
+/* Phone widths: taller scopes so the stacked panels keep readable tick
+   spacing, and a one-line title so it stays above the first panel. */
+@media (max-width: 600px) {
+    .plot-box.scope { aspect-ratio: 1 / 1; }
+    .plot-box.scope .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
 .plot-box.block svg,
 .plot-box.pinout svg,
 .plot-box.circuit svg { padding: 16px; }

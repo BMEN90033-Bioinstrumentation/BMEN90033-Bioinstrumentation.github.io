@@ -36,6 +36,8 @@
     // ---------------- half adder ----------------
     function drawHalf() {
         var f = DL.frame(svgHalf, { W: 720, H: 280 });
+        // Shift the drawing down so the input labels clear the plot-box label.
+        f.g.attr('transform', 'translate(0,34)');
         var bits = readBits();
         var a = bits.a0, b = bits.b0;
         var ha = halfAdder(a, b);
@@ -81,7 +83,10 @@
 
     // ---------------- full adder ----------------
     function drawFull() {
-        var f = DL.frame(svgFull, { W: 720, H: 360 });
+        var f = DL.frame(svgFull, { W: 760, H: 390 });
+        // Offset keeps the input labels clear of the plot-box label and the
+        // C_in label inside the left edge.
+        f.g.attr('transform', 'translate(26,30)');
         var bits = readBits();
         var a = bits.a0, b = bits.b0, ci = 0;
         var fa = fullAdder(a, b, ci);
@@ -162,7 +167,7 @@
 
     // ---------------- 4-bit ripple-carry ----------------
     function drawRipple() {
-        var f = DL.frame(svgRipple, { W: 720, H: 300 });
+        var f = DL.frame(svgRipple, { W: 764, H: 300 });
         var bits = readBits();
         var aArr = [bits.a0, bits.a1, bits.a2, bits.a3];
         var bArr = [bits.b0, bits.b1, bits.b2, bits.b3];
@@ -178,9 +183,9 @@
         }
         var cOut = carry;
 
-        var boxW = 120, boxH = 110;
-        var spacing = 30;
-        var startX = 90;        // explicit margin so C_out label fits on left
+        var boxW = 110, boxH = 110;
+        var spacing = 52;       // wide enough for the carry labels
+        var startX = 88;        // explicit margin so C_out label fits on left
         var boxY = 90;
         var carryY = boxY + boxH / 2;
 
@@ -205,7 +210,7 @@
                 .call(DL.sub, 'A_' + bit + ' B_' + bit + ' C_in');
 
             // A_i, B_i input stubs from above
-            var aPinX = x + 30, bPinX = x + boxW - 30;
+            var aPinX = x + 26, bPinX = x + boxW - 26;
             f.g.append('text').attr('x', aPinX).attr('y', boxY - 30)
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (aBit ? ' lit' : ''))
                 .call(DL.sub, 'A_' + bit + '=' + aBit);
@@ -221,11 +226,11 @@
                 .attr('text-anchor', 'middle').attr('class', 'lbl' + (sBit ? ' lit' : ''))
                 .call(DL.sub, 'S_' + bit + '=' + sBit);
 
-            // C_in label centred above the carry-in stub on the rightmost stage.
+            // C_in label to the right of the carry-in stub on the rightmost stage.
             if (bit === 0) {
                 DL.wire(f.g, x + boxW, carryY, x + boxW + 22, carryY, !!cInBit);
-                f.g.append('text').attr('x', x + boxW + 11).attr('y', carryY - 6)
-                    .attr('text-anchor', 'middle').attr('class', 'lbl' + (cInBit ? ' lit' : ''))
+                f.g.append('text').attr('x', x + boxW + 26).attr('y', carryY + 4)
+                    .attr('text-anchor', 'start').attr('class', 'lbl' + (cInBit ? ' lit' : ''))
                     .call(DL.sub, 'C_in=' + cInBit);
             }
             // C_out (final): the leftmost stage exports it on its left edge.

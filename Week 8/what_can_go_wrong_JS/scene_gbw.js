@@ -54,7 +54,7 @@
         P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fcDesign)).attr('x2', P.x(fcDesign)).attr('y1', 0).attr('y2', P.innerH);
         if (fCl < 1e6) {
             P.g.append('line').attr('class', 'marker-line').attr('x1', P.x(fCl)).attr('x2', P.x(fCl)).attr('y1', 0).attr('y2', P.innerH)
-                .attr('stroke', P.colors.distort).attr('opacity', 0.6);
+                .style('stroke', P.colors.distort).attr('opacity', 0.6);
         }
 
     }

@@ -19,7 +19,8 @@
 .plot-box.signal   { aspect-ratio: 1.6 / 1; }
 
 .legend .sw.ring { height: 10px; width: 10px; border-radius: 50%; }
-/* Viridis key for the field-magnitude colour map in scene_axons.js; the map
-   encodes a quantity and is independent of the site palette. */
-.legend .sw.grad { background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725); height: 8px; }
+/* Viridis key (lower 80 % of the map) for the field-magnitude colour map in
+   scene_axons.js; the map encodes a quantity and is independent of the site
+   palette. */
+.legend .sw.grad { background: linear-gradient(90deg, #440154, #3b528b, #21918c, #5ec962); height: 8px; }
 .legend .sw.dash { border-top-color: var(--c-rec); }

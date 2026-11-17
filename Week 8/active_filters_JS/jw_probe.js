@@ -233,7 +233,7 @@
         // Numeric ω label, anchored just to the right of the disc.
         window.renderKatex(layer, 'j\\omega = ' + w.toFixed(2),
             pxJ + 11 + 50, pyJ,
-            { width: 100, height: 20, size: 13, align: 'start' });
+            { width: 100, height: 20, size: 13, align: 'start', pill: true });
 
         // ─── Linked Bode cursor and readout ──────────────────────
         // All cursor visuals (line + pill) live inside a single g.jw-cursor
@@ -354,7 +354,7 @@
 
         renderZoomFixedKatex(layer, label,
             sp.innerW - width / 2 - 8, 14,
-            { width: width, height: 22, size: 12, pill: true });
+            { width: width, height: 22, size: 12, pill: true, align: 'end' });   // flush right, clear of the Im-axis tick labels
     }
 
     function renderZoomFixedKatex(parent, latex, x, y, opts) {

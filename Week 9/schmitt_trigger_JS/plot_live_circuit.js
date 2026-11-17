@@ -169,27 +169,27 @@
         // ── Resistor names and live values (KaTeX), below each rectangle ──
         window.renderKatex(svg, 'R_1 = ' + fmtR(R1k),
             (X_R1_L + X_R1_R) / 2, Y_PLUS + 22,
-            { width: 100, height: 18, size: 13, color: text });
+            { width: 120, height: 20, size: 15, color: text });
         window.renderKatex(svg, 'R_2 = ' + fmtR(R2k),
             (X_R2_L + X_R2_R) / 2, Y_R2 + 22,
-            { width: 100, height: 18, size: 13, color: text });
+            { width: 120, height: 20, size: 15, color: text });
 
         // ── Inline live values on the schematic ──
         // v_in label above its wire (combined symbol + value)
         window.renderKatex(svg,
             'v_\\text{in} = ' + fmt(s.probe) + '\\,\\text{V}',
             80, Y_PLUS - 24,
-            { width: 130, height: 18, size: 14, color: text });
+            { width: 140, height: 20, size: 16, color: text });
         // v_out terminal symbol above the output wire, clear of the tap
         // descender and the terminal dot. The numeric value is in the
         // overlay panel.
         window.renderKatex(svg, 'v_\\text{out}',
             X_VOUT_DOT - 18, TRI.apex[1] - 16,
-            { width: 34, height: 20, size: 14, color: outColor });
+            { width: 40, height: 22, size: 16, color: outColor });
         // V_+ tap label, just below node A so it does not collide with R_2
         window.renderKatex(svg, 'V_+',
             X_NODE, Y_PLUS + 18,
-            { width: 28, height: 18, size: 13, color: dim });
+            { width: 32, height: 20, size: 15, color: dim });
 
         // ── HTML overlay with the four live values ──
         var box = root.node().closest('.plot-box');

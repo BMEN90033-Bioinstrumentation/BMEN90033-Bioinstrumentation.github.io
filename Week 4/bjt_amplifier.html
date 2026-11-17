@@ -156,7 +156,7 @@
                 with the characteristic for $I_{BQ}$. Three cases arise:</p>
 
             <ul class="bullets">
-                <li><strong>cutoff</strong>: the model reports cutoff when $I_{CQ} < 1\,\mu\text{A}$, which needs $V_{BE}$ below about 0.48 V; then $V_{CEQ} \approx V_{CC}$. The current falls exponentially with $V_{BE}$ rather than stopping at a sharp threshold;</li>
+                <li><strong>cutoff</strong>: the model reports cutoff when $I_{CQ} < 1\,\mu\text{A}$, which needs $V_{BE}$ below about $0.48\,\text{V}$; then $V_{CEQ} \approx V_{CC}$. The current falls exponentially with $V_{BE}$ rather than stopping at a sharp threshold;</li>
                 <li><strong>forward active</strong>: $\beta I_{BQ} \le I_{C(\text{sat})} = (V_{CC} - V_{CE(\text{sat})})/R_C$;</li>
                 <li><strong>saturation</strong>: $\beta I_{BQ}$ exceeds $I_{C(\text{sat})}$, the collector current
                     is held at $I_{C(\text{sat})}$, and the ratio $I_{CQ}/I_{BQ}$, the forced beta, falls below
@@ -305,9 +305,9 @@
                     <svg class="bode" id="plot-transfer"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-vout)"></span>$i_C = I_S e^{v_{BE}/V_T}$</span>
+                    <span><span class="sw" style="background:var(--c-ic)"></span>$i_C = I_S e^{v_{BE}/V_T}$</span>
                     <span><span class="sw" style="background:var(--c-tan)"></span>tangent, slope $g_m$</span>
-                    <span><span class="sw" style="background:var(--c-guide)"></span>input $v_{BE}(t)$</span>
+                    <span><span class="sw" style="background:var(--c-vbe)"></span>input $v_{BE}(t)$</span>
                     <span><span class="sw" style="background:var(--c-ic)"></span>exact $i_C(t)$</span>
                     <span><span class="sw dashc" style="border-color:var(--c-lin)"></span>linear $i_C(t)$</span>
                     <span><span class="sw dashc" style="border-color:var(--c-ib)"></span>$I_{C(\text{sat})}$</span>

@@ -1,7 +1,7 @@
 // Section 02 · Radial conductivity profile sigma(r) of the enabled shells,
 // as the model sees it: the innermost layer holds the source and the
 // outermost extends to infinity. Each step takes its layer colour and, where
-// the step is wide enough, a direct label with the layer key.
+// the step is wide enough, a direct label with the layer name.
 (function () {
     var sel = '#plot-sigma';
     var R_MAX = 20;
@@ -54,7 +54,7 @@
             // do not run through it; omitted where the step is too narrow.
             var lbg = g.append('rect').attr('fill', css('--white')).attr('rx', 3);
             var lt = g.append('text').attr('x', (x(r0) + x(r1)) / 2).attr('y', yy - 9)
-                .attr('text-anchor', 'middle').attr('fill', T.text).attr('font-size', 13).text(l.key);
+                .attr('text-anchor', 'middle').attr('fill', T.text).attr('font-size', 13).text(l.name.split(' (')[0]);
             var lb = lt.node().getBBox();
             if (lb.width + 8 > x(r1) - x(r0)) { lt.remove(); lbg.remove(); }
             else lbg.attr('x', lb.x - 3).attr('y', lb.y).attr('width', lb.width + 6).attr('height', lb.height);

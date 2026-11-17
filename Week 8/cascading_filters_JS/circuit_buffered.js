@@ -12,6 +12,11 @@
         var top = 110;
         var rail = 230;
 
+        // Symbol labels are typeset with KaTeX, centred on (cx, cy).
+        function tex(latex, cx, cy) {
+            return window.renderKatex(svg, latex, cx, cy,
+                { width: 80, height: 20, size: 14 });
+        }
         function wire(x1, y1, x2, y2) {
             return svg.append('line').attr('class', 'wire')
                 .attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2);
@@ -24,9 +29,7 @@
             svg.append('rect').attr('class', 'resistor')
                 .attr('x', cx - w / 2).attr('y', cy - h / 2)
                 .attr('width', w).attr('height', h).attr('rx', 2.5);
-            svg.append('text')
-                .attr('x', cx).attr('y', cy - h / 2 - 6)
-                .attr('text-anchor', 'middle').attr('font-size', 11).text(label);
+            tex(label, cx, cy - h / 2 - 12);
         }
         function capacitor(cx, cy, label) {
             var gap = 5, plate = 16;
@@ -36,9 +39,7 @@
             svg.append('line').attr('class', 'cap-plate')
                 .attr('x1', cx - plate / 2 + 3).attr('x2', cx + plate / 2 - 3)
                 .attr('y1', cy + gap / 2).attr('y2', cy + gap / 2);
-            svg.append('text')
-                .attr('x', cx - plate / 2 - 6).attr('y', cy + 4)
-                .attr('text-anchor', 'end').attr('font-size', 11).text(label);
+            tex(label, cx - plate / 2 - 16, cy);
         }
         function gnd(cx, cy) {
             wire(cx, cy, cx, cy + 18);
@@ -94,9 +95,7 @@
             .attr('x', startX - 44).attr('y', top + 47).attr('text-anchor', 'middle')
             .attr('font-size', 12).text('−');
         wire(startX - 44, top + 54, startX - 44, rail);
-        svg.append('text')
-            .attr('x', startX - 44 - 22).attr('y', top + 38)
-            .attr('text-anchor', 'end').attr('font-size', 11).text('Vin');
+        tex('V_{\\text{in}}', startX - 44 - 32, top + 36);
         wire(startX - 44, top, startX, top);
         dot(startX - 44, rail);
 
@@ -107,12 +106,12 @@
             var stageY = top + 9 * s;
             var xR = x + 30;
             var xC = x + 84;
-            resistor(xR, stageY, 'R' + (s + 1));
+            resistor(xR, stageY, 'R_' + (s + 1));
             wire(x, stageY, xR - 18, stageY);
             wire(xR + 18, stageY, xC, stageY);
             // capacitor down to ground
             wire(xC, stageY, xC, stageY + 18);
-            capacitor(xC, stageY + 26, 'C' + (s + 1));
+            capacitor(xC, stageY + 26, 'C_' + (s + 1));
             wire(xC, stageY + 30, xC, rail);
             dot(xC, stageY);
             dot(xC, rail);
@@ -138,18 +137,11 @@
                 wire(xC, stageY, x + stageW, stageY);
                 svg.append('circle').attr('class', 'node-dot')
                     .attr('cx', x + stageW).attr('cy', stageY).attr('r', 4);
-                // Terminal labels sit inside the viewBox, right-aligned to
-                // the terminals.
-                svg.append('text')
-                    .attr('x', x + stageW + 4).attr('y', stageY - 10)
-                    .attr('text-anchor', 'end')
-                    .attr('font-size', 12).attr('fill', T.text).text('Vout(+)');
+                // Terminal labels sit inside the viewBox, beside the terminals.
+                tex('V_{\\text{out}}(+)', x + stageW - 22, stageY - 15);
                 svg.append('circle').attr('class', 'node-dot')
                     .attr('cx', x + stageW).attr('cy', rail).attr('r', 4);
-                svg.append('text')
-                    .attr('x', x + stageW + 4).attr('y', rail + 20)
-                    .attr('text-anchor', 'end')
-                    .attr('font-size', 12).attr('fill', T.text).text('Vout(−)');
+                tex('V_{\\text{out}}(-)', x + stageW - 22, rail + 16);
             }
         }
 

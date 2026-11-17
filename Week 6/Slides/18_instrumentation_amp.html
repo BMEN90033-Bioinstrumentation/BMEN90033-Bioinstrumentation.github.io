@@ -112,6 +112,8 @@
     @media (max-width: 1100px) {
       .ol-panel { width: 45%; bottom: 46px; padding: 6px 10px; gap: 4px; }
       .ol-title { display: none; }
+      /* Keep the px-sized stepper clear of the scaled-down stage labels */
+      .step-indicator { min-width: 0; }
       .ol-sliders { gap: 10px; }
       .ol-row label, .ol-readout { font-size: 11px; }
       .ol-row .v, .ol-readout .v { font-size: 10px; }
@@ -457,7 +459,7 @@
     // Row positions
     const LS = 0.40;  // line spacing
     const BG_GAP = 0.65;
-    let Y = 2.6;
+    let Y = 2.9;
 
     // Bullet 1: What it is
     const d1 = mkDot(DX, Y);
@@ -670,7 +672,7 @@
       ["R'", R3_CX, R3_Y + R_H/2 + 0.20, 0.5, RP],
       ["R'", R4_CX, R4_Y - R_H/2 - 0.20, 0.5, RP],
       ["R''", RF_CX, FB3_Y + R_H/2 + 0.20, 0.5, RPP],
-      ["R''", GND_X + 0.32, RG2_CY, 0.5, RPP],
+      ["R''", GND_X + 0.45, RG2_CY, 0.5, RPP],
       ['V_{out}', OUT_X + 0.35, A3_CY, 0.6, VOUT],
     ]) {
       const t = new MathTex({ latex, color: c });
@@ -1004,13 +1006,14 @@
         const th = t * 2 * Math.PI;
         return mapPoint(sigFrame, th, -VDM_INPUT * Math.sin(th), sigXRange, dynYRange);
       });
-      traceCurve(SIG_SEG, LOAD, 2.0, (t) => {
-        const th = t * 2 * Math.PI;
-        return mapPoint(sigFrame, th, clamp(peakNoBuf * Math.sin(th)), sigXRange, dynYRange);
-      });
       traceCurve(SIG_SEG, VOUT, 2.5, (t) => {
         const th = t * 2 * Math.PI;
         return mapPoint(sigFrame, th, clamp(peakBuf * Math.sin(th)), sigXRange, dynYRange);
+      });
+      // Unbuffered is thinner and drawn last, as in the gain plot, so both show when they coincide
+      traceCurve(SIG_SEG, LOAD, 2.0, (t) => {
+        const th = t * 2 * Math.PI;
+        return mapPoint(sigFrame, th, clamp(peakNoBuf * Math.sin(th)), sigXRange, dynYRange);
       });
 
       return lines;
@@ -1070,7 +1073,17 @@
     let currentSection = 'circuit';
 
 
+    let pendingSection2 = false;
+
     function showSection(sec) {
+      // An animation in flight restores its targets when it ends, so objects hidden now would reappear.
+      // Stop the sequence and switch once the current step (at most 1.2 s) has finished.
+      if (sec === 'animation' && !s1AnimDone) {
+        s1AnimSkipped = true;
+        pendingSection2 = true;
+        nextBtn.disabled = true;
+        return;
+      }
       currentSection = sec;
       if (sec === 'circuit') {
         secIndicator.textContent = 'Section 1 \u00B7 Circuit';
@@ -1250,6 +1263,7 @@
     }
 
     s1AnimDone = true;
+    if (pendingSection2) showSection('animation');
 
   </script>
 </body>

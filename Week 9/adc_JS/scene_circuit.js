@@ -653,7 +653,7 @@
                 .text('b' + (N - 1 - ci));
         }
         gDyn.append('text')
-            .attr('x', CAP_ROW.x0).attr('y', CAP_ROW.y + CAP_ROW.h + 14)
+            .attr('x', DAC.x + 12).attr('y', CAP_ROW.y + CAP_ROW.h + 14)
             .attr('font-family', "'JetBrains Mono', monospace").attr('font-size', 11)
             .attr('fill', 'var(--muted)')
             .text('filled: bit = 1');

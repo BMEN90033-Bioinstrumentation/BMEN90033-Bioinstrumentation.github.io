@@ -297,7 +297,7 @@
     }
 
     // ============================================================
-    //  Joukowski aerofoil : conformal-mapped potential flow
+    //  Joukowski aerofoil: conformal-mapped potential flow
     //  Shape and flow field are the SAME mathematical object,
     //  so streamlines follow the surface exactly.
     // ============================================================
@@ -652,7 +652,7 @@
         trailCanvas.height = fc.height;
       }
 
-      // Fade the trail canvas : creates the motion trail effect
+      // Fade the trail canvas to create the motion trail effect
       tctx.fillStyle = T.plotBg;
       tctx.globalAlpha = 0.06;
       tctx.fillRect(0, 0, trailCanvas.width, trailCanvas.height);
@@ -686,7 +686,7 @@
           continue;
         }
 
-        // Colour from local speed : fixed scale based on freestream
+        // Colour from local speed, on a fixed scale based on freestream
         const t = Math.min(speed / sMax, 1);
         const ci = Math.min(Math.round(t * 255), 255);
         const c = CMAP[ci];

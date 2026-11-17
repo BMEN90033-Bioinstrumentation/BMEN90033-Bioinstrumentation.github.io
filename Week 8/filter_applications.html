@@ -173,7 +173,6 @@
                         <input type="range" id="aa-fs-slider" min="20" max="240" step="5" value="100">
                         <span class="val" id="aa-fs-val">100 Hz</span>
                     </span>
-                    <span class="divider"></span>
                     <span class="pill" id="aa-aaf-toggle">anti-alias filter off</span>
                 </div>
                 <div class="plot-box time-pair">
@@ -283,7 +282,7 @@
                 $50\,\mathrm{Hz}$ notch applied to a recording with $50.1\,\mathrm{Hz}$ pickup leaves a
                 $50.1\,\mathrm{Hz}$ residual of constant amplitude, because the attenuation is infinite only at $f_0$.
                 For a single pass at $Q = 12$ the residual is attenuated by about $26\,\mathrm{dB}$; at $Q = 60$, by
-                only about $13\,\mathrm{dB}$. In practice, a slightly reduced $Q$ trades a
+                only about <span style="white-space: nowrap">$13\,\mathrm{dB}$.</span> In practice, a slightly reduced $Q$ trades a
                 wider stopband for greater tolerance to mains frequency variation, and contemporary instruments
                 frequently employ adaptive notches that estimate the interference frequency directly from the data.
             </div>
@@ -302,7 +301,6 @@
                         <input type="range" id="notch-q-slider" min="2" max="60" step="1" value="12">
                         <span class="val" id="notch-q-val">12</span>
                     </span>
-                    <span class="divider"></span>
                     <span class="pill active" id="notch-hum-toggle">50 Hz hum on</span>
                 </div>
                 <div class="plot-box time-pair">

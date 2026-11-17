@@ -79,12 +79,11 @@
         VBE_ON: VBE_ON, VCE_SAT: VCE_SAT, R_THETA: R_THETA, T_AMB: T_AMB,
         p: p, compute: compute, waveValue: waveValue, icSat: icSat, vinSat: vinSat,
         fmtI: fmtI, fmtR: fmtR, fmtP: fmtP,
-        // Run fn now (after DOM ready) and on every parameter, theme or size change.
+        // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
             function go() {
                 fn();
                 window.addEventListener('bjtchange', fn);
-                window.addEventListener('themechange', fn);
                 window.addEventListener('resize', fn);
             }
             if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);

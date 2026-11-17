@@ -3,14 +3,13 @@
 
 :root {
     --c-ib:   var(--d-orange);   /* base current, I_B curves, saturation limit */
-    --c-ic:   var(--d-blue);     /* collector current, exact output */
-    --c-vout: var(--d-pink);     /* Q-point, exponential characteristic */
+    --c-ic:   var(--d-blue);     /* collector current: characteristic and exact output */
+    --c-vout: var(--d-pink);     /* Q-point and signal swing */
     --c-vce:  var(--d-green);    /* collector-emitter voltage */
-    --c-vbe:  var(--d-pink);     /* V_BE bracket */
+    --c-vbe:  var(--d-slate);    /* base-emitter voltage: bracket and v_BE(t) trace */
     --c-vin:  var(--d-violet);   /* input signal */
     --c-tan:  var(--d-ink);      /* tangent line */
     --c-lin:  var(--d-ink);      /* linear (tangent) response, drawn dashed */
-    --c-guide: var(--d-grey);    /* v_BE input trace */
     --c-load: var(--d-grey);
     --c-sat-band: var(--d-orange-soft);
 }

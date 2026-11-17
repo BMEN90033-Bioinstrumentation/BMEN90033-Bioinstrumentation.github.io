@@ -286,7 +286,7 @@
       const y = cy - im * R;
       ctx.fillStyle = color;
       ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
-      CFG.label(ctx, `t = ${DETAIL_T.toFixed(0)}`, x + 6, y + 6, color);
+      CFG.label(ctx, `t = ${DETAIL_T.toFixed(0)}`, x + 6, y + 6, color, { halo: true });
     }
 
     // Playhead sweeps the full spiral over LOOP_SEC of wall time.

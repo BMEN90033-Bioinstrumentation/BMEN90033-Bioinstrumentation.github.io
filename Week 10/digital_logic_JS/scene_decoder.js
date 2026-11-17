@@ -94,9 +94,9 @@
         // EN annotation below
         f.g.append('text').attr('x', 52).attr('y', 354)
             .attr('text-anchor', 'end').attr('class', 'lbl' + (en ? ' lit' : '')).call(DL.sub, 'EN = ' + en);
-        f.g.append('text').attr('x', 60).attr('y', 354)
-            .attr('class', 'gate-expr')
-            .call(DL.sub, 'when EN = 0, every Y_k is forced to 0');
+        f.g.append('text').attr('x', busRight).attr('y', 354)
+            .attr('text-anchor', 'end').attr('class', 'gate-expr')
+            .call(DL.sub, 'EN = 0 forces every Y_k to 0');
     }
 
     // ---------------- 3-to-8 decoder ----------------

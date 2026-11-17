@@ -293,7 +293,7 @@
     // Label on ridge
     if (!bodeMode) {
       const ridgeLbl = pts[iZero][Nw];
-      CFG.label(ctx, `σ = 0 (${fourierTag()})`, Math.min(ridgeLbl.sx, w - 8), ridgeLbl.sy - 26, C.real, { align: 'right' });
+      CFG.label(ctx, `σ = 0 (${fourierTag()})`, Math.min(ridgeLbl.sx, w - 8), Math.max(ridgeLbl.sy - 26, 50), C.real, { align: 'right', halo: true });
     }
 
     // ── Highlight 2: current σ slice, accent colored (pen-lifted near poles)
@@ -314,7 +314,7 @@
     // In Bode mode anchor the label at the ω = 0 end of the slice curve so it
     // points to where the magnitude plot starts, not the −ω end.
     const curLbl = bodeMode ? pts[iCur][jStart] : pts[iCur][0];
-    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), Math.max(curLbl.sx, 8), curLbl.sy + 12, C.accent);
+    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), Math.max(curLbl.sx, 8), curLbl.sy + 12, C.accent, { halo: true });
 
     // ── Pole spikes
     ctx.strokeStyle = C.imag;
@@ -330,8 +330,12 @@
       ctx.beginPath();
       ctx.arc(top.x, top.y, 4, 0, Math.PI * 2);
       ctx.fill();
-      CFG.label(ctx, `s = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} j${Math.abs(p.im).toFixed(2)}`.replace('-', '−'),
-                CFG.clamp(top.x, 80, w - 80), top.y - 10, C.imag, { align: 'center', baseline: 'bottom' });
+      // Beside the marker, on the left unless that would leave the canvas.
+      const pTxt = `s = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} j${Math.abs(p.im).toFixed(2)}`.replace('-', '−');
+      ctx.font = CFG.FONT;
+      const pLeft = top.x - 12 - ctx.measureText(pTxt).width > 4;
+      CFG.label(ctx, pTxt, top.x + (pLeft ? -12 : 12), top.y, C.imag,
+                { align: pLeft ? 'right' : 'left', baseline: 'middle', halo: true });
     }
 
     // ── Zero markers: ring on floor + short mast showing the dip
@@ -370,9 +374,9 @@
     [Ax, Ay, Az].forEach(A => {
       ctx.beginPath(); ctx.moveTo(O.x, O.y); ctx.lineTo(A.x, A.y); ctx.stroke();
     });
-    CFG.label(ctx, 'σ', Ax.x + 4, Ax.y,     C.muted);
-    CFG.label(ctx, 'jω', Ay.x + 4, Ay.y,    C.muted);
-    CFG.label(ctx, '|F(s)|', Az.x + 4, Az.y, C.muted);
+    CFG.label(ctx, 'σ', Ax.x + 4, Ax.y,     C.muted, { halo: true });
+    CFG.label(ctx, 'jω', Ay.x + 4, Ay.y,    C.muted, { halo: true });
+    CFG.label(ctx, '|F(s)|', Az.x, Az.y - 4, C.muted, { align: 'center', baseline: 'bottom', halo: true });
 
     // sub text
     sub.textContent = SYSTEMS[currentSys].label;

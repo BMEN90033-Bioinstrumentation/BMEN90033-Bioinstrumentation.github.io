@@ -198,7 +198,10 @@
 
         // ── Panel labels ──
         ctx.font = "400 13px 'JetBrains Mono', monospace";
-        TAG(ctx, 'Capacitor voltage', cCap, bg, marL + innerW - 8, capY0 + 14);
+        // v_C stays between the thresholds, so the band below V_CC/3 is always
+        // free; the top band holds the readout.
+        TAG(ctx, 'Capacitor voltage', cCap, bg, marL + innerW - 8,
+            (yToPxCap(0) + yToPxCap(TL)) / 2);
         TAG(ctx, 'OUT (pin 3)', cOut, bg, marL + innerW - 8, outY0 + hOut / 2);
 
         // ── Period / duty readout ──

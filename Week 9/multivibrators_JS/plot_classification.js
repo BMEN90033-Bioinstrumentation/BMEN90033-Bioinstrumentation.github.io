@@ -133,7 +133,7 @@
             arrX, hiY - 54,
             { width: 70, height: 18, size: 15, color: c.trig });
 
-        // State labels : only on the horizontal segments.
+        // State labels: only on the horizontal segments.
         window.renderKatex(svg, '\\text{state A}',
             (x0 + trigX) / 2, loY + 22,
             { width: 80, height: 18, size: 15, color: c.muted });
@@ -186,7 +186,7 @@
             midX, loY + 40,
             { width: 190, height: 22, size: 15, color: c.dim });
 
-        // State labels : placed on horizontal segments, narrow enough that
+        // State labels: placed on horizontal segments, narrow enough that
         // the vertical legs sit just outside their bounding boxes.
         window.renderKatex(svg, '\\text{stable}',
             (x0 + trigX) / 2, hiY - 22,

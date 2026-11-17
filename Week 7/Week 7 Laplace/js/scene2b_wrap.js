@@ -192,8 +192,12 @@
       // dot at (t0, g(t0))
       ctx.fillStyle = C.accent;
       ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
-      CFG.label(ctx, `t₀ = ${tSlice.toFixed(2)}`, px + 8, py - 22, C.accent);
-      CFG.label(ctx, `g(t₀) = ${v.toFixed(2)}`, px + 8, py - 6, C.accent);
+      // Readout at the top of the guide, in the clear band above the signal,
+      // on the side of the guide that stays inside the time-domain plot.
+      const flip = px > (leftX0 + leftX1) / 2;
+      const lo = { align: flip ? 'right' : 'left' };
+      CFG.label(ctx, `t₀ = ${tSlice.toFixed(2)}`, px + (flip ? -8 : 8), padT + 6, C.accent, lo);
+      CFG.label(ctx, `g(t₀) = ${v.toFixed(2)}`, px + (flip ? -8 : 8), padT + 24, C.accent, lo);
     }
 
     // ============ RIGHT: complex plane ============

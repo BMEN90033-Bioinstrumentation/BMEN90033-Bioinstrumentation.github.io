@@ -22,38 +22,38 @@ Pages are published by GitHub Pages from `main` at the repo root.
 ## Architecture
 
 ### Landing page and navigation
-- `index.html` (root) is the landing page and is the source of truth for which topic pages are linked. When adding a new topic, add an `<a href="Week N/topic.html" class="topic">…</a>` entry to the appropriate week section.
-- Each topic page lives at `Week N/<topic>.html` (spaces in directory names — always quote paths). Topic pages include a fixed "← Back" link to `../index.html`.
+- `index.html` (root) is the landing page and is the source of truth for which topic pages are linked. When adding a new topic, add an `<a href="Week N/topic.html" class="cta-card">…</a>` entry (number tag, title, arrow box) to the appropriate week section.
+- Each topic page lives at `Week N/<topic>.html` (spaces in directory names: always quote paths). Topic pages include the fixed `.brand` tag and a `.back-btn` link to `../index.html`.
 
-### Theme system (global, shared by every page)
-- `theme.css` and `theme.js` at the repo root are referenced by every topic page as `../theme.css` / `../theme.js` (or `../../…` from nested paths like `Week 6/Slides/` and `Week 7/Week 7 Laplace/`). Keep this relative-path contract intact when moving pages.
-- `theme.js` runs before DOM ready, reads `localStorage['theme']` (defaulting to `light`), sets `data-theme` on `<html>`, and injects a fixed top-right toggle button.
-- It exposes **`window.T`** — a theme-aware colour helper with getters like `T.text`, `T.grid`, `T.plotBg`, `T.wire`, `T.sceneBg`, plus dynamic helpers `T.fg(alpha)` and `T.yellowA(alpha)`. Canvas/Three.js drawing code should read from `T` on every frame (not cache colours) so theme toggling recolors immediately.
-- Theme toggling dispatches `window` event `themechange` with `{detail:{theme}}`. Drawing code that caches anything should listen and redraw.
+### Design system (global, shared by every page)
+- The site follows the Ambience design system and is **light only**. There is no dark palette, no theme toggle and no `data-theme` attribute; do not reintroduce them.
+- `theme.css` and `theme.js` at the repo root are referenced by every page as `../theme.css` / `../theme.js` (or `../../…` from nested paths like `Week 6/Slides/` and `Week 7/Week 7 Laplace/`). Keep this relative-path contract intact when moving pages.
+- `theme.css` is the single source of tokens: ink `#1e1e1e` on white, pastel washes, spacing, radii, the type families, the shared chrome (`.brand`, `.back-btn`), hairline controls (`.seg-btn`, `.pill`, `.pillbtn`, `button.ctrl-btn`, grouped in `.seg`), sliders, `.dot-tag`, `.panel`, `.cta-card`. Pages do not define their own base palette.
+- **Data palette**: `--d-blue`, `--d-orange`, `--d-pink`, `--d-green`, `--d-violet`, `--d-olive`, plus `--d-slate`, `--d-ink`, `--d-grey` and `-soft` tints for filled regions. Assign hues in that order, keep one colour per physical quantity across a page, and label traces directly when olive and orange appear together. A page CSS maps its trace variables onto these (for example `--c-ic: var(--d-blue)`).
+- `theme.js` loads Inter and JetBrains Mono and exposes **`window.T`**, the colour helper for Canvas, D3 and Three.js code: `T.c('blue')`, `T.series`, `T.hex('blue')` for Three.js, `T.text`, `T.textDim`, `T.fg(alpha)`, `T.grid…`, `T.wire`, `T.sceneBg`.
+- Style rules: headings weight 300 (display weight 200) in sentence case; labels and controls in uppercase mono; emphasis is ink, with no accent colour on chrome; no shadows, glows or gradients other than the hero wash; controls are 1 px hairline boxes; containers use a 16 px radius.
 
 ### Page anatomy (the common pattern)
-Each topic HTML page is a fully self-contained document that typically contains:
-1. Inline `<style>` with `:root` CSS variables for the dark palette, plus `[data-theme="light"]` overrides.
-2. `<link rel="stylesheet" href="../theme.css">` and `<script src="../theme.js"></script>` near the end of `<head>`.
-3. A fixed `← Back` anchor to `../index.html`.
-4. For Three.js pages: an `<script type="importmap">` block pointing `three` and `three/addons/` at jsdelivr CDN (version is typically `three@0.160.0`), followed by `<script type="module">` with the simulation.
-5. For Canvas2D pages: plain inline `<script>` blocks. KaTeX is loaded from jsdelivr when formulas are needed (see the Laplace index for the auto-render snippet).
+1. `<link rel="stylesheet" href="../theme.css">`, then `../components/lecture_page.css` for scroll-lecture pages (`.landing`, `section.scene`, `.eyebrow`, `.plot-box`, `.toolbar`, `.readout`, `.legend`, `.callout`, `.eq-block`), then the page CSS, which holds only page-specific layout and the trace-variable mapping.
+2. `<script src="../theme.js"></script>` in `<head>`.
+3. Page scripts live in a `<topic>_JS/` directory beside the page (model, controls, one file per plot). Three.js pages use an `<script type="importmap">` pointing at the jsdelivr CDN.
+4. KaTeX is loaded from jsdelivr when formulas are needed; `components/katex_label.js` places KaTeX labels in SVG.
 
-Because pages are standalone, there is heavy copy-paste of boilerplate (CSS variables, back button, importmap). When changing shared behaviour (palette, theme toggle), check whether the change belongs in `theme.css` / `theme.js` / `window.T` instead of each page.
+A CSS or JS file is owned by the page that loads it. Files loaded by several pages (`theme.css`, `theme.js`, `components/`, `Week 6/Slides/slide.css`, the Week 10 deck stylesheets) affect every one of those pages; change shared behaviour there instead of overriding it per page.
 
 ### Multi-file features
 
 - **`Week 7/Week 7 Laplace/`** — one `index.html` with section-based scroll navigation that loads `js/*.js` scene scripts (`scene1_car.js` … `scene8_sandbox.js`, plus `common.js`, `nav.js`, `tweaks.js`). `common.js` provides shared canvas helpers (`setupCanvas`, `drawGrid`, colour lookup from CSS vars / `window.TWEAKS`). `nav.js` builds the dot rail from `<section data-label="…">`. `window.TWEAKS` is an inline object in the HTML wrapped by `/*EDITMODE-BEGIN*/ … /*EDITMODE-END*/` markers — the Tweaks panel UI persists palette/font overrides by rewriting that region.
 
-- **`Week 6/Slides/`** — iframe-based slide deck. `index.html` hosts a sidebar + `<iframe id="stage">` and the slide list (`slides` array). Each slide is its own HTML file (`00_preamble.html` … `20_iv_vi_converter.html`) loaded with `?theme=…` so the child iframe inherits the parent's theme. Because `theme.js` hardcodes the initial theme from `localStorage`, the deck shadows that with `sessionStorage['slideTheme']` and listens for the `themechange` event to keep parent + child in sync. When adding/removing slides, edit the `slides` array in `Week 6/Slides/index.html` (commented-out entries in that array are intentional gaps — not dead code).
+- **`Week 6/Slides/`** — iframe-based slide deck. `index.html` hosts a sidebar + `<iframe id="stage">` and the slide list (`slides` array). Each slide is its own HTML file (`00_preamble.html` … `20_iv_vi_converter.html`) styled by `slide.css`, whose `--slide-*` variables map onto the theme tokens. When adding/removing slides, edit the `slides` array in `Week 6/Slides/index.html` (commented-out entries in that array are intentional gaps — not dead code).
 
 ### Large binary assets
 `Week 6/Audio/` and `Week 6/Videos/` hold lecture audio/video used by the slide deck. Do not rewrite or regenerate these; they are referenced from slides verbatim.
 
 ## Conventions
 
-- Match the surrounding page's style when editing a topic: inline `<style>`, `:root` variables, `[data-theme="light"]` overrides, fixed back-button, jsdelivr imports.
-- When drawing to canvas, always read colours from `window.T` (or CSS vars) rather than hardcoding hex — both themes must look correct.
+- Match the surrounding page's structure when editing a topic: shared classes from `theme.css` and `lecture_page.css`, the standard brand tag and back button, jsdelivr imports.
+- When drawing to canvas, always read colours from `window.T` (or CSS vars) rather than hardcoding hex.
 - Directory names contain spaces (`Week 2`, `Week 7 Laplace`). Always quote paths in shell commands.
 - The `.vibeyardignore` file lists paths excluded from AI readiness scans (lockfiles, minified bundles); no action needed beyond awareness.
 

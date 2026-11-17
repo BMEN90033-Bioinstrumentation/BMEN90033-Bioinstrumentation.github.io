@@ -8,7 +8,7 @@
     --c-hf:    var(--d-violet);   /* high-frequency pole, frequency dots */
     --c-q:     var(--d-green);    /* Q-point */
     --c-bias:  var(--d-green);    /* bias current I_C at the Q-point */
-    --c-vpi:   var(--d-olive);    /* v_pi polarity marks */
+    --c-vpi:   var(--d-ink);      /* v_pi polarity marks (annotation, not a trace) */
     --c-load:  var(--d-grey);
     --c-node:  var(--d-slate);
     --c-warn:  var(--d-pink);
@@ -22,7 +22,7 @@
 .plot-box.nyquist  { aspect-ratio: 1.2 / 1; }
 
 .readout .item .v.warn { color: var(--c-warn); }
-.legend .sw.dash { border-top-color: var(--c-load); }
+.legend .sw.dash { border-top-color: var(--c-load); width: 26px; }
 .legend .sw.dot { width: 10px; height: 10px; border-radius: 50%; }
 
 /* Component and pole-zero tables in the copy column. */

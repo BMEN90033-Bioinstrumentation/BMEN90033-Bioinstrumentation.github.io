@@ -130,8 +130,6 @@
     // Axes stop short of the titles, which sit beyond the axis ends.
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle' });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center' });
 
     // wind g(t) * e^{-2πift}
     const Tmax = 6, N = 700;
@@ -152,6 +150,9 @@
     }
     ctx.stroke();
     comX /= cnt; comY /= cnt;
+    // Axis titles are drawn over the curve.
+    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
 
     // Center of mass marker
     const cmx = cx + comX * scale;
@@ -168,7 +169,7 @@
     CFG.label(ctx, 'centroid',
       cmx + (lblRight ? -8 : 8),
       cmy + (lblBottom ? 12 : -24),
-      C.accent, { align: lblRight ? 'right' : 'left' });
+      C.accent, { align: lblRight ? 'right' : 'left', halo: true });
   }
 
   function drawSpec(fVal) {

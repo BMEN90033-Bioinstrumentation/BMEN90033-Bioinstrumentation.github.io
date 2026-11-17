@@ -71,16 +71,20 @@
             window.AFPlots.drawPole(SP.g, SP.x(p.re), SP.y(p.im), col.cheb1, 7);
         });
 
-        // Annotate semi-axes. The labels are boxed so the reference circle
+        // Annotate semi-axes. Both labels sit in the right half plane, at
+        // fixed offsets above the real axis, where no pole can fall and
+        // neither label reaches the frame or the Im-axis tick labels. The
+        // semi-minor axis is drawn towards the right vertex of the ellipse
+        // for the same reason. The labels are boxed so the reference circle
         // and the ellipse pass behind them.
         SP.g.append('line')
-            .attr('x1', SP.x(0)).attr('x2', SP.x(-sh))
+            .attr('x1', SP.x(0)).attr('x2', SP.x(sh))
             .attr('y1', SP.y(0)).attr('y2', SP.y(0))
             .attr('stroke', col.cheb1).attr('stroke-width', 1.2)
             .attr('opacity', 0.55);
         window.renderKatex(SP.g, '\\sinh\\mu = ' + sh.toFixed(2),
-            SP.x(-sh) - 8 - 60, SP.y(0) - 13,
-            { width: 120, height: 20, size: 13, align: 'end', pill: true }).attr('class', 'af-note');
+            SP.x(0) + 8 + 60, SP.y(0) - 14,
+            { width: 120, height: 20, size: 13, align: 'start', pill: true }).attr('class', 'af-note');
 
         SP.g.append('line')
             .attr('x1', SP.x(0)).attr('x2', SP.x(0))
@@ -88,7 +92,7 @@
             .attr('stroke', col.cheb1).attr('stroke-width', 1.2)
             .attr('opacity', 0.55);
         window.renderKatex(SP.g, '\\cosh\\mu = ' + ch.toFixed(2),
-            SP.x(0) + 8 + 60, SP.y(ch / 2),
+            SP.x(0) + 8 + 60, SP.y(0) - 38,
             { width: 120, height: 20, size: 13, align: 'start', pill: true }).attr('class', 'af-note');
 
         // Legend below the plot frame.
@@ -132,6 +136,7 @@
         // Two-line label below the ripple-floor line, inside the passband
         // region where the trace stays above the line.
         var ripLabel = BD.gMag.append('text')
+            .attr('stroke', T.plotBg).attr('stroke-width', 4).attr('paint-order', 'stroke')
             .attr('fill', T.fg(0.6))
             .attr('font-family', window.AFPlots.MONO)
             .attr('font-size', 13);
@@ -146,7 +151,7 @@
             .attr('x1', xc).attr('x2', xc).attr('y1', 0).attr('y2', BD.innerH);
         window.renderKatex(BD.gMag, '\\omega_p = 1',
             xc, BD.innerH - 16,
-            { width: 80, height: 22, size: 11, pill: true });
+            { width: 80, height: 22, size: 13, pill: true });
     }
 
     function phaseDomainFor(N) { return [-90 * N - 30, 10]; }

@@ -18,9 +18,6 @@
         --c-joint: var(--d-violet);   /* intermediate mass */
       }
 
-      em.pole { font-style: normal; color: var(--c-pole); }
-      em.zero { font-style: normal; color: var(--c-zero); }
-
       /* Figures */
       .plot-box, .plot-stack { margin: 0 auto; }
       .plot-stack .plot-box { margin: 0; }
@@ -44,7 +41,7 @@
       .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
       .pillbtn .katex { font-size: 13px !important; }
       .readout { margin: 16px 0; }
-      .callout + p { margin-top: 18px; }
+      .callout + p, .legend + p { margin-top: 18px; }
 
       /* Intermediate equation: outlined, where .eq-block marks a result */
       .eq-line { display: block; padding: 14px 18px; margin: 14px 0; border: 1px solid var(--calcium-white-800); border-radius: var(--radius-5); text-align: center; overflow-x: auto; }
@@ -1028,7 +1025,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         fillSub(ctx, 'Swing angle θ(t)', x0 + 12, y0 + 18);
         ctx.fillStyle = c.text;
         ctx.font = "400 13px 'Inter', system-ui, sans-serif";
-        fillSub(ctx, 'θ = ' + (theta*180/Math.PI).toFixed(1) + '°', x0 + 12, y0 + h - 14);
+        fillSub(ctx, 'θ = ' + (theta*180/Math.PI).toFixed(1).replace('-', '−') + '°', x0 + 12, y0 + h - 14);
         if (atResonance) {
             ctx.fillStyle = c.text;
             ctx.font = "400 13px 'JetBrains Mono', monospace";
@@ -1081,7 +1078,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
             ctx.fillStyle = c.muted;
             ctx.font = "400 13px 'JetBrains Mono', monospace";
             ctx.textAlign = 'center';
-            fillSub(ctx, pow10(k), x, plotY + plotH + 16);
+            fillSub(ctx, pow10(k), x, plotY + plotH + 20);
         }
         for (let k=-3; k<=1; k++) {
             const m = Math.pow(10, k);
@@ -1168,7 +1165,10 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
 
         // Split canvas: swing on left (40%), bode on right (60%)
         const splitX = Math.min(360, W * 0.42);
+        ctx.save();                       // large swings stay inside the left panel
+        ctx.beginPath(); ctx.rect(0, 0, splitX, H); ctx.clip();
         drawSwing(0, 0, splitX, H, c);
+        ctx.restore();
 
         // Separator
         ctx.strokeStyle = c.border;
@@ -1375,7 +1375,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'left';
         const wd = z < 1 ? w0 * Math.sqrt(1 - z*z) : 0;
-        fillSub(ctx, `ω_{0} = ${w0.toFixed(2)} rad/s, ζ = ${z.toFixed(3)}`, x0 + 12, y0 + h - 24);
+        fillSub(ctx, `ω_{0} = ${w0.toFixed(2)} rad/s, ζ = ${z.toFixed(3)}`, x0 + 12, y0 + h - 26);
         fillSub(ctx, `ω_{d} = ${wd.toFixed(2)} rad/s`, x0 + 12, y0 + h - 8);
     }
 
@@ -1434,6 +1434,9 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         ctx.stroke();
         ctx.setLineDash([]);
 
+        ctx.save();                       // keep the envelope and response inside the plot frame
+        ctx.beginPath(); ctx.rect(plotX, plotY, plotW, plotH); ctx.clip();
+
         // Decay envelope ±exp(-ζω_{0}t)/ω_{d} for underdamped case
         if (z < 1) {
             const wd = w0 * Math.sqrt(1 - z*z);
@@ -1469,6 +1472,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
             if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.stroke();
+        ctx.restore();
 
         // Axis label
         ctx.fillStyle = c.dim;
@@ -1769,6 +1773,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         // Thin segments from marker to each pole and zero (these lengths
         // are the factors multiplied/divided to form |H(jω)|).
         ctx.save();
+        ctx.beginPath(); ctx.rect(plotX, plotY, plotW, plotH); ctx.clip();   // poles and zeros can lie outside the frame
         ctx.setLineDash([3, 3]);
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.65;
@@ -1796,10 +1801,13 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         ctx.arc(xZero, markerY, 5.5, 0, Math.PI*2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = c.force;
         ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'right';   // left of the marker, inside the panel
-        fillSub(ctx, `jω = j${wPush.toFixed(2)}`, xZero - 10, markerY + 4);
+        const markLbl = `jω = j${wPush.toFixed(2)}`;
+        ctx.fillStyle = T.plotBg;  // plain backing: the distance segments converge on the marker
+        ctx.fillRect(xZero - 13 - ctx.measureText(markLbl).width, markerY - 9, ctx.measureText(markLbl).width + 6, 18);
+        ctx.fillStyle = c.force;
+        fillSub(ctx, markLbl, xZero - 10, markerY + 4);
 
         // Compute |H(jω)| via product-of-distances for the readout
         const mark = { re: 0, im: wPush };
@@ -1814,7 +1822,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         ctx.font = "400 13px 'JetBrains Mono', monospace";
         ctx.textAlign = 'left';
         ctx.fillStyle = c.muted;
-        fillSub(ctx, `ω_{0} = ${wp.toFixed(2)}, ω_{z} = ${wz.toFixed(2)} rad/s`, x0 + 12, y0 + h - 24);
+        fillSub(ctx, `ω_{0} = ${wp.toFixed(2)}, ω_{z} = ${wz.toFixed(2)} rad/s`, x0 + 12, y0 + h - 26);
         ctx.fillStyle = c.text;
         fillSub(ctx, `|H(jω)| = ${sci(magHere)}`, x0 + 12, y0 + h - 8);
     }
@@ -2012,6 +2020,12 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
         ctx.textAlign = 'center';
         fillSub(ctx, 'Im H', xOrig, plotY - 8);
 
+        // Scale note: the axes are auto-scaled, so the full-scale value is stated
+        ctx.fillStyle = c.muted;
+        ctx.font = "400 13px 'JetBrains Mono', monospace";
+        ctx.textAlign = 'left';
+        fillSub(ctx, 'range ±' + Number(bound.toPrecision(2)), plotX + 6, plotY + 16);
+
         // Locus
         ctx.strokeStyle = c.resp;
         ctx.lineWidth = 1.8;
@@ -2078,7 +2092,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
             ctx.fillStyle = c.force;
             ctx.font = "400 13px 'JetBrains Mono', monospace";
             ctx.textAlign = 'left';
-            fillSub(ctx, `H(j${wPush.toFixed(2)})`, xh + 8, yh - 6);
+            fillSub(ctx, `H(j${wPush.toFixed(2)})`, xh + 8, yh - 12);
 
             // Readout
             const mag = Math.hypot(Hnow.re, Hnow.im);
@@ -2086,7 +2100,7 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
             ctx.fillStyle = c.text;
             ctx.textAlign = 'left';
             ctx.font = "400 13px 'JetBrains Mono', monospace";
-            fillSub(ctx, `|H| = ${sci(mag)}, ∠H = ${ang.toFixed(1)}°`, x0 + 12, y0 + h - 10);
+            fillSub(ctx, `|H| = ${sci(mag)}, ∠H = ${ang.toFixed(1).replace('-', '−')}°`, x0 + 12, y0 + h - 10);
         }
 
         // Legend
@@ -2400,9 +2414,9 @@ function drawParent(ctx, feetX, feetY, pushing, reachX, reachY, c, armLen) {
 
         ctx.fillStyle = c.resp;
         ctx.font = "400 13px 'Inter', system-ui, sans-serif";
-        fillSub(ctx, `x_{2} = ${xKid.toFixed(2)} m`, 12, H - 28);
+        fillSub(ctx, `x_{2} = ${xKid.toFixed(2).replace('-', '−')} m`, 12, H - 28);
         ctx.fillStyle = c.joint;
-        fillSub(ctx, `x_{1} = ${xJoint.toFixed(2)} m`, 12, H - 12);
+        fillSub(ctx, `x_{1} = ${xJoint.toFixed(2).replace('-', '−')} m`, 12, H - 12);
 
         // Highlight which special frequency the push is near
         ctx.font = "400 13px 'JetBrains Mono', monospace";

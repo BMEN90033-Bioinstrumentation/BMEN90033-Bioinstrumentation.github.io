@@ -52,7 +52,7 @@
             var rx = x(r.a), ry = y(B.nernst(r.a));
             g.append('circle').attr('cx', rx).attr('cy', ry).attr('r', 4.5)
                 .attr('fill', T.plotBg).attr('stroke', T.text).attr('stroke-width', 1.4);
-            var fo = window.renderKatex(f.svg, r.tex + ' = ' + B.nernst(r.a).toFixed(3) + '\\,\\text{V}', 0, 0,
+            var fo = window.renderKatex(f.svg, r.tex + ',\\; E = ' + B.nernst(r.a).toFixed(3) + '\\,\\text{V}', 0, 0,
                 { width: 300, height: 20, size: 14, color: T.textDim, align: 'left' });
             // KaTeX may break at the relation signs once its fonts load; keep one line.
             fo.select('div').style('white-space', 'nowrap');
@@ -78,7 +78,7 @@
         var e = B.nernst(aNow);
         var out = {
             'n-e': '+' + e.toFixed(3) + ' V',
-            'n-de': ((e - B.E0) * 1e3 >= 0 ? '+' : '') + ((e - B.E0) * 1e3).toFixed(1) + ' mV',
+            'n-de': ((e - B.E0) * 1e3 < 0 ? '\u2212' : '+') + Math.abs((e - B.E0) * 1e3).toFixed(1) + ' mV',
             'n-slope': (B.RT_F * Math.LN10 * 1e3).toFixed(1) + ' mV'
         };
         Object.keys(out).forEach(function (k) {
@@ -87,4 +87,6 @@
     }
 
     window.ELI.onRender(render);
+    // Label widths are measured from the KaTeX fonts; place again once they load.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
 })();

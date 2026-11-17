@@ -20,7 +20,7 @@
 .plot-box.bridge  { aspect-ratio: 640 / 400; }
 .plot-box.lc      { aspect-ratio: 640 / 260; }
 .plot-box.filter  { aspect-ratio: 1.8 / 1; }
-.plot-box.chain   { aspect-ratio: 900 / 400; }
+.plot-box.chain   { aspect-ratio: 900 / 414; }
 .plot-box.traces  { aspect-ratio: 1.2 / 1; }
 .plot-box.budget  { aspect-ratio: 2 / 1; }
 .plot-box.compare { aspect-ratio: 1.6 / 1; }

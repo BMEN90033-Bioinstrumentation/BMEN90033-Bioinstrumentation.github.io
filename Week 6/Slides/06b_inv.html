@@ -39,9 +39,9 @@
       font-size: 14px;
       font-style: italic;
     }
-    /* Gain colour: shared with R1, R2 and the gain equation in the scene */
+    /* The trace is V_OUT against V_IN, so it takes the V_OUT colour */
     #trace-overlay .trace {
-      stroke: var(--d-green);
+      stroke: var(--d-orange);
       stroke-width: 4.5;
       stroke-linecap: round;
       fill: none;
@@ -95,7 +95,10 @@
     /* ponytail: the panel has a fixed pixel size while the stage scales, so it is
        stepped down at narrow widths to stay clear of the plot */
     @media (max-width: 1250px) {
-      #ctrl-panel { width: 42.86%; transform: scale(0.7); transform-origin: bottom left; }
+      #ctrl-panel { width: 35.3%; transform: scale(0.85); transform-origin: bottom left; }
+    }
+    @media (max-width: 1150px) {
+      #ctrl-panel { width: 42.86%; transform: scale(0.7); }
     }
     @media (max-width: 830px) {
       #ctrl-panel { width: 60%; transform: scale(0.5); }
@@ -157,10 +160,10 @@
     const FG    = T.c('ink');
     const MUTED = T.c('slate');    // bullet text
     const RAIL  = T.c('grey');     // op-amp outline
-    const NEG   = T.c('blue');     // inverting input marker
-    const OUT   = T.c('orange');   // output voltage
-    const POS   = T.c('pink');     // non-inverting input marker
-    const GAIN  = T.c('green');    // R1, R2, gain equation and transfer line
+    const RES   = T.c('blue');     // R_1 and R_2
+    const OUT   = T.c('orange');   // V_OUT and the transfer trace
+    const NEG   = T.c('pink');     // inverting input
+    const POS   = T.c('green');    // non-inverting input
 
     const stage = document.getElementById('stage');
     stage.querySelector('.stage-fallback')?.remove();
@@ -241,9 +244,9 @@
     const inWireL = new Line({ start: [VIN_X, minusY, 0],            end: [R1_CX - R1_W / 2, minusY, 0], color: FG, strokeWidth: 1.8 });
     const inWireR = new Line({ start: [R1_CX + R1_W / 2, minusY, 0], end: [LEFT_COL_X, minusY, 0],       color: FG, strokeWidth: 1.8 });
     const inStub  = new Line({ start: [LEFT_COL_X, minusY, 0],       end: [TRI_IN_X, minusY, 0],         color: FG, strokeWidth: 1.8 });
-    const R1 = new Rectangle({ width: R1_W, height: R1_H, color: GAIN, strokeWidth: 2, fillOpacity: 0.22 });
+    const R1 = new Rectangle({ width: R1_W, height: R1_H, color: RES, strokeWidth: 2, fillOpacity: 0.22 });
     R1.moveTo([R1_CX, minusY, 0]);
-    const R1Lbl = new MathTex({ latex: 'R_{1}', color: GAIN });
+    const R1Lbl = new MathTex({ latex: 'R_{1}', color: RES });
     await R1Lbl.waitForRender?.();
     R1Lbl.scale(0.6).moveTo([R1_CX, minusY + R1_H / 2 + 0.18, 0]);
 
@@ -256,9 +259,9 @@
     const fb2R = new Line({ start: [TAP_X, FB_Y, 0],              end: [R2_CX + R2_W / 2, FB_Y, 0],     color: FG, strokeWidth: 1.8 });
     const fb2L = new Line({ start: [R2_CX - R2_W / 2, FB_Y, 0],   end: [LEFT_COL_X, FB_Y, 0],           color: FG, strokeWidth: 1.8 });
     const fb3  = new Line({ start: [LEFT_COL_X, FB_Y, 0],         end: [LEFT_COL_X, minusY, 0],         color: FG, strokeWidth: 1.8 });
-    const R2 = new Rectangle({ width: R2_W, height: R2_H, color: GAIN, strokeWidth: 2, fillOpacity: 0.22 });
+    const R2 = new Rectangle({ width: R2_W, height: R2_H, color: RES, strokeWidth: 2, fillOpacity: 0.22 });
     R2.moveTo([R2_CX, FB_Y, 0]);
-    const R2Lbl = new MathTex({ latex: 'R_{2}', color: GAIN });
+    const R2Lbl = new MathTex({ latex: 'R_{2}', color: RES });
     await R2Lbl.waitForRender?.();
     R2Lbl.scale(0.6).moveTo([R2_CX, FB_Y + R2_H / 2 + 0.18, 0]);
 
@@ -272,14 +275,14 @@
     const gnd3 = new Line({ start: [LEFT_COL_X - 0.10, GND_Y - 0.28, 0], end: [LEFT_COL_X + 0.10, GND_Y - 0.28, 0], color: FG, strokeWidth: 1 });
 
     // Equation (above the plot)
-    const eqn = new MathTex({ latex: 'A_v = -\\dfrac{R_{2}}{R_{1}}', color: GAIN });
+    const eqn = new MathTex({ latex: 'A_v = -\\dfrac{R_{2}}{R_{1}}', color: FG });
     await eqn.waitForRender?.();
     eqn.scale(0.8).moveTo([PX, PY + PH + 1.1, 0]);
 
     // Explanatory bullet points
     const NOTES_X = -6.0;
     const NOTES_Y0 = -2.0;
-    const NOTES_DY = 0.6;
+    const NOTES_DY = 0.55;
     const NOTE_FONT = 22;
     const NOTE_SCALE = 0.38;   // matches MathTex notes to the Text notes
 

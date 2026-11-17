@@ -18,6 +18,8 @@
 .legend .dot.ring { background: transparent; border: 1.5px solid; }
 .legend .dot.point { background: var(--c-photon); border: 1px solid var(--fg); }
 .legend .sw.bar { width: 6px; height: 12px; border-radius: 1px; }
+/* Square corners so the 2px dashed border renders as dashes. */
+.legend .sw.dash { border-radius: 0; width: 22px; }
 
 /* Facet reflectivity labels placed over the canvas by sim_cavity.js. */
 .plot-box .facet-label {

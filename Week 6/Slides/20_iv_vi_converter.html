@@ -280,18 +280,18 @@
     hlL.moveTo([hlLx, LY, 0]);
 
     // Callout panel: on the gain line, to the right of the highlight, joined by a horizontal leader
-    const PANEL_W = 2.0, PANEL_H = 0.5, PANEL_GAP = 0.35;
+    const PANEL_W = 2.1, PANEL_H = 0.5, PANEL_GAP = 0.25;
     const hlL_panelCX = hlLx + hlLw / 2 + PANEL_GAP + PANEL_W / 2;
     const hlL_panelCY = LY;
     const hlL_panel = new Rectangle({ width: PANEL_W, height: PANEL_H, color: RFC, strokeWidth: 1.4, fillOpacity: 0.08 });
     hlL_panel.moveTo([hlL_panelCX, hlL_panelCY, 0]);
     const hlL_conn = new Line({ start: [hlLx + hlLw / 2, LY, 0], end: [hlL_panelCX - PANEL_W / 2, LY, 0], color: RFC, strokeWidth: 1.2 });
 
-    const Lb3callTop = new Text({ text: 'Resistance', fontSize: 16, color: RFC, fontUrl: FONT_URL });
-    const Lb3callBot = new Text({ text: 'hence transresistance', fontSize: 16, color: RFC, fontUrl: FONT_URL });
+    const Lb3callTop = new Text({ text: 'Resistance', fontSize: 18, color: RFC, fontUrl: FONT_URL });
+    const Lb3callBot = new Text({ text: 'hence transresistance', fontSize: 18, color: RFC, fontUrl: FONT_URL });
     await Promise.all([Lb3callTop.loadGlyphs?.(), Lb3callBot.loadGlyphs?.()]);
-    Lb3callTop.moveTo([hlL_panelCX, hlL_panelCY + 0.12, 0]);
-    Lb3callBot.moveTo([hlL_panelCX, hlL_panelCY - 0.12, 0]);
+    Lb3callTop.moveTo([hlL_panelCX, hlL_panelCY + 0.13, 0]);
+    Lb3callBot.moveTo([hlL_panelCX, hlL_panelCY - 0.13, 0]);
 
     LY -= BG_GAP;
     // Bullet 4: Applications
@@ -336,11 +336,11 @@
     hlR_panel.moveTo([hlR_panelCX, hlR_panelCY, 0]);
     const hlR_conn = new Line({ start: [hlRx + hlRw / 2, RY, 0], end: [hlR_panelCX - PANEL_W / 2, RY, 0], color: RC, strokeWidth: 1.2 });
 
-    const Rb3callTop = new Text({ text: 'Conductance', fontSize: 16, color: RC, fontUrl: FONT_URL });
-    const Rb3callBot = new Text({ text: 'hence transconductance', fontSize: 16, color: RC, fontUrl: FONT_URL });
+    const Rb3callTop = new Text({ text: 'Conductance', fontSize: 18, color: RC, fontUrl: FONT_URL });
+    const Rb3callBot = new Text({ text: 'hence transconductance', fontSize: 18, color: RC, fontUrl: FONT_URL });
     await Promise.all([Rb3callTop.loadGlyphs?.(), Rb3callBot.loadGlyphs?.()]);
-    Rb3callTop.moveTo([hlR_panelCX, hlR_panelCY + 0.12, 0]);
-    Rb3callBot.moveTo([hlR_panelCX, hlR_panelCY - 0.12, 0]);
+    Rb3callTop.moveTo([hlR_panelCX, hlR_panelCY + 0.13, 0]);
+    Rb3callBot.moveTo([hlR_panelCX, hlR_panelCY - 0.13, 0]);
 
     RY -= BG_GAP;
     // Bullet 4: Applications

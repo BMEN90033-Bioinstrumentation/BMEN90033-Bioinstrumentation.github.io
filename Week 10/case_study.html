@@ -276,10 +276,10 @@
                     </div>
                 </div>
                 <div class="callout">
-                    The simulation passes the EEG through a pre-amp of gain 1000, so the plotted input and
+                    The simulation passes the EEG through a preamplifier of gain 1000, so the plotted input and
                     $V_D$ are in volts. The held trace sits below the input peaks by $V_D$, and spikes smaller
                     than $V_D$ produce no charge. Without the gain, millivolt spikes never reach
-                    $V_D \approx 0.6$ V. Slide 5 places this gain stage in the signal chain.
+                    $V_D \approx 0.6$ V. Section 05 places this gain stage in the signal chain.
                 </div>
             </div>
             <div>
@@ -298,7 +298,7 @@
                         </span>
                     </div>
                     <div class="plot-box trace-box tall">
-                        <div class="label">EEG after ×1000 pre-amp, with held peak · <b>$V_\mathrm{held}(t)$</b></div>
+                        <div class="label">EEG after ×1000 preamplifier, with held peak · <b>$V_\mathrm{held}(t)$</b></div>
                         <svg id="plot-pk-trace"></svg>
                     </div>
                     <div class="readout" id="pk-readout">
@@ -319,14 +319,14 @@
                 </div>
                 <h2>A <em class="high">block diagram</em> that meets the brief</h2>
                 <p class="lead">The filtered EEG is in millivolts and is too small to drive the analogue peak
-                    detector directly. A pre-amp raises the signal above the diode forward drop, then a
+                    detector directly. A preamplifier raises the signal above the diode forward drop, then a
                     parallel pair of blocks supplies the two outputs the brief requires: a Schmitt trigger
                     plus monostable produce one pulse per spike for counting, and a diode with a hold
                     capacitor and leak resistor produce a held envelope that tracks the spike amplitude over
                     time.</p>
 
                 <ul class="bullets">
-                    <li><strong>Pre-amp</strong> raises the EEG above the diode forward drop and the Schmitt hysteresis
+                    <li><strong>Preamplifier</strong> raises the EEG above the diode forward drop and the Schmitt hysteresis
                         window. Without it neither branch operates.</li>
                     <li><strong>Schmitt + monostable</strong> rejects noise on which a single-threshold comparator would
                         retrigger, then standardises pulse width so a downstream counter sees uniform events.</li>
