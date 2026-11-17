@@ -1,58 +1,15 @@
 /* ══════════════════════════════════════════════════════════
    lecture_page.css · shared scroll-lecture layout
-   Layout of the Weeks 8–10 pages (landing hero, numbered scene
-   sections, plot stacks, toolbars). Link after ../theme.css and
-   before the page CSS, which only adds its --c-* trace palette
-   and plot-box aspect ratios.
+   Landing hero on the wash, numbered scene sections, plot
+   stacks and toolbars. Link after ../theme.css and before the
+   page CSS, which only maps its --c-* trace variables onto the
+   --d-* data palette and sets plot-box aspect ratios.
    ══════════════════════════════════════════════════════════ */
 
 :root {
-    --bg: #0a0a10;
-    --bg-2: #12131c;
-    --bg-panel: rgba(22, 23, 32, 0.75);
-    --fg: #eef0f5;
-    --text: #eef0f5;
-    --text-dim: #d4d7e0;
-    --muted: #8b90a3;
-    --border: rgba(255, 255, 255, 0.09);
-    --border-hover: rgba(255, 255, 255, 0.18);
-
-    --accent: var(--site-accent);
-    --accent-soft: var(--site-accent-soft);
-    --accent-soft-faint: var(--site-accent-soft-faint);
-    --accent-soft-edge: var(--site-accent-soft-edge);
-
-    /* hero gradient; pages may override with their own trace colours */
-    --hero-a: var(--site-accent);
-    --hero-b: var(--site-accent-2);
-
-    --grid-line: rgba(255, 255, 255, 0.06);
-    --grid-zero: rgba(255, 255, 255, 0.30);
-    --tick-line: rgba(255, 255, 255, 0.25);
-    --slider-track: rgba(255, 255, 255, 0.12);
-    --pill-bg: rgba(255, 255, 255, 0.03);
-
-    --body-size: 17px;
-    --math-size: 18px;
-    --hero-size: 60px;
-}
-
-[data-theme="light"] {
-    --bg: #f5f5f7;
-    --bg-2: #ffffff;
-    --bg-panel: rgba(255, 255, 255, 0.92);
-    --fg: #1a1a1e;
-    --text: #1a1a1e;
-    --text-dim: #2b2d38;
-    --muted: #6a6f7c;
-    --border: rgba(0, 0, 0, 0.10);
-    --border-hover: rgba(0, 0, 0, 0.22);
-
-    --grid-line: rgba(0, 0, 0, 0.07);
-    --grid-zero: rgba(0, 0, 0, 0.32);
-    --tick-line: rgba(0, 0, 0, 0.22);
-    --slider-track: rgba(0, 0, 0, 0.12);
-    --pill-bg: rgba(0, 0, 0, 0.03);
+    /* Palette and tokens come from theme.css. Pages may set --hero-a/b;
+       they are no longer used. */
+    --hero-size: 48px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,12 +17,12 @@
 html, body {
     background: var(--bg);
     color: var(--fg);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-text);
+    font-weight: 300;
     font-size: var(--body-size);
-    line-height: 1.55;
+    line-height: 1.4;
     -webkit-font-smoothing: antialiased;
 }
-[data-theme="light"] body { background: var(--bg); color: var(--fg); }
 body { overflow-x: hidden; min-height: 100vh; }
 
 .katex { font-size: var(--math-size) !important; }
@@ -75,100 +32,95 @@ h1 .katex, h2 .katex, h3 .katex { font-size: inherit !important; }
 /* KaTeX placed in SVG via renderKatex takes the size set on its wrapper. */
 svg foreignObject .katex { font-size: inherit !important; }
 
-a { color: var(--accent); }
-
-/* ─── Brand and back ─── */
-.brand { color: var(--muted); }
-.back-btn {
-    background: var(--bg-panel); border: 1px solid var(--border); color: var(--fg);
-}
-.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+a { color: var(--fg); }
 
 /* ─── Landing hero ─── */
 .landing {
-    min-height: 100vh; display: grid; place-items: center;
-    padding: 120px 56px 80px; text-align: center; position: relative;
+    min-height: var(--hero-height); display: grid; align-items: end;
+    padding: 140px 5vw 96px; text-align: left; position: relative;
+    background-image: linear-gradient(0deg, var(--amino-azure-100), var(--acid-green-100));
+    color: var(--black);
 }
 .landing .meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--muted);
-    letter-spacing: 0.2em; text-transform: uppercase;
-    margin-bottom: 28px;
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--black);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: var(--spacing-6);
+    display: flex; align-items: center; gap: var(--spacing-2);
+}
+.landing .meta::before {
+    content: ""; width: 7px; height: 7px; flex: none;
+    border-radius: var(--radius-dot); background: currentColor; opacity: 0.6;
 }
 h1.hero {
-    font-size: var(--hero-size); line-height: 1.02;
-    font-weight: 600; letter-spacing: -0.025em;
-    margin: 0 auto 24px; max-width: 22ch;
+    font-family: var(--font-display);
+    font-size: var(--hero-size); line-height: 1.1;
+    font-weight: 200; letter-spacing: -0.03em;
+    margin: 0 0 var(--spacing-6); max-width: 18ch; color: var(--black);
+    text-wrap: balance;
 }
-h1.hero em {
-    font-style: normal;
-    background: linear-gradient(135deg, var(--hero-a), var(--hero-b));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-}
+h1.hero em { font-style: normal; }
 .landing .sub {
-    color: var(--muted); font-size: 18px;
-    max-width: 64ch; margin: 12px auto 0; line-height: 1.6;
+    color: var(--carbon-black-500); font-size: 17px; letter-spacing: -0.01em;
+    max-width: 500px; margin: 0; line-height: 1.35;
 }
 .landing .tags {
-    margin-top: 36px; display: flex; gap: 12px;
-    justify-content: center; flex-wrap: wrap;
+    margin-top: var(--spacing-7); display: flex; flex-wrap: wrap;
 }
 .field-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--carbon-black-500);
     letter-spacing: 0.12em; text-transform: uppercase;
-    display: inline-block; padding: 4px 10px;
-    border: 1px solid var(--border); border-radius: 4px;
+    display: inline-flex; align-items: center;
+    height: var(--btn-size-2); padding: 0 var(--spacing-4);
+    border: 1px solid var(--carbon-black-500); border-radius: var(--radius-3);
+    margin: 0 -1px -1px 0;
 }
 .scroll-hint {
-    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; letter-spacing: 0.2em;
-    color: var(--muted); text-transform: uppercase;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    position: absolute; bottom: 28px; right: 5vw;
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.12em;
+    color: var(--carbon-black-500); text-transform: uppercase;
+    display: flex; align-items: center; gap: var(--spacing-2);
 }
-.scroll-hint .line {
-    width: 1px; height: 32px;
-    background: linear-gradient(var(--muted), transparent);
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0%, 100% { opacity: 0.3; } 50% { opacity: 1; }
-}
+.scroll-hint .line { width: 1px; height: 24px; background: var(--carbon-black-500); }
 
 /* ─── Scene layout ─── */
 section.scene {
-    min-height: 100vh; padding: 100px 40px 80px;
+    min-height: 100vh; padding: 100px 5vw 80px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-    gap: 32px; align-items: start;
-    border-bottom: 1px solid var(--border);
+    gap: var(--spacing-7); align-items: start;
+    border-bottom: 1px solid var(--neutral-lightest);
 }
 section.scene .copy { max-width: 640px; }
 
 .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 18px;
-    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--fg); margin-bottom: var(--spacing-5);
+    display: flex; align-items: center; gap: var(--spacing-2);
 }
-.eyebrow .num { color: var(--accent); }
-.eyebrow .bar { flex: 0 0 28px; height: 1px; background: var(--accent); }
+/* the bar element is drawn as the dot of a dot tag */
+.eyebrow .bar {
+    flex: none; width: 7px; height: 7px;
+    border-radius: var(--radius-dot); background: currentColor; opacity: 0.6;
+}
 
 h2 {
-    font-size: 34px; line-height: 1.12;
-    font-weight: 600; letter-spacing: -0.02em;
-    margin: 0 0 18px; color: var(--fg);
+    font-size: 32px; line-height: 1.2;
+    font-weight: 300; letter-spacing: -0.02em;
+    margin: 0 0 var(--spacing-5); color: var(--fg); text-wrap: balance;
 }
 h2 em { font-style: normal; }
 
 h3 {
-    font-size: 17px; font-weight: 600;
-    margin: 22px 0 8px; color: var(--fg); letter-spacing: -0.01em;
+    font-size: 20px; font-weight: 300; line-height: 1.3;
+    margin: var(--spacing-6) 0 var(--spacing-2); color: var(--fg); letter-spacing: -0.01em;
 }
 
-p { margin: 0 0 14px; color: var(--text-dim); }
-p.lead { font-size: calc(var(--body-size) + 1px); color: var(--fg); }
+p { margin: 0 0 14px; color: var(--fg); }
+p.lead { font-size: 17px; line-height: 1.35; letter-spacing: -0.01em; color: var(--fg); }
 p.dim  { color: var(--muted); }
 
 ul.bullets {
@@ -176,26 +128,27 @@ ul.bullets {
     margin: 12px 0 14px;
 }
 ul.bullets li {
-    color: var(--text-dim);
-    padding: 6px 0 6px 18px;
+    color: var(--fg);
+    padding: 5px 0 5px 20px;
     position: relative;
-    font-size: 15px; line-height: 1.55;
+    font-size: 14px; line-height: 1.4;
 }
+/* outlined square bullet */
 ul.bullets li::before {
     content: ""; position: absolute;
-    left: 2px; top: 14px;
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
+    left: 0; top: 10px;
+    width: 9px; height: 9px; border-radius: var(--radius-dot);
+    border: 1px solid var(--carbon-black-500);
 }
 
-strong { color: var(--fg); font-weight: 600; }
+strong { color: var(--fg); font-family: var(--font-book); font-weight: 400; }
 
 .eq-block {
-    display: block; margin: 16px 0;
-    padding: 14px 18px;
-    background: var(--accent-soft-faint);
-    border: 1px solid var(--accent-soft-edge);
-    border-radius: 10px; text-align: center; color: var(--fg);
+    display: block; margin: var(--spacing-4) 0;
+    padding: var(--spacing-4) var(--spacing-5);
+    background: var(--hydro-blue-100);
+    border: 0;
+    border-radius: var(--radius-5); text-align: center; color: var(--fg);
     overflow-x: auto;
 }
 /* --eq-scale is set by components/eq_fit.js when an equation is wider than
@@ -204,14 +157,12 @@ strong { color: var(--fg); font-weight: 600; }
 .eq-block .katex-display > .katex { font-size: calc(var(--math-size) * 1.06 * var(--eq-scale, 1)) !important; }
 
 .callout {
-    margin-top: 18px; padding: 14px 18px;
-    border-left: 2px solid var(--accent);
-    background: var(--accent-soft-faint);
-    border-radius: 0 8px 8px 0;
-    font-size: 14px; color: var(--text-dim); line-height: 1.7;
+    margin-top: var(--spacing-5); padding: var(--card-padding-2);
+    border: 1px solid var(--carbon-black-500);
+    border-radius: var(--radius-container);
+    font-size: 14px; color: var(--fg); line-height: 1.4;
 }
 .callout em { font-style: italic; }
-[data-theme="light"] .callout strong { color: var(--fg); }
 
 /* ─── Plot stack ─── */
 .plot-stack {
@@ -221,8 +172,8 @@ strong { color: var(--fg); font-weight: 600; }
 
 .plot-box {
     position: relative;
-    border: 1px solid var(--border);
-    border-radius: 12px; background: var(--bg-2);
+    border: 1px solid var(--calcium-white-800);
+    border-radius: var(--radius-container); background: var(--white);
     overflow: hidden; width: 100%;
     aspect-ratio: 1.5 / 1;
 }
@@ -233,17 +184,17 @@ strong { color: var(--fg); font-weight: 600; }
 
 .plot-box .label {
     position: absolute; top: 10px; left: 14px; right: 14px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted); z-index: 2; pointer-events: none;
 }
 .plot-box .label .katex { text-transform: none; font-size: 13px !important; }
 .plot-box .label b {
-    font-weight: 600; letter-spacing: 0.06em; color: var(--fg);
+    font-weight: 400; color: var(--fg);
 }
 .plot-box .hint {
     position: absolute; bottom: 10px; right: 14px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--muted); z-index: 2; pointer-events: none;
 }
@@ -251,14 +202,14 @@ strong { color: var(--fg); font-weight: 600; }
 /* ─── Controls and toolbar ─── */
 .toolbar {
     display: flex; gap: 10px 14px; flex-wrap: wrap; align-items: center;
-    padding: 10px 12px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border); border-radius: 10px;
-    font-family: 'JetBrains Mono', monospace;
+    padding: var(--spacing-3) var(--spacing-4);
+    background: var(--hydro-blue-100);
+    border: 0; border-radius: var(--radius-5);
+    font-family: var(--font-mono);
     font-size: 11px;
 }
 .toolbar .divider {
-    width: 1px; height: 18px; background: var(--border); margin: 0 4px;
+    width: 1px; height: 18px; background: var(--calcium-white-800); margin: 0 4px;
 }
 .toolbar .slider-group {
     display: inline-flex; align-items: center; gap: 10px;
@@ -272,64 +223,30 @@ strong { color: var(--fg); font-weight: 600; }
 .toolbar .slider-group .val {
     color: var(--fg); min-width: 7ch; text-align: right;
 }
-.toolbar input[type="range"] {
-    -webkit-appearance: none; appearance: none;
-    width: 130px; height: 4px;
-    background: var(--slider-track); border-radius: 999px;
-    outline: none;
-}
-.toolbar input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
-    border: 2px solid var(--bg-2);
-}
-.toolbar input[type="range"]::-moz-range-thumb {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent); cursor: pointer;
-    border: 2px solid var(--bg-2);
-}
-
-/* Segmented / toggle buttons. Named .seg-btn so the legacy
-   button.ctrl-btn overrides in theme.css do not apply. */
-.seg { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-.seg-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--fg); background: var(--pill-bg);
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 12px; cursor: pointer;
-    transition: all 0.15s;
-}
-.seg-btn .katex { text-transform: none; }
-.seg-btn:hover { border-color: var(--accent); color: var(--accent); }
-.seg-btn.active {
-    border-color: var(--accent); color: var(--accent);
-    background: var(--accent-soft-faint);
-}
+/* Sliders and segmented buttons are styled in theme.css. */
 
 /* ─── Status readout ─── */
 .readout {
     display: flex; gap: 16px; flex-wrap: wrap;
-    padding: 10px 14px;
-    border: 1px solid var(--border); border-radius: 10px;
-    background: var(--bg-panel);
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: var(--spacing-4) var(--spacing-5);
+    border: 0; border-radius: var(--radius-5);
+    background: var(--hydro-blue-100);
+    font-family: var(--font-mono); font-size: 11px;
 }
 .readout .item {
     display: flex; flex-direction: column; gap: 2px; min-width: 90px;
 }
 .readout .item .k {
-    color: var(--muted); font-size: 9.5px;
-    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
 }
 .readout .item .k .katex { font-size: 14px !important; text-transform: none; }
-.readout .item .v { color: var(--fg); font-size: 14px; }
+.readout .item .v { color: var(--fg); font-family: var(--font-text); font-size: 15.5px; }
 
 /* ─── Legend row beneath a plot ─── */
 .legend {
     display: flex; gap: 8px 18px; flex-wrap: wrap;
-    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
 }
 .legend .sw { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
 .legend .sw.dash { height: 0; border-top: 2px dashed var(--muted); }
@@ -338,7 +255,7 @@ strong { color: var(--fg); font-weight: 600; }
 /* ─── SVG plot styling ─── */
 /* Defaults only: in SVG a CSS rule outranks a presentation attribute, so the
    size and colour apply only where the plot code has not set its own. */
-svg.bode text { font-family: 'JetBrains Mono', monospace; }
+svg.bode text { font-family: var(--font-mono); }
 svg.bode text:not([font-size]) { font-size: 12px; }
 svg.bode text:not([fill]) { fill: var(--muted); }
 svg.bode .tick text { fill: var(--muted); }   /* axis ticks stay muted as in Weeks 8 to 10 */
@@ -350,11 +267,11 @@ svg.bode foreignObject { overflow: visible; }
 
 /* ─── Footer ─── */
 footer {
-    padding: 60px 56px 80px; text-align: center;
-    color: var(--muted); font-size: 13px;
-    border-top: 1px solid var(--border);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: var(--card-padding-3) 5vw; text-align: left;
+    background: var(--carbon-black-400); color: var(--calcium-white-800);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em; text-transform: uppercase;
 }
 
 /* Below 1200 px a side-by-side layout leaves the copy column too narrow for
@@ -367,8 +284,8 @@ footer {
 
 @media (max-width: 900px) {
     section.scene { grid-template-columns: 1fr; padding: 80px 24px 60px; }
-    .landing { padding: 120px 24px 80px; }
-    h1.hero { font-size: 42px; }
+    .landing { padding: 120px 24px 80px; min-height: 520px; }
+    h1.hero { font-size: 38px; }
     h2 { font-size: 26px; }
     .brand { top: 16px; left: 16px; }
 }
