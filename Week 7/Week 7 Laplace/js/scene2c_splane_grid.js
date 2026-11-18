@@ -182,10 +182,10 @@
 
     // Axis titles outside the plot: jω above the vertical axis, σ to the
     // right of the horizontal axis.
-    CFG.label(ctx, 'σ', plotX1 + 8, cy, C.real, { baseline: 'middle' });
-    CFG.label(ctx, 'jω', cx, plotY0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
-    CFG.label(ctx, 'σ < 0: decay', plotX0, plotY0 - 6, C.muted, { baseline: 'bottom' });
-    CFG.label(ctx, 'σ > 0: growth', plotX1, plotY0 - 6, C.muted, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, '$σ$', plotX1 + 8, cy, C.real, { baseline: 'middle' });
+    CFG.label(ctx, '$jω$', cx, plotY0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$σ < 0$: decay', plotX0, plotY0 - 6, C.muted, { baseline: 'bottom' });
+    CFG.label(ctx, '$σ > 0$: growth', plotX1, plotY0 - 6, C.muted, { align: 'right', baseline: 'bottom' });
 
     const clean = (v) => (Math.abs(v) < 1e-6 ? 0 : v);
     for (let i = 0; i < N; i += 2) {
@@ -243,8 +243,8 @@
     ctx.beginPath(); ctx.moveTo(px0, cy); ctx.lineTo(px1, cy); ctx.stroke();
     ctx.strokeStyle = C.imag;
     ctx.beginPath(); ctx.moveTo(cx, py0); ctx.lineTo(cx, py1); ctx.stroke();
-    CFG.label(ctx, 'Re', px1 + 8, cy, C.real, { baseline: 'middle' });
-    CFG.label(ctx, 'Im', cx, py0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$\\Re$', px1 + 8, cy, C.real, { baseline: 'middle' });
+    CFG.label(ctx, '$\\Im$', cx, py0 - 6, C.imag, { align: 'center', baseline: 'bottom' });
 
     // Colour matching the grid tile (real/imag blend)
     const color = mixRealImag(sigma, omega, C);
@@ -275,7 +275,7 @@
     // Start marker (t = 0) : always at +1 + 0j
     ctx.fillStyle = C.muted;
     ctx.beginPath(); ctx.arc(cx + R, cy, 3.5, 0, Math.PI * 2); ctx.fill();
-    CFG.label(ctx, 't = 0', cx + R + 6, cy - 20, C.muted);
+    CFG.label(ctx, '$t$ = 0', cx + R + 6, cy - 20, C.muted);
 
     // End marker (t = DETAIL_T)
     {
@@ -286,7 +286,7 @@
       const y = cy - im * R;
       ctx.fillStyle = color;
       ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
-      CFG.label(ctx, `t = ${DETAIL_T.toFixed(0)}`, x + 6, y + 6, color, { halo: true });
+      CFG.label(ctx, `$t$ = ${DETAIL_T.toFixed(0)} s`, x + 6, y + 6, color, { halo: true });
     }
 
     // Playhead sweeps the full spiral over LOOP_SEC of wall time.

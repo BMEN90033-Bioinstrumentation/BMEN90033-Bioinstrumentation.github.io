@@ -51,8 +51,20 @@
     ctx.beginPath(); ctx.moveTo(planeX0, cy); ctx.lineTo(planeX1, cy); ctx.stroke();
     ctx.strokeStyle = C.imag;
     ctx.beginPath(); ctx.moveTo(cx, planeY0); ctx.lineTo(cx, planeY1); ctx.stroke();
-    CFG.label(ctx, 'Re', planeX1 - 6, cy - 8, C.real, { align: 'right', baseline: 'bottom' });
-    CFG.label(ctx, 'Im', cx + 8, planeY0 + 4, C.imag);
+    CFG.label(ctx, '$\\Re$', planeX1 - 6, cy - 8, C.real, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, '$\\Im$', cx + 8, planeY0 + 4, C.imag);
+    // Unit marks on both axes; the dashed circle has radius 1.
+    ctx.strokeStyle = window.T.gridAxis; ctx.lineWidth = 1;
+    for (const sgn of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(cx + sgn * R, cy - 4); ctx.lineTo(cx + sgn * R, cy + 4);
+      ctx.moveTo(cx - 4, cy - sgn * R); ctx.lineTo(cx + 4, cy - sgn * R);
+      ctx.stroke();
+    }
+    CFG.label(ctx, '1', cx + R + 6, cy + 6, C.muted);
+    CFG.label(ctx, '\u22121', cx - R - 6, cy + 6, C.muted, { align: 'right' });
+    CFG.label(ctx, '$j$', cx - 8, cy - R - 4, C.muted, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, '$\u2212j$', cx - 8, cy + R + 4, C.muted, { align: 'right' });
 
     // Phasor tip
     const phi = tAnim * omega;
@@ -131,8 +143,8 @@
     ctx.fillStyle = C.real;
     ctx.beginPath(); ctx.arc(px, bottomTop + 2, 4, 0, Math.PI * 2); ctx.fill();
 
-    CFG.label(ctx, 'cos ωt (real part)', planeX0 + 6, bottomTop + 6, C.real);
-    CFG.label(ctx, 'time ↓', planeX1 - 6, bottomBot - 6, C.muted, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, '$A \\cos ωt$ (real part)', planeX0 + 6, bottomTop + 6, C.real);
+    CFG.label(ctx, '$t$ ↓', planeX1 - 6, bottomBot - 6, C.muted, { align: 'right', baseline: 'bottom' });
 
     // ===================================================================
     // RIGHT STRIP: sin(ωt) = imaginary shadow.
@@ -172,9 +184,9 @@
     ctx.fillStyle = C.imag;
     ctx.beginPath(); ctx.arc(rightLeft + 2, py, 4, 0, Math.PI * 2); ctx.fill();
 
-    CFG.label(ctx, 'sin ωt', rightLeft + 6, planeY0 + 6, C.imag);
+    CFG.label(ctx, '$A \\sin ωt$', rightLeft + 6, planeY0 + 6, C.imag);
     CFG.label(ctx, '(imaginary part)', rightLeft + 6, planeY0 + 24, C.imag);
-    CFG.label(ctx, 'time →', rightRight - 6, planeY1 - 6, C.muted, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, '$t$ →', rightRight - 6, planeY1 - 6, C.muted, { align: 'right', baseline: 'bottom' });
   }
 
   CFG.registerLoop(canvas, draw);

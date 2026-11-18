@@ -76,7 +76,7 @@
         re += g * Math.cos(ang) * dt;
         im += g * Math.sin(ang) * dt;
       }
-      F.push(Math.hypot(re, im) / Tmax * 2);
+      F.push(Math.hypot(re, im) / Tmax);   // |F(f)|/T, the distance of the centroid from the origin
     }
     return { F, fMax };
   }
@@ -87,7 +87,7 @@
     const { ctx, w, h } = CFG.setupCanvas(cSig);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
-    const padL = 34, padR = 12, padT = 34, padB = 26;
+    const padL = 58, padR = 14, padT = 34, padB = 42;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     // Baseline at the bottom, g(t) is strictly positive, so the pen only
     // ever rises from here.
@@ -97,13 +97,15 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, baseY); ctx.lineTo(x1, baseY); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, baseY); ctx.stroke();
-    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
-    CFG.label(ctx, 'g(t)', 14, (y0 + y1) / 2, C.time, { rotate: true, align: 'center', baseline: 'middle' });
+    const Tmax = 6;   // the record that is wound and integrated
+    CFG.ticks(ctx, 'bottom', [0, 1, 2, 3, 4, 5, 6], t => x0 + t / Tmax * (x1 - x0), baseY, C.muted);
+    CFG.ticks(ctx, 'left', [0, M], v => baseY - (v / M) * amp, x0, C.muted);
+    CFG.label(ctx, '$t$ (s)', x1, y1 + 22, C.muted, { align: 'right' });
+    CFG.label(ctx, '$g(t)$', 14, (y0 + y1) / 2, C.time, { rotate: true, align: 'center', baseline: 'middle' });
     ctx.strokeStyle = C.time; ctx.lineWidth = 1.8;
     ctx.beginPath();
-    const Tmax = 4;
-    for (let i = 0; i <= 300; i++) {
-      const u = i / 300, t = u * Tmax;
+    for (let i = 0; i <= 600; i++) {
+      const u = i / 600, t = u * Tmax;
       const v = gOf(t);
       const px = x0 + u * (x1 - x0);
       const py = baseY - (v / M) * amp;
@@ -151,8 +153,8 @@
     ctx.stroke();
     comX /= cnt; comY /= cnt;
     // Axis titles are drawn over the curve.
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
+    CFG.label(ctx, '$\\Re$', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, '$\\Im$', cx, 50, C.muted, { align: 'center', halo: true });
 
     // Center of mass marker
     const cmx = cx + comX * scale;
@@ -176,7 +178,7 @@
     const { ctx, w, h } = CFG.setupCanvas(cSpc);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
-    const padL = 34, padR = 16, padT = 50, padB = 44;
+    const padL = 58, padR = 16, padT = 50, padB = 48;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     ctx.strokeStyle = C.grid;
     for (let i = 0; i <= 4; i++) {
@@ -186,14 +188,11 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
-    CFG.label(ctx, 'f (Hz)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
-    CFG.label(ctx, '|F(f)|', 14, (y0 + y1) / 2, C.accent, { rotate: true, align: 'center', baseline: 'middle' });
-    for (let i = 0; i <= 4; i++) {
-      const x = x0 + i / 4 * (x1 - x0);
-      CFG.label(ctx, String(i), x, y1 + 6, C.muted, { align: 'center' });
-    }
-
     const maxF = Math.max(0.001, ...spec.F);
+    CFG.label(ctx, '$f$ (Hz)', (x0 + x1) / 2, y1 + 26, C.muted, { align: 'center' });
+    CFG.label(ctx, '$|F(f)|/T$', 14, (y0 + y1) / 2, C.accent, { rotate: true, align: 'center', baseline: 'middle' });
+    CFG.ticks(ctx, 'bottom', [0, 1, 2, 3, 4], f => x0 + f / 4 * (x1 - x0), y1, C.muted);
+    CFG.ticks(ctx, 'left', [0, maxF / 2, maxF], v => y1 - v / maxF * (y1 - y0), x0, C.muted);
     // During sweep, only draw spectrum up to current fVal (synced with rotation).
     // Also clears immediately on sweep start since fVal = 0 → lastIdx = 0.
     const lastIdx = sweep
@@ -231,7 +230,7 @@
     ctx.fillStyle = C.time;
     ctx.beginPath(); ctx.arc(cx, py, 5, 0, Math.PI * 2); ctx.fill();
     // Readout in the top margin, clear of the curve.
-    CFG.label(ctx, `|F(${fVal.toFixed(2)})| = ${magg.toFixed(2)}`, x1, y0 - 20, C.time, { align: 'right' });
+    CFG.label(ctx, `$|F|/T$ = ${magg.toFixed(2)} at $f$ = ${fVal.toFixed(2)} Hz`, x1, y0 - 22, C.time, { align: 'right' });
   }
 
   function drawAll(fOverride) {
@@ -241,7 +240,7 @@
     // snapped peak position is otherwise lost to the slider's toFixed(3).
     const f = (typeof fOverride === 'number') ? fOverride : parseFloat(fEl.value);
     fO.textContent = f.toFixed(2);
-    sub.textContent = `f = ${f.toFixed(2)} Hz`;
+    sub.textContent = `Winding frequency ${f.toFixed(2)} Hz`;
     drawSig();
     drawWound(f);
     drawSpec(f);

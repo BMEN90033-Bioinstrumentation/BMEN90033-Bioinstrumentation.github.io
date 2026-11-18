@@ -36,23 +36,39 @@
   const SYSTEMS = {
     stable:   {
       poles: [{re: -0.55, im:  1.25}, {re: -0.55, im: -1.25}],
-      zeros: [{re: -1.20, im:  0.00}],
-      label: 'H(s) = (s+1.2) / ((s+0.55)² + 1.25²)'
+      zeros: [{re: -1.20, im:  0.00}]
     },
     ring:     {
       poles: [{re: -0.12, im:  1.55}, {re: -0.12, im: -1.55}],
-      zeros: [{re:  0.00, im:  0.60}, {re: 0.00, im: -0.60}],
-      label: 'H(s) = (s² + 0.36) / ((s+0.12)² + 1.55²)'
+      zeros: [{re:  0.00, im:  0.60}, {re: 0.00, im: -0.60}]
     },
     unstable: {
       poles: [{re:  0.30, im:  1.10}, {re:  0.30, im: -1.10}],
-      zeros: [{re: -0.90, im:  0.00}],
-      label: 'H(s) = (s+0.9) / ((s-0.30)² + 1.10²)'
+      zeros: [{re: -0.90, im:  0.00}]
     },
   };
   let currentSys = 'stable';
   // Causal system with RHP poles: ROC is σ > max Re(p), so σ = 0 has no Fourier transform.
-  const fourierTag = () => (currentSys === 'unstable' ? 'outside ROC' : 'Fourier');
+  const rocEdge = () => Math.max(...SYSTEMS[currentSys].poles.map(p => p.re));
+  // The Fourier transform exists only if the jω axis lies inside the ROC.
+  const fourierTag = () => (rocEdge() >= 0 ? 'outside ROC' : 'Fourier');
+
+  // F(s) in factored form, as TeX, from the current pole and zero positions.
+  function factorTex(nodes) {
+    const n = v => Math.abs(v).toFixed(2);
+    const lin = re => Math.abs(re) < 5e-3 ? 's' : `s ${re < 0 ? '+' : '-'} ${n(re)}`;
+    const parts = [];
+    for (const r of nodes) {
+      if (r.im < -1e-6) continue;                      // the conjugate is covered by its mate
+      if (r.im < 1e-6) parts.push(nodes.length > 1 ? `(${lin(r.re)})` : lin(r.re));
+      else parts.push(Math.abs(r.re) < 5e-3 ? `s^2 + ${n(r.im)}^2` : `(${lin(r.re)})^2 + ${n(r.im)}^2`);
+    }
+    return parts.length > 1 ? parts.map(p => p[0] === '(' && p.endsWith(')') ? p : `[${p}]`).join('') : (parts[0] || '1');
+  }
+  function systemTex() {
+    const sys = SYSTEMS[currentSys];
+    return `F(s) = \\dfrac{${factorTex(sys.zeros || [])}}{${factorTex(sys.poles)}}`;
+  }
 
   // ─── Interaction state ───────────────────────────────────────────────────
   let rotY = DEFAULT_ROT_Y;   // yaw (around vertical)
@@ -195,7 +211,7 @@
 
     // Label ROC on the floor
     const rocLbl = project(maxPoleRe + 0.4, spanW * 0.85, 0);
-    CFG.label(ctx, 'ROC: σ > α', Math.min(rocLbl.x, w - 8), rocLbl.y, C.time, { align: 'right' });
+    CFG.label(ctx, `ROC: $σ$ > ${maxPoleRe.toFixed(2)}`.replace('-', '−'), Math.min(rocLbl.x, w - 8), rocLbl.y, C.time, { align: 'right' });
     ctx.restore();
 
     // ── Paint the surface: sort rows by depth (back to front)
@@ -293,7 +309,7 @@
     // Label on ridge
     if (!bodeMode) {
       const ridgeLbl = pts[iZero][Nw];
-      CFG.label(ctx, `σ = 0 (${fourierTag()})`, Math.min(ridgeLbl.sx, w - 8), Math.max(ridgeLbl.sy - 26, 50), C.real, { align: 'right', halo: true });
+      CFG.label(ctx, `$σ$ = 0 (${fourierTag()})`, Math.min(ridgeLbl.sx, w - 8), Math.max(ridgeLbl.sy - 26, 50), C.real, { align: 'right', halo: true });
     }
 
     // ── Highlight 2: current σ slice, accent colored (pen-lifted near poles)
@@ -314,7 +330,7 @@
     // In Bode mode anchor the label at the ω = 0 end of the slice curve so it
     // points to where the magnitude plot starts, not the −ω end.
     const curLbl = bodeMode ? pts[iCur][jStart] : pts[iCur][0];
-    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), Math.max(curLbl.sx, 8), curLbl.sy + 12, C.accent, { halo: true });
+    CFG.label(ctx, `$σ$ = ${sigma0.toFixed(2)}`.replace('-', '−'), Math.max(curLbl.sx, 8), curLbl.sy + 12, C.accent, { halo: true });
 
     // ── Pole spikes
     ctx.strokeStyle = C.imag;
@@ -331,9 +347,8 @@
       ctx.arc(top.x, top.y, 4, 0, Math.PI * 2);
       ctx.fill();
       // Beside the marker, on the left unless that would leave the canvas.
-      const pTxt = `s = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} j${Math.abs(p.im).toFixed(2)}`.replace('-', '−');
-      ctx.font = CFG.FONT;
-      const pLeft = top.x - 12 - ctx.measureText(pTxt).width > 4;
+      const pTxt = `$s$ = ${p.re.toFixed(2)} ${p.im >= 0 ? '+' : '−'} $j$${Math.abs(p.im).toFixed(2)}`.replace('-', '−');
+      const pLeft = top.x - 12 - 150 > 4;
       CFG.label(ctx, pTxt, top.x + (pLeft ? -12 : 12), top.y, C.imag,
                 { align: pLeft ? 'right' : 'left', baseline: 'middle', halo: true });
     }
@@ -374,12 +389,17 @@
     [Ax, Ay, Az].forEach(A => {
       ctx.beginPath(); ctx.moveTo(O.x, O.y); ctx.lineTo(A.x, A.y); ctx.stroke();
     });
-    CFG.label(ctx, 'σ', Ax.x + 4, Ax.y,     C.muted, { halo: true });
-    CFG.label(ctx, 'jω', Ay.x + 4, Ay.y,    C.muted, { halo: true });
-    CFG.label(ctx, '|F(s)|', Az.x, Az.y - 4, C.muted, { align: 'center', baseline: 'bottom', halo: true });
+    CFG.label(ctx, '$σ$', Ax.x + 4, Ax.y,     C.muted, { halo: true });
+    CFG.label(ctx, '$jω$', Ay.x + 4, Ay.y,    C.muted, { halo: true });
+    CFG.label(ctx, '$|F(s)|$', Az.x, Az.y - 4, C.muted, { align: 'center', baseline: 'bottom', halo: true });
 
     // sub text
-    sub.textContent = SYSTEMS[currentSys].label;
+    const tex = systemTex();
+    if (sub.dataset.tex !== tex) {
+      sub.dataset.tex = tex;
+      if (window.katex) katex.render(tex, sub, { throwOnError: false });
+      else { sub.textContent = tex; delete sub.dataset.tex; }   // retried on the next frame
+    }
   }
 
   // ─── Side panel: 1D slice |F(σ + jω)| vs ω ──────────────────────────────
@@ -393,10 +413,10 @@
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const sliceLegend = () => {
       CFG.legend(ctx, 14, 40, [
-        { mark: 'line', text: currentSys === 'unstable' ? 'σ = 0 (outside ROC)' : 'σ = 0 (Fourier)', color: C.real },
+        { mark: 'line', text: `$σ$ = 0 (${fourierTag()})`, color: C.real },
       ]);
       CFG.legend(ctx, 14, 58, [
-        { mark: 'line', text: `σ = ${sigma0.toFixed(2)} (slice)`.replace('-', '−'), color: C.accent },
+        { mark: 'line', text: `$σ$ = ${sigma0.toFixed(2)} (slice)`.replace('-', '−'), color: C.accent },
       ]);
     };
 
@@ -484,8 +504,8 @@
       plotBode(sigma0, C.accent, 2);              // current σ slice
 
       // axis labels
-      CFG.label(ctx, 'ω (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
-      CFG.label(ctx, '|F| (dB)', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
+      CFG.label(ctx, '$ω$ (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
+      CFG.label(ctx, '$|F|$ (dB)', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
       sliceLegend();
 
       sliceTitle.textContent = 'Bode magnitude';
@@ -523,13 +543,10 @@
     plot(0, CFG.alpha(C.real, 0.7), 1.4);  // Fourier ghost
     plot(sigma0, C.accent, 2);               // current slice
 
-    CFG.label(ctx, 'ω (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
-    CFG.label(ctx, '|F(σ + jω)|', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
-    CFG.label(ctx, '−' + spanW.toFixed(1), x0, y1 + 6, C.muted);
-    CFG.label(ctx, '+' + spanW.toFixed(1), x1, y1 + 6, C.muted, { align: 'right' });
-    CFG.label(ctx, '0', xMid, y1 + 6, C.muted, { align: 'center' });
-    CFG.label(ctx, '0', x0 - 6, y1, C.muted, { align: 'right', baseline: 'middle' });
-    CFG.label(ctx, ymax.toFixed(1), x0 - 6, y0, C.muted, { align: 'right', baseline: 'middle' });
+    CFG.label(ctx, '$ω$ (rad/s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
+    CFG.label(ctx, '$|F(σ + jω)|$', 12, (y0 + y1) / 2, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
+    CFG.ticks(ctx, 'bottom', [-2, 0, 2], om => x0 + (om + spanW) / (2 * spanW) * (x1 - x0), y1, C.muted);
+    CFG.ticks(ctx, 'left', [0, 1, 2, 3], z => y1 - (z / ymax) * (y1 - y0), x0, C.muted);
     ctx.strokeStyle = C.gridStrong; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
     sliceLegend();
@@ -547,9 +564,7 @@
     CFG.clear(ctx, w, h);
     const sigma0 = parseFloat(sigEl.value);
     const sys = SYSTEMS[currentSys];
-    const maxPoleRe = Math.max(...sys.poles.map(p => p.re));
-
-    const padL = 14, padR = 30, padT = 50, padB = 30;
+    const padL = 40, padR = 30, padT = 50, padB = 30;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const bw = x1 - x0, bh = y1 - y0;
     const xOf = sig => x0 + (sig + spanS) / (2 * spanS) * bw;
@@ -559,7 +574,7 @@
     topMap = { xOf, yOf, sigOf, omOf, x0, x1, y0, y1 };
 
     // ROC shade
-    const xROC = xOf(maxPoleRe);
+    const xROC = xOf(rocEdge());
     ctx.fillStyle = CFG.alpha(C.time, 0.12);
     ctx.fillRect(xROC, y0, x1 - xROC, bh);
     ctx.strokeStyle = CFG.alpha(C.time, 0.6);
@@ -570,11 +585,13 @@
     // grid
     ctx.strokeStyle = C.grid;
     for (let k = -2; k <= 2; k++) {
-      const xv = xOf(k * spanS / 2);
+      const xv = xOf(k);
       ctx.beginPath(); ctx.moveTo(xv, y0); ctx.lineTo(xv, y1); ctx.stroke();
-      const yv = yOf(k * spanW / 2);
+      const yv = yOf(k);
       ctx.beginPath(); ctx.moveTo(x0, yv); ctx.lineTo(x1, yv); ctx.stroke();
     }
+    CFG.ticks(ctx, 'bottom', [-2, -1, 0, 1, 2], xOf, y1, C.muted);
+    CFG.ticks(ctx, 'left', [-2, -1, 0, 1, 2], yOf, x0, C.muted);
     // axes
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, yOf(0)); ctx.lineTo(x1, yOf(0)); ctx.stroke();
@@ -584,14 +601,13 @@
     ctx.lineWidth = 2;
     const xZero = xOf(0);
     ctx.beginPath(); ctx.moveTo(xZero, y0); ctx.lineTo(xZero, y1); ctx.stroke();
-    CFG.label(ctx, 'jω', xZero, y0 - 6, C.real, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$jω$', xZero, y0 - 6, C.real, { align: 'center', baseline: 'bottom' });
 
     // current σ slice line
     ctx.strokeStyle = C.accent;
     ctx.lineWidth = 2;
     const xSig = xOf(sigma0);
     ctx.beginPath(); ctx.moveTo(xSig, y0); ctx.lineTo(xSig, y1); ctx.stroke();
-    CFG.label(ctx, `σ = ${sigma0.toFixed(2)}`.replace('-', '−'), xSig, y1 + 6, C.accent, { align: 'center' });
 
     // poles × (draggable)
     ctx.lineWidth = 2.4;
@@ -620,7 +636,7 @@
       ctx.stroke();
     }
 
-    CFG.label(ctx, 'σ', x1 + 8, yOf(0), C.muted, { baseline: 'middle' });
+    CFG.label(ctx, '$σ$', x1 + 10, yOf(0), C.muted, { baseline: 'middle' });
   }
 
   // ─── Interaction ─────────────────────────────────────────────────────────
@@ -716,7 +732,7 @@
     if (!drag) return;
     const dx = (e.clientX - drag.x) / 140;
     const dy = (e.clientY - drag.y) / 180;
-    rotY = drag.rotY + dx;
+    rotY = drag.rotY - dx;   // the near side of the surface follows the pointer
     rotX = CFG.clamp(drag.rotX + dy, 0.05, MAX_ROT_X);
     if (topView) {
       topView = false;

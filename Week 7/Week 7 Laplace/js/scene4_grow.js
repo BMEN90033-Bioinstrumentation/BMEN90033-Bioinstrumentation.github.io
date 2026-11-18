@@ -8,43 +8,55 @@
   const aO = document.getElementById('growAO');
   const fO = document.getElementById('growFO');
   const sub = document.getElementById('g_sub');
-  const w0 = 2 * Math.PI * 0.8;
+  const F0 = 0.8;                 // signal frequency in Hz, fixed; the slider sets the winding frequency
+  const w0 = 2 * Math.PI * F0;
+  const Tmax = 8;
 
-  function gOf(t, a, f) { return Math.exp(a * t) * Math.cos(2 * Math.PI * f * t); }
+  function gOf(t, a) { return Math.exp(a * t) * Math.cos(w0 * t); }
 
   function drawSig() {
     const { ctx, w, h } = CFG.setupCanvas(cSig);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
     const a = parseFloat(aEl.value);
-    const f = parseFloat(fEl.value);
-    const padL = 34, padR = 12, padT = 56, padB = 26;
+    const padL = 58, padR = 14, padT = 60, padB = 46;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const mid = (y0 + y1) / 2;
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
-    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
-    CFG.label(ctx, 'g(t)', 14, mid, C.time, { rotate: true, align: 'center', baseline: 'middle' });
+    ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+    CFG.label(ctx, '$t$ (s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
+    CFG.label(ctx, '$g(t)$', 14, mid, C.time, { rotate: true, align: 'center', baseline: 'middle' });
 
-    const Tmax = 8;
-    let maxV = 0;
-    for (let i = 0; i <= 200; i++) {
-      const t = i / 200 * Tmax;
-      maxV = Math.max(maxV, Math.abs(gOf(t, a, f)));
+    // The envelope is largest at one end of the record.
+    const maxV = Math.max(1, Math.exp(a * Tmax));
+    const half = (y1 - y0) / 2 - 6;
+    CFG.ticks(ctx, 'bottom', [0, 2, 4, 6, 8], t => x0 + t / Tmax * (x1 - x0), y1, C.muted);
+    CFG.ticks(ctx, 'left', [-maxV, 0, maxV], v => mid - v / maxV * half, x0, C.muted, v => String(+v.toFixed(1)).replace('-', '\u2212'));
+    // Envelope ±e^{at}
+    ctx.strokeStyle = CFG.ink(0.25); ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    for (const sgn of [-1, 1]) {
+      ctx.beginPath();
+      for (let i = 0; i <= 80; i++) {
+        const u = i / 80;
+        const py = mid - sgn * Math.exp(a * u * Tmax) / maxV * half;
+        if (i === 0) ctx.moveTo(x0, py); else ctx.lineTo(x0 + u * (x1 - x0), py);
+      }
+      ctx.stroke();
     }
-    maxV = Math.max(1, maxV);
+    ctx.setLineDash([]);
     ctx.strokeStyle = C.time; ctx.lineWidth = 1.8;
     ctx.beginPath();
     for (let i = 0; i <= 600; i++) {
       const u = i / 600, t = u * Tmax;
-      const v = gOf(t, a, f) / maxV;
+      const v = gOf(t, a) / maxV;
       const px = x0 + u * (x1 - x0);
-      const py = mid - v * ((y1 - y0) / 2 - 6);
+      const py = mid - v * half;
       if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
     }
     ctx.stroke();
-    CFG.label(ctx, `a = ${a.toFixed(2)}, f = ${f.toFixed(2)} Hz (${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'constant amplitude'})`.replace('-', '−'), x0 + 6, y0 - 22, C.muted);
+    CFG.label(ctx, `$a$ = ${a.toFixed(2)} s$^{−1}$, $f_0$ = ${F0.toFixed(1)} Hz: ${a > 0 ? 'growing' : a < 0 ? 'decaying' : 'constant amplitude'}`.replace('-', '−'), x0, y0 - 26, C.muted);
   }
 
   function drawWound(tAnim) {
@@ -59,13 +71,13 @@
     for (let r = 1; r <= 4; r++) {
       ctx.beginPath(); ctx.arc(cx, cy, r * 22, 0, Math.PI * 2); ctx.stroke();
     }
+
     ctx.strokeStyle = C.gridStrong;
     // Axes stop short of the titles, which sit beyond the axis ends.
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
 
     // progressive reveal
-    const Tmax = 8;
     const reveal = Math.min(1, (tAnim % 6) / 5);
     const scale = 22;
     let comX = 0, comY = 0, cnt = 0;
@@ -78,20 +90,22 @@
       const u = i / N;
       if (u > reveal) break;
       const t = u * Tmax;
-      const g = gOf(t, a, f);
+      const g = gOf(t, a);
       const ang = -2 * Math.PI * f * t;
       const re = g * Math.cos(ang);
       const im = g * Math.sin(ang);
       const px = cx + re * scale;
       const py = cy - im * scale;
-      if (px < -200 || px > w + 200 || py < -200 || py > h + 200) continue;
+      comX += re; comY += im; cnt++;   // every sample counts toward the centroid, on screen or not
+      if (px < -200 || px > w + 200 || py < -200 || py > h + 200) { started = false; continue; }
       if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
-      comX += re; comY += im; cnt++;
     }
     ctx.stroke();
     // Axis titles are drawn over the curve.
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
+    // Ring radii, in signal units
+    for (const r of [2, 4]) CFG.label(ctx, String(r), cx - r * 22, cy + 5, C.muted, { align: 'center', halo: true });
+    CFG.label(ctx, '$\\Re$', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, '$\\Im$', cx, 50, C.muted, { align: 'center', halo: true });
 
     if (cnt > 0) {
       comX /= cnt; comY /= cnt;
@@ -105,7 +119,7 @@
       }
     }
 
-    sub.textContent = a > 0 ? 'Curve unbounded: the integral diverges' : a < 0 ? 'Curve bounded: the integral converges' : 'Constant amplitude: marginal case';
+    sub.textContent = a > 0 ? 'Curve unbounded: the integral diverges' : a < 0 ? 'Curve bounded: the integral converges' : 'Constant amplitude: no ordinary transform';
   }
 
   function drawAll(t) {

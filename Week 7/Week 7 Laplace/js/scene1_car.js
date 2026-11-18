@@ -2,7 +2,7 @@
 // The wheel stays on the road surface at all times. As a bump passes under it,
 // the wheel moves up/down following the road profile. The chassis above reacts
 // through the spring/damper, oscillating based on the suspension response.
-// Plot above shows chassis vertical displacement z(t), what the driver feels.
+// The plot beside it shows the road input u(t) and the chassis displacement z(t).
 (function () {
   const canvas = document.getElementById('carCanvas');
   if (!canvas) return;
@@ -41,6 +41,7 @@
   const ROAD_SPEED = 3.4;
   const BUMP_POS_WORLD = 2.8;
   const BUMP_HALFW = 0.35;
+  const Y_RANGE = 1.5;            // plot range, in bump heights
 
   // Road profile u(t): vertical road height at the wheel's contact at time t.
   // Bump is a smooth cosine hump.
@@ -52,10 +53,18 @@
     return 0.5 * (1 + Math.cos(Math.PI * d / BUMP_HALFW));
   }
 
-  // Chassis response z(t) from road input u(t), modeled as a 2nd-order system:
-  //   z'' + 2ζωₙ z' + ωₙ² z = ωₙ² u(t)
-  // Integrate numerically over [0, t] with RK2 or just fine-grained Euler.
-  // Cache across the loop window.
+  // Road slope du/dt, needed because the damper acts on relative velocity.
+  function roadUdot(t) {
+    const d = travelled(t) - BUMP_POS_WORLD;
+    if (Math.abs(d) > BUMP_HALFW) return 0;
+    return -0.5 * Math.sin(Math.PI * d / BUMP_HALFW) * (Math.PI / BUMP_HALFW) * ROAD_SPEED;
+  }
+
+  // Chassis response z(t) to the road input u(t): a sprung mass on a spring
+  // and damper whose lower end follows the road (rigid tyre), so both forces
+  // act on the relative motion z - u:
+  //   z'' + 2ζωₙ (z' - u') + ωₙ² (z - u) = 0
+  // Integrated with semi-implicit Euler and cached across the loop window.
   let cache = { mode: null, z: null, dt: 0.01, tMax: 0 };
   function computeChassis() {
     if (cache.mode === mode) return;
@@ -67,7 +76,7 @@
     for (let i = 1; i < N; i++) {
       const t = i * dt;
       const u = roadU(t);
-      const za = p.wn * p.wn * (u - zp) - 2 * p.zeta * p.wn * zv;
+      const za = p.wn * p.wn * (u - zp) - 2 * p.zeta * p.wn * (zv - roadUdot(t));
       zv += za * dt;
       zp += zv * dt;
       z[i] = zp;
@@ -91,105 +100,69 @@
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
 
-    // Suspension on the LEFT, plot on the RIGHT. The plot's leading edge
-    // (current time) sits at its LEFT edge, right next to the chassis, so
-    // as time advances the response appears to flow out of the suspension.
+    // Suspension on the left, plot on the right.
     const splitX = Math.round(w * 0.48);
     const gap = 10;
-    const suspInfo = drawSuspension(ctx, 0, 0, splitX - gap, h, tLocal, C);
-    const plotInfo = drawPlot(ctx, splitX + gap, 0, w - splitX - gap, h, tLocal, C);
-
-    // Connector: dashed line from the chassis marker to the pen on the plot
-    if (suspInfo && plotInfo) {
-      ctx.strokeStyle = CFG.alpha(C.time, 0.55);
-      ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(suspInfo.readoutX, suspInfo.readoutY);
-      ctx.lineTo(plotInfo.leadX, plotInfo.leadY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+    drawSuspension(ctx, 0, 0, splitX - gap, h, tLocal, C);
+    drawPlot(ctx, splitX + gap, 0, w - splitX - gap, h, tLocal, C);
   }
 
+  // Road input u(t) and chassis response z(t) against time since the start
+  // of the run, both in units of the bump height. The traces are drawn up to
+  // the present time, where the pen sits.
   function drawPlot(ctx, px, py, pw, ph, tAnim, C) {
-    const padL = 40, padR = 14, padT = 30, padB = 30;
-    const x0 = px + padL, y0 = py + ph - padB;
-    const x1 = px + pw - padR, y1 = py + padT;
-    const midY = (y0 + y1) / 2;
+    const padL = 58, padR = 16, padT = 48, padB = 50;
+    const x0 = px + padL, x1 = px + pw - padR;
+    const yTop = py + padT, yBot = py + ph - padB;
+    const midY = (yTop + yBot) / 2;
     const tNow = tAnim % LOOP;
-    const pxPerSec = (x1 - x0) / LOOP;
-    // Sampler: before the animation started (t < 0) the plot is blank, this
-    // makes a fresh reset "fill in" from the left. Past t=LOOP the response
-    // wraps so the animation stays continuous.
-    const zAt = (t) => {
-      if (t < 0) return 0;
-      const tM = ((t % LOOP) + LOOP) % LOOP;
-      return chassisZ(tM);
-    };
+    const xOf = t => x0 + (t / LOOP) * (x1 - x0);
+    const yOf = v => midY - (v / Y_RANGE) * (yBot - yTop) / 2;
 
-    // grid
+    ctx.lineWidth = 1;
     ctx.strokeStyle = C.grid;
-    for (let i = 1; i < 8; i++) {
-      const gx = x0 + (x1 - x0) * i / 8;
-      ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y1); ctx.stroke();
+    for (let t = 1; t <= LOOP; t++) {
+      ctx.beginPath(); ctx.moveTo(xOf(t), yTop); ctx.lineTo(xOf(t), yBot); ctx.stroke();
     }
-    for (let i = 1; i < 4; i++) {
-      const gy = y1 + (y0 - y1) * i / 4;
-      ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x1, gy); ctx.stroke();
+    for (const v of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(x0, yOf(v)); ctx.lineTo(x1, yOf(v)); ctx.stroke();
     }
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(x0, midY); ctx.lineTo(x1, midY); ctx.stroke();
-    // The "pen" y-axis at the LEFT edge, this is where the chassis feeds in.
-    ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x0, y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, yTop); ctx.lineTo(x0, yBot); ctx.lineTo(x1, yBot); ctx.stroke();
 
-    // Bump window slides rightward over time (older events further right).
-    const tEntry = (BUMP_POS_WORLD - BUMP_HALFW) / ROAD_SPEED;
-    const tExit  = (BUMP_POS_WORLD + BUMP_HALFW) / ROAD_SPEED;
-    const deltaEntry = ((tNow - tEntry) % LOOP + LOOP) % LOOP;
-    const deltaExit  = ((tNow - tExit)  % LOOP + LOOP) % LOOP;
-    const xE = x0 + deltaEntry * pxPerSec;
-    const xX = x0 + deltaExit  * pxPerSec;
-    const bumpL = Math.min(xE, xX);
-    const bumpR = Math.max(xE, xX);
-    // Only render the band if both edges currently sit inside the plot window
-    // (avoids a stretched shade straddling the wrap).
-    if (bumpR - bumpL < (x1 - x0) * 0.5) {
-      ctx.fillStyle = CFG.alpha(C.accent, 0.10);
-      ctx.fillRect(bumpL, y1, Math.max(2, bumpR - bumpL), y0 - y1);
-      ctx.strokeStyle = CFG.alpha(C.accent, 0.5); ctx.setLineDash([3, 4]);
-      ctx.beginPath(); ctx.moveTo(bumpL, y0); ctx.lineTo(bumpL, y1); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(bumpR, y0); ctx.lineTo(bumpR, y1); ctx.stroke();
-      ctx.setLineDash([]);
-      CFG.label(ctx, 'bump', (bumpL + bumpR) / 2, y1 - 18, C.accent, { align: 'center' });
-    }
+    CFG.ticks(ctx, 'bottom', [0, 2, 4, 6, 8], xOf, yBot, C.muted);
+    CFG.ticks(ctx, 'left', [-1, 0, 1], yOf, x0, C.muted);
+    CFG.label(ctx, '$t$ (s)', (x0 + x1) / 2, yBot + 26, C.muted, { align: 'center' });
+    CFG.label(ctx, 'displacement / bump height', px + 14, midY, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
+    CFG.legend(ctx, x0, py + 24, [
+      { mark: 'dash', text: 'road $u(t)$', color: C.accent },
+      { mark: 'line', text: 'chassis $z(t)$', color: C.time },
+    ]);
 
-    // axis labels
-    CFG.label(ctx, 'z(t)', px + 14, midY, C.time, { rotate: true, align: 'center', baseline: 'middle' });
-    CFG.label(ctx, 'time before present', (x0 + x1) / 2, y0 + 8, C.muted, { align: 'center' });
-    CFG.label(ctx, '0', x0 - 8, midY, C.muted, { align: 'right', baseline: 'middle' });
+    // Traces, clipped to the frame so a growing response leaves the axes
+    // instead of flattening against them.
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, yTop, x1 - x0, yBot - yTop); ctx.clip();
+    const N = Math.max(2, Math.ceil(tNow / LOOP * 480));
+    const trace = (fn, color, lw, dash) => {
+      ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash);
+      ctx.beginPath();
+      for (let i = 0; i <= N; i++) {
+        const t = (i / N) * tNow;
+        if (i === 0) ctx.moveTo(xOf(t), yOf(fn(t))); else ctx.lineTo(xOf(t), yOf(fn(t)));
+      }
+      ctx.stroke();
+    };
+    trace(roadU, C.accent, 1.6, [3, 3]);
+    trace(chassisZ, C.time, 2.2, []);
+    ctx.restore();
+    ctx.setLineDash([]);
 
-    // Response curve: the current value is at x0 (left, next to the chassis);
-    // history trails to the right.
-    const N = 360;
-    ctx.strokeStyle = C.time; ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    let first = true;
-    for (let i = 0; i <= N; i++) {
-      const dt = (i / N) * LOOP;
-      const z = zAt(tNow - dt);
-      const xx = x0 + dt * pxPerSec;
-      const yy = CFG.clamp(midY - z * (y0 - midY) * 0.9, y1 + 3, y0 - 3);
-      if (first) { ctx.moveTo(xx, yy); first = false; } else ctx.lineTo(xx, yy);
-    }
-    ctx.stroke();
-
-    // Pen dot at the LEFT edge, visually attached to the chassis.
-    const zNow = zAt(tNow);
-    const yNow = CFG.clamp(midY - zNow * (y0 - midY) * 0.9, y1 + 3, y0 - 3);
+    // Pen at the present time, held at the frame edge when off scale.
+    const yNow = CFG.clamp(yOf(chassisZ(tNow)), yTop, yBot);
     ctx.fillStyle = C.time;
-    ctx.beginPath(); ctx.arc(x0, yNow, 5, 0, Math.PI * 2); ctx.fill();
-
-    return { leadX: x0, leadY: yNow };
+    ctx.beginPath(); ctx.arc(xOf(tNow), yNow, 5, 0, Math.PI * 2); ctx.fill();
   }
 
   // ---------------------------------------------------------------
@@ -206,7 +179,8 @@
 
     const tNow = tAnim % LOOP;
     const uNorm = roadU(tNow);
-    const zNorm = chassisZ(tNow);
+    const zTrue = chassisZ(tNow);
+    const zNorm = CFG.clamp(zTrue, -Y_RANGE, Y_RANGE);   // drawn travel is limited to the plot range
 
     // reference geometry
     const roadY0  = sy + sh * 0.82;
@@ -234,7 +208,7 @@
     drawPivotBracket(ctx, pivotCX, chassisY + Math.max(8, sh * 0.025), pivotCY, C);
 
     // ---------- road surface ----------
-    drawRoad(ctx, sx, sy, sw, sh, roadY0, tNow, C);
+    drawRoad(ctx, sx, sy, sw, sh, roadY0, tNow, C, wheelCX, liftPx);
 
     // ---------- lower control arm (A-arm) ----------
     // Ball joint sits at the bottom of the steering knuckle, a bit below the hub.
@@ -256,7 +230,7 @@
     // Anchor the chassis-height readout near the right edge of the suspension
     // panel so it lines up with the plot's pen on the right half of the canvas.
     const readoutX = Math.min(wheelCX + wheelR + 28, sx + sw - 18);
-    const readout = drawReadout(ctx, readoutX, chassisY, chassisY0, zNorm, C);
+    const readout = drawReadout(ctx, readoutX, chassisY, chassisY0, zTrue, C);
 
     // caption
     CFG.label(ctx, '← road motion', sx + sw - 12, roadY0 + 16, C.muted, { align: 'right' });
@@ -306,7 +280,7 @@
     }
   }
 
-  function drawRoad(ctx, sx, sy, sw, sh, roadY0, tNow, C) {
+  function drawRoad(ctx, sx, sy, sw, sh, roadY0, tNow, C, wheelCX, bumpHpx) {
     // ground fill
     ctx.fillStyle = C.panel;
     ctx.fillRect(sx, roadY0, sw, sy + sh - roadY0);
@@ -315,11 +289,9 @@
     // The bump centre sits at (BUMP_POS_WORLD - travelled(tNow)) * pxPerUnit
     // from the wheel's screen x.
     const pxPerUnit = sw * 0.12; // world-unit -> pixels
-    const wheelCX = sx + sw * 0.58;
     const bumpDist = BUMP_POS_WORLD - travelled(tNow);
     const bumpPx = wheelCX + bumpDist * pxPerUnit;
     const bumpWpx = BUMP_HALFW * 2 * pxPerUnit;
-    const bumpHpx = Math.min(sh * 0.06, 16);
 
     // road surface: flat segments either side of the bump
     ctx.strokeStyle = C.fg; ctx.lineWidth = 1.4;
@@ -538,7 +510,7 @@
     ctx.fillStyle = C.time;
     ctx.beginPath(); ctx.arc(xRef, chassisY, 4, 0, Math.PI * 2); ctx.fill();
     const zShow = Math.abs(zNorm) < 0.005 ? 0 : zNorm;
-    CFG.label(ctx, `z = ${zShow >= 0 ? '+' : '−'}${Math.abs(zShow).toFixed(2)}`, xRef - 10, chassisY + 24, C.time, { align: 'right' });
+    CFG.label(ctx, `$z$ = ${zShow >= 0 ? '+' : '−'}${Math.abs(zShow).toFixed(2)}`, xRef - 10, chassisY + 24, C.time, { align: 'right' });
     return { readoutX: xRef, readoutY: chassisY };
   }
 

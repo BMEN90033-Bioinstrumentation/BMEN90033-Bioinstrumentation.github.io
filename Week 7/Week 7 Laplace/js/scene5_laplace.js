@@ -13,7 +13,11 @@
   const matchBtn = document.getElementById('lapMatch');
   const sub = document.getElementById('l_sub');
 
-  const w0 = 2 * Math.PI * 0.7;
+  // Signal frequency in rad/s. It lies inside both the winding slider range
+  // and the s-plane window, so the poles at a ± jω₀ are visible and the
+  // winding frequency can be brought onto them.
+  const w0 = 2;
+  const Tmax = 8;
   function signal(t, a) { return Math.exp(a * t) * Math.cos(w0 * t); }
 
   matchBtn.addEventListener('click', () => {
@@ -21,57 +25,49 @@
     drawAll();
   });
 
+  // g(t) and the weighted signal g(t) e^{-σt} on one shared axis. The axis is
+  // scaled to the weighted signal; the unweighted one is clipped by the frame
+  // where it grows beyond that range.
   function drawSig() {
     const { ctx, w, h } = CFG.setupCanvas(cSig);
     const C = CFG.colors();
     CFG.clear(ctx, w, h);
     const sigma = parseFloat(sEl.value);
     const a = parseFloat(aEl.value);
-    const padL = 34, padR = 12, padT = 54, padB = 26;
+    const padL = 58, padR = 14, padT = 62, padB = 46;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
-    const mid = (y0 + y1) / 2;
-    ctx.strokeStyle = C.gridStrong;
+    const mid = (y0 + y1) / 2, half = (y1 - y0) / 2 - 4;
+    const Y = Math.max(1, Math.exp((a - sigma) * Tmax));
+    const xOf = t => x0 + t / Tmax * (x1 - x0);
+    const yOf = v => mid - v / Y * half;
+
+    ctx.strokeStyle = C.gridStrong; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.stroke();
-    CFG.label(ctx, 't', (x0 + x1) / 2, y1 + 6, C.muted, { align: 'center' });
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+    CFG.ticks(ctx, 'bottom', [0, 2, 4, 6, 8], xOf, y1, C.muted);
+    CFG.ticks(ctx, 'left', [-Y, 0, Y], yOf, x0, C.muted, v => String(+v.toFixed(1)).replace('-', '−'));
+    CFG.label(ctx, '$t$ (s)', (x0 + x1) / 2, y1 + 24, C.muted, { align: 'center' });
     CFG.label(ctx, 'amplitude', 14, mid, C.muted, { rotate: true, align: 'center', baseline: 'middle' });
 
-    const Tmax = 8;
-    // raw signal
-    let maxV = 0;
-    for (let i = 0; i <= 200; i++) maxV = Math.max(maxV, Math.abs(signal(i / 200 * Tmax, a)));
-    maxV = Math.max(1, maxV);
-    ctx.strokeStyle = C.grey; ctx.lineWidth = 1.2;
-    ctx.setLineDash([2, 3]);
-    ctx.beginPath();
-    for (let i = 0; i <= 300; i++) {
-      const u = i / 300, t = u * Tmax;
-      const v = signal(t, a) / maxV;
-      const px = x0 + u * (x1 - x0);
-      const py = mid - v * ((y1 - y0) / 2 - 6);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.stroke();
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
+    const trace = (fn, color, lw, dash) => {
+      ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.setLineDash(dash);
+      ctx.beginPath();
+      for (let i = 0; i <= 400; i++) {
+        const t = i / 400 * Tmax;
+        if (i === 0) ctx.moveTo(xOf(t), yOf(fn(t))); else ctx.lineTo(xOf(t), yOf(fn(t)));
+      }
+      ctx.stroke();
+    };
+    trace(t => signal(t, a), C.grey, 1.2, [2, 3]);
+    trace(t => signal(t, a) * Math.exp(-sigma * t), C.time, 2, []);
+    ctx.restore();
     ctx.setLineDash([]);
 
-    // tamed signal g(t) * e^{-σt}
-    let maxVT = 0;
-    for (let i = 0; i <= 300; i++) maxVT = Math.max(maxVT, Math.abs(signal(i / 300 * Tmax, a) * Math.exp(-sigma * i / 300 * Tmax)));
-    maxVT = Math.max(1, maxVT, maxV * 0.3);
-    ctx.strokeStyle = C.time; ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= 400; i++) {
-      const u = i / 400, t = u * Tmax;
-      const v = signal(t, a) * Math.exp(-sigma * t) / maxVT;
-      const px = x0 + u * (x1 - x0);
-      const py = mid - v * ((y1 - y0) / 2 - 6);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-
-    CFG.legend(ctx, x0 + 8, y0 - 12, [
-      { mark: 'dash', text: 'g(t)', color: C.muted },
-      { mark: 'line', text: 'g(t)·exp(−σt)', color: C.time },
+    CFG.legend(ctx, x0, y0 - 16, [
+      { mark: 'dash', text: '$g(t)$', color: C.muted },
+      { mark: 'line', text: '$g(t) e^{−σt}$', color: C.time },
     ]);
   }
 
@@ -86,12 +82,13 @@
 
     ctx.strokeStyle = C.grid;
     for (let r = 1; r <= 4; r++) { ctx.beginPath(); ctx.arc(cx, cy, r * 20, 0, Math.PI * 2); ctx.stroke(); }
+
     ctx.strokeStyle = C.gridStrong;
     // Axes stop short of the titles, which sit beyond the axis ends.
     ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w - 34, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 68); ctx.lineTo(cx, h); ctx.stroke();
 
-    const Tmax = 8, N = 700;
+    const N = 700;
     const scale = 20;
     let comX = 0, comY = 0, cnt = 0;
     const inROC = sigma > a;
@@ -110,14 +107,16 @@
       const im = g * Math.sin(ang);
       const px = cx + re * scale;
       const py = cy - im * scale;
-      if (px < -400 || px > w + 400 || py < -400 || py > h + 400) continue;
+      comX += re; comY += im; cnt++;   // every sample counts toward the centroid, on screen or not
+      if (px < -400 || px > w + 400 || py < -400 || py > h + 400) { started = false; continue; }
       if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
-      comX += re; comY += im; cnt++;
     }
     ctx.stroke();
     // Axis titles are drawn over the curve.
-    CFG.label(ctx, 'Re', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
-    CFG.label(ctx, 'Im', cx, 50, C.muted, { align: 'center', halo: true });
+    // Ring radii, in signal units
+    for (const r of [2, 4]) CFG.label(ctx, String(r), cx - r * 20, cy + 5, C.muted, { align: 'center', halo: true });
+    CFG.label(ctx, '$\\Re$', w - 10, cy, C.muted, { align: 'right', baseline: 'middle', halo: true });
+    CFG.label(ctx, '$\\Im$', cx, 50, C.muted, { align: 'center', halo: true });
 
     if (cnt > 0) {
       comX /= cnt; comY /= cnt;
@@ -138,80 +137,69 @@
     const omega = parseFloat(wEl.value);
     const a = parseFloat(aEl.value);
 
-    const cx = w / 2, cy = h / 2;
-    // map σ in [-1.5..1.5], ω in [-h range..]
-    const sScale = (w - 60) / 3.5;
-    const wScale = (h - 40) / 6;
+    // Plot frame: σ from -1.75 to 1.75, ω from -3 to 3. Tick values sit on
+    // the left and bottom edges; the axis titles sit outside the frame, jω
+    // above the vertical axis and σ to the right of the horizontal axis.
+    const fx0 = 44, fx1 = w - 34, fy0 = 30, fy1 = h - 26;
+    const cx = (fx0 + fx1) / 2, cy = (fy0 + fy1) / 2;
+    const sScale = (fx1 - fx0) / 3.5;
+    const wScale = (fy1 - fy0) / 6;
+    const xOf = v => cx + v * sScale, yOf = v => cy - v * wScale;
 
-    // Plot frame. The axis titles sit outside it: jω above the vertical
-    // axis, σ to the right of the horizontal axis.
-    const fx0 = 6, fx1 = w - 30, fy0 = 28, fy1 = h - 6;
-
-    // ROC region σ > a: fill right of x line
-    const xA = cx + a * sScale;
+    // ROC region σ > a
+    const xA = xOf(a);
     ctx.fillStyle = CFG.alpha(C.time, 0.12);
     ctx.fillRect(xA, fy0, fx1 - xA, fy1 - fy0);
     ctx.strokeStyle = CFG.alpha(C.time, 0.6); ctx.setLineDash([3, 4]);
     ctx.beginPath(); ctx.moveTo(xA, fy0); ctx.lineTo(xA, fy1); ctx.stroke();
     ctx.setLineDash([]);
-    CFG.label(ctx, 'ROC: σ > a', fx1 - 8, fy1 - 6, C.time, { align: 'right', baseline: 'bottom' });
+    CFG.label(ctx, 'ROC: $σ > a$', fx1 - 8, fy1 - 6, C.time, { align: 'right', baseline: 'bottom' });
 
     // grid
     ctx.strokeStyle = C.grid;
-    for (let i = -3; i <= 3; i++) {
-      const x = cx + i * sScale / 2;
-      ctx.beginPath(); ctx.moveTo(x, fy0); ctx.lineTo(x, fy1); ctx.stroke();
+    for (let v = -1.5; v <= 1.5; v += 0.5) {
+      ctx.beginPath(); ctx.moveTo(xOf(v), fy0); ctx.lineTo(xOf(v), fy1); ctx.stroke();
     }
-    for (let i = -2; i <= 3; i++) {
-      const y = cy + i * wScale;
-      ctx.beginPath(); ctx.moveTo(fx0, y); ctx.lineTo(fx1, y); ctx.stroke();
+    for (let v = -3; v <= 3; v++) {
+      ctx.beginPath(); ctx.moveTo(fx0, yOf(v)); ctx.lineTo(fx1, yOf(v)); ctx.stroke();
     }
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(fx0, cy); ctx.lineTo(fx1, cy); ctx.stroke();
+    CFG.ticks(ctx, 'bottom', [-1.5, -1, -0.5, 0, 0.5, 1, 1.5], xOf, fy1, C.muted);
+    CFG.ticks(ctx, 'left', [-2, 0, 2], yOf, fx0, C.muted);
 
-    // jω axis, Fourier slice highlight
+    // jω axis, the Fourier line
     ctx.strokeStyle = C.real; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(cx, fy0); ctx.lineTo(cx, fy1); ctx.stroke();
-    CFG.label(ctx, 'jω', cx, fy0 - 6, C.real, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$jω$', cx, fy0 - 6, C.real, { align: 'center', baseline: 'bottom' });
     // The caption sits on the side of the axis away from the ROC boundary.
-    if (a > 0) CFG.label(ctx, 'σ = 0: Fourier transform', cx - 8, fy0 + 6, C.real, { align: 'right' });
-    else CFG.label(ctx, 'σ = 0: Fourier transform', cx + 8, fy0 + 6, C.real);
-    CFG.label(ctx, 'σ', fx1 + 8, cy, C.muted, { baseline: 'middle' });
+    if (a > 0) CFG.label(ctx, '$σ = 0$: Fourier transform', cx - 8, fy0 + 6, C.real, { align: 'right' });
+    else CFG.label(ctx, '$σ = 0$: Fourier transform', cx + 8, fy0 + 6, C.real);
+    CFG.label(ctx, '$σ$', fx1 + 10, cy, C.muted, { baseline: 'middle' });
 
-    // pole at a ± j w0
-    drawPole(ctx, cx + a * sScale, cy - w0 * wScale, C);
-    drawPole(ctx, cx + a * sScale, cy + w0 * wScale, C);
+    // poles of G(s) at a ± jω₀
+    CFG.mark(ctx, 'pole', xOf(a), yOf(w0), C.imag, 6);
+    CFG.mark(ctx, 'pole', xOf(a), yOf(-w0), C.imag, 6);
 
     // current s
-    const sx = cx + sigma * sScale;
-    const sy = cy - omega * wScale;
-    ctx.strokeStyle = C.accent; ctx.setLineDash([2, 3]);
+    const sx = xOf(sigma), sy = yOf(omega);
+    ctx.strokeStyle = C.accent; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
     ctx.beginPath(); ctx.moveTo(sx, cy); ctx.lineTo(sx, sy); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = C.accent;
     ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
-    // The label goes below the point near the top caption, and on whichever
-    // side keeps it clear of the jω axis and the ROC boundary. If neither
-    // side is clear it is drawn on a halo.
-    const sTxt = `s = ${sigma.toFixed(2)} + j${omega.toFixed(2)}`.replace('-', '−');
-    ctx.font = CFG.FONT;
-    const sLW = ctx.measureText(sTxt).width;
-    const sLblY = sy < 72 ? sy + 10 : sy - 22;
+    // The label sits beside the point, on whichever side keeps it clear of
+    // the jω axis and the ROC boundary. If neither side is clear it is drawn
+    // on a halo.
+    const sTxt = `$s$ = ${sigma.toFixed(2)} + $j$${omega.toFixed(2)}`.replace('-', '−');
+    const sLW = 150;
+    const sLblY = sy < fy0 + 50 ? sy + 10 : sy - 24;
     const crossed = (l, r) => l < fx0 || r > fx1 || [cx, xA].some(v => v > l - 4 && v < r + 4);
     const rightOK = !crossed(sx + 10, sx + 10 + sLW);
     const leftOK = !crossed(sx - 10 - sLW, sx - 10);
     const onLeft = !rightOK && (leftOK || sx > w - 200);
     CFG.label(ctx, sTxt, onLeft ? sx - 10 : sx + 10, sLblY, C.accent,
       { align: onLeft ? 'right' : 'left', halo: !rightOK && !leftOK });
-  }
-
-  function drawPole(ctx, x, y, C) {
-    ctx.strokeStyle = C.imag; ctx.lineWidth = 2;
-    const r = 6;
-    ctx.beginPath();
-    ctx.moveTo(x - r, y - r); ctx.lineTo(x + r, y + r);
-    ctx.moveTo(x - r, y + r); ctx.lineTo(x + r, y - r);
-    ctx.stroke();
   }
 
   function drawAll(tAnim) {

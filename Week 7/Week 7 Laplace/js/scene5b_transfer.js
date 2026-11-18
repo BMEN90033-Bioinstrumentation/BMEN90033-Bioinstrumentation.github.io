@@ -32,7 +32,7 @@
       yTex: 'Y(s) = \\dfrac{X(s)}{s + 1}',
       tMax: 14,
       yMax: 2.3,
-      inputDesc: 'x(t) = sin(0.5 t) + sin(4 t)',
+      inputTex: 'x(t) = \\sin 0.5t + \\sin 4t',
     },
     resonator: {
       name: 'Lightly damped, second order',
@@ -48,7 +48,7 @@
       yTex: 'Y(s) = \\dfrac{X(s)}{(s+0.2)^{2} + 1.4^{2}}',
       tMax: 20,
       yMax: 3.4,
-      inputDesc: 'x(t) = sin(0.5 t) + sin(1.4 t) + sin(2.5 t)',
+      inputTex: 'x(t) = \\sin 0.5t + \\sin 1.4t + \\sin 2.5t',
     },
     notch: {
       name: 'Notch, zeros on the jω axis',
@@ -64,7 +64,7 @@
       yTex: 'Y(s) = \\dfrac{(s^{2}+1)\\,X(s)}{(s+0.3)^{2} + 1}',
       tMax: 18,
       yMax: 3.4,
-      inputDesc: 'x(t) = sin(0.5 t) + sin(1.0 t) + sin(2.0 t)',
+      inputTex: 'x(t) = \\sin 0.5t + \\sin t + \\sin 2t',
     },
     integrator: {
       name: 'Integrator, pole at the origin',
@@ -79,7 +79,7 @@
       yTex: 'Y(s) = \\dfrac{X(s)}{s}',
       tMax: 14,
       yMax: 1.8,
-      inputDesc: 'x(t) = cos(t) + 0.5 cos(3 t)',
+      inputTex: 'x(t) = \\cos t + 0.5\\cos 3t',
     },
   };
   let cur = 'lowpass';
@@ -159,7 +159,7 @@
 
     const sys = SYSTEMS[cur];
     const span = 2.2;
-    const padL = 16, padR = 30, padT = 70, padB = 40;
+    const padL = 40, padR = 30, padT = 70, padB = 58;
     const x0 = padL, x1 = w - padR, y0 = padT, y1 = h - padB;
     const bw = x1 - x0, bh = y1 - y0;
     const xOf = re => x0 + (re + span) / (2 * span) * bw;
@@ -173,11 +173,13 @@
     // grid
     ctx.strokeStyle = C.grid;
     for (let k = -2; k <= 2; k++) {
-      const xv = xOf(k * span / 2);
+      const xv = xOf(k);
       ctx.beginPath(); ctx.moveTo(xv, y0); ctx.lineTo(xv, y1); ctx.stroke();
-      const yv = yOf(k * span / 2);
+      const yv = yOf(k);
       ctx.beginPath(); ctx.moveTo(x0, yv); ctx.lineTo(x1, yv); ctx.stroke();
     }
+    CFG.ticks(ctx, 'bottom', [-2, -1, 0, 1, 2], xOf, y1, C.muted);
+    CFG.ticks(ctx, 'left', [-2, -1, 0, 1, 2], yOf, x0, C.muted);
     // axes
     ctx.strokeStyle = C.gridStrong;
     ctx.lineWidth = 1;
@@ -185,8 +187,8 @@
     ctx.beginPath(); ctx.moveTo(xOf(0), y0); ctx.lineTo(xOf(0), y1); ctx.stroke();
 
     // axis labels (σ right end, jω top end, placed just outside the plot)
-    CFG.label(ctx, 'σ',  x1 + 8, yOf(0), C.muted, { baseline: 'middle' });
-    CFG.label(ctx, 'jω', xOf(0), y0 - 6, C.muted, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$σ$',  x1 + 10, yOf(0), C.muted, { baseline: 'middle' });
+    CFG.label(ctx, '$jω$', xOf(0), y0 - 6, C.muted, { align: 'center', baseline: 'bottom' });
 
     // Input-frequency tick marks on the jω axis with their ω values.
     ctx.strokeStyle = C.accent;
@@ -204,33 +206,19 @@
     for (const c of sys.comps) {
       const py = yOf(c.w);
       if (py < y0 || py > y1) continue;
-      CFG.label(ctx, `ω = ${c.w}`, xOf(0) + 12, py, C.accent, { baseline: 'middle' });
+      CFG.label(ctx, `$ω$ = ${c.w}`, xOf(0) + 12, py, C.accent, { baseline: 'middle', halo: true });
     }
 
     // zeros
-    ctx.lineWidth = 2.2;
-    ctx.strokeStyle = C.time;
-    for (const z of sys.zeros) {
-      const px = xOf(z.re), py = yOf(z.im);
-      ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.stroke();
-    }
+    for (const z of sys.zeros) CFG.mark(ctx, 'zero', xOf(z.re), yOf(z.im), C.time);
     // poles
-    ctx.lineWidth = 2.4;
-    ctx.strokeStyle = C.imag;
-    for (const p of sys.poles) {
-      const px = xOf(p.re), py = yOf(p.im);
-      const r = 7;
-      ctx.beginPath();
-      ctx.moveTo(px - r, py - r); ctx.lineTo(px + r, py + r);
-      ctx.moveTo(px - r, py + r); ctx.lineTo(px + r, py - r);
-      ctx.stroke();
-    }
+    for (const p of sys.poles) CFG.mark(ctx, 'pole', xOf(p.re), yOf(p.im), C.imag);
 
     // bottom legend row
-    CFG.legend(ctx, x0, y1 + 20, [
+    CFG.legend(ctx, x0, y1 + 40, [
       { mark: 'pole', text: 'poles', color: C.imag },
       { mark: 'zero', text: 'zeros', color: C.time },
-      { mark: 'dash', text: 'input ω', color: C.accent },
+      { mark: 'dash', text: 'input $ω$', color: C.accent },
     ]);
   }
 
@@ -249,7 +237,7 @@
 
     // Leave room at the top for the .title/.sub HTML overlays and a label
     // row inside the canvas for each lane; extra bottom padding for the t axis.
-    const padL = 48, padR = 18, padT = 78, padB = 46;
+    const padL = 58, padR = 18, padT = 78, padB = 48;
     const labelLane = 20;  // per-lane header strip above each lane
     const midGap = 26;
     const x0 = padL, x1 = w - padR;
@@ -263,8 +251,8 @@
     function plotLane(y0, y1, color, headLabel, headDetail, comps) {
       // header strip just above the trace box (baseline 'middle' centers it on the strip)
       const headY = y0 - labelLane / 2;
-      CFG.label(ctx, headLabel,  x0,      headY, color,   { baseline: 'middle' });
-      CFG.label(ctx, headDetail, x0 + 44, headY, C.muted, { baseline: 'middle' });
+      const hw = CFG.label(ctx, headLabel, x0, headY, color, { baseline: 'middle' });
+      CFG.label(ctx, headDetail, x0 + hw + 10, headY, C.muted, { baseline: 'middle' });
 
       const mid = (y0 + y1) / 2;
       const amp = (y1 - y0) / 2 - 4;
@@ -303,8 +291,8 @@
       ctx.stroke();
     }
 
-    plotLane(topY0, topY1, C.real, 'x(t)',  'input',  sys.comps);
-    plotLane(botY0, botY1, C.imag, 'y(t)',  'output, steady state',    yOut);
+    plotLane(topY0, topY1, C.real, '$x(t)$', 'input', sys.comps);
+    plotLane(botY0, botY1, C.imag, '$y(t)$', 'output, steady state', yOut);
 
     // shared t axis ticks
     ctx.strokeStyle = C.gridStrong;
@@ -314,9 +302,9 @@
       ctx.beginPath(); ctx.moveTo(px, botY1); ctx.lineTo(px, botY1 + 4); ctx.stroke();
       CFG.label(ctx, t.toFixed(1).replace('.0', ''), px, botY1 + 6, C.muted, { align: 'center' });
     }
-    CFG.label(ctx, 't (s)', (x0 + x1) / 2, botY1 + 24, C.muted, { align: 'center' });
+    CFG.label(ctx, '$t$ (s)', (x0 + x1) / 2, botY1 + 26, C.muted, { align: 'center' });
 
-    ioSub.textContent = sys.inputDesc;
+    if (ioSub.dataset.tex !== sys.inputTex) { ioSub.dataset.tex = sys.inputTex; renderInto(ioSub, sys.inputTex, false); }
   }
 
   function drawAll() {

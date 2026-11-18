@@ -150,8 +150,8 @@
       ctx.beginPath(); ctx.moveTo(px, leftBase); ctx.lineTo(px, leftBase + 4); ctx.stroke();
       CFG.label(ctx, String(k), px, leftBase + 7, C.muted, { align: 'center' });
     }
-    CFG.label(ctx, 't (s)', (leftX0 + leftX1) / 2, leftBase + 28, C.muted, { align: 'center' });
-    CFG.label(ctx, 'g(t)', leftX0 - 26, (leftTop + leftBase) / 2, C.time, { rotate: true, align: 'center', baseline: 'middle' });
+    CFG.label(ctx, '$t$ (s)', (leftX0 + leftX1) / 2, leftBase + 28, C.muted, { align: 'center' });
+    CFG.label(ctx, '$g(t)$', leftX0 - 26, (leftTop + leftBase) / 2, C.time, { rotate: true, align: 'center', baseline: 'middle' });
 
     // The signal itself (traces in during stage 0, then stays)
     const drawN = Math.max(2, Math.floor(N * drawProgress));
@@ -196,8 +196,8 @@
       // on the side of the guide that stays inside the time-domain plot.
       const flip = px > (leftX0 + leftX1) / 2;
       const lo = { align: flip ? 'right' : 'left' };
-      CFG.label(ctx, `t₀ = ${tSlice.toFixed(2)}`, px + (flip ? -8 : 8), padT + 6, C.accent, lo);
-      CFG.label(ctx, `g(t₀) = ${v.toFixed(2)}`, px + (flip ? -8 : 8), padT + 24, C.accent, lo);
+      CFG.label(ctx, `$t_0$ = ${tSlice.toFixed(2)} s`, px + (flip ? -8 : 8), padT + 6, C.accent, lo);
+      CFG.label(ctx, `$g(t_0)$ = ${v.toFixed(2)}`, px + (flip ? -8 : 8), padT + 24, C.accent, lo);
     }
 
     // ============ RIGHT: complex plane ============
@@ -212,8 +212,8 @@
     ctx.strokeStyle = C.gridStrong;
     ctx.beginPath(); ctx.moveTo(rightCx - R - 12, rightCy); ctx.lineTo(rightCx + R + 12, rightCy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(rightCx, rightCy - R - 12); ctx.lineTo(rightCx, rightCy + R + 12); ctx.stroke();
-    CFG.label(ctx, 'Re', rightCx + R + 16, rightCy, C.muted, { baseline: 'middle' });
-    CFG.label(ctx, 'Im', rightCx, rightCy - R - 14, C.muted, { align: 'center', baseline: 'bottom' });
+    CFG.label(ctx, '$\\Re$', rightCx + R + 16, rightCy, C.muted, { baseline: 'middle' });
+    CFG.label(ctx, '$\\Im$', rightCx, rightCy - R - 14, C.muted, { align: 'center', baseline: 'bottom' });
 
     // reference unit circle (faint, only visible from stage 1 onward)
     ctx.strokeStyle = CFG.ink(0.3 * entered1);
@@ -248,7 +248,7 @@
       ctx.fillStyle = C.real;
       ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.fill();
       // legend
-      CFG.label(ctx, 'exp(−j2πft), radius 1', rightCx, rightCy + R + 18, C.real, { align: 'center' });
+      CFG.label(ctx, '$e^{−j2πft}$, radius 1', rightCx, rightCy + R + 18, C.real, { align: 'center' });
       ctx.restore();
     }
 
@@ -309,8 +309,8 @@
       ctx.fillStyle = C.accent;
       ctx.beginPath(); ctx.arc(px, py, 5.5, 0, Math.PI * 2); ctx.fill();
 
-      CFG.label(ctx, `radius = g(t₀) = ${gVal.toFixed(2)}`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
-      CFG.label(ctx, 'point = g(t₀)·exp(−j2πft₀)', rightCx, rightCy + R + 36, C.muted, { align: 'center' });
+      CFG.label(ctx, `radius = $g(t_0)$ = ${gVal.toFixed(2)}`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
+      CFG.label(ctx, 'point = $g(t_0) e^{−j2πft_0}$', rightCx, rightCy + R + 36, C.muted, { align: 'center' });
       ctx.restore();
     }
 
@@ -382,18 +382,13 @@
         prevX = fx; prevY = fy;
       }
 
-      CFG.label(ctx, `g(t)·exp(−j2πft), f = ${fVal.toFixed(2)} Hz`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
-      CFG.label(ctx, `turns = f·T = ${(fVal * Tmax).toFixed(2)}`, rightCx, rightCy + R + 36, C.muted, { align: 'center' });
+      CFG.label(ctx, `$g(t) e^{−j2πft}$, $f$ = ${fVal.toFixed(2)} Hz`, rightCx, rightCy + R + 18, C.accent, { align: 'center' });
+      CFG.label(ctx, `turns = $fT$ = ${(fVal * Tmax).toFixed(2)}`, rightCx, rightCy + R + 36, C.muted, { align: 'center' });
       ctx.restore();
     }
 
     // Section headers
-    ctx.save();
-    ctx.font = CFG.FONT;
-    ctx.fillStyle = C.muted;
-    ctx.textAlign = 'center';
-    ctx.fillText('time domain', (leftX0 + leftX1) / 2, padT - 14);
-    ctx.restore();
+    CFG.label(ctx, 'time domain', (leftX0 + leftX1) / 2, padT - 14, C.muted, { align: 'center', baseline: 'bottom' });
 
     // Stage caption
     let cap = '';
