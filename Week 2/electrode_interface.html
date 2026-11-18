@@ -52,15 +52,15 @@
             <h1 class="hero">The Ag/AgCl electrode interface</h1>
             <p class="sub">A biopotential electrode converts ionic current in tissue into electronic current in a
                 metal lead. In the silver/silver chloride electrode the conversion takes place through a reversible
-                redox reaction at the boundary between a silver chloride layer and the electrolyte. This page
-                develops the structure of the interface, the direction of charge transfer for each direction of the
-                reaction, and the half-cell potential that the interface establishes.</p>
+                redox reaction where silver, silver chloride and the electrolyte meet. This page develops the
+                structure of the interface at atomic scale, the relation between current and overpotential, the
+                half-cell potential, and the equivalent circuit seen by the amplifier.</p>
             <div class="tags">
                 <span class="field-tag">half-cell</span>
                 <span class="field-tag">redox</span>
-                <span class="field-tag">charge transfer</span>
+                <span class="field-tag">Butler-Volmer</span>
                 <span class="field-tag">Nernst equation</span>
-                <span class="field-tag">non-polarisable</span>
+                <span class="field-tag">electrode impedance</span>
             </div>
         </div>
         <div class="scroll-hint"><span>scroll</span><span class="line"></span></div>
@@ -72,29 +72,43 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">01</span><span>the interface</span></div>
             <h2>Structure of the electrode-electrolyte boundary</h2>
 
-            <p class="lead">The electrode is a silver conductor coated with a thin layer of silver chloride, in
-                contact with an electrolyte containing $\text{Cl}^-$, $\text{Na}^+$ and $\text{K}^+$. In the metal and
-                the lead wire charge is carried by electrons; in the electrolyte it is carried by ions.</p>
+            <p class="lead">The electrode is silver metal carrying a layer of silver chloride, in contact with an
+                electrolyte containing $\text{Cl}^-$, $\text{Na}^+$ and $\text{K}^+$. In the metal charge is carried
+                by electrons; in the electrolyte it is carried by ions.</p>
 
             <p>Electrons do not enter the electrolyte, so current crosses the boundary only through a reaction that
-                exchanges charge between the two carriers. For Ag/AgCl that reaction is</p>
+                exchanges charge between the two carriers:</p>
 
             <div class="eq-block">$$\text{AgCl} + e^- \;\rightleftharpoons\; \text{Ag} + \text{Cl}^-$$</div>
 
+            <p>The scene shows a $5.7 \times 5.7\,\text{nm}$ patch of the surface with one sphere per atom or
+                ion.</p>
+
             <ul class="bullets">
-                <li><strong>Ag metal</strong>: the electronic conductor, connected by the lead to the amplifier
-                    input;</li>
-                <li><strong>AgCl layer</strong>: a sparingly soluble salt on the silver surface, where the reaction
-                    takes place;</li>
-                <li><strong>electrolyte</strong>: tissue fluid or electrode gel. $\text{Cl}^-$ takes part in the
-                    reaction; $\text{Na}^+$ and $\text{K}^+$ carry part of the ionic current but do not react at the
-                    surface.</li>
+                <li><strong>Ag metal</strong>: face-centred cubic silver, the electronic conductor. Electrons reach
+                    it from the lead wire.</li>
+                <li><strong>AgCl grains</strong>: a rock-salt lattice of $\text{Ag}^+$ and $\text{Cl}^-$. Silver
+                    chloride conducts electrons poorly, so the layer is granular and porous in practice, and the
+                    pores expose silver to the electrolyte.</li>
+                <li><strong>reaction sites</strong>: the base of a grain edge, where silver, silver chloride and
+                    electrolyte meet. In reduction an electron converts a lattice $\text{Ag}^+$ to a silver atom and
+                    the paired $\text{Cl}^-$ leaves through the pore. In oxidation a $\text{Cl}^-$ arrives, a
+                    silver atom gives up an electron, and the grain grows by one formula unit.</li>
+                <li><strong>electrolyte</strong>: at $150\,\text{mM}$ there are 0.09 ions of each sign per
+                    $\text{nm}^3$, so the patch holds about 16 $\text{Cl}^-$. The pale shells mark the hydrated
+                    radius. $\text{Na}^+$ and $\text{K}^+$ do not react at the surface.</li>
             </ul>
 
+            <p>At equilibrium both reactions proceed at the same rate and no net current flows. A net current
+                biases the ratio. The grains shrink during reduction and grow during oxidation, because one AgCl
+                unit occupies 2.5 times the volume of the silver atom it replaces. Sustained cathodic current
+                therefore consumes the layer, after which the electrode behaves as bare silver.</p>
+
             <div class="callout">
-                The scene is schematic and not to scale. Each particle follows a damped random walk with a drift set
-                by the reaction direction. The motion indicates the direction of transport; it does not represent
-                real ionic velocities.
+                Radii, lattice spacings and ion counts are to scale. Three simplifications apply. Water is omitted:
+                about 5700 molecules would fill the electrolyte shown. The AgCl layer is a few lattice planes thick,
+                where a real layer is micrometres thick. The time scale is not physical: ions diffuse about
+                $10^9$ times faster than drawn, and the ratio of forward to reverse events is illustrative.
             </div>
         </div>
 
@@ -113,9 +127,9 @@
                         <span class="val" data-param="speed"></span>
                     </span>
                     <span class="slider-group">
-                        <span class="lab">ion density</span>
-                        <input type="range" data-param="ions" min="5" max="40" step="5">
-                        <span class="val" data-param="ions"></span>
+                        <span class="lab">concentration</span>
+                        <input type="range" data-param="conc" min="50" max="500" step="50">
+                        <span class="val" data-param="conc"></span>
                     </span>
                     <span class="seg">
                         <button class="seg-btn" data-action="pause">pause</button>
@@ -123,16 +137,25 @@
                     </span>
                 </div>
                 <div class="plot-box scene3d">
-                    <div class="label">3D scene · <b>Ag/AgCl electrode in electrolyte</b></div>
+                    <div class="label">3D scene · <b>Ag/AgCl surface in chloride electrolyte, to scale</b></div>
                     <div class="three-host" id="scene-interface"></div>
                     <div class="hint">drag to rotate · scroll to zoom</div>
                 </div>
                 <div class="legend">
+                    <span><span class="dot" style="background:var(--c-ag)"></span>Ag atom</span>
+                    <span><span class="dot" style="background:var(--c-agcl)"></span>$\text{Ag}^+$ in AgCl</span>
                     <span><span class="dot" style="background:var(--c-cl)"></span>$\text{Cl}^-$</span>
                     <span><span class="dot" style="background:var(--c-na)"></span>$\text{Na}^+$</span>
                     <span><span class="dot" style="background:var(--c-k)"></span>$\text{K}^+$</span>
-                    <span><span class="dot" style="background:var(--c-e)"></span>$e^-$ in metal and wire</span>
-                    <span><span class="sw" style="background:var(--c-i)"></span>conventional current</span>
+                    <span><span class="dot" style="background:var(--c-e)"></span>$e^-$ in transit</span>
+                    <span><span class="dot" style="background:var(--c-i)"></span>reaction event</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">state</span><span class="v" data-out="s-state"></span></div>
+                    <div class="item"><span class="k">AgCl units</span><span class="v" data-out="s-agcl"></span></div>
+                    <div class="item"><span class="k">net electrons to lead</span><span class="v" data-out="s-net"></span></div>
+                    <div class="item"><span class="k">ions shown</span><span class="v" data-out="s-ions"></span></div>
+                    <div class="item"><span class="k">Debye length</span><span class="v" data-out="s-debye"></span></div>
                 </div>
             </div>
         </div>
@@ -142,51 +165,48 @@
     <section class="scene" id="sec-transfer">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">02</span><span>charge transfer</span></div>
-            <h2>Reduction, oxidation and the direction of current</h2>
+            <h2>Current, overpotential and the Butler-Volmer equation</h2>
 
-            <p class="lead">The external circuit sets the direction of the reaction. Each reaction event transfers
-                one electron, so the current through the interface is proportional to the net reaction rate:</p>
+            <p class="lead">Each reaction event transfers one electron, so the current through the interface is
+                proportional to the net reaction rate:</p>
 
             <div class="eq-block">$$i = zF\,\frac{dn}{dt}, \qquad z = 1$$</div>
 
-            <p>where $F = 96\,485\,\text{C/mol}$ is the Faraday constant and $dn/dt$ is the net molar rate of
-                reaction. Three cases arise:</p>
+            <p>where $F = 96\,485\,\text{C/mol}$ and $dn/dt$ is the net molar rate of reaction. The plot follows
+                the IUPAC sign convention for the current density $j = i/A$:</p>
 
             <ul class="bullets">
-                <li><strong>reduction</strong> ($\rightarrow$, cathodic): electrons from the wire reduce AgCl to Ag and release
-                    $\text{Cl}^-$ into the electrolyte. Conventional current flows from the electrolyte into the
-                    electrode and out along the wire towards the amplifier.</li>
-                <li><strong>oxidation</strong> ($\leftarrow$, anodic): $\text{Cl}^-$ combines with Ag to form AgCl and
-                    releases an electron into the metal. Conventional current flows in along the wire and out of the
-                    electrode into the electrolyte, and $\text{Cl}^-$ drifts towards the surface.</li>
-                <li><strong>equilibrium</strong>: the forward and reverse rates are equal, the net current is zero
-                    and the interface rests at its equilibrium potential.</li>
+                <li><strong>oxidation</strong> (anodic, $j &gt; 0$): $\text{Cl}^-$ combines with Ag to form AgCl and
+                    releases an electron into the metal. Conventional current flows from the lead into the
+                    electrolyte.</li>
+                <li><strong>reduction</strong> (cathodic, $j &lt; 0$): electrons from the lead reduce AgCl to Ag
+                    and release $\text{Cl}^-$. Conventional current flows from the electrolyte into the lead.</li>
+                <li><strong>equilibrium</strong>: the two partial currents are equal and opposite, each of
+                    magnitude $j_0$, the exchange current density.</li>
             </ul>
 
-            <p>The plot follows the IUPAC sign convention: anodic current, which oxidises the electrode, is
-                positive, and cathodic current is negative. It shows the current density $j = i/A$.</p>
+            <p>A net current requires the electrode potential to depart from equilibrium by the charge-transfer
+                overpotential $\eta$. The anodic partial current rises exponentially with $\eta$ and the cathodic
+                partial current falls. For a one-electron reaction with symmetric transfer coefficients,</p>
 
-            <p>When net current flows the electrode potential departs from equilibrium by the charge-transfer
-                overpotential $\eta$. For a one-electron reaction with symmetric transfer coefficients the
-                Butler-Volmer equation relates the two:</p>
+            <div class="eq-block">$$j = j_a + j_c = j_0\left[e^{F\eta/2RT} - e^{-F\eta/2RT}\right] = 2j_0 \sinh\frac{F\eta}{2RT}$$</div>
 
-            <div class="eq-block">$$j = j_0\left[e^{F\eta/2RT} - e^{-F\eta/2RT}\right] = 2j_0 \sinh\frac{F\eta}{2RT}$$</div>
-
-            <p>where $j_0$ is the exchange current density, the equal and opposite rate of the forward and reverse
-                reactions at equilibrium. For $|\eta| \ll RT/F$ the relation is linear,</p>
+            <p>For $|\eta| \ll RT/F = 25.7\,\text{mV}$ the relation is linear and defines the charge-transfer
+                resistance:</p>
 
             <div class="eq-block">$$\eta \approx R_\text{ct}\, j, \qquad R_\text{ct} = \frac{RT}{F j_0},
                 \qquad E = E_\text{eq} + \eta$$</div>
 
-            <p>with $E_\text{eq}$ given by the Nernst equation of section 03 at the selected chloride
-                activity.</p>
+            <p>with $E_\text{eq}$ given by the Nernst equation of section 03.</p>
 
             <div class="callout">
-                A large $j_0$ gives a small charge-transfer resistance, so the potential changes little when current
-                flows. Ag/AgCl is therefore nearly non-polarisable. The slider value of $j_0$ is representative
-                and is not a measured constant. At the default $j_0 = 1\,\text{mA/cm}^2$,
-                $R_\text{ct} \approx 26\,\Omega\,\text{cm}^2$ and a drive of $50\,\mu\text{A/cm}^2$ produces an
-                overpotential of about $1.3\,\text{mV}$.
+                A large $j_0$ gives a steep curve: current flows with almost no change in potential, and the
+                electrode is non-polarisable. A small $j_0$ gives a flat curve near the origin: the potential
+                must shift by hundreds of millivolts before appreciable current flows, and the electrode is
+                polarisable. Ag/AgCl in chloride solution lies near the first limit. The slider value of $j_0$ is
+                representative and is not a measured constant. At $j_0 = 1\,\text{mA/cm}^2$,
+                $R_\text{ct} = 25.7\,\Omega\,\text{cm}^2$ and a drive of $100\,\mu\text{A/cm}^2$ shifts the
+                potential by $2.6\,\text{mV}$.
             </div>
         </div>
 
@@ -200,36 +220,34 @@
                     </span>
                     <span class="divider"></span>
                     <span class="slider-group">
-                        <span class="lab">speed</span>
-                        <input type="range" data-param="speed" min="0.2" max="3" step="0.1">
-                        <span class="val" data-param="speed"></span>
+                        <span class="lab">drive $|j|$ (log)</span>
+                        <input type="range" data-param="lj" min="0" max="3" step="0.05">
+                        <span class="val" data-param="lj"></span>
                     </span>
                     <span class="slider-group">
-                        <span class="lab">$j_0$ (log scale)</span>
-                        <input type="range" data-param="lj0" min="1" max="4" step="0.05">
+                        <span class="lab">$j_0$ (log)</span>
+                        <input type="range" data-param="lj0" min="0" max="3.5" step="0.05">
                         <span class="val" data-param="lj0"></span>
                     </span>
-                    <span class="seg">
-                        <button class="seg-btn" data-action="pause">pause</button>
-                        <button class="seg-btn" data-action="reset">reset</button>
-                    </span>
                 </div>
-                <div class="plot-box trace">
-                    <div class="label">electrode current · <b>last 6 s</b></div>
-                    <svg class="bode" id="plot-current"></svg>
+                <div class="plot-box bv">
+                    <div class="label">polarisation curve · <b>current density against overpotential at 25 °C</b></div>
+                    <svg class="bode" id="plot-bv"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-i)"></span>current density $j$ (IUPAC)</span>
-                    <span>$j &gt; 0$: anodic, net oxidation</span>
-                    <span>$j &lt; 0$: cathodic, net reduction</span>
+                    <span><span class="sw" style="background:var(--c-i)"></span>net current $j$</span>
+                    <span><span class="sw dash" style="border-top-color:var(--c-i)"></span>partial currents $j_a &gt; 0$, $j_c &lt; 0$</span>
+                    <span><span class="sw dash" style="border-top-style:dotted"></span>linear approximation $\eta / R_\text{ct}$</span>
+                    <span><span class="dot" style="background:var(--c-i)"></span>operating point</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">mode</span><span class="v" data-out="mode"></span></div>
                     <div class="item"><span class="k">net reaction</span><span class="v" data-out="reaction"></span></div>
                     <div class="item"><span class="k">$j$</span><span class="v" data-out="j"></span></div>
                     <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
-                    <div class="item"><span class="k">$E$ vs SHE</span><span class="v" data-out="e"></span></div>
+                    <div class="item"><span class="k">$R_\text{ct}\,j$</span><span class="v" data-out="eta-lin"></span></div>
                     <div class="item"><span class="k">$R_\text{ct}$</span><span class="v" data-out="rct"></span></div>
+                    <div class="item"><span class="k">$E$ vs SHE</span><span class="v" data-out="e"></span></div>
                 </div>
             </div>
         </div>
@@ -239,7 +257,7 @@
     <section class="scene" id="sec-nernst">
         <div class="copy">
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>half-cell potential</span></div>
-            <h2>The Nernst equation and electrode stability</h2>
+            <h2>The Nernst equation and the offset between two electrodes</h2>
 
             <p class="lead">At equilibrium the potential of the interface, measured against the standard hydrogen
                 electrode (SHE), depends on the chloride activity in the electrolyte. With unit activity for the
@@ -251,18 +269,27 @@
                 chloride activity raises $E$ by $59.2\,\text{mV}$. In body fluid, with $a_{\text{Cl}^-} \approx 0.08$,
                 the half-cell potential is about $+0.29\,\text{V}$.</p>
 
+            <p>A biopotential is measured between two electrodes, so the amplifier sees the difference of two
+                half-cell potentials in series with the signal:</p>
+
+            <div class="eq-block">$$\Delta E = E_1 - E_2 = \frac{RT}{F}\ln\frac{a_2}{a_1}$$</div>
+
             <ul class="bullets">
-                <li>The potential is fixed by the chloride activity, which is stable in tissue fluid and in
-                    chloride-based electrode gels.</li>
-                <li>Two identical electrodes in the same electrolyte have equal half-cell potentials, which cancel in
-                    a differential measurement. Any mismatch appears as a DC offset at the amplifier input.</li>
+                <li>Two identical electrodes in the same electrolyte have equal half-cell potentials and
+                    $\Delta E = 0$.</li>
+                <li>A difference in chloride activity, from gel composition, drying or sweat, leaves a DC offset
+                    that is far larger than a $1\,\text{mV}$ ECG. A factor of 1.5 in activity gives
+                    $10.4\,\text{mV}$.</li>
+                <li>The offset is removed by AC coupling or absorbed by amplifier headroom. ANSI/AAMI EC12 limits
+                    the offset of a disposable electrode pair to $100\,\text{mV}$, and ECG amplifier standards
+                    require operation with offsets up to $\pm 300\,\text{mV}$.</li>
             </ul>
 
             <div class="callout">
-                Ag/AgCl approximates a non-polarisable electrode: the reaction exchanges charge readily, so current
-                crosses the interface with little change in electrode potential. A polarisable electrode, such as
-                platinum, passes current mainly by charging the double-layer capacitance, and its potential shifts
-                with the charge passed.
+                The offset is harmless while it is constant. Movement of the electrode disturbs the charge
+                distribution at the interface and changes the half-cell potential for a short time; the change
+                passes through the amplifier as motion artefact. The stable chloride activity of a gelled Ag/AgCl
+                electrode keeps this change small.
             </div>
         </div>
 
@@ -270,9 +297,14 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">$a_{\text{Cl}^-}$ (log scale)</span>
+                        <span class="lab">electrode 1 $a_{\text{Cl}^-}$ (log)</span>
                         <input type="range" data-param="lacl" min="-3" max="0" step="0.01">
                         <span class="val" data-param="lacl"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">electrode 2 $a_{\text{Cl}^-}$ (log)</span>
+                        <input type="range" data-param="lacl2" min="-3" max="0" step="0.01">
+                        <span class="val" data-param="lacl2"></span>
                     </span>
                 </div>
                 <div class="plot-box nernst">
@@ -281,13 +313,106 @@
                 </div>
                 <div class="legend">
                     <span><span class="sw" style="background:var(--c-nernst)"></span>$E(a_{\text{Cl}^-})$</span>
-                    <span>open circles: reference states</span>
-                    <span>filled: slider value</span>
+                    <span><span class="dot" style="background:var(--c-nernst)"></span>electrode 1</span>
+                    <span><span class="dot ring"></span>electrode 2</span>
+                    <span>small open circles: reference states</span>
                 </div>
                 <div class="readout">
-                    <div class="item"><span class="k">$E$ vs SHE</span><span class="v" data-out="n-e"></span></div>
-                    <div class="item"><span class="k">$E - E^\circ$</span><span class="v" data-out="n-de"></span></div>
+                    <div class="item"><span class="k">$E_1$ vs SHE</span><span class="v" data-out="n-e"></span></div>
+                    <div class="item"><span class="k">$E_2$ vs SHE</span><span class="v" data-out="n-e2"></span></div>
+                    <div class="item"><span class="k">offset $\Delta E$</span><span class="v" data-out="n-off"></span></div>
                     <div class="item"><span class="k">slope per decade</span><span class="v" data-out="n-slope"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 04 · EQUIVALENT CIRCUIT ================= -->
+    <section class="scene" id="sec-impedance">
+        <div class="copy">
+            <div class="eyebrow"><span class="bar"></span><span class="num">04</span><span>equivalent circuit</span></div>
+            <h2>Interface impedance</h2>
+
+            <p class="lead">For small signals the interface reduces to a circuit. Charge crosses it by two parallel
+                paths: the reaction, represented by $R_\text{ct}$, and the capacitance $C_\text{dl}$ of the ionic
+                double layer that charges at the surface.</p>
+
+            <p>The half-cell potential $E_\text{hc}$ and the resistance $R_\text{s}$ of the electrolyte or gel are
+                in series with the pair:</p>
+
+            <div class="eq-block">$$Z(j\omega) = R_\text{s} + \frac{R_\text{ct}}{1 + j\omega R_\text{ct} C_\text{dl}}$$</div>
+
+            <p>For an electrode of area $A$,</p>
+
+            <div class="eq-block">$$R_\text{ct} = \frac{RT}{F j_0 A}, \qquad C_\text{dl} = c_\text{dl} A, \qquad
+                f_c = \frac{1}{2\pi R_\text{ct} C_\text{dl}} = \frac{F j_0}{2\pi RT\, c_\text{dl}}$$</div>
+
+            <ul class="bullets">
+                <li>Below $f_c$ the impedance is $R_\text{s} + R_\text{ct}$; above it the capacitor bypasses
+                    $R_\text{ct}$ and the impedance falls to $R_\text{s}$.</li>
+                <li>The double layer is about one Debye length thick, under $1\,\text{nm}$ in body fluid, which
+                    gives $c_\text{dl}$ of 10 to $40\,\mu\text{F/cm}^2$.</li>
+                <li>A larger area lowers the impedance at every frequency and leaves $f_c$ unchanged.</li>
+            </ul>
+
+            <p>With $j_0 = 1\,\text{mA/cm}^2$ the impedance is nearly constant across the ECG band of 0.05 to
+                $150\,\text{Hz}$. Reducing $j_0$ to $1\,\mu\text{A/cm}^2$, a polarisable electrode, raises
+                $R_\text{ct}$ a thousandfold and moves $f_c$ into the band, so the impedance then varies with
+                frequency by two orders of magnitude.</p>
+
+            <div class="callout">
+                The electrode impedance forms a voltage divider with the amplifier input impedance. An impedance
+                that varies across the signal band attenuates low frequencies more than high frequencies and
+                distorts the waveform, and a mismatch between two electrodes converts common-mode interference
+                into a differential signal. The circuit covers the electrode and gel only. On intact skin the
+                stratum corneum adds a larger parallel RC element in series.
+            </div>
+        </div>
+
+        <div>
+            <div class="plot-stack">
+                <div class="plot-box circuit">
+                    <div class="label">equivalent circuit · <b>electrode-electrolyte interface</b></div>
+                    <svg class="bode" id="circuit-eq"></svg>
+                </div>
+                <div class="toolbar">
+                    <span class="slider-group">
+                        <span class="lab">$j_0$ (log)</span>
+                        <input type="range" data-param="lj0" min="0" max="3.5" step="0.05">
+                        <span class="val" data-param="lj0"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">area $A$</span>
+                        <input type="range" data-param="area" min="0.2" max="3" step="0.1">
+                        <span class="val" data-param="area"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$c_\text{dl}$</span>
+                        <input type="range" data-param="cdl" min="5" max="50" step="1">
+                        <span class="val" data-param="cdl"></span>
+                    </span>
+                    <span class="slider-group">
+                        <span class="lab">$R_\text{s}$ (log)</span>
+                        <input type="range" data-param="lrs" min="1.5" max="3" step="0.05">
+                        <span class="val" data-param="lrs"></span>
+                    </span>
+                </div>
+                <div class="plot-box zmag">
+                    <div class="label">impedance magnitude · <b>$|Z|$ against frequency</b></div>
+                    <svg class="bode" id="plot-z"></svg>
+                </div>
+                <div class="legend">
+                    <span><span class="sw" style="background:var(--c-z)"></span>$|Z(f)|$</span>
+                    <span><span class="sw dash"></span>corner frequency $f_c$</span>
+                    <span><span class="sw band" style="background:var(--c-band)"></span>ECG band, 0.05 to 150 Hz</span>
+                </div>
+                <div class="readout">
+                    <div class="item"><span class="k">$R_\text{ct}$</span><span class="v" data-out="z-rct"></span></div>
+                    <div class="item"><span class="k">$C_\text{dl}$</span><span class="v" data-out="z-c"></span></div>
+                    <div class="item"><span class="k">$f_c$</span><span class="v" data-out="z-fc"></span></div>
+                    <div class="item"><span class="k">$|Z|$ at 0.05 Hz</span><span class="v" data-out="z-lo"></span></div>
+                    <div class="item"><span class="k">$|Z|$ at 150 Hz</span><span class="v" data-out="z-hi"></span></div>
+                    <div class="item"><span class="k">ratio across band</span><span class="v" data-out="z-ratio"></span></div>
                 </div>
             </div>
         </div>
@@ -300,8 +425,9 @@
     <script defer src="electrode_interface_JS/model.js"></script>
     <script defer src="electrode_interface_JS/frame.js"></script>
     <script defer src="electrode_interface_JS/controls.js"></script>
-    <script defer src="electrode_interface_JS/plot_current.js"></script>
+    <script defer src="electrode_interface_JS/plot_bv.js"></script>
     <script defer src="electrode_interface_JS/plot_nernst.js"></script>
+    <script defer src="electrode_interface_JS/plot_impedance.js"></script>
     <script type="module" src="electrode_interface_JS/scene_interface.js"></script>
     <script defer src="../components/eq_fit.js"></script>
 </body>

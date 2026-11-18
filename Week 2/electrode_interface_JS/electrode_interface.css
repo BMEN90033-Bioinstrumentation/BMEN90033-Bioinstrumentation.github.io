@@ -5,24 +5,18 @@
 :root {
     --c-cl:      var(--d-blue);      /* chloride ions */
     --c-na:      var(--d-orange);    /* sodium ions */
-    --c-i:       var(--d-pink);      /* conventional current, reaction sites */
+    --c-i:       var(--d-pink);      /* current, reaction events */
     --c-k:       var(--d-green);     /* potassium ions */
     --c-e:       var(--d-violet);    /* electrons */
     --c-nernst:  var(--d-olive);     /* half-cell potential */
     --c-ag:      var(--d-grey);      /* silver metal */
-    --c-agcl:    var(--d-slate);     /* silver chloride layer */
+    --c-agcl:    var(--d-slate);     /* silver ions in the AgCl lattice */
     --c-body:    var(--d-blue-soft); /* electrolyte volume */
-    --c-edge:    var(--d-ink);       /* electrolyte outline */
-    --c-wire:    var(--d-ink);       /* lead wire */
-    --c-amp:     var(--d-grey);      /* amplifier disc */
-    --c-idle:    var(--d-grey);      /* reaction plane at equilibrium */
-    --c-grid-a:  var(--calcium-white-800);   /* floor grid, centre lines */
-    --c-grid-b:  var(--neutral-lightest);    /* floor grid */
+    --c-edge:    var(--d-ink);       /* electrolyte outline, scale bar */
     --c-ref:     var(--text-muted);  /* dashed guides */
 }
 
 .plot-box.scene3d { aspect-ratio: 1.25 / 1; }
-.plot-box.trace   { aspect-ratio: 1.8 / 1; }
 .plot-box.nernst  { aspect-ratio: 1.45 / 1; }
 
 /* CSS2D labels in the 3D scene. */
@@ -38,3 +32,13 @@
     display: inline-block; width: 9px; height: 9px; border-radius: 50%;
     vertical-align: middle; margin-right: 6px;
 }
+
+/* Section 02 and 04 plots. */
+:root {
+    --c-z:    var(--d-ink);          /* interface impedance */
+    --c-band: var(--grid-line);      /* ECG bandwidth */
+}
+.plot-box.bv      { aspect-ratio: 1.35 / 1; }
+.plot-box.circuit { aspect-ratio: 640 / 236; }
+.plot-box.zmag    { aspect-ratio: 1.6 / 1; }
+.legend .dot.ring { background: var(--white); border: 2.5px solid var(--c-nernst); box-sizing: border-box; width: 11px; height: 11px; }

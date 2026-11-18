@@ -3,11 +3,15 @@
 // same parameter in different sections stay in sync, and every change
 // dispatches 'elichange' with the changed key.
 (function () {
+    function uA(v) { var j = Math.pow(10, v); return j >= 1000 ? (j / 1000).toFixed(1) + ' mA/cm²' : j.toFixed(j < 10 ? 1 : 0) + ' µA/cm²'; }
+    function act(v) { var a = Math.pow(10, v); return a < 0.01 ? a.toFixed(4) : a.toFixed(3); }
     var fmt = {
         speed: function (v) { return v.toFixed(1) + '×'; },
-        ions:  function (v) { return String(v); },
-        lj0:   function (v) { var j = Math.pow(10, v); return j >= 1000 ? (j / 1000).toFixed(1) + ' mA/cm²' : j.toFixed(0) + ' µA/cm²'; },
-        lacl:  function (v) { var a = Math.pow(10, v); return a < 0.01 ? a.toFixed(4) : a.toFixed(3); }
+        conc:  function (v) { return v + ' mM'; },
+        lj: uA, lj0: uA, lacl: act, lacl2: act,
+        area:  function (v) { return v.toFixed(1) + ' cm²'; },
+        cdl:   function (v) { return v + ' µF/cm²'; },
+        lrs:   function (v) { return window.ELI.fmtOhm(Math.pow(10, v)); }
     };
 
     function sync() {
@@ -44,9 +48,8 @@
         document.querySelectorAll('button[data-action]').forEach(function (el) {
             el.addEventListener('click', function () {
                 if (el.dataset.action === 'pause') { set('paused', !window.ELI.p.paused); return; }
-                // Reset: resume, return to reduction, and let listeners respawn.
+                // Reset: resume and let the scene rebuild its initial state.
                 window.ELI.p.paused = false;
-                window.ELI.p.mode = 'reduce';
                 set('reset', Date.now());
             });
         });
