@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          "Week 2/electrode_interface.html"
+        ],
+        "createdAt": "2026-11-18T03:13:57.223Z",
+        "reason": "user confirmed: leave the shared 10px mono labels from lecture_page.css/theme.css as the design system has them"
+      }
+    ]
+  }
+}

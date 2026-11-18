@@ -5,7 +5,7 @@
 // legend, so no label inside the plot can collide with a moving curve.
 (function () {
     var sel = '#plot-bv';
-    var ETA = 400, J = 1000;   // axis limits: mV and uA/cm^2
+    var ETA = 400, J = 1200;   // fixed axis limits, mV and uA/cm^2: cover the largest drive at the smallest j0
 
     var modeText = {
         equil:   ['equilibrium', '\\text{none: } j_a = |j_c| = j_0'],
@@ -42,6 +42,7 @@
         curve(function (e) { return e * 1e-3 / B.rct(j0) * 1e6; }, css('--c-ref'), '2 5', 1.6);   // j = eta / R_ct
         curve(function (e) { return j0 * Math.exp(k * e); }, css('--c-i'), '6 5', 1.6);            // anodic partial
         curve(function (e) { return -j0 * Math.exp(-k * e); }, css('--c-i'), '6 5', 1.6);          // cathodic partial
+        curve(function (e) { return B.bvReal(e * 1e-3, j0); }, css('--c-real'), null, 2);          // with transport limit
         curve(function (e) { return B.bv(e * 1e-3, j0); }, css('--c-i'), null, 2.6);
 
         // Operating point with guides to both axes.
@@ -53,11 +54,20 @@
         g.append('circle').attr('cx', qx).attr('cy', qy).attr('r', 4.5).attr('fill', css('--c-i'))
             .attr('stroke', window.T.text).attr('stroke-width', 1);
 
+        // The same drive on the transport-limited curve, where it can be sustained.
+        var etaR = B.overpotentialReal(j, j0), rx = x(etaR * 1e3);
+        // Drawn only where it is on the plot and clear of the operating point.
+        if (Math.abs(etaR * 1e3) <= ETA && Math.abs(rx - qx) > 8) {
+            g.append('circle').attr('cx', rx).attr('cy', qy).attr('r', 5)
+                .attr('fill', window.T.plotBg).attr('stroke', css('--c-real')).attr('stroke-width', 2);
+        }
+
         var lin = j * 1e-6 * B.rct(j0);   // linear estimate of eta, V
         B.out({
             mode: modeText[p.mode][0],
             j: B.sgn(j, 0) + ' µA/cm²',
             eta: B.sgn(eta * 1e3, 2) + ' mV',
+            'eta-real': isNaN(etaR) ? 'none, above limit' : B.sgn(etaR * 1e3, 2) + ' mV',
             'eta-lin': Math.abs(lin) >= 1 ? B.sgn(lin, 2) + ' V' : B.sgn(lin * 1e3, 2) + ' mV',
             e: B.sgn(B.nernst(Math.pow(10, p.lacl)) + eta, 4) + ' V',
             rct: B.fmtOhm(B.rct(j0)) + '·cm²'

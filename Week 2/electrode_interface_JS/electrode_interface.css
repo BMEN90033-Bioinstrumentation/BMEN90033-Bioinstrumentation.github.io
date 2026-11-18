@@ -36,6 +36,7 @@
 /* Section 02 and 04 plots. */
 :root {
     --c-z:    var(--d-ink);          /* interface impedance */
+    --c-real: var(--d-slate);        /* current with the transport limit */
     --c-band: var(--grid-line);      /* ECG bandwidth */
 }
 .plot-box.bv      { aspect-ratio: 1.35 / 1; }

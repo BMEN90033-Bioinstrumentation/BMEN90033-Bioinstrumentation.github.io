@@ -31,6 +31,23 @@
     function overpotential(j, j0) { return 2 * RT_F * Math.asinh(j / (2 * j0)); }
     function rct(j0) { return RT_F / (j0 * 1e-6); }   // ohm cm^2
 
+    // Diffusion-limited anodic current density j_L = F D c / delta, uA/cm^2:
+    // chloride (D = 2.03e-9 m^2/s) at 150 mol/m^3 across an unstirred 3 mm
+    // gel layer. 1 A/m^2 = 100 uA/cm^2.
+    // ponytail: steady-state diffusion only, migration of Cl- is ignored.
+    var JL = 96485.33212 * 2.03e-9 * 150 / 3e-3 * 100;
+    // Butler-Volmer with the surface chloride concentration c (1 - j/j_L) in
+    // the anodic term. The cathodic branch consumes solid AgCl and stays
+    // unbounded. The inverse is NaN where the drive exceeds j_L.
+    function bvReal(eta, j0) {
+        var u = Math.exp(eta / (2 * RT_F));
+        return j0 * (u - 1 / u) / (1 + j0 / JL * u);
+    }
+    function overpotentialReal(j, j0) {
+        var d = j0 * (1 - j / JL);
+        return d > 0 ? 2 * RT_F * Math.log((j + Math.sqrt(j * j + 4 * j0 * d)) / (2 * d)) : NaN;
+    }
+
     // Signed drive current density for the selected mode, uA/cm^2.
     function drive() {
         var mag = Math.pow(10, p.lj);
@@ -62,7 +79,7 @@
 
     window.ELI = {
         E0: E0, RT_F: RT_F, p: p,
-        nernst: nernst, bv: bv, overpotential: overpotential, rct: rct, drive: drive,
+        nernst: nernst, bv: bv, overpotential: overpotential, JL: JL, bvReal: bvReal, overpotentialReal: overpotentialReal, rct: rct, drive: drive,
         circuit: circuit, zmag: zmag, fmtOhm: fmtOhm, sgn: sgn, out: out,
         // Run fn now (after DOM ready) and on every parameter or size change.
         onRender: function (fn) {
@@ -82,5 +99,8 @@
     // the impedance tends to R_s + R_ct at DC and to R_s at high frequency.
     var c = { Rct: 100, C: 1e-5, Rs: 10 };
     console.assert(Math.abs(bv(overpotential(123, 45), 45) - 123) < 1e-9, 'ELI: Butler-Volmer inverse');
+    console.assert(Math.abs(bvReal(overpotentialReal(-300, 45), 45) + 300) < 1e-9 &&
+        Math.abs(bvReal(overpotentialReal(600, 45), 45) - 600) < 1e-9 && isNaN(overpotentialReal(JL + 1, 45)),
+        'ELI: transport-limited inverse');
     console.assert(Math.abs(zmag(1e-6, c) - 110) < 1e-3 && Math.abs(zmag(1e9, c) - 10) < 1e-3, 'ELI: impedance limits');
 })();

@@ -199,6 +199,20 @@
 
             <p>with $E_\text{eq}$ given by the Nernst equation of section 03.</p>
 
+            <p>The Butler-Volmer equation is unbounded because it describes only the charge-transfer step and
+                assumes the reactants are always present at the surface. Oxidation consumes $\text{Cl}^-$, which
+                must diffuse to the surface through a layer of thickness $\delta$, so the anodic current cannot
+                exceed the limiting value $j_L = FDc/\delta$. With the surface concentration
+                $c\,(1 - j/j_L)$ in the anodic term,</p>
+
+            <div class="eq-block">$$j = \frac{2j_0 \sinh(F\eta/2RT)}{1 + (j_0/j_L)\,e^{F\eta/2RT}}$$</div>
+
+            <p>The plot takes $j_L = 0.98\,\text{mA/cm}^2$, the value for $150\,\text{mM}$ chloride
+                with $D = 2.0\times10^{-9}\,\text{m}^2/\text{s}$ and an unstirred gel layer of thickness
+                $\delta = 3\,\text{mm}$. Reduction consumes solid AgCl, so transport does not bound the cathodic
+                branch: it ends when the AgCl layer is exhausted, as in section 01. At larger overpotentials
+                other reactions, such as the electrolysis of water, carry the current.</p>
+
             <div class="callout">
                 A large $j_0$ gives a steep curve: current flows with almost no change in potential, and the
                 electrode is non-polarisable. A small $j_0$ gives a flat curve near the origin: the potential
@@ -239,12 +253,15 @@
                     <span><span class="sw dash" style="border-top-color:var(--c-i)"></span>partial currents $j_a &gt; 0$, $j_c &lt; 0$</span>
                     <span><span class="sw dash" style="border-top-style:dotted"></span>linear approximation $\eta / R_\text{ct}$</span>
                     <span><span class="dot" style="background:var(--c-i)"></span>operating point</span>
+                    <span><span class="sw" style="background:var(--c-real)"></span>net current with transport limit $j_L$</span>
+                    <span><span class="dot ring" style="border-color:var(--c-real)"></span>same drive on that curve</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">mode</span><span class="v" data-out="mode"></span></div>
                     <div class="item"><span class="k">net reaction</span><span class="v" data-out="reaction"></span></div>
                     <div class="item"><span class="k">$j$</span><span class="v" data-out="j"></span></div>
                     <div class="item"><span class="k">$\eta$</span><span class="v" data-out="eta"></span></div>
+                    <div class="item"><span class="k">$\eta$ with $j_L$</span><span class="v" data-out="eta-real"></span></div>
                     <div class="item"><span class="k">$R_\text{ct}\,j$</span><span class="v" data-out="eta-lin"></span></div>
                     <div class="item"><span class="k">$R_\text{ct}$</span><span class="v" data-out="rct"></span></div>
                     <div class="item"><span class="k">$E$ vs SHE</span><span class="v" data-out="e"></span></div>
