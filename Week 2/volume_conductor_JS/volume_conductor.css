@@ -3,67 +3,66 @@
    in ../theme.css. */
 
 :root {
-    --c-true:    var(--d-blue);     /* homogeneous ("true") field and signal */
-    --c-rec:     var(--d-pink);     /* volume-conductor ("recorded") field and signal */
-    --c-dipole:  var(--d-orange);   /* source */
-    --c-plus:    var(--d-ink);
-    --c-minus:   var(--d-ink);
-    --c-arrow:   var(--d-ink);      /* dipole moment arrow */
-    --c-grid-a:  var(--d-grey);
-    --c-grid-b:  var(--calcium-white-800);
-    --c-ref:     var(--d-grey);
+    --c-true:    var(--d-slate);    /* unbounded homogeneous reference */
+    --c-rec:     var(--d-pink);     /* layered body in air */
+    --c-pos:     var(--d-orange);   /* positive potential */
+    --c-neg:     var(--d-blue);     /* negative potential */
+    --c-ref:     var(--d-grey);     /* body surface guide, layers switched off */
 
-    /* Tissue layers. Twelve layers share eight hues, grouped by tissue type:
-       source region, bone, skin and electrolyte each take one hue. Chips and
-       plot steps carry the layer name, so colour is never the only cue. */
+    /* Tissue layers, used by the chips and the conductivity profile of
+       section 02. Chips and plot steps carry the layer name, so colour is
+       never the only cue. */
     --c-t-heart:  var(--d-orange);
-    --c-t-brain:  var(--d-orange);
-    --c-t-blood:  var(--d-pink);
     --c-t-lung:   var(--d-blue);
     --c-t-muscle: var(--d-violet);
     --c-t-fat:    var(--d-olive);
-    --c-t-bone:   var(--d-grey);
     --c-t-skin:   var(--d-green);
-    --c-t-gel:    var(--d-slate);
-    --c-t-csf:    var(--d-slate);
-    --c-t-skull:  var(--d-grey);
+    --c-t-brain:  var(--d-orange);
+    --c-t-csf:    var(--d-blue);
+    --c-t-skull:  var(--d-violet);
     --c-t-scalp:  var(--d-green);
-
-    /* Electrodes are labelled A, B, C ... in the scene and the list. */
-    --c-el0: var(--d-green);  --c-el1: var(--d-violet); --c-el2: var(--d-slate);
-    --c-el3: var(--d-olive);  --c-el4: var(--d-grey);   --c-el5: var(--d-blue);
-    --c-el6: var(--d-orange); --c-el7: var(--d-pink);   --c-el8: var(--d-ink);
-    --c-el9: var(--d-green);
 }
 
 .plot-box.scene3d { aspect-ratio: 1.2 / 1; }
+
+/* Lead plot inset in the top right corner of the 3D scene. The scene is
+   drawn shifted down (scene_volume.js) so the body starts below it. */
+.lead-inset {
+    position: absolute; top: 12px; right: 12px; z-index: 3;
+    width: clamp(250px, 40%, 330px); height: 196px;
+    background: var(--white); border: 1px solid var(--calcium-white-800);
+    border-radius: var(--radius-5); overflow: hidden;
+}
 .plot-box.sigma   { aspect-ratio: 1.6 / 1; }
-.plot-box.bars    { aspect-ratio: 1.6 / 1; }
+.plot-box.spectrum    { aspect-ratio: 1.6 / 1; }
 .plot-box.trace   { aspect-ratio: 1.7 / 1; }
 
 /* Axis tick text at a readable size. */
 svg.bode .tick text { font-size: 13px; }
 
-/* CSS2D labels in the 3D scene. */
+/* CSS2D labels in the 3D scene, on a white pill so the field behind them
+   does not reduce their legibility. */
 .s3-label {
-    font-family: var(--font-mono); font-size: 13px; font-weight: 400;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 400; color: var(--d-ink);
     white-space: nowrap; pointer-events: none;
 }
+.s3-label.tag { padding: 2px 7px; border-radius: var(--radius-2); background: var(--white); }
+.s3-label.electrode { border: 1px solid var(--d-ink); }
+.s3-label.pole { font-size: 17px; }
+
+/* Math inside the uppercase control labels keeps its case. */
+.toolbar .lab .katex { text-transform: none; letter-spacing: 0; }
 
 /* Tissue-layer chips: a swatch, the name and the conductivity. */
 .layer-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .layer-btn { gap: 6px; }
+/* The source layer cannot be switched off; it keeps the selected look. */
+.layer-btn:disabled { border-color: var(--carbon-black-500); color: var(--white); }
 .layer-btn .sw {
     width: 9px; height: 9px; border-radius: var(--radius-dot); display: inline-block;
     outline: 1px solid var(--white);   /* keeps dark swatches visible on the selected fill */
 }
 .layer-btn .sig .katex { font-size: 12px !important; }
-
-/* Electrode list beneath the 3D scene. */
-.el-list .item { flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
-.el-list .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.el-list .item.sel .v { text-decoration: underline; text-underline-offset: 4px; }
-.el-list button.ctrl-btn { height: var(--btn-size-1); padding: 0 var(--spacing-2); }
 
 .legend .sw.dash { border-top-color: var(--c-ref); }
 
@@ -74,3 +73,10 @@ svg.bode .tick text { font-size: 13px; }
     width: fit-content; padding: 3px 8px; border-radius: var(--radius-2);
     background: var(--white);
 }
+
+/* Controls that belong to one body are hidden for the other. */
+[data-body][hidden] { display: none; }
+
+/* Model attribution beneath the 3D scene. */
+.credits { margin: 0; font-size: 12px; line-height: 1.5; color: var(--d-grey); }
+.credits a { color: inherit; }

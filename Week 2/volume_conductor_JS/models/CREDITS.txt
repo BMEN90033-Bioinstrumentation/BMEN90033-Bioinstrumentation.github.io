@@ -1,0 +1,29 @@
+Models used by the head view of volume_conductor.html
+
+head.glb
+  Derived from "Infinite, 3D Head Scan" by Lee Perry-Smith, licensed under a
+  Creative Commons Attribution 3.0 Unported License
+  (https://creativecommons.org/licenses/by/3.0/). Based on a work at
+  www.triplegangers.com; obtained from the three.js examples
+  (https://github.com/mrdoob/three.js, examples/models/gltf/LeePerrySmith).
+  Changes: cropped below the neck, translated and rescaled to scene units.
+
+brain.glb
+  Derived from the pial surfaces of "Brain for Blender" by Anderson Winkler
+  (https://brainder.org/brain-for-blender), licensed under a Creative Commons
+  Attribution-ShareAlike 3.0 Unported License
+  (https://creativecommons.org/licenses/by-sa/3.0/). brain.glb is distributed
+  under the same licence.
+  Changes: hemispheres merged, simplified by vertex clustering, cropped to the
+  part above the section plane, rescaled and positioned inside the head scan.
+
+head_section.json
+  Scalp and brain-envelope radii in the section plane, one value per degree,
+  measured from the two models above.
+
+build_models.py
+  The script that produced the three files from the source meshes:
+  python3 build_models.py LeePerrySmith.glb lh.pial.obj rh.pial.obj <out dir>
+
+The head and the brain come from different people. Their relative position is
+set by hand and is illustrative, not anatomical registration.

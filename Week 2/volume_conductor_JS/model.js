@@ -1,47 +1,44 @@
-// Volume conductor model. Multipole source in concentric spherical tissue
-// shells, ported from the original simulator without change to the
-// equations or constants. Vectors are plain [x, y, z] arrays so the D3
-// plots and the Three.js scene share one implementation.
+// Volume conductor model. Multipole source at the centre of a body made of
+// concentric spherical tissue shells and bounded by air. Vectors are plain
+// [x, y, z] arrays so the D3 plots and the Three.js scene share one
+// implementation.
 //
 // A bioelectric source is not a pure dipole: it carries quadrupole (l = 2),
 // octupole (l = 3) and higher terms. Each harmonic l is scaled by a transfer
 // coefficient from the concentric-sphere boundary conditions (see
 // transfer()). For a single boundary, source medium sigma_in inside and
 // sigma_out outside,
-//     T_l = (2l+1) sigma_in / [l sigma_in + (l+1) sigma_out].
-// With several shells the coefficients for l >= 2 fall below that of the
-// dipole, and the multipole potential also decays as 1/r^(l+1), so higher
+//     T_l = (2l+1) sigma_in / [l sigma_in + (l+1) sigma_out],
+// which is (2l+1)/l for a homogeneous body in air (sigma_out = 0): 3 for the
+// dipole, falling towards 2 as l rises. Poorly conducting shells steepen
+// this fall, and the multipole potential also decays as 1/r^(l+1), so higher
 // spatial harmonics are attenuated more. Volume conduction is quasi-static
 // (Plonsey and Heppner 1967): below about 1 kHz tissue is effectively
 // resistive, so the medium scales the signal spatially but applies no
 // temporal filtering.
 (function () {
-    // ── Tissue layers. Conductivity in S/m (approximate physiological values),
-    // radius in model units. Colours live in the page CSS as --c-t-<key>. ──
+    // ── Tissue layers of the two bodies. Conductivity in S/m (approximate
+    // low-frequency values), outer radius in model units; both bodies have
+    // outer radius 14. The first layer of each body holds the source. Colours
+    // live in the page CSS as --c-t-<key>. ──
     var TISSUE_DEFS = [
-        { key: 'heart',  name: 'Heart (source)', sigma: 0.6,   radius: 3,    on: true },
-        { key: 'brain',  name: 'Brain (source)', sigma: 0.33,  radius: 3,    on: false },
-        { key: 'blood',  name: 'Blood',          sigma: 0.7,   radius: 5,    on: true },
-        { key: 'lung',   name: 'Lung',           sigma: 0.04,  radius: 8,    on: true },
-        { key: 'muscle', name: 'Muscle',         sigma: 0.4,   radius: 11,   on: true },
-        { key: 'fat',    name: 'Fat',            sigma: 0.04,  radius: 13,   on: true },
-        { key: 'bone',   name: 'Bone (ribs)',    sigma: 0.02,  radius: 12,   on: false },
-        { key: 'skin',   name: 'Skin',           sigma: 0.001, radius: 14,   on: true },
-        { key: 'gel',    name: 'Electrode gel',  sigma: 1.0,   radius: 14.3, on: false },
-        { key: 'csf',    name: 'CSF (brain)',    sigma: 1.8,   radius: 6,    on: false },
-        { key: 'skull',  name: 'Skull',          sigma: 0.01,  radius: 8.5,  on: false },
-        { key: 'scalp',  name: 'Scalp',          sigma: 0.44,  radius: 9.5,  on: false }
+        { body: 'torso', key: 'heart',  name: 'Heart and blood', sigma: 0.6,   radius: 4 },
+        { body: 'torso', key: 'lung',   name: 'Lung',            sigma: 0.04,  radius: 10 },
+        { body: 'torso', key: 'muscle', name: 'Muscle',          sigma: 0.4,   radius: 12.5 },
+        { body: 'torso', key: 'fat',    name: 'Fat',             sigma: 0.04,  radius: 13.5 },
+        { body: 'torso', key: 'skin',   name: 'Skin',            sigma: 0.001, radius: 14 },
+        { body: 'head',  key: 'brain',  name: 'Brain',           sigma: 0.33,  radius: 12 },
+        { body: 'head',  key: 'csf',    name: 'CSF',             sigma: 1.8,   radius: 12.3 },
+        { body: 'head',  key: 'skull',  name: 'Skull',           sigma: 0.01,  radius: 13.2 },
+        { body: 'head',  key: 'scalp',  name: 'Scalp',           sigma: 0.44,  radius: 14 }
     ];
     var layers = TISSUE_DEFS.map(function (d, i) {
-        return { key: d.key, name: d.name, sigma: d.sigma, radius: d.radius, enabled: d.on, index: i };
+        return { body: d.body, key: d.key, name: d.name, sigma: d.sigma, radius: d.radius,
+                 enabled: true, index: i, source: i === 0 || TISSUE_DEFS[i - 1].body !== d.body };
     });
-    var PRESETS = {
-        ecg: ['heart', 'blood', 'lung', 'muscle', 'fat', 'skin'],
-        eeg: ['brain', 'csf', 'skull', 'scalp']
-    };
+    var BODY_OF_MODE = { ecg: 'torso', eeg: 'head' };
 
-    var SRC_RADIUS = 3;       // source region radius
-    var SURFACE_RADIUS = 14;  // measurement surface radius
+    var SURFACE_RADIUS = 14;  // body surface, where the electrodes sit
     var SIGNAL_GAIN = 80;     // display gain on the electrode potentials
     var ECG_CYCLE = 0.8;      // s per beat (75 bpm)
     var WIN = 4;              // visible trace window, s
@@ -50,11 +47,13 @@
     // 'vcchange'; the scene and plots read them.
     var p = {
         mode: 'rotate',       // 'rotate' | 'manual' | 'ecg' | 'eeg'
+        body: 'torso',        // 'torso' | 'head'
         strength: 1,
-        complexity: 0.4,      // 0 = pure dipole, 1 = strong higher harmonics
-        density: 2,
+        complexity: 0.2,      // source extent d / R; 0 = pure dipole
+        density: 14,          // number of current streamlines in the scene
         angle: 0,             // degrees, manual mode
-        fields: 'both',       // 'true' | 'rec' | 'both'
+        fields: 'rec',        // 'true' (unbounded homogeneous) | 'rec' (layered body)
+        brain: 'on',          // 'on' | 'off': cortex shown above the section of the head
         paused: false,
         lscale: 0             // log10 of the display scale on the recorded trace
     };
@@ -85,16 +84,12 @@
         return 0;
     }
 
-    // Source amplitude with geometric compensation. Without it the l = 4 term
-    // is about 2700 times weaker than l = 1 at r = 14, so the filtering would
-    // be invisible. Each harmonic is scaled to contribute visibly at
-    // SURFACE_RADIUS, with a gentle roll-off.
+    // Source weights a_l. A source of spatial extent d has multipole moments
+    // that scale as a_l = d^(l-1) relative to the dipole moment, so in a
+    // homogeneous medium term l contributes (d/R)^(l-1) of the dipole term at
+    // the surface radius R. The complexity parameter is d/R.
     function multipoleWeight(l) {
-        if (l === 1) return 1.0;
-        if (p.complexity < 1e-6) return 0;
-        var compensation = Math.pow(SURFACE_RADIUS, l - 1);
-        var rolloff = Math.pow(0.7, l - 2);
-        return p.complexity * compensation * rolloff;
+        return l === 1 ? 1 : Math.pow(p.complexity * SURFACE_RADIUS, l - 1);
     }
 
     function sphericalBasis(dipoleDir, rVec, dist) {
@@ -139,48 +134,64 @@
 
     // ── l-dependent transfer through concentric shells ──
     // Exact concentric-sphere solution (cf. Rush and Driscoll 1968) for a
-    // multipole of order l at the origin. The innermost enabled layer holds
-    // the source; the outermost enabled layer extends to infinity. In shell k,
-    // Phi_k = [A_k r^l + B_k r^-(l+1)] P_l(cos theta), with B_1 = 1 and
-    // A_N = 0; Phi and sigma dPhi/dr are continuous at every boundary.
-    // The shell coefficients depend only on the enabled layers, so they are
-    // cached per l and rebuilt when a layer is toggled.
+    // multipole of order l at the origin. In shell k,
+    // Phi_k = [A_k r^l + B_k r^-(l+1)] P_l(cos theta), with B_1 = 1 in the
+    // source shell. Phi and sigma dPhi/dr are continuous at every internal
+    // boundary, and dPhi/dr = 0 at the body surface because air carries no
+    // current. A disabled layer takes the conductivity of the source region,
+    // so the geometry is fixed and "all off" is a homogeneous body in air.
+    // Coefficients are cached per l and rebuilt when the layers change.
     var version = 0, cache = {};
+    function bodyLayers() {
+        var act = layers.filter(function (lay) { return lay.body === p.body; });
+        var s0 = act[0].sigma;
+        return act.map(function (lay) {
+            return { layer: lay, radius: lay.radius, sigma: lay.enabled ? lay.sigma : s0 };
+        });
+    }
     function shellCoeffs(l) {
         var c = cache[l];
         if (c && c.version === version) return c;
-        var active = layers.filter(function (lay) { return lay.enabled; })
-            .sort(function (a, b) { return a.radius - b.radius; });
-        c = { version: version, active: active };
-        if (active.length >= 2) {
-            var u = [[1, 0]], v = [[0, 1]];
-            for (var i = 0; i < active.length - 1; i++) {
-                var R = active[i].radius, Rp = Math.pow(R, 2 * l + 1);
-                var s1 = active[i].sigma, s2 = active[i + 1].sigma;
-                var step = function (AB) {
-                    var A = AB[0], B = AB[1], x1 = A * Rp, S = x1 + B;
-                    var B2 = (s2 * l * S - s1 * (l * x1 - (l + 1) * B)) / ((2 * l + 1) * s2);
-                    return [(S - B2) / Rp, B2];
-                };
-                u.push(step(u[i]));
-                v.push(step(v[i]));
-            }
-            var N = active.length - 1;
-            c.u = u; c.v = v; c.N = N; c.A1 = -v[N][0] / u[N][0];
+        var active = bodyLayers(), u = [[1, 0]], v = [[0, 1]];
+        for (var i = 0; i < active.length - 1; i++) {
+            var Rp = Math.pow(active[i].radius, 2 * l + 1);
+            var s1 = active[i].sigma, s2 = active[i + 1].sigma;
+            var step = function (AB) {
+                var A = AB[0], B = AB[1], x1 = A * Rp, S = x1 + B;
+                var B2 = (s2 * l * S - s1 * (l * x1 - (l + 1) * B)) / ((2 * l + 1) * s2);
+                return [(S - B2) / Rp, B2];
+            };
+            u.push(step(u[i]));
+            v.push(step(v[i]));
         }
+        var N = active.length - 1, Rs = Math.pow(active[N].radius, 2 * l + 1);
+        // Zero radial current at the surface: l A Rs - (l+1) B = 0.
+        var A1 = -(l * v[N][0] * Rs - (l + 1) * v[N][1]) / (l * u[N][0] * Rs - (l + 1) * u[N][1]);
+        c = { version: version, active: active, N: N, AB: u.map(function (uk, k) {
+            return [A1 * uk[0] + v[k][0], A1 * uk[1] + v[k][1]];
+        }) };
         cache[l] = c;
         return c;
     }
     // Multipliers on the homogeneous potential term (pot) and on the
-    // homogeneous radial field term (er) at radius r.
+    // homogeneous radial field term (er) at radius r inside the body.
     function transfer(l, rFromOrigin) {
-        var c = shellCoeffs(l);
-        if (c.active.length < 2) return { pot: 1, er: 1 };
-        var k = 0;
-        while (k < c.N && rFromOrigin > c.active[k].radius) k++;
-        var A = c.A1 * c.u[k][0] + c.v[k][0], B = c.A1 * c.u[k][1] + c.v[k][1];
-        var a = A * Math.pow(rFromOrigin, 2 * l + 1);
+        var c = shellCoeffs(l), r = Math.min(rFromOrigin, SURFACE_RADIUS), k = 0;
+        while (k < c.N && r > c.active[k].radius) k++;
+        var a = c.AB[k][0] * Math.pow(r, 2 * l + 1), B = c.AB[k][1];
         return { pot: a + B, er: B - l * a / (l + 1) };
+    }
+    // Shell table for the scene shader: radii, conductivity relative to the
+    // source region, and A, B per order l (index l - 1) and shell. With
+    // layered false it describes the unbounded homogeneous reference medium.
+    function shellTable(layered) {
+        if (!layered) return { radii: [SURFACE_RADIUS], sigma: [1], AB: [1, 2, 3, 4].map(function () { return [[0, 1]]; }) };
+        var act = bodyLayers();
+        return {
+            radii: act.map(function (a) { return a.radius; }),
+            sigma: act.map(function (a) { return a.sigma / act[0].sigma; }),
+            AB: [1, 2, 3, 4].map(function (l) { return shellCoeffs(l).AB; })
+        };
     }
 
     // ── Volume conductor (with tissue shells) ──
@@ -209,38 +220,35 @@
         return add(scale(b.rHat, strength * Er), scale(b.thetaHat, strength * Et));
     }
 
-    // ── Cardiac vector loop over one beat (P, PR, Q, R, S, ST, T, baseline) ──
+    // ── Cardiac vector over one beat (P, PR, Q, R, S, ST, T, baseline),
+    // confined to the section plane y = 0 that the scene displays. ──
     function ecgDipole(t) {
         var phase = (t % ECG_CYCLE) / ECG_CYCLE;
-        var mag = 0, azimuth = 0, elevation = 0, q, env;
+        var mag = 0, azimuth = 0, q, env;
         if (phase < 0.10) {            // P wave: small, rightward to leftward
             q = phase / 0.10; env = Math.sin(q * Math.PI);
-            mag = 0.15 * env; azimuth = -0.3 + q * 1.0; elevation = -0.15 * env;
+            mag = 0.15 * env; azimuth = -0.3 + q * 1.0;
         } else if (phase < 0.16) {     // PR segment: isoelectric
             mag = 0;
         } else if (phase < 0.20) {     // Q wave: septal, rightward
             q = (phase - 0.16) / 0.04; env = Math.sin(q * Math.PI);
-            mag = 0.2 * env; azimuth = Math.PI + 0.3; elevation = 0.1;
-        } else if (phase < 0.26) {     // R wave: large, leftward and inferior
+            mag = 0.2 * env; azimuth = Math.PI + 0.3;
+        } else if (phase < 0.26) {     // R wave: large, leftward
             q = (phase - 0.20) / 0.06; env = Math.sin(q * Math.PI);
-            mag = 1.0 * env; azimuth = 0.4; elevation = -0.5 * env;
+            mag = 1.0 * env; azimuth = 0.4;
         } else if (phase < 0.30) {     // S wave: basal, rightward
             q = (phase - 0.26) / 0.04; env = Math.sin(q * Math.PI);
-            mag = 0.25 * env; azimuth = Math.PI - 0.2; elevation = 0.3;
+            mag = 0.25 * env; azimuth = Math.PI - 0.2;
         } else if (phase < 0.42) {     // ST segment: near isoelectric
             q = (phase - 0.30) / 0.12;
-            mag = 0.03 * Math.sin(q * Math.PI); azimuth = 0.3; elevation = -0.1;
+            mag = 0.03 * Math.sin(q * Math.PI); azimuth = 0.3;
         } else if (phase < 0.58) {     // T wave: broad, concordant with QRS
             q = (phase - 0.42) / 0.16; env = Math.sin(q * Math.PI);
-            mag = 0.35 * env; azimuth = 0.5; elevation = -0.3 * env;
+            mag = 0.35 * env; azimuth = 0.5;
         } else {
             mag = 0;
         }
-        // +y is superior; negative elevation is inferior.
-        var dir = [Math.cos(azimuth) * Math.cos(elevation), Math.sin(elevation),
-                   Math.sin(azimuth) * Math.cos(elevation)];
-        if (len(dir) > 0.01) dir = norm(dir);
-        return { dir: dir, mag: mag };
+        return { dir: [Math.cos(azimuth), 0, Math.sin(azimuth)], mag: mag };
     }
 
     // ── Cortical oscillation: dominant alpha with delta to gamma components.
@@ -259,32 +267,18 @@
         EEG_BANDS.forEach(function (b) { mag += b.amp * Math.sin(2 * Math.PI * b.freq * t + b.phase); });
         var spindle = 0.7 + 0.3 * Math.sin(2 * Math.PI * 0.8 * t);   // alpha waxing and waning
         mag *= spindle * 0.3;                                        // EEG is microvolts, ECG millivolts
-        // Mainly radial cortical dipole with a slow wobble.
-        var azimuth = 0.2 * Math.sin(2 * Math.PI * 1.3 * t);
-        var elevation = -Math.PI / 4 + 0.15 * Math.sin(2 * Math.PI * 0.7 * t);
+        // Fixed source axis in the section plane with a slow wobble; the
+        // oscillation reverses the dipole along that axis.
+        var azimuth = 0.6 + 0.2 * Math.sin(2 * Math.PI * 1.3 * t);
         var sign = mag >= 0 ? 1 : -1;
-        var dir = [sign * Math.cos(azimuth) * Math.cos(elevation), -sign * Math.sin(elevation),
-                   sign * Math.sin(azimuth) * Math.cos(elevation)];
-        if (len(dir) > 0.01) dir = norm(dir);
-        return { dir: dir, mag: Math.abs(mag) };
+        return { dir: [sign * Math.cos(azimuth), 0, sign * Math.sin(azimuth)], mag: Math.abs(mag) };
     }
 
-    // ── Electrodes (positions in model units) ──
-    var electrodes = [], nextId = 0;
-    function addElectrode(pos, label) {
-        var id = nextId++;
-        electrodes.push({ id: id, pos: pos.slice(), label: label || String.fromCharCode(65 + id), cvar: '--c-el' + (id % 10) });
-        clearHistory();
-    }
-    function removeElectrode(id) {
-        electrodes = electrodes.filter(function (e) { return e.id !== id; });
-        VC.electrodes = electrodes;
-        clearHistory();
-    }
+    // ── Electrodes A and B on the body surface (positions in model units) ──
+    var electrodes = [{ label: 'A', pos: [0, 0, 0] }, { label: 'B', pos: [0, 0, 0] }];
     function resetElectrodes() {
-        electrodes = []; VC.electrodes = electrodes; nextId = 0;
-        addElectrode([14, 0, 0], 'A');
-        addElectrode([-14, 0, 0], 'B');
+        electrodes[0].pos = [SURFACE_RADIUS, 0, 0];
+        electrodes[1].pos = [-SURFACE_RADIUS, 0, 0];
     }
 
     // ── Simulation state and the shared clock ──
@@ -313,13 +307,17 @@
     // rather than aliased by a 60 Hz frame clock.
     var FS = 1000, sampleAcc = 0;
     function sampleLead() {
-        if (electrodes.length < 2) return;
-        var S = dipoleState(), O = [0, 0, 0], eA = electrodes[0].pos, eB = electrodes[1].pos;
-        var vt = truePotential(O, S.dir, eA, S.strength) * SIGNAL_GAIN -
-                 truePotential(O, S.dir, eB, S.strength) * SIGNAL_GAIN;
-        var vr = recPotential(O, S.dir, eA, S.strength) * SIGNAL_GAIN -
-                 recPotential(O, S.dir, eB, S.strength) * SIGNAL_GAIN;
-        hist.push([tNow, vt, vr]);
+        var v = potentials(dipoleState());
+        hist.push([tNow, v[0][0] - v[1][0], v[0][1] - v[1][1]]);
+    }
+    // Electrode potentials for source state S, in display units:
+    // [[A reference, A body], [B reference, B body]].
+    function potentials(S) {
+        var O = [0, 0, 0];
+        return electrodes.map(function (e) {
+            return [truePotential(O, S.dir, e.pos, S.strength) * SIGNAL_GAIN,
+                    recPotential(O, S.dir, e.pos, S.strength) * SIGNAL_GAIN];
+        });
     }
     function step(dt) {
         sampleAcc += dt;
@@ -354,23 +352,25 @@
         }, { threshold: 0.05 }).observe(el);
     }
 
-    function setLayers(keys) {
-        layers.forEach(function (l) { l.enabled = keys === true ? true : keys.indexOf(l.key) >= 0; });
+    // Enable or homogenise every non-source layer of the current body.
+    function setLayers(on) {
+        layers.forEach(function (l) { if (l.body === p.body && !l.source) l.enabled = on; });
         layersChanged();
     }
     function layersChanged() { version++; clearHistory(); }
     function restart() { animTime = 0; clearHistory(); }
 
     var VC = window.VC = {
-        SRC_RADIUS: SRC_RADIUS, SURFACE_RADIUS: SURFACE_RADIUS, WIN: WIN, PRESETS: PRESETS,
+        SURFACE_RADIUS: SURFACE_RADIUS, WIN: WIN, BODY_OF_MODE: BODY_OF_MODE,
         p: p, layers: layers, electrodes: electrodes, hist: hist,
         state: function () { return state; },
         now: function () { return tNow; },
-        multipoleWeight: multipoleWeight, transfer: transfer,
+        multipoleWeight: multipoleWeight, transfer: transfer, shellTable: shellTable, bodyLayers: bodyLayers,
+        potentials: potentials,
         truePotential: truePotential, trueField: trueField,
         recPotential: recPotential, recField: recField,
         ecgDipole: ecgDipole, eegDipole: eegDipole,
-        addElectrode: addElectrode, removeElectrode: removeElectrode, resetElectrodes: resetElectrodes,
+        resetElectrodes: resetElectrodes,
         clearHistory: clearHistory, setLayers: setLayers, layersChanged: layersChanged, restart: restart,
         addView: addView,
         // Run fn now (after DOM ready) and on every parameter or size change.

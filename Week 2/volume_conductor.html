@@ -52,7 +52,7 @@
             <h1 class="hero">The volume conductor problem</h1>
             <p class="sub">Biopotentials such as the ECG and EEG are recorded at the body surface, some distance from
                 the cells that generate them. Between source and electrode lies a volume conductor: blood, muscle,
-                fat, bone and skin, each with its own conductivity. This page develops the field of a multipole
+                fat and skin, each with its own conductivity, bounded by air. This page develops the field of a multipole
                 source in that medium, the effect of layered tissue on each spatial harmonic, and the consequence for
                 the signal measured between two electrodes.</p>
             <div class="tags">
@@ -73,7 +73,7 @@
             <h2>A multipole source in a volume conductor</h2>
 
             <p class="lead">The forward problem asks what potential a known current source produces at the body
-                surface. In an infinite homogeneous medium of conductivity $\sigma$, a current dipole of moment $p$
+                surface. In an unbounded homogeneous medium of conductivity $\sigma$, a current dipole of moment $p$
                 at the origin produces</p>
 
             <div class="eq-block">$$\Phi(r,\theta) = \frac{p\cos\theta}{4\pi\sigma r^2}$$</div>
@@ -83,25 +83,38 @@
                 Legendre polynomial $P_l$:</p>
 
             <div class="eq-block">$$\Phi(r,\theta) = \sum_{l=1}^{4} a_l\,\frac{P_l(\cos\theta)}{r^{\,l+1}},
-                \qquad \mathbf{E} = -\nabla\Phi$$</div>
+                \qquad \mathbf{J} = -\sigma\nabla\Phi$$</div>
 
             <p>The dipole ($l = 1$) falls as $1/r^2$, the quadrupole ($l = 2$) as $1/r^3$ and the octupole
-                ($l = 3$) as $1/r^4$, so higher-order terms decay faster with distance from the source.</p>
+                ($l = 3$) as $1/r^4$, so higher-order terms decay faster with distance from the source. A real body
+                is neither unbounded nor homogeneous. Air does not conduct, so no current crosses the skin:</p>
+
+            <div class="eq-block">$$\left.\frac{\partial \Phi}{\partial r}\right|_{r = R} = 0$$</div>
+
+            <p>All source current returns inside the body. For a homogeneous sphere this alone raises the surface
+                potential of a central dipole to three times the unbounded value.</p>
 
             <ul class="bullets">
-                <li><strong>blue-tinted arrows</strong>: the field in a homogeneous medium, referred to here as the
-                    true field of the source;</li>
-                <li><strong>pink-tinted arrows</strong>: the field with the enabled tissue shells in place, which is
-                    the field the electrodes sample;</li>
-                <li><strong>electrodes</strong>: $V_A - V_B$ between the first two electrodes forms the recorded
-                    lead. Clicking an electrode attaches a translation handle for moving it.</li>
+                <li><strong>section</strong>: the scene is cut through the plane that contains the source. Colour
+                    bands are isopotentials, orange for positive and blue for negative potential.</li>
+                <li><strong>streamlines</strong>: the ink lines follow the current density $\mathbf{J}$, from the
+                    positive pole to the negative pole. They cross the isopotentials at right angles, bend at
+                    each tissue boundary and run parallel to the skin.</li>
+                <li><strong>surface</strong>: the body surface carries the potential that electrodes sample.
+                    $V_A - V_B$ forms the recorded lead, plotted in the corner of the scene; the electrodes can be dragged
+                    over the surface.</li>
+                <li><strong>head</strong>: the head body is drawn on a head scan with a cortical surface inside
+                    it. Hiding the brain exposes the full section. The field is the concentric-sphere solution,
+                    stretched radially so that the model brain surface meets the brain and the model skin meets
+                    the scalp. It is not a solution for the true head shape.</li>
             </ul>
 
             <div class="callout">
-                The model scales the source weights of the $l \ge 2$ terms by $R^{\,l-1}$, with $R = 14$ the
-                electrode radius, and by a roll-off of $0.7^{\,l-2}$. Without this compensation the $l = 4$ term would
-                be about 2700 times weaker than the dipole at the electrodes and its filtering would not be visible.
-                Arrow colour follows the viridis map of field magnitude, tinted blue or pink by field type.
+                The source weights are $a_l = d^{\,l-1}$, the scaling for a source of spatial extent $d$; the
+                source extent control in section 03 sets $d/R$, with $R = 14$ the body radius. The expansion
+                holds outside the source, so the region $r < d$ is drawn as a grey disc. The colour scale is
+                compressed so that the bands remain visible from the source to the surface. Streamline spacing
+                is likewise compressed and does not measure current density.
             </div>
         </div>
 
@@ -109,13 +122,20 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="seg">
-                        <button class="seg-btn" data-param="fields" data-value="true">true field</button>
-                        <button class="seg-btn" data-param="fields" data-value="rec">recorded field</button>
-                        <button class="seg-btn" data-param="fields" data-value="both">both</button>
+                        <button class="seg-btn" data-param="fields" data-value="rec">layered body in air</button>
+                        <button class="seg-btn" data-param="fields" data-value="true">unbounded homogeneous</button>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-param="body" data-value="torso">torso</button>
+                        <button class="seg-btn" data-param="body" data-value="head">head</button>
+                    </span>
+                    <span class="seg" data-body="head">
+                        <button class="seg-btn" data-param="brain" data-value="on">brain shown</button>
+                        <button class="seg-btn" data-param="brain" data-value="off">brain hidden</button>
                     </span>
                     <span class="slider-group">
-                        <span class="lab">field density</span>
-                        <input type="range" data-param="density" min="1" max="6" step="1">
+                        <span class="lab">streamlines</span>
+                        <input type="range" data-param="density" min="6" max="24" step="2">
                         <span class="val" data-param="density"></span>
                     </span>
                     <span class="divider"></span>
@@ -135,22 +155,39 @@
                     </span>
                     <span class="divider"></span>
                     <span class="seg">
-                        <button class="seg-btn" data-action="place">add electrode</button>
                         <button class="seg-btn" data-action="reset-electrodes">reset electrodes</button>
                         <button class="seg-btn" data-action="pause">pause</button>
                     </span>
                 </div>
                 <div class="plot-box scene3d">
-                    <div class="label">3D scene · <b>source, tissue shells and field</b></div>
+                    <div class="label">3D section · <b>potential, current and surface map</b></div>
                     <div class="three-host" id="scene-volume"></div>
+                    <div class="lead-inset">
+                        <div class="label">lead · <b>last 4 s</b></div>
+                        <svg class="bode" id="plot-lead"></svg>
+                    </div>
                     <div class="hint" id="scene-hint"></div>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-true)"></span>true field (homogeneous)</span>
-                    <span><span class="sw" style="background:var(--c-rec)"></span>recorded field (with tissue)</span>
-                    <span><span class="sw" style="background:var(--c-dipole)"></span>source</span>
+                    <span><span class="sw band" style="background:var(--c-pos)"></span>positive potential</span>
+                    <span><span class="sw band" style="background:var(--c-neg)"></span>negative potential</span>
+                    <span><span class="sw" style="background:var(--d-ink)"></span>current streamline, tissue boundary</span>
+                    <span>arrow: dipole moment of the source</span>
+                    <span><span class="sw" style="background:var(--c-true)"></span>lead, unbounded homogeneous reference</span>
+                    <span><span class="sw" style="background:var(--c-rec)"></span>lead, layered body in air</span>
                 </div>
-                <div class="readout el-list" id="el-list"></div>
+                <div class="readout">
+                    <div class="item"><span class="k">$V_A$</span><span class="v" data-out="va"></span></div>
+                    <div class="item"><span class="k">$V_B$</span><span class="v" data-out="vb"></span></div>
+                    <div class="item"><span class="k">$V_A - V_B$</span><span class="v" data-out="vab"></span></div>
+                    <div class="item"><span class="k">units</span><span class="v">arbitrary</span></div>
+                </div>
+                <p class="credits">Head: Infinite, 3D Head Scan by Lee Perry-Smith
+                    (<a href="https://www.triplegangers.com">triplegangers.com</a>),
+                    <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>, cropped and rescaled.
+                    Brain: <a href="https://brainder.org/brain-for-blender">Brain for Blender</a> by Anderson
+                    Winkler, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, simplified,
+                    cropped and rescaled. The two are positioned by hand.</p>
             </div>
         </div>
     </section>
@@ -162,8 +199,8 @@
             <h2>Concentric shells of different conductivity</h2>
 
             <p class="lead">The torso and the head are not homogeneous. A standard approximation represents them as
-                concentric spherical shells, each with a uniform conductivity. At every boundary the potential and
-                the normal current density are continuous:</p>
+                concentric spherical shells, each with a uniform conductivity. At every internal boundary the
+                potential and the normal current density are continuous:</p>
 
             <div class="eq-block">$$\Phi_k = \Phi_{k+1}, \qquad \sigma_k \frac{\partial \Phi_k}{\partial r} =
                 \sigma_{k+1} \frac{\partial \Phi_{k+1}}{\partial r} \qquad \text{at } r = R_k$$</div>
@@ -172,23 +209,27 @@
 
             <div class="eq-block">$$\Phi_k = \left[A_k\, r^{\,l} + B_k\, r^{-(l+1)}\right] P_l(\cos\theta)$$</div>
 
-            <p>The innermost shell holds the source, so its $r^{-(l+1)}$ coefficient is that of the homogeneous
-                solution. The outermost enabled shell extends to infinity, so its $r^{\,l}$ coefficient is zero. The
-                boundary conditions then fix every other coefficient (Rush and Driscoll, 1968).</p>
+            <p>The innermost shell holds the source, so its $r^{-(l+1)}$ coefficient is that of the unbounded
+                solution. The outermost shell ends at the skin, where the radial current is zero. These conditions
+                fix every other coefficient (Rush and Driscoll, 1968).</p>
 
             <ul class="bullets">
-                <li>The model conductivities range from $1.8\,\text{S/m}$ for cerebrospinal fluid to
-                    $0.001\,\text{S/m}$ for skin.</li>
-                <li>Low-conductivity layers such as lung, fat and skull lie between the source and the
-                    electrodes.</li>
-                <li>The ECG preset encloses the heart in blood, lung, muscle, fat and skin; the EEG preset encloses
-                    the brain in CSF, skull and scalp.</li>
+                <li>The <strong>torso</strong> model encloses the heart and its blood in lung, muscle, fat and
+                    skin. The <strong>head</strong> model encloses the brain in cerebrospinal fluid, skull and
+                    scalp.</li>
+                <li>The conductivities range from $1.8\,\text{S/m}$ for cerebrospinal fluid to
+                    $0.001\,\text{S/m}$ for dry skin. Lung, fat and skull are poor conductors that lie between
+                    the source and the electrodes.</li>
+                <li>Switching a layer off replaces its conductivity with that of the source region. With every
+                    layer off the body is a homogeneous sphere in air.</li>
+                <li>Both models place the source at the centre. A cortical source lies close to the skull, so the
+                    head model describes a deep source.</li>
             </ul>
 
             <div class="callout">
-                The skull is about 40 times less conductive than the scalp in this model. Current from a cortical
-                source spreads laterally in the CSF and scalp before reaching the electrodes, which is the main reason
-                EEG potentials are spatially smeared.
+                The skull is about 40 times less conductive than the scalp in this model. Current from a brain
+                source spreads laterally in the cerebrospinal fluid and the scalp, which is the main reason EEG
+                potentials are spatially smeared.
             </div>
         </div>
 
@@ -197,19 +238,22 @@
                 <div class="toolbar">
                     <span class="layer-chips"></span>
                     <span class="seg">
-                        <button class="seg-btn" data-action="preset-ecg">ECG preset</button>
-                        <button class="seg-btn" data-action="preset-eeg">EEG preset</button>
-                        <button class="seg-btn" data-action="all-on">all on</button>
+                        <button class="seg-btn" data-param="body" data-value="torso">torso</button>
+                        <button class="seg-btn" data-param="body" data-value="head">head</button>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-action="all-on">all layers on</button>
                         <button class="seg-btn" data-action="all-off">all off</button>
                     </span>
                 </div>
                 <div class="plot-box sigma">
-                    <div class="label">radial profile · <b>conductivity of the enabled shells</b></div>
+                    <div class="label">radial profile · <b>conductivity from the source to the skin</b></div>
                     <svg class="bode" id="plot-sigma"></svg>
                 </div>
                 <div class="legend">
                     <span>step colour and label: tissue layer, as in the chips above</span>
-                    <span><span class="sw dash"></span>electrode radius $R = 14$</span>
+                    <span><span class="sw" style="background:var(--c-ref)"></span>layer switched off</span>
+                    <span><span class="sw dash"></span>body surface, $R = 14$</span>
                 </div>
             </div>
         </div>
@@ -221,29 +265,30 @@
             <div class="eyebrow"><span class="bar"></span><span class="num">03</span><span>spatial filtering</span></div>
             <h2>The volume conductor as a spatial low-pass filter</h2>
 
-            <p class="lead">The shells multiply each multipole term by a transfer coefficient $T_l$. For a single
-                boundary between the source medium $\sigma_\text{in}$ and an outer medium $\sigma_\text{out}$,</p>
+            <p class="lead">Relative to the unbounded homogeneous medium, the body multiplies each multipole term at
+                the surface by a transfer coefficient $T_l$. For a single boundary between the source medium
+                $\sigma_\text{in}$ and an outer medium $\sigma_\text{out}$,</p>
 
             <div class="eq-block">$$T_l = \frac{(2l+1)\,\sigma_\text{in}}{l\,\sigma_\text{in} + (l+1)\,\sigma_\text{out}}$$</div>
 
-            <p>The amplitude of each term at the electrode radius $R$ is then</p>
+            <p>For a homogeneous body in air, $\sigma_\text{out} = 0$ and $T_l = (2l+1)/l$: 3 for the dipole,
+                2.5 for the quadrupole, falling towards 2. The amplitude of each term at the surface is then</p>
 
             <div class="eq-block">$$|\Phi_l(R)| \propto \frac{a_l\, T_l}{R^{\,l+1}}$$</div>
 
-            <p>Two effects act together. The geometric factor $1/R^{\,l+1}$ already favours the dipole, and for the
-                layered models $T_l$ falls as $l$ rises, so the quadrupole and octupole terms lose more amplitude than
-                the dipole term. Higher multipole orders carry finer angular detail, so the volume conductor acts as
-                a spatial low-pass filter.</p>
+            <p>Two effects act together. The geometric factor $1/R^{\,l+1}$ already favours the dipole, and $T_l$
+                falls as $l$ rises, more steeply when poorly conducting shells are present. Higher multipole orders
+                carry finer angular detail, so the volume conductor acts as a spatial low-pass filter.</p>
 
-            <p>The plot normalises both series to their own dipole term. The difference between the blue and pink
-                bars is the additional, order-dependent attenuation caused by the tissue. The overall gain $T_1$ is
-                reported separately; it exceeds 1 when a poorly conducting layer such as skin is outermost, because
-                that layer confines the current.</p>
+            <p>The plot normalises both series to their own dipole term, on a logarithmic axis. The vertical gap
+                between the two points of an order is the additional, order-dependent attenuation caused by the body. The overall gain $T_1$ is
+                reported separately; it can exceed 1 because the air boundary confines the current to the body.</p>
 
             <div class="callout">
                 Surface electrodes therefore record a smoothed image of the source. Fine spatial structure in the
                 source distribution is attenuated before it reaches the skin, which is why a single equivalent dipole
-                describes much of the surface ECG.
+                describes much of the surface ECG. The head model, with its skull, filters more strongly than the
+                torso model.
             </div>
         </div>
 
@@ -251,25 +296,27 @@
             <div class="plot-stack">
                 <div class="toolbar">
                     <span class="slider-group">
-                        <span class="lab">source complexity</span>
-                        <input type="range" data-param="complexity" min="0" max="1" step="0.05">
+                        <span class="lab">source extent $d/R$</span>
+                        <input type="range" data-param="complexity" min="0" max="0.28" step="0.02">
                         <span class="val" data-param="complexity"></span>
                     </span>
                     <span class="divider"></span>
                     <span class="seg">
-                        <button class="seg-btn" data-action="preset-ecg">ECG preset</button>
-                        <button class="seg-btn" data-action="preset-eeg">EEG preset</button>
-                        <button class="seg-btn" data-action="all-on">all on</button>
+                        <button class="seg-btn" data-param="body" data-value="torso">torso</button>
+                        <button class="seg-btn" data-param="body" data-value="head">head</button>
+                    </span>
+                    <span class="seg">
+                        <button class="seg-btn" data-action="all-on">all layers on</button>
                         <button class="seg-btn" data-action="all-off">all off</button>
                     </span>
                 </div>
-                <div class="plot-box bars">
-                    <div class="label">multipole content at $r = 14$ · <b>homogeneous against layered medium</b></div>
+                <div class="plot-box spectrum">
+                    <div class="label">multipole content at the surface · <b>unbounded reference against body</b></div>
                     <svg class="bode" id="plot-harmonics"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw band" style="background:var(--c-true)"></span>homogeneous, $T_l = 1$</span>
-                    <span><span class="sw band" style="background:var(--c-rec)"></span>with enabled shells</span>
+                    <span><span class="sw" style="background:var(--c-true)"></span>unbounded homogeneous, $T_l = 1$</span>
+                    <span><span class="sw" style="background:var(--c-rec)"></span>layered body in air</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">$T_1$</span><span class="v" data-out="t1"></span></div>
@@ -298,22 +345,23 @@
                 changes only the spatial weighting of the source.</p>
 
             <ul class="bullets">
-                <li><strong>pure dipole</strong> (source complexity 0): the potential at every electrode at $R = 14$ is scaled by
-                    the same factor $T_1$, so the recorded trace is an exact scaled copy of the true trace.</li>
+                <li><strong>pure dipole</strong> (source extent 0): the potential at every point of the surface
+                    is scaled by the same factor $T_1$, so the body trace is an exact scaled copy of the reference
+                    trace.</li>
                 <li><strong>multipole source</strong>: each order is scaled by a different $T_l$, so the ratio of the
-                    two traces changes as the source direction changes and the recorded waveform differs in
-                    shape.</li>
-                <li><strong>ECG</strong>: the dipole traces a vector loop over a $0.8\,\text{s}$ cycle
-                    ($75\,\text{bpm}$), giving P, QRS and T deflections.</li>
-                <li><strong>EEG</strong>: a mainly radial cortical dipole oscillates with components from
+                    two traces changes as the source direction changes and the waveforms differ in shape.</li>
+                <li><strong>ECG</strong>: the cardiac dipole changes magnitude and direction over a
+                    $0.8\,\text{s}$ cycle ($75\,\text{bpm}$), giving P, QRS and T deflections.</li>
+                <li><strong>EEG</strong>: a dipole on a fixed axis oscillates with components from
                     $2.5$ to $35\,\text{Hz}$, dominated by the alpha band near $10\,\text{Hz}$.</li>
             </ul>
 
             <div class="callout">
-                Selecting ECG or EEG also loads the matching tissue preset. The display scale multiplies only the
-                plotted recorded trace, so that a strongly attenuated signal can be compared in shape with the true
-                signal; the attenuation readout, an RMS ratio over the visible window, is unaffected by it. The
-                lead is sampled at $1\,\text{kHz}$, well above the highest source component.
+                Selecting ECG or EEG also selects the torso or the head model. The reference trace is the lead in
+                an unbounded homogeneous medium; the body trace is the lead on the skin of the layered body. The
+                display scale multiplies only the plotted body trace, so that the two can be compared in shape; the
+                ratio readout, an RMS ratio over the visible window, is unaffected by it. The lead is sampled at
+                $1\,\text{kHz}$, well above the highest source component.
             </div>
         </div>
 
@@ -329,12 +377,12 @@
                     <span class="divider"></span>
                     <span class="slider-group">
                         <span class="lab">display scale</span>
-                        <input type="range" data-param="lscale" min="-1" max="4" step="0.05">
+                        <input type="range" data-param="lscale" min="-1" max="1" step="0.05">
                         <span class="val" data-param="lscale"></span>
                     </span>
                     <span class="slider-group">
-                        <span class="lab">source complexity</span>
-                        <input type="range" data-param="complexity" min="0" max="1" step="0.05">
+                        <span class="lab">source extent $d/R$</span>
+                        <input type="range" data-param="complexity" min="0" max="0.28" step="0.02">
                         <span class="val" data-param="complexity"></span>
                     </span>
                     <span class="seg">
@@ -342,16 +390,16 @@
                     </span>
                 </div>
                 <div class="plot-box trace">
-                    <div class="label">differential lead · <b>true and recorded, last 4 s</b></div>
+                    <div class="label">differential lead · <b>reference and body, last 4 s</b></div>
                     <svg class="bode" id="plot-signal"></svg>
                 </div>
                 <div class="legend">
-                    <span><span class="sw" style="background:var(--c-true)"></span>true (homogeneous)</span>
-                    <span><span class="sw" style="background:var(--c-rec)"></span>recorded (with tissue) × display scale</span>
+                    <span><span class="sw" style="background:var(--c-true)"></span>unbounded homogeneous reference</span>
+                    <span><span class="sw" style="background:var(--c-rec)"></span>layered body in air × display scale</span>
                 </div>
                 <div class="readout">
                     <div class="item"><span class="k">lead</span><span class="v" data-out="lead"></span></div>
-                    <div class="item"><span class="k">recorded / true (rms)</span><span class="v" data-out="atten"></span></div>
+                    <div class="item"><span class="k">body / reference (rms)</span><span class="v" data-out="atten"></span></div>
                     <div class="item"><span class="k">as displayed (rms)</span><span class="v" data-out="disp"></span></div>
                 </div>
             </div>

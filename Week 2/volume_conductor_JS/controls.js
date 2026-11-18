@@ -31,6 +31,8 @@
             el.textContent = p.paused ? 'play' : 'pause';
             el.classList.toggle('active', p.paused);
         });
+        // Controls that apply to one body only.
+        document.querySelectorAll('[data-body]').forEach(function (el) { el.hidden = el.dataset.body !== p.body; });
         document.querySelectorAll('button[data-layer]').forEach(function (el) {
             el.classList.toggle('active', VC.layers[+el.dataset.layer].enabled);
         });
@@ -46,31 +48,34 @@
         p[k] = v;
         if (k === 'angle') p.mode = 'manual';
         if (k === 'mode') {
-            if (VC.PRESETS[v]) VC.setLayers(VC.PRESETS[v]);
             VC.restart();
+            // The ECG and EEG sources belong to the torso and the head.
+            if (VC.BODY_OF_MODE[v] && p.body !== VC.BODY_OF_MODE[v]) { set('body', VC.BODY_OF_MODE[v]); }
         }
+        if (k === 'body') { VC.layersChanged(); buildChips(); }
         if (k === 'complexity') VC.clearHistory();
-        emit(k);
+        emit(k === 'body' ? 'layers' : k);
     }
 
     var actions = {
         pause: function (VC) { VC.p.paused = !VC.p.paused; emit('paused'); },
-        'preset-ecg': function () { set('mode', 'ecg'); },
-        'preset-eeg': function () { set('mode', 'eeg'); },
         'all-on': function (VC) { VC.setLayers(true); emit('layers'); },
-        'all-off': function (VC) { VC.setLayers([]); emit('layers'); },
-        place: function () { emit('place'); },
+        'all-off': function (VC) { VC.setLayers(false); emit('layers'); },
         'reset-electrodes': function (VC) { VC.resetElectrodes(); emit('electrodes'); }
     };
 
+    // One chip per layer of the current body. The source layer is fixed on;
+    // switching another layer off gives it the source-region conductivity.
     function buildChips() {
         document.querySelectorAll('.layer-chips').forEach(function (box) {
-            window.VC.layers.forEach(function (l, i) {
-                var b = document.createElement('button');
+            box.innerHTML = '';
+            window.VC.bodyLayers().forEach(function (a) {
+                var l = a.layer, b = document.createElement('button');
                 b.className = 'seg-btn layer-btn';
-                b.dataset.layer = i;
+                b.dataset.layer = l.index;
+                b.disabled = l.source;
                 b.innerHTML = '<span class="sw" style="background:var(--c-t-' + l.key + ')"></span>' +
-                    l.name + ' <span class="sig"></span>';
+                    l.name + (l.source ? ' (source)' : '') + ' <span class="sig"></span>';
                 if (window.katex) window.katex.render('\\sigma = ' + l.sigma, b.querySelector('.sig'), { throwOnError: false });
                 b.addEventListener('click', function () {
                     l.enabled = !l.enabled;
