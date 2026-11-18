@@ -39,6 +39,6 @@
     --c-band: var(--grid-line);      /* ECG bandwidth */
 }
 .plot-box.bv      { aspect-ratio: 1.35 / 1; }
-.plot-box.circuit { aspect-ratio: 640 / 236; }
+.plot-box.circuit { aspect-ratio: 700 / 236; }
 .plot-box.zmag    { aspect-ratio: 1.6 / 1; }
 .legend .dot.ring { background: var(--white); border: 2.5px solid var(--c-nernst); box-sizing: border-box; width: 11px; height: 11px; }
